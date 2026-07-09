@@ -10,16 +10,17 @@ Application web **white-label** de gestion de projet, événements, réseaux soc
 
 | Module | Description |
 |---|---|
-| **Tableau de bord** | Kanban, to-do, calendrier, charge équipe, analytics, archives |
-| **Interface V2** | Vue liste, inbox, triage, automatisations, IA, planning, OKR |
+| **Tableau de bord** | Kanban, inbox, triage, liste, to-do, calendrier, analytics, charge |
+| **Mon espace** | Agenda du jour, suggestions IA |
+| **Planning** | Vues semaine, mois, timeline et charge |
 | **Événements** | Salons, budget, tâches, run-of-show, RETEX |
 | **Réseaux sociaux** | Calendrier éditorial, posts, stats LinkedIn, repurposing IA |
 | **Stock** | Impressions, PLV, goodies, alertes Slack |
 | **Questionnaires** | Création, diffusion, analyse des réponses |
-| **Boîte à idées** | Soumission publique ou interne, votes (V2) |
+| **Boîte à idées** | Soumission publique ou interne, votes |
 | **Paramètres** | Équipe, entités, domaines, colonnes, taxonomies, branding |
 
-Deux interfaces coexistent : **V1** (classique) et **V2** (avancée, activable dans les paramètres).
+Une seule interface unifiée — plus de bascule V1/V2.
 
 ---
 

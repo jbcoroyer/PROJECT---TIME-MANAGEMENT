@@ -14,7 +14,7 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
-import AppShell from "../../components/AppShell";
+import AppShell from "../../components/v2/AppShell";
 import { useConfirm } from "../../components/ui/ConfirmDialog";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { useBranding } from "../../lib/brandingContext";
@@ -120,13 +120,7 @@ export default function IdeasPage() {
     setDescription("");
   };
 
-  return (
-    <AppShell
-      currentUserName={currentUser?.teamMemberName ?? currentUser?.displayName ?? undefined}
-      currentUserEmail={currentUser?.email}
-      currentUserAvatarUrl={currentUser?.avatarUrl ?? null}
-      currentUserJobTitle={currentUser?.jobTitle ?? null}
-    >
+  const content = (
       <div className="space-y-6">
         <header className="ui-surface relative overflow-hidden rounded-[28px] p-8">
           <div
@@ -285,7 +279,25 @@ export default function IdeasPage() {
           })}
         </div>
       </div>
-    </AppShell>
+  );
+
+  if (currentUser) {
+    return (
+      <AppShell
+        currentUserName={currentUser.teamMemberName ?? currentUser.displayName ?? undefined}
+        currentUserEmail={currentUser.email}
+        currentUserAvatarUrl={currentUser.avatarUrl ?? null}
+        currentUserJobTitle={currentUser.jobTitle ?? null}
+      >
+        {content}
+      </AppShell>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--background)] px-4 py-8 lg:px-8">
+      <div className="mx-auto max-w-6xl">{content}</div>
+    </div>
   );
 }
 

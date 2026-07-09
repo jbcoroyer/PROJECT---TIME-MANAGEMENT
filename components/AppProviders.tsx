@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AppVersionProvider } from "../lib/appVersionContext";
 import { CurrentUserProvider } from "../lib/currentUserContext";
 import { BrandingProvider } from "../lib/brandingContext";
 import { InAppNotificationProvider } from "../lib/inAppNotificationsContext";
@@ -16,14 +15,12 @@ export default function AppProviders({ children }: { children: ReactNode }) {
       <BrandingProvider>
         <ReferenceDataProvider>
           <TasksProvider>
-            <AppVersionProvider>
-              <ConfirmDialogProvider>
-                <InAppNotificationProvider>
-                  <SetupRedirect />
-                  {children}
-                </InAppNotificationProvider>
-              </ConfirmDialogProvider>
-            </AppVersionProvider>
+            <ConfirmDialogProvider>
+              <InAppNotificationProvider>
+                <SetupRedirect />
+                {children}
+              </InAppNotificationProvider>
+            </ConfirmDialogProvider>
           </TasksProvider>
         </ReferenceDataProvider>
       </BrandingProvider>

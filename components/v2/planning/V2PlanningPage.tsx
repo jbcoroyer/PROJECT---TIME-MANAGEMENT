@@ -119,7 +119,7 @@ export default function V2PlanningPage() {
         <header className="ui-surface flex flex-wrap items-start justify-between gap-4 rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
           <div>
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-              <CalendarDays className="h-3.5 w-3.5" /> Planning · V2
+              <CalendarDays className="h-3.5 w-3.5" /> Planning
             </p>
             <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Vues synchronisées</h1>
             <p className="mt-1 text-sm text-[color:var(--foreground)]/55">

@@ -62,13 +62,13 @@ export default function V2TodoPage() {
     }
   };
 
-  const openTask = () => router.push("/v2/dashboard/kanban");
+  const openTask = () => router.push("/dashboard/kanban");
 
   return (
       <div className="space-y-5">
         <header className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-            <CalendarCheck className="h-3.5 w-3.5" /> Mon espace · V2
+            <CalendarCheck className="h-3.5 w-3.5" /> Mon espace
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
             {userName ? `Bonjour ${userName.split(" ")[0]}` : "Mon agenda"}

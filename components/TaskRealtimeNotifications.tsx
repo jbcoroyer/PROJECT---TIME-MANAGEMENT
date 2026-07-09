@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { getSupabaseBrowser } from "../lib/supabaseBrowser";
 import { useCurrentUser } from "../lib/useCurrentUser";
 import { deadlineDateOnly, daysFromTodayUtc, taskRowConcernsUser } from "../lib/taskConcernsUser";
-import { kanbanHref } from "../lib/appVersion";
+import { kanbanHref } from "../lib/routes";
 import { wasTaskMutatedLocally } from "../lib/taskMutatedLocally";
 import type { InAppNotificationInput } from "../lib/inAppNotificationTypes";
 import { inAppNotificationStorageKey } from "../lib/storageKeys";
@@ -103,7 +103,7 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
             pushRef.current({
               title: "Nouvelle tâche",
               body: `« ${name} » vous concerne.`,
-              href: kanbanHref(window.location.pathname, taskId),
+              href: kanbanHref(taskId),
             });
             return;
           }
@@ -128,7 +128,7 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
               pushRef.current({
                 title: "Ajout au projet",
                 body: `Vous suivez désormais « ${projectName(newRow)} ».`,
-                href: kanbanHref(window.location.pathname, taskId),
+                href: kanbanHref(taskId),
               });
               return;
             }
@@ -149,7 +149,7 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
                 pushRef.current({
                   title: `« ${projectName(newRow)} »`,
                   body: label,
-                  href: kanbanHref(window.location.pathname, taskId),
+                  href: kanbanHref(taskId),
                 });
               }
             }
@@ -165,7 +165,7 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
                 pushRef.current({
                   title: "Tâche déplacée",
                   body: `« ${projectName(newRow)} » → ${newCol}`,
-                  href: kanbanHref(window.location.pathname, taskId),
+                  href: kanbanHref(taskId),
                 });
               }
             }
@@ -250,7 +250,7 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
         pushRef.current({
           title,
           body,
-          href: kanbanHref(window.location.pathname, taskId),
+          href: kanbanHref(taskId),
         });
       }
     };

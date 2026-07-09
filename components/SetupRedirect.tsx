@@ -18,7 +18,7 @@ export default function SetupRedirect() {
 
     if (branding.isConfigured) {
       if (pathname === SETUP_PATH) {
-        router.replace("/v2/dashboard/kanban");
+        router.replace("/dashboard/kanban");
       }
       return;
     }

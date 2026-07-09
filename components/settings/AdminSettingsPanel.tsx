@@ -31,7 +31,6 @@ import { useCurrentUser } from "../../lib/useCurrentUser";
 import { syncAdminColorAssignments } from "../../lib/adminColorAssignments";
 import { adminSolidColorFor, getAdminColorPaletteSize } from "../../lib/kanbanStyles";
 import type { AdminId } from "../../lib/types";
-import AppVersionSettings from "./AppVersionSettings";
 import { parsePrintSpecies, parseSocialThematics } from "../../lib/taxonomies";
 import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
@@ -1149,8 +1148,6 @@ export default function AdminSettingsPanel() {
             </p>
           </div>
         </Section>
-
-        <AppVersionSettings />
       </section>
     </>
   );

@@ -32,7 +32,7 @@ export default function SurveyAdminGuard({ children }: { children: ReactNode }) 
           <p className="mt-2 text-sm text-[color:var(--foreground)]/60">
             La gestion des questionnaires est réservée à l&apos;administrateur.
           </p>
-          <Link href="/v2/dashboard/kanban" className="ui-btn ui-btn-secondary mt-6 inline-flex">
+          <Link href="/dashboard/kanban" className="ui-btn ui-btn-secondary mt-6 inline-flex">
             Retour au tableau de bord
           </Link>
         </div>

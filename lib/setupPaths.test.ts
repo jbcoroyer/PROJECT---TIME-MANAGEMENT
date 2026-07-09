@@ -17,6 +17,6 @@ describe("isSetupExemptPath", () => {
   it("redirige les pages applicatives", () => {
     expect(isSetupExemptPath("/dashboard/kanban")).toBe(false);
     expect(isSetupExemptPath("/settings")).toBe(false);
-    expect(isSetupExemptPath("/v2/dashboard/kanban")).toBe(false);
+    expect(isSetupExemptPath("/dashboard/kanban")).toBe(false);
   });
 });

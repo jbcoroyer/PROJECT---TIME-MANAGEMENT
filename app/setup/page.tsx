@@ -11,7 +11,7 @@ export default async function SetupPage() {
   const access = await getSetupAccess();
 
   if (access.isConfigured) {
-    redirect("/v2/dashboard/kanban");
+    redirect("/dashboard/kanban");
   }
 
   if (!access.isAuthenticated) {

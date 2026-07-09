@@ -178,7 +178,7 @@ export default function V2DashboardHomePage() {
   const navigateToTab = useCallback(
     (tab: MainTab) => {
       const q = searchQuery.trim();
-      const next = q ? `/v2/dashboard/${tab}?q=${encodeURIComponent(q)}` : `/v2/dashboard/${tab}`;
+      const next = q ? `/dashboard/${tab}?q=${encodeURIComponent(q)}` : `/dashboard/${tab}`;
       router.push(next);
     },
     [router, searchQuery],
@@ -265,8 +265,8 @@ export default function V2DashboardHomePage() {
     const q = searchParams.get("q");
     if (q) next.set("q", q);
     const target =
-      next.toString().length > 0 ? `/v2/dashboard/kanban?${next.toString()}` : "/v2/dashboard/kanban";
-    if (pathname !== "/v2/dashboard/kanban" || searchParams.has("task")) {
+      next.toString().length > 0 ? `/dashboard/kanban?${next.toString()}` : "/dashboard/kanban";
+    if (pathname !== "/dashboard/kanban" || searchParams.has("task")) {
       router.replace(target, { scroll: false });
     }
   }, [tasks, searchParams, pathname, router]);
@@ -548,7 +548,7 @@ export default function V2DashboardHomePage() {
           pushNotification({
             title: rule.name,
             body: rule.actionParams.message || `Automatisation appliquée à « ${task.projectName} »`,
-            href: `/v2/dashboard/kanban?task=${task.id}`,
+            href: `/dashboard/kanban?task=${task.id}`,
           });
           break;
         }
@@ -914,8 +914,8 @@ export default function V2DashboardHomePage() {
       { id: "nav-analytics", group: "Navigation", label: "Analytics", hint: "G A", perform: () => navigateToTab("analytics") },
       { id: "nav-archives", group: "Navigation", label: "Archives", hint: "G R", perform: () => navigateToTab("archives") },
       { id: "nav-triage", group: "Navigation", label: "Triage des demandes", hint: "G D", perform: () => navigateToTab("triage") },
-      { id: "open-asks", group: "Navigation", label: "Faire une demande", keywords: ["asks", "intake", "demande"], perform: () => router.push("/v2/asks") },
-      { id: "open-automations", group: "Navigation", label: "Automatisations (paramètres)", keywords: ["règles", "automation"], perform: () => router.push("/v2/settings") },
+      { id: "open-asks", group: "Navigation", label: "Faire une demande", keywords: ["asks", "intake", "demande"], perform: () => router.push("/asks") },
+      { id: "open-automations", group: "Navigation", label: "Automatisations (paramètres)", keywords: ["règles", "automation"], perform: () => router.push("/settings") },
       ...TASK_TEMPLATES.map((tpl) => ({
         id: `template-${tpl.id}`,
         group: "Modèles",
@@ -1040,7 +1040,7 @@ export default function V2DashboardHomePage() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
-                  {branding.tagline.trim() || branding.appName} · V2
+                  {branding.tagline.trim() || branding.appName}
                 </p>
                 {effectiveUser ? (
                   <h1 className="ui-heading mt-1 text-3xl font-semibold tracking-tight text-[var(--foreground)]">

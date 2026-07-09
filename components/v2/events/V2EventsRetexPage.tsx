@@ -74,7 +74,7 @@ export default function V2EventsRetexPage() {
       <div className="space-y-5">
         <header className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-            <CalendarRange className="h-3.5 w-3.5" /> Événements · V2
+            <CalendarRange className="h-3.5 w-3.5" /> Événements
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">RETEX événement</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
@@ -82,7 +82,7 @@ export default function V2EventsRetexPage() {
           </p>
         </header>
 
-        <EventsSectionNav basePath="/v2/events" showRetex />
+        <EventsSectionNav basePath="/events" showRetex />
 
         <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
           <aside className="ui-surface rounded-2xl p-4">

@@ -26,7 +26,6 @@ import {
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { BrandHeading } from "../AppBrand";
-import AppVersionToggle from "../AppVersionToggle";
 
 type V2AppShellProps = {
   children: ReactNode;
@@ -39,32 +38,32 @@ type V2AppShellProps = {
 };
 
 const navItems = [
-  { href: "/v2/dashboard/kanban", label: "Tableau de bord", icon: LayoutGrid },
-  { href: "/v2/asks", label: "Faire une demande", icon: Send },
-  { href: "/v2/todo", label: "Mon espace", icon: ListTodo },
-  { href: "/v2/planning", label: "Planning", icon: CalendarDays },
-  { href: "/v2/dashboard/triage", label: "Demandes (triage)", icon: Inbox },
-  { href: "/v2/events/dashboard", label: "Événements", icon: CalendarRange },
-  { href: "/v2/social", label: "Réseaux sociaux", icon: Megaphone },
-  { href: "/v2/dam", label: "Bibliothèque (DAM)", icon: FolderOpen },
-  { href: "/v2/stock", label: "Stock", icon: Package },
-  { href: "/v2/ideas", label: "Boîte à idées", icon: Lightbulb },
-  { href: "/v2/okr", label: "Objectifs (OKR)", icon: Target },
-  { href: "/v2/settings", label: "Paramètres", icon: Settings2 },
+  { href: "/dashboard/kanban", label: "Tableau de bord", icon: LayoutGrid },
+  { href: "/asks", label: "Faire une demande", icon: Send },
+  { href: "/todo", label: "Mon espace", icon: ListTodo },
+  { href: "/planning", label: "Planning", icon: CalendarDays },
+  { href: "/dashboard/triage", label: "Demandes (triage)", icon: Inbox },
+  { href: "/events/dashboard", label: "Événements", icon: CalendarRange },
+  { href: "/social", label: "Réseaux sociaux", icon: Megaphone },
+  { href: "/dam", label: "Bibliothèque (DAM)", icon: FolderOpen },
+  { href: "/stock", label: "Stock", icon: Package },
+  { href: "/ideas", label: "Boîte à idées", icon: Lightbulb },
+  { href: "/okr", label: "Objectifs (OKR)", icon: Target },
+  { href: "/settings", label: "Paramètres", icon: Settings2 },
 ] as const;
 
 function isNavActive(href: string, pathname: string): boolean {
-  if (href === "/v2/events/dashboard") return pathname.startsWith("/v2/events");
-  if (href === "/v2/dashboard/triage") return pathname === "/v2/dashboard/triage";
-  if (href === "/v2/asks") return pathname === "/v2/asks";
-  if (href === "/v2/dashboard/kanban") {
+  if (href === "/events/dashboard") return pathname.startsWith("/events");
+  if (href === "/dashboard/triage") return pathname === "/dashboard/triage";
+  if (href === "/asks") return pathname === "/asks";
+  if (href === "/dashboard/kanban") {
     return (
-      pathname === "/v2" ||
-      (pathname.startsWith("/v2/dashboard") && pathname !== "/v2/dashboard/triage")
+      pathname === "/dashboard/kanban" ||
+      (pathname.startsWith("/dashboard") && pathname !== "/dashboard/triage")
     );
   }
-  if (href === "/v2/stock") return pathname.startsWith("/v2/stock");
-  if (href === "/v2/ideas") return pathname.startsWith("/v2/ideas");
+  if (href === "/stock") return pathname.startsWith("/stock");
+  if (href === "/ideas") return pathname.startsWith("/ideas");
   if (href === "/questionnaire/reponses") return pathname.startsWith("/questionnaire/reponses");
   return pathname === href;
 }
@@ -289,7 +288,6 @@ export default function V2AppShell({
               )}
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <AppVersionToggle />
               {toolbarRight}
             </div>
           </header>

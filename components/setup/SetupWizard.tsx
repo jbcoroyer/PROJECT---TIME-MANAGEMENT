@@ -7,16 +7,17 @@ import {
   ArrowRight,
   Check,
   ImageIcon,
-  Palette,
   Sparkles,
 } from "lucide-react";
 import { completeInitialSetup } from "../../app/actions/setup";
 import { AppMark } from "../AppBrand";
+import BrandColorPicker from "./BrandColorPicker";
 import { useBranding } from "../../lib/brandingContext";
 import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
+import { normalizeHexColor } from "../../lib/brandColorPresets";
 import { toastError, toastSuccess } from "../../lib/toast";
 
 const TIMEZONE_OPTIONS = [
@@ -101,7 +102,7 @@ export default function SetupWizard() {
       appName: name,
       appShortName: name,
       tagline: tagline.trim(),
-      primaryColor,
+      primaryColor: normalizeHexColor(primaryColor) || primaryColor,
       markUrl,
       timezone,
       sector: sector.trim() || null,
@@ -117,7 +118,7 @@ export default function SetupWizard() {
 
     await reload();
     toastSuccess(t("setup.complete"));
-    router.replace("/v2/dashboard/kanban");
+    router.replace("/dashboard/kanban");
   }
 
   return (
@@ -191,25 +192,11 @@ export default function SetupWizard() {
           </div>
 
           <div>
-            <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
-              <Palette className="h-4 w-4" />
-              {t("setup.primaryColor")}
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={primaryColor}
-                onChange={(e) => setPrimaryColor(e.target.value)}
-                className="h-11 w-14 cursor-pointer rounded-lg border border-[var(--line)] bg-transparent"
-              />
-              <input
-                type="text"
-                value={primaryColor}
-                onChange={(e) => setPrimaryColor(e.target.value)}
-                className="ui-input flex-1"
-                placeholder="#2563eb"
-              />
-            </div>
+            <p className="mb-3 text-sm font-semibold text-[var(--foreground)]">{t("setup.primaryColor")}</p>
+            <BrandColorPicker
+              value={primaryColor}
+              onChange={(hex) => setPrimaryColor(normalizeHexColor(hex) || hex)}
+            />
           </div>
 
           <div>

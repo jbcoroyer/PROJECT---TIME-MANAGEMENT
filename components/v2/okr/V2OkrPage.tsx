@@ -43,7 +43,7 @@ export default function V2OkrPage() {
       <div className="space-y-5">
         <header className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-            <Target className="h-3.5 w-3.5" /> Objectifs · V2
+            <Target className="h-3.5 w-3.5" /> Objectifs
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">OKR reliés aux tâches</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/55">

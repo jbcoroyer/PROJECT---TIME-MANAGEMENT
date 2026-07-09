@@ -8,8 +8,8 @@ export default function V2EventsDashboardClient() {
 
   return (
     <EventsHubWorkspace
-      eventsBasePath="/v2/events"
-      kanbanPath="/v2/dashboard/kanban"
+      eventsBasePath="/events"
+      kanbanPath="/dashboard/kanban"
       showRetexNav
       defaultAdminName={user?.teamMemberName ?? user?.displayName ?? ""}
     />

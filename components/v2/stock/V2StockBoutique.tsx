@@ -136,7 +136,7 @@ function itemSearchHaystack(item: InventoryItem, printSpeciesOptions: PrintSpeci
   return [item.name, item.itemType, item.lastQuoteInfo].filter(Boolean).join(" ");
 }
 
-export default function V2StockBoutique({ basePath = "/v2/stock" }: { basePath?: string }) {
+export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: string }) {
   const { branding } = useBranding();
   const printSpeciesOptions = branding.printSpecies;
   const { user: currentUser } = useCurrentUser();

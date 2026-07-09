@@ -11,7 +11,7 @@ export default function V2SettingsPage() {
       <div className="space-y-8">
         <section className="space-y-5">
           <header className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">Paramètres · V2</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">Paramètres</p>
             <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Automatisations &amp; règles</h1>
             <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
               Configurez les règles « si… alors… » et l&apos;auto-archivage.
