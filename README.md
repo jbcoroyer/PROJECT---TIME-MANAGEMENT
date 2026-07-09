@@ -1,212 +1,71 @@
-# IDENA — Service Communication
+# Workspace — Gestion de projet & communication
 
-Application web de **gestion de projet et de communication** pour le service Communication IDENA. Elle centralise les tâches, les événements (salons), les réseaux sociaux, le stock de supports et la boîte à idées, avec une interface standard (V1) et une interface avancée expérimentale (V2).
+Application web **white-label** de gestion de projet, événements, réseaux sociaux, stock et questionnaires. Chaque organisation installe sa propre instance, personnalise le nom, les couleurs, les entités et les taxonomies métier.
 
-**Dépôt :** [github.com/jbcoroyer/project-management-communication](https://github.com/jbcoroyer/project-management-communication)
-
----
-
-## Vue d'ensemble
-
-| | V1 (interface standard) | V2 (interface avancée) |
-|---|---|---|
-| **Accès** | Par défaut après connexion | Activable dans **Paramètres → Interface avancée** |
-| **URL** | `/dashboard`, `/events`, `/stock`, … | `/v2/*` |
-| **Focus** | Kanban, modules métier, simplicité | Vue liste type Monday, IA, automatisations, intake |
-
-La V2 est protégée par un garde d'accès : sans activation dans les paramètres, les routes `/v2/*` redirigent vers l'équivalent V1.
+**Dépôt :** [github.com/jbcoroyer/PROJECT---TIME-MANAGEMENT](https://github.com/jbcoroyer/PROJECT---TIME-MANAGEMENT)
 
 ---
 
-## Fonctionnalités
+## Fonctionnalités principales
 
-### Tableau de bord & tâches
-
-Disponible en V1 (`/dashboard/*`) et V2 (`/v2/dashboard/*`).
-
-- **Kanban** — colonnes personnalisables, glisser-déposer, sous-tâches, priorités, domaines et marques
-- **Ma To-Do List** — tâches personnelles filtrées par assigné
-- **Calendrier** — échéances et travail projeté par jour
-- **Charge équipe** — répartition de la charge par membre
-- **Analytics** — indicateurs de performance et d'avancement
-- **Archives** — tâches terminées et archivées
-- **Recherche** et barre de commandes (V2 : palette `Cmd+K`)
-- **Notifications** in-app et animation de fin de tâche
-
-**Spécifique V2 :**
-
-- **Inbox** — file de notifications et actions rapides
-- **Vue liste** — tableau dense type Monday (groupement, édition inline, champs personnalisés)
-- **Triage** — qualification des demandes entrantes (intake)
-- **Présence** — indicateur des collaborateurs connectés
-- **Automatisations** — règles « si… alors… » (création, changement de colonne, échéance dépassée, tâche terminée)
-- **Templates de tâches** et ajout rapide
-- **Auto-archivage** configurable
-
-### Mon espace (V2)
-
-`/v2/todo` — agenda du jour généré à partir des tâches assignées, avec suggestions IA pour optimiser la journée et accès à l'inbox.
-
-### Planning & capacité (V2)
-
-- **Planning** (`/v2/planning`) — vues semaine, mois, timeline et charge ; détection de conflits
-- **Charge d'équipe** (`/v2/capacity`) — heatmap sur 8 semaines, scénarios avec placeholders, suggestions de staffing
-
-### Assistant IA & agents (V2)
-
-`/v2/assistant`
-
-- **Agents contextuels** — synthèse hebdomadaire, tâches en retard, stand-up, tâches sans échéance
-- **Recherche en langage naturel** sur les tâches, événements et stock
-- **Panneau flottant** contextuel selon la page visitée
-- Backend **OpenRouter** si `OPENROUTER_API_KEY` est configurée, sinon repli local déterministe
-
-### Intake & demandes
-
-- **Formulaire public** `/v2/asks` — soumission de demandes au service Communication (titre, description, échéance, budget, priorité, demandeur…)
-- **Triage** (`/v2/dashboard/triage`) — accepter, rejeter ou convertir une demande en tâche Kanban
-- Suggestion automatique de domaine à partir du texte
-
-### Événements (salons)
-
-V1 : `/events` — V2 : `/v2/events`
-
-- **Hub événementiel** — liste des salons, budget annuel engagé, timeline
-- **Fiche événement** — tâches liées, budget, dépenses, documents, réserves stock, run-of-show, jalons, checklist de préparation
-- **Kanban événement** — tâches spécifiques au salon
-- **RETEX** (V2, `/v2/events/retex`) — post-mortem structuré avec enrichissement IA
-
-### Réseaux sociaux
-
-V1 : `/social` — V2 : `/v2/social`
-
-- Calendrier éditorial (mois, semaine, liste)
-- Création et édition de posts (statuts, responsable, marque)
-- Conversion d'un post en tâche Kanban en un clic
-- Statistiques LinkedIn (followers via API)
-- Repurposing IA multi-réseaux (LinkedIn, Instagram, Facebook, X)
-
-### Stock
-
-V1 : `/stock` — V2 : `/v2/stock`
-
-- Inventaire multi-catégories : **impressions**, **PLV**, **goodies**
-- Mouvements entrée/sortie, historique, dashboard analytique
-- Alertes de seuil avec webhook **Slack** (`SLACK_WEBHOOK_URL`)
-- Projets stock et réapprovisionnement
-- Regroupement des impressions par espèce (volaille, ruminants, porcs…) et filiale
-
-### Boîte à idées
-
-- **V1** `/ideas` — accessible aussi **sans compte** (soumission publique)
-- **V2** `/v2/ideas` — votes, conversion d'une idée en tâche Kanban
-- Catégories : matériel, process, communication, autre
-- Workflow : Nouvelle → À creuser → Adoptée → Archives
-- API publique : `GET/POST /api/public/ideas`
-
-### DAM — bibliothèque d'assets (V2)
-
-`/v2/dam` — centralisation de logos, visuels et templates par marque, avec tags et recherche.
-
-### OKR (V2)
-
-`/v2/okr` — objectifs et résultats clés reliés aux domaines, avec progression calculée depuis les tâches.
-
-### Paramètres & administration
-
-`/settings` (V1) et `/v2/settings` (V2)
-
-- Gestion des **membres d'équipe**, **marques**, **domaines** et **colonnes** Kanban
-- Couleurs d'assignation, logo IDENA (`NEXT_PUBLIC_IDENA_MARK_SRC`)
-- **Connexion Outlook / Microsoft 365** — synchronisation du travail projeté vers l'agenda personnel
-- **Interface avancée V2** — interrupteur d'activation
-- **Automatisations** (V2) — configuration des règles et auto-archivage
-
-### Authentification
-
-- Connexion / inscription via **Supabase Auth** (`/login`)
-- Profil : nom, poste, photo
-- Réinitialisation du mot de passe (`/login/reset-password`)
-- Callback OAuth (`/auth/callback`) et protection des routes par middleware
-
-### Intégrations
-
-| Intégration | Usage |
+| Module | Description |
 |---|---|
-| **Supabase** | Base PostgreSQL, Auth, Storage, Realtime |
-| **Microsoft 365 / Outlook** | Sync calendrier (travail projeté → événements Outlook) |
-| **OpenRouter** | Synthèses et agents IA (optionnel) |
-| **Slack** | Alertes stock sous seuil (optionnel) |
-| **Vercel** | Hébergement et déploiement |
+| **Tableau de bord** | Kanban, to-do, calendrier, charge équipe, analytics, archives |
+| **Interface V2** | Vue liste, inbox, triage, automatisations, IA, planning, OKR |
+| **Événements** | Salons, budget, tâches, run-of-show, RETEX |
+| **Réseaux sociaux** | Calendrier éditorial, posts, stats LinkedIn, repurposing IA |
+| **Stock** | Impressions, PLV, goodies, alertes Slack |
+| **Questionnaires** | Création, diffusion, analyse des réponses |
+| **Boîte à idées** | Soumission publique ou interne, votes (V2) |
+| **Paramètres** | Équipe, entités, domaines, colonnes, taxonomies, branding |
+
+Deux interfaces coexistent : **V1** (classique) et **V2** (avancée, activable dans les paramètres).
 
 ---
 
-## Stack technique
+## Première installation
 
-| Couche | Technologie |
-|---|---|
-| Framework | [Next.js 16](https://nextjs.org) (App Router) |
-| UI | React 19, Tailwind CSS 4, Framer Motion, Lucide |
-| Données | Supabase (`@supabase/ssr`, `@supabase/supabase-js`) |
-| Formulaires | React Hook Form + Zod |
-| Kanban / DnD | `@dnd-kit/core` |
-| Calendrier | `react-big-calendar`, `date-fns` |
-| Graphiques | Recharts |
-| Tests | Vitest |
-| Déploiement | Vercel |
-
----
-
-## Installation & développement local
-
-### Prérequis
+### 1. Prérequis
 
 - Node.js 20+
-- Un projet [Supabase](https://supabase.com) configuré
+- Un projet [Supabase](https://supabase.com) (PostgreSQL, Auth, Storage, Realtime)
 
-### Étapes
+### 2. Cloner et installer
 
 ```bash
-git clone https://github.com/jbcoroyer/project-management-communication.git
-cd project-management-communication
+git clone https://github.com/jbcoroyer/PROJECT---TIME-MANAGEMENT.git
+cd PROJECT---TIME-MANAGEMENT
 npm install
 ```
 
-Créez un fichier `.env.local` à la racine :
+### 3. Variables d'environnement
 
-```env
-# Supabase (obligatoire)
-NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+Copiez le modèle et renseignez vos clés Supabase :
 
-# Application
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Optionnel — logo IDENA personnalisé
-NEXT_PUBLIC_IDENA_MARK_SRC=/idena-mark.png
-
-# Optionnel — IA (OpenRouter)
-OPENROUTER_API_KEY=
-OPENROUTER_MODEL=openai/gpt-4o-mini
-
-# Optionnel — Microsoft 365 / Outlook
-MS_CLIENT_ID=
-MS_CLIENT_SECRET=
-MS_TENANT_ID=common
-MS_REDIRECT_URI=
-MS_TIMEZONE=Romance Standard Time
-MS_OUTLOOK_CATEGORY_NAME=IDENA Planification
-MS_OUTLOOK_CATEGORY_COLOR=preset1
-
-# Optionnel — alertes stock Slack
-SLACK_WEBHOOK_URL=
-
-# Optionnel — scripts de migration SQL locaux
-SUPABASE_DB_PASSWORD=
+```bash
+cp .env.example .env.local
 ```
 
-Lancez le serveur de développement :
+Variables **obligatoires** :
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique (anon) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clé service (serveur uniquement) |
+| `NEXT_PUBLIC_APP_URL` | URL publique de l'app (ex. `http://localhost:3000`) |
+
+### 4. Migrations Supabase
+
+Appliquez les fichiers SQL dans `supabase/migrations/` dans l'ordre chronologique :
+
+- via le **SQL Editor** Supabase,
+- ou avec la CLI : `supabase db push`,
+- ou les scripts `npm run db:*` (nécessitent `SUPABASE_DB_PASSWORD`).
+
+La migration `20260520000000_initial_base_schema.sql` crée le schéma complet (tables, RLS, buckets Storage).
+
+### 5. Lancer l'application
 
 ```bash
 npm run dev
@@ -214,95 +73,137 @@ npm run dev
 
 Ouvrez [http://localhost:3000](http://localhost:3000).
 
-### Scripts utiles
+### 6. Assistant d'installation (`/setup`)
+
+Au premier lancement :
+
+1. **Créez un compte** sur `/login` (le premier utilisateur devient administrateur s'il n'y en a pas encore).
+2. L'assistant `/setup` vous guide en 3 étapes :
+   - Nom et slogan de l'organisation
+   - Couleur principale et pictogramme
+   - Langue, fuseau horaire, secteur d'activité
+3. Une fois terminé, l'application est marquée comme configurée (`is_configured = true`).
+
+Vous pouvez ensuite affiner **Paramètres → Entités**, **Taxonomies** et **Identité visuelle**.
+
+---
+
+## Personnalisation (white-label)
+
+| Élément | Où le configurer |
+|---|---|
+| Nom, slogan, couleur, pictogramme | `/setup` ou Paramètres → Identité visuelle |
+| Langue (fr / en) | `/setup` ou Paramètres → Identité visuelle |
+| Entités / sociétés | Paramètres → Entités |
+| Thématiques social & catégories print | Paramètres → Taxonomies |
+| Équipe, domaines, colonnes Kanban | Paramètres |
+
+Variables d'environnement de secours (avant configuration en base) :
+
+```env
+NEXT_PUBLIC_APP_NAME=Mon équipe
+NEXT_PUBLIC_APP_MARK_SRC=/app-mark.svg
+NEXT_PUBLIC_APP_PRIMARY_COLOR=#2563eb
+NEXT_PUBLIC_APP_LOCALE=fr
+```
+
+---
+
+## Internationalisation (i18n)
+
+Langues supportées : **français** et **anglais**.
+
+- La langue est stockée dans `app_settings.locale`.
+- Écrans traduits : connexion, assistant d'installation, messages communs.
+- Le reste de l'interface reste en français pour l'instant ; les clés de traduction sont dans `lib/i18n/messages/`.
+
+Pour ajouter une traduction dans un composant client :
+
+```tsx
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
+const { t, locale } = useTranslation();
+return <button>{t("common.save")}</button>;
+```
+
+---
+
+## Stack technique
+
+| Couche | Technologie |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19, Tailwind CSS 4 |
+| Données | Supabase (PostgreSQL, Auth, Storage, Realtime) |
+| Formulaires | React Hook Form + Zod |
+| Tests | Vitest |
+| Déploiement | Vercel (recommandé) |
+
+---
+
+## Scripts utiles
 
 | Commande | Description |
 |---|---|
 | `npm run dev` | Serveur de développement |
 | `npm run build` | Build de production |
 | `npm run start` | Serveur de production |
-| `npm run lint` | ESLint |
 | `npm test` | Tests Vitest |
+| `npm run lint` | ESLint |
 | `npm run db:ideas-public` | Migration boîte à idées publique |
 | `npm run db:event-organization` | Migration organisation événements |
 | `npm run db:outlook-calendar-sync` | Migration sync Outlook |
 | `npm run db:v2-automations-intake` | Migration automatisations & intake V2 |
+| `npm run db:satisfaction-survey` | Migration questionnaires satisfaction |
 
 ---
 
-## Déploiement
+## Déploiement sur Vercel
 
-### Vercel
+1. Importez le dépôt GitHub sur [Vercel](https://vercel.com).
+2. Ajoutez toutes les variables d'environnement (voir `.env.example`).
+3. Déployez — Next.js est détecté automatiquement.
 
-1. Importer le dépôt GitHub sur [Vercel](https://vercel.com)
-2. Configurer les variables d'environnement (voir section ci-dessus)
-3. Déployer — Next.js est détecté automatiquement
+`NEXT_PUBLIC_APP_URL` peut être dérivé de `VERCEL_URL` au build si non défini.
 
-`NEXT_PUBLIC_APP_URL` est dérivé de `VERCEL_URL` au build si non défini.
+### Outlook 365
 
-#### Outlook 365 sur Vercel
+Copiez les variables `MS_*` dans Vercel → Settings → Environment Variables. Dans Azure Portal, ajoutez l'URI de redirection :
 
-Les variables `MS_*` de `.env.local` ne sont **pas** déployées automatiquement. Copiez-les dans **Vercel → Projet → Settings → Environment Variables** (cible **Production**, et Preview si besoin) :
+`https://<votre-domaine>/api/outlook/callback`
 
-| Variable | Obligatoire |
-|---|---|
-| `MS_CLIENT_ID` | Oui |
-| `MS_CLIENT_SECRET` | Oui |
-| `MS_TENANT_ID` | Recommandé (`common` par défaut) |
-| `MS_TIMEZONE` | Optionnel (`Romance Standard Time`) |
-| `MS_OUTLOOK_CATEGORY_NAME` | Optionnel (`IDENA Planification`) |
-| `MS_OUTLOOK_CATEGORY_COLOR` | Optionnel (`preset1` = orange Outlook) |
-| `MS_REDIRECT_URI` | Optionnel — sinon dérivé de l’URL publique |
-
-Dans **Azure Portal → App registrations → API permissions**, ajoutez aussi `MailboxSettings.ReadWrite` (délégué) pour la catégorie colorée, puis **Grant admin consent**. Les utilisateurs déjà connectés doivent **déconnecter puis reconnecter** Outlook pour obtenir la nouvelle permission.
-
-Dans **Azure Portal → App registrations → votre app → Authentication**, ajoutez l’URI de redirection :
-
-`https://<votre-domaine-vercel>/api/outlook/callback`
-
-Puis **redéployez** le projet (un simple ajout de variables ne recharge pas les fonctions déjà déployées).
-
-### Supabase — migrations
-
-Les migrations SQL se trouvent dans `supabase/migrations/` :
-
-| Fichier | Contenu |
-|---|---|
-| `20260529120000_stock_ideas_public_anon.sql` | Accès public boîte à idées |
-| `20260601120000_event_organization.sql` | Organisation événements |
-| `20260630120000_outlook_calendar_sync.sql` | Connexions et sync Outlook |
-| `20260701120000_v2_automations_intake.sql` | Automatisations et intake V2 |
-| `20260702100000_intake_extended_fields.sql` | Champs étendus intake |
-
-Appliquez-les via le SQL Editor Supabase, la CLI `supabase db push`, ou les scripts `npm run db:*` (nécessitent `SUPABASE_DB_PASSWORD` dans `.env.local`).
+Permission déléguée requise : `MailboxSettings.ReadWrite` (pour la catégorie colorée).
 
 ---
 
 ## Structure du projet
 
 ```
-app/                    # Routes Next.js (App Router)
-  api/                  # Routes API (Outlook, IA, stock, idées publiques)
-  auth/                 # Callback OAuth Supabase
-  dashboard/            # Tableau de bord V1
-  events/               # Module événements V1
-  ideas/                # Boîte à idées (accès public)
-  login/                # Authentification
-  settings/             # Paramètres V1
-  social/               # Réseaux sociaux V1
-  stock/                # Stock V1
-  v2/                   # Interface avancée V2
-components/             # Composants React (UI, kanban, événements, V2…)
-lib/                    # Logique métier, hooks, types, clients Supabase
-  server/               # Code serveur (IA, Outlook, webhooks)
-  v2/                   # Modules spécifiques V2 (automations, intake, agents…)
+app/                    # Routes Next.js
+  setup/                # Assistant première installation
+  actions/              # Server Actions (branding, setup…)
+  api/                  # Routes API (Outlook, IA, stock…)
+  v2/                   # Interface avancée
+components/             # Composants React
+lib/
+  branding.ts           # Configuration organisation
+  i18n/                 # Traductions fr / en
+  taxonomies.ts         # Thématiques social & catégories print
+  server/               # Code serveur (IA, Outlook…)
 supabase/migrations/    # Migrations PostgreSQL
-scripts/                # Scripts d'application des migrations
-public/                 # Assets statiques
+public/                 # Assets statiques (app-mark.svg…)
 ```
+
+---
+
+## Notes techniques
+
+- Le bucket Storage pour le pictogramme s'appelle `idena-mark` (nom historique conservé en base).
+- La colonne `idena_mark_url` est un alias rétro-compatible de `mark_url`.
+- Les clés localStorage legacy (`idena-*`) sont migrées automatiquement vers des noms neutres.
 
 ---
 
 ## Licence
 
-Projet privé — usage interne IDENA.
+Projet privé — usage selon les conditions de votre organisation.

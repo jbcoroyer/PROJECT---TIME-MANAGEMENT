@@ -13,25 +13,28 @@ import {
 import { completeInitialSetup } from "../../app/actions/setup";
 import { AppMark } from "../AppBrand";
 import { useBranding } from "../../lib/brandingContext";
+import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
+import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
 import { toastError, toastSuccess } from "../../lib/toast";
 
 const TIMEZONE_OPTIONS = [
-  { value: "Europe/Paris", label: "Paris (France)" },
-  { value: "Europe/Brussels", label: "Bruxelles (Belgique)" },
-  { value: "Europe/Zurich", label: "Zurich (Suisse)" },
-  { value: "Europe/London", label: "Londres (Royaume-Uni)" },
-  { value: "America/Montreal", label: "Montréal (Canada)" },
-  { value: "UTC", label: "UTC" },
+  { value: "Europe/Paris", labelKey: "setup.timezones.paris" },
+  { value: "Europe/Brussels", labelKey: "setup.timezones.brussels" },
+  { value: "Europe/Zurich", labelKey: "setup.timezones.zurich" },
+  { value: "Europe/London", labelKey: "setup.timezones.london" },
+  { value: "America/Montreal", labelKey: "setup.timezones.montreal" },
+  { value: "UTC", labelKey: "setup.timezones.utc" },
 ] as const;
 
 const SECTOR_OPTIONS = [
-  { value: "", label: "Non précisé" },
-  { value: "communication", label: "Communication & marketing" },
-  { value: "events", label: "Événementiel" },
-  { value: "consulting", label: "Conseil & services" },
-  { value: "industry", label: "Industrie" },
-  { value: "other", label: "Autre" },
+  { value: "", labelKey: "common.notSpecified" },
+  { value: "communication", labelKey: "setup.sectors.communication" },
+  { value: "events", labelKey: "setup.sectors.events" },
+  { value: "consulting", labelKey: "setup.sectors.consulting" },
+  { value: "industry", labelKey: "setup.sectors.industry" },
+  { value: "other", labelKey: "setup.sectors.other" },
 ] as const;
 
 type Step = 1 | 2 | 3;
@@ -40,6 +43,7 @@ export default function SetupWizard() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const { branding, reload } = useBranding();
+  const { t } = useTranslation({ preferBrowser: true });
 
   const [step, setStep] = useState<Step>(1);
   const [appName, setAppName] = useState(branding.appName === "Workspace" ? "" : branding.appName);
@@ -48,6 +52,7 @@ export default function SetupWizard() {
   const [markUrl, setMarkUrl] = useState<string | null>(branding.markUrl);
   const [timezone, setTimezone] = useState(branding.timezone);
   const [sector, setSector] = useState(branding.sector ?? "");
+  const [locale, setLocale] = useState<AppLocale>(resolveLocale(branding.locale));
   const [markUploading, setMarkUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,33 +63,33 @@ export default function SetupWizard() {
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
     const allowed = ["png", "webp", "jpg", "jpeg", "gif", "svg"];
     if (!allowed.includes(ext)) {
-      toastError("Utilisez PNG, WebP, JPG, GIF ou SVG.");
+      toastError(t("setup.markInvalidFormat"));
       return;
     }
 
     setMarkUploading(true);
     const path = `app-mark-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("idena-mark").upload(path, file, {
+    const { error: upErr } = await supabase.storage.from(APP_MARK_STORAGE_BUCKET).upload(path, file, {
       upsert: true,
       contentType: file.type || undefined,
     });
     if (upErr) {
-      toastError(`Envoi impossible : ${upErr.message}`);
+      toastError(t("setup.uploadFailed", { message: upErr.message }));
       setMarkUploading(false);
       return;
     }
     const {
       data: { publicUrl },
-    } = supabase.storage.from("idena-mark").getPublicUrl(path);
+    } = supabase.storage.from(APP_MARK_STORAGE_BUCKET).getPublicUrl(path);
     setMarkUrl(publicUrl);
     setMarkUploading(false);
-    toastSuccess("Pictogramme ajouté.");
+    toastSuccess(t("setup.markAdded"));
   }
 
   async function handleFinish() {
     const name = appName.trim();
     if (!name) {
-      setError("Indiquez le nom de votre espace de travail.");
+      setError(t("setup.nameRequired"));
       setStep(1);
       return;
     }
@@ -100,6 +105,7 @@ export default function SetupWizard() {
       markUrl,
       timezone,
       sector: sector.trim() || null,
+      locale,
       isConfigured: true,
     });
 
@@ -110,7 +116,7 @@ export default function SetupWizard() {
     }
 
     await reload();
-    toastSuccess("Installation terminée. Bienvenue !");
+    toastSuccess(t("setup.complete"));
     router.replace("/v2/dashboard/kanban");
   }
 
@@ -120,10 +126,10 @@ export default function SetupWizard() {
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[color:var(--foreground)]/45">
-            Étape {step} sur 3
+            {t("setup.stepOf", { step })}
           </p>
           <h2 className="ui-display mt-1 text-2xl font-bold text-[var(--foreground)]">
-            {step === 1 ? "Votre organisation" : step === 2 ? "Apparence" : "Derniers réglages"}
+            {step === 1 ? t("setup.step1Title") : step === 2 ? t("setup.step2Title") : t("setup.step3Title")}
           </h2>
         </div>
         <div className="flex gap-1.5">
@@ -141,33 +147,28 @@ export default function SetupWizard() {
 
       {step === 1 && (
         <div className="space-y-5">
-          <p className="text-sm text-[color:var(--foreground)]/70">
-            Donnez un nom à votre espace. Ce nom apparaîtra dans le menu, sur la page de connexion et dans
-            l&apos;onglet du navigateur.
-          </p>
+          <p className="text-sm text-[color:var(--foreground)]/70">{t("setup.step1Intro")}</p>
           <Field
             id="setup-app-name"
-            label="Nom de l'application"
+            label={t("setup.appName")}
             value={appName}
             onChange={setAppName}
-            placeholder="Ex. Mon équipe, Agence Dupont…"
+            placeholder={t("setup.appNamePlaceholder")}
             required
           />
           <Field
             id="setup-tagline"
-            label="Slogan (facultatif)"
+            label={t("setup.tagline")}
             value={tagline}
             onChange={setTagline}
-            placeholder="Ex. Pilotage des projets et de la communication"
+            placeholder={t("setup.taglinePlaceholder")}
           />
         </div>
       )}
 
       {step === 2 && (
         <div className="space-y-6">
-          <p className="text-sm text-[color:var(--foreground)]/70">
-            Choisissez une couleur principale et, si vous le souhaitez, votre propre pictogramme.
-          </p>
+          <p className="text-sm text-[color:var(--foreground)]/70">{t("setup.step2Intro")}</p>
 
           <div className="flex flex-col gap-4 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-5 sm:flex-row sm:items-center">
             <div
@@ -192,7 +193,7 @@ export default function SetupWizard() {
           <div>
             <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
               <Palette className="h-4 w-4" />
-              Couleur principale
+              {t("setup.primaryColor")}
             </label>
             <div className="flex items-center gap-3">
               <input
@@ -214,11 +215,11 @@ export default function SetupWizard() {
           <div>
             <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
               <ImageIcon className="h-4 w-4" />
-              Pictogramme (facultatif)
+              {t("setup.mark")}
             </label>
             <div className="flex flex-wrap items-center gap-2">
               <label className="ui-transition inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-semibold hover:bg-[var(--surface)]">
-                {markUploading ? "Envoi…" : "Choisir une image"}
+                {markUploading ? t("common.uploading") : t("common.upload")}
                 <input
                   type="file"
                   accept="image/png,image/webp,image/jpeg,image/gif,image/svg+xml"
@@ -238,7 +239,7 @@ export default function SetupWizard() {
                   onClick={() => setMarkUrl(null)}
                   className="ui-transition rounded-xl border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
                 >
-                  Retirer
+                  {t("common.remove")}
                 </button>
               ) : null}
             </div>
@@ -248,12 +249,27 @@ export default function SetupWizard() {
 
       {step === 3 && (
         <div className="space-y-5">
-          <p className="text-sm text-[color:var(--foreground)]/70">
-            Ces réglages peuvent être modifiés plus tard dans les paramètres.
-          </p>
+          <p className="text-sm text-[color:var(--foreground)]/70">{t("setup.step3Intro")}</p>
+          <div>
+            <label htmlFor="setup-locale" className="mb-1.5 block text-sm font-semibold">
+              {t("setup.locale")}
+            </label>
+            <select
+              id="setup-locale"
+              value={locale}
+              onChange={(e) => setLocale(resolveLocale(e.target.value))}
+              className="ui-input w-full"
+            >
+              {LOCALE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <label htmlFor="setup-timezone" className="mb-1.5 block text-sm font-semibold">
-              Fuseau horaire
+              {t("setup.timezone")}
             </label>
             <select
               id="setup-timezone"
@@ -263,14 +279,14 @@ export default function SetupWizard() {
             >
               {TIMEZONE_OPTIONS.map((tz) => (
                 <option key={tz.value} value={tz.value}>
-                  {tz.label}
+                  {t(tz.labelKey)}
                 </option>
               ))}
             </select>
           </div>
           <div>
             <label htmlFor="setup-sector" className="mb-1.5 block text-sm font-semibold">
-              Secteur d&apos;activité (facultatif)
+              {t("setup.sector")}
             </label>
             <select
               id="setup-sector"
@@ -280,7 +296,7 @@ export default function SetupWizard() {
             >
               {SECTOR_OPTIONS.map((s) => (
                 <option key={s.value || "none"} value={s.value}>
-                  {s.label}
+                  {t(s.labelKey)}
                 </option>
               ))}
             </select>
@@ -289,11 +305,10 @@ export default function SetupWizard() {
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
             <p className="flex items-center gap-2 font-semibold">
               <Sparkles className="h-4 w-4" />
-              Prêt à démarrer
+              {t("setup.readyTitle")}
             </p>
             <p className="mt-1 text-emerald-900/85">
-              Votre espace <strong>{previewName}</strong> sera configuré et vous serez administrateur si
-              aucun admin n&apos;existe encore.
+              {t("setup.readyBody", { name: previewName })}
             </p>
           </div>
         </div>
@@ -313,7 +328,7 @@ export default function SetupWizard() {
           className="ui-transition inline-flex items-center gap-2 rounded-xl border border-[var(--line)] px-4 py-2.5 text-sm font-semibold text-[color:var(--foreground)]/80 hover:bg-[var(--surface-soft)] disabled:opacity-40"
         >
           <ArrowLeft className="h-4 w-4" />
-          Retour
+          {t("common.back")}
         </button>
 
         {step < 3 ? (
@@ -321,7 +336,7 @@ export default function SetupWizard() {
             type="button"
             onClick={() => {
               if (step === 1 && !appName.trim()) {
-                setError("Indiquez le nom de votre espace de travail.");
+                setError(t("setup.nameRequired"));
                 return;
               }
               setError(null);
@@ -329,7 +344,7 @@ export default function SetupWizard() {
             }}
             className="ui-transition inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
           >
-            Continuer
+            {t("common.continue")}
             <ArrowRight className="h-4 w-4" />
           </button>
         ) : (
@@ -339,7 +354,7 @@ export default function SetupWizard() {
             onClick={() => void handleFinish()}
             className="ui-transition inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
           >
-            {submitting ? "Enregistrement…" : "Terminer l'installation"}
+            {submitting ? t("common.saving") : t("setup.finish")}
             <Check className="h-4 w-4" />
           </button>
         )}

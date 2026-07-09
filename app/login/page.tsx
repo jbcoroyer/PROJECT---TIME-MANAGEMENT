@@ -20,27 +20,25 @@ import { getPublicAppOrigin } from "../../lib/publicAppUrl";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { BrandHeading } from "../../components/AppBrand";
 import { useBranding } from "../../lib/brandingContext";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 import LoginInlineDemo from "../../components/LoginInlineDemo";
 
 type AuthMode = "signin" | "signup";
 type SignupStep = 1 | 2;
 
-function translateAuthError(message: string): string {
-  if (message.includes("Invalid login credentials"))
-    return "Email ou mot de passe incorrect.";
-  if (message.includes("Email not confirmed"))
-    return "Votre email n'est pas encore confirmé. Vérifiez votre boite mail.";
-  if (message.includes("User already registered"))
-    return "Un compte avec cet email existe déjà. Connectez-vous.";
-  if (message.includes("Password should be at least"))
-    return "Le mot de passe doit contenir au moins 6 caractères.";
-  return message;
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const supabase = getSupabaseBrowser();
   const { branding } = useBranding();
+  const { t } = useTranslation();
+
+  function translateAuthError(message: string): string {
+    if (message.includes("Invalid login credentials")) return t("auth.invalidCredentials");
+    if (message.includes("Email not confirmed")) return t("auth.emailNotConfirmed");
+    if (message.includes("User already registered")) return t("auth.userExists");
+    if (message.includes("Password should be at least")) return t("auth.passwordTooShort");
+    return message;
+  }
 
   const [mode, setMode] = useState<AuthMode>("signin");
   const [step, setStep] = useState<SignupStep>(1);
@@ -84,12 +82,9 @@ export default function LoginPage() {
       }
     }
     if (errorCode === "otp_expired" || accessDenied === "access_denied") {
-      setUrlAuthError(
-        desc ||
-          "Ce lien a expiré ou a déjà été utilisé (certains webmails ouvrent le lien en avant-première). Utilisez « Mot de passe oublié » pour recevoir un nouvel email, puis ouvrez le lien une seule fois.",
-      );
+      setUrlAuthError(desc || t("auth.linkExpired"));
     } else {
-      setUrlAuthError(desc || "Impossible de valider le lien de connexion ou de réinitialisation.");
+      setUrlAuthError(desc || t("auth.linkInvalid"));
     }
     window.history.replaceState(null, "", "/login");
   }, []);
@@ -107,7 +102,7 @@ export default function LoginPage() {
   /* ── Étape 1 → 2 ── */
   const goToStep2 = () => {
     if (!firstName.trim() || !lastName.trim()) {
-      setError("Veuillez renseigner votre prénom et nom.");
+      setError(t("auth.nameRequired"));
       return;
     }
     setError(null);
@@ -138,7 +133,7 @@ export default function LoginPage() {
   const handleForgotPassword = async () => {
     const targetEmail = email.trim();
     if (!targetEmail) {
-      setError("Indiquez votre adresse email pour recevoir le lien de réinitialisation.");
+      setError(t("auth.emailForReset"));
       return;
     }
     setError(null);
@@ -147,7 +142,7 @@ export default function LoginPage() {
     try {
       const configuredBaseUrl = getPublicAppOrigin();
       if (!configuredBaseUrl) {
-        setError("URL de l’application inconnue. Définissez NEXT_PUBLIC_APP_URL sur Vercel.");
+        setError(t("auth.appUrlMissing"));
         return;
       }
       // Sans query string : la liste « Redirect URLs » Supabase doit matcher exactement l’URL de base.
@@ -156,7 +151,7 @@ export default function LoginPage() {
         redirectTo: `${configuredBaseUrl}/auth/callback`,
       });
       if (resetError) throw resetError;
-      setSuccess("Email envoyé. Ouvrez le lien reçu pour définir un nouveau mot de passe.");
+      setSuccess(t("auth.resetSent"));
     } catch (err: unknown) {
       setError(translateAuthError(err instanceof Error ? err.message : String(err)));
     } finally {
@@ -168,7 +163,7 @@ export default function LoginPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signupEmail.trim() || !signupPassword) {
-      setError("Veuillez remplir tous les champs.");
+      setError(t("auth.fieldsRequired"));
       return;
     }
     setError(null);
@@ -220,9 +215,7 @@ export default function LoginPage() {
       }
 
       // Email confirmation requis
-      setSuccess(
-        "Compte créé ! Vérifiez votre boite mail pour confirmer votre adresse, puis connectez-vous.",
-      );
+      setSuccess(t("auth.accountCreated"));
       setMode("signin");
       setStep(1);
     } catch (err: unknown) {
@@ -246,10 +239,10 @@ export default function LoginPage() {
           <BrandHeading size="login">
             <p className="mt-2 text-sm text-[color:var(--foreground)]/60">
               {mode === "signin"
-                ? `Connectez-vous à votre espace ${branding.appName}.`
+                ? t("auth.signInToWorkspace", { app: branding.appName })
                 : step === 1
-                  ? "Parlez-nous de vous."
-                  : "Créez vos identifiants de connexion."}
+                  ? t("auth.signUpStep1")
+                  : t("auth.signUpStep2")}
             </p>
           </BrandHeading>
 
@@ -273,7 +266,7 @@ export default function LoginPage() {
                       : "text-[color:var(--foreground)]/60 hover:text-[var(--foreground)]",
                   ].join(" ")}
                 >
-                  {m === "signin" ? "Connexion" : "Inscription"}
+                  {m === "signin" ? t("auth.signInTab") : t("auth.signUpTab")}
                 </button>
               ))}
             </div>
@@ -283,7 +276,7 @@ export default function LoginPage() {
             <form onSubmit={(e) => void handleSignIn(e)} className="space-y-4">
               <Field
                 id="email"
-                label="Adresse email"
+                label={t("auth.email")}
                 icon={<Mail className="h-4 w-4" />}
                 type="email"
                 value={email}
@@ -293,7 +286,7 @@ export default function LoginPage() {
               />
               <PasswordField
                 id="signin-password"
-                label="Mot de passe"
+                label={t("auth.password")}
                 value={password}
                 onChange={setPassword}
                 show={showPassword}
@@ -307,11 +300,11 @@ export default function LoginPage() {
                   disabled={sendingReset || loading}
                   className="ui-transition text-xs font-semibold text-[color:var(--foreground)]/60 hover:text-[color:var(--foreground)]/85 disabled:opacity-60"
                 >
-                  {sendingReset ? "Envoi..." : "Mot de passe oublié ?"}
+                  {sendingReset ? t("auth.sendingReset") : t("auth.forgotPassword")}
                 </button>
               </div>
               <AlertBox error={error} success={success} />
-              <SubmitBtn loading={loading} label="Se connecter" />
+              <SubmitBtn loading={loading} label={loading ? t("auth.signingIn") : t("auth.signInButton")} />
             </form>
           )}
 
@@ -359,7 +352,7 @@ export default function LoginPage() {
               <div className="grid grid-cols-2 gap-3">
                 <Field
                   id="firstName"
-                  label="Prénom"
+                  label={t("auth.firstName")}
                   icon={<User className="h-4 w-4" />}
                   type="text"
                   value={firstName}
@@ -369,7 +362,7 @@ export default function LoginPage() {
                 />
                 <Field
                   id="lastName"
-                  label="Nom"
+                  label={t("auth.lastName")}
                   icon={<UserRound className="h-4 w-4" />}
                   type="text"
                   value={lastName}
@@ -398,7 +391,7 @@ export default function LoginPage() {
                 onClick={goToStep2}
                 className="ui-transition flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--foreground)] py-2.5 text-sm font-semibold text-[var(--accent-contrast)] shadow-[0_14px_30px_rgba(20,17,13,0.18)] hover:-translate-y-0.5 hover:opacity-90"
               >
-                Continuer
+                {t("common.continue")}
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -438,7 +431,7 @@ export default function LoginPage() {
 
               <Field
                 id="signup-email"
-                label="Adresse email"
+                label={t("auth.email")}
                 icon={<Mail className="h-4 w-4" />}
                 type="email"
                 value={signupEmail}
@@ -448,7 +441,7 @@ export default function LoginPage() {
               />
               <PasswordField
                 id="signup-password"
-                label="Mot de passe"
+                label={t("auth.password")}
                 value={signupPassword}
                 onChange={setSignupPassword}
                 show={showSignupPassword}
@@ -458,7 +451,7 @@ export default function LoginPage() {
               />
 
               <AlertBox error={error} success={success} />
-              <SubmitBtn loading={loading} label="Créer mon compte" />
+              <SubmitBtn loading={loading} label={t("auth.createAccount")} />
             </form>
           )}
           </div>

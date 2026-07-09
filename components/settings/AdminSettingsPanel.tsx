@@ -33,6 +33,8 @@ import { adminSolidColorFor, getAdminColorPaletteSize } from "../../lib/kanbanSt
 import type { AdminId } from "../../lib/types";
 import AppVersionSettings from "./AppVersionSettings";
 import { parsePrintSpecies, parseSocialThematics } from "../../lib/taxonomies";
+import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
+import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
 
 /* ─────────────────────────── Types ─────────────────────────── */
 type TeamMemberRow = {
@@ -220,6 +222,7 @@ export default function AdminSettingsPanel() {
 
   const { branding, reload: reloadBranding } = useBranding();
   const [markUploading, setMarkUploading] = useState(false);
+  const [localeSaving, setLocaleSaving] = useState(false);
   const [draftSocialThematics, setDraftSocialThematics] = useState("");
   const [draftPrintSpecies, setDraftPrintSpecies] = useState("");
   const [taxonomiesSaving, setTaxonomiesSaving] = useState(false);
@@ -427,7 +430,7 @@ export default function AdminSettingsPanel() {
                       }
                       setMarkUploading(true);
                       const path = `app-mark-${Date.now()}.${ext}`;
-                      const { error: upErr } = await supabase.storage.from("idena-mark").upload(path, file, {
+                      const { error: upErr } = await supabase.storage.from(APP_MARK_STORAGE_BUCKET).upload(path, file, {
                         upsert: true,
                         contentType: file.type || undefined,
                       });
@@ -439,7 +442,7 @@ export default function AdminSettingsPanel() {
                       }
                       const {
                         data: { publicUrl },
-                      } = supabase.storage.from("idena-mark").getPublicUrl(path);
+                      } = supabase.storage.from(APP_MARK_STORAGE_BUCKET).getPublicUrl(path);
                       const result = await updateBranding({ markUrl: publicUrl });
                       if (!result.ok) {
                         toastError(`Enregistrement impossible : ${result.error}`);
@@ -475,6 +478,41 @@ export default function AdminSettingsPanel() {
                     Réinitialiser
                   </button>
                 ) : null}
+              </div>
+              <div className="border-t border-[var(--line)] pt-4">
+                <label htmlFor="app-locale" className="mb-1.5 block text-sm font-semibold">
+                  Langue de l&apos;interface
+                </label>
+                <p className="mb-2 text-xs text-[color:var(--foreground)]/55">
+                  Français ou anglais pour la connexion, l&apos;installation et les écrans traduits.
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    id="app-locale"
+                    value={resolveLocale(branding.locale)}
+                    disabled={localeSaving}
+                    onChange={async (e) => {
+                      const next = resolveLocale(e.target.value) as AppLocale;
+                      setLocaleSaving(true);
+                      const result = await updateBranding({ locale: next });
+                      if (!result.ok) {
+                        toastError(result.error);
+                        setLocaleSaving(false);
+                        return;
+                      }
+                      await reloadBranding();
+                      toastSuccess("Langue enregistrée.");
+                      setLocaleSaving(false);
+                    }}
+                    className="ui-input max-w-xs"
+                  >
+                    {LOCALE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
