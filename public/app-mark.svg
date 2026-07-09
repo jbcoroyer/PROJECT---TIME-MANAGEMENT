@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Marque">
+  <rect width="64" height="64" rx="14" fill="#2563eb"/>
+  <path
+    d="M18 44V20h9.5l6.5 11.2L40.5 20H50v24h-8.2V33.4L35.8 44h-7.1L26.2 33.6V44H18z"
+    fill="#fff"
+  />
+</svg>
