@@ -407,14 +407,8 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     }
     setPhotoUploading(true);
     try {
-      const organizationId = currentUser?.organizationId;
-      if (!organizationId) {
-        toastError("Organisation introuvable.");
-        return;
-      }
       const { path, error } = await uploadStockVisual(
         supabase,
-        organizationId,
         file,
         visualUploadFolder(detail.category),
       );

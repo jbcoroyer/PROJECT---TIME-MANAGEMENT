@@ -21,15 +21,6 @@ describe.skipIf(!HAS_REMOTE_SUPABASE)("storage — isolation multi-tenant", () =
   beforeAll(async () => {
     admin = env!.admin;
     users = await createTestOrgsAndUsers(admin, "storage");
-
-    // Synchroniser organization_members (profils réassignés manuellement dans les tests)
-    await admin.from("organization_members").upsert(
-      [
-        { user_id: users.userAId, organization_id: users.orgAId, role: "admin" },
-        { user_id: users.userBId, organization_id: users.orgBId, role: "admin" },
-      ],
-      { onConflict: "user_id,organization_id" },
-    );
   }, 60_000);
 
   afterAll(async () => {
@@ -50,6 +41,19 @@ describe.skipIf(!HAS_REMOTE_SUPABASE)("storage — isolation multi-tenant", () =
     });
 
     expect(error).toBeNull();
+  }, 60_000);
+
+  it("User B ne peut pas lister le dossier de l'org A", async () => {
+    expect(fileAPath).toBeTruthy();
+    const clientB = await signInAs(env!, users!.userBEmail, users!.userBPassword);
+
+    const { data, error } = await clientB.storage.from(TEST_BUCKET).list(users!.orgAId, { limit: 100 });
+
+    // RLS : soit erreur, soit liste vide (aucun fichier de l'org A visible)
+    const names = (data ?? []).map((f) => f.name);
+    const leaked = names.some((n) => fileAPath!.endsWith(n));
+    expect(leaked).toBe(false);
+    if (error) expect(error).toBeTruthy();
   }, 60_000);
 
   it("User B ne peut pas lire le fichier de l'org A", async () => {
@@ -74,7 +78,6 @@ describe.skipIf(!HAS_REMOTE_SUPABASE)("storage — isolation multi-tenant", () =
 
     expect(error).toBeTruthy();
 
-    // Nettoyage si l'upload a malgré tout réussi
     await admin.storage.from(TEST_BUCKET).remove([intruderPath]);
   }, 60_000);
 });

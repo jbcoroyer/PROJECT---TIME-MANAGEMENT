@@ -7,6 +7,24 @@ import {
   type StorageBucket,
 } from "./storagePaths";
 
+/** Récupère l'organization_id du profil de l'utilisateur connecté. */
+export async function resolveCurrentOrganizationId(
+  supabase: SupabaseClient,
+): Promise<string | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return (profile?.organization_id as string | null) ?? null;
+}
+
 export type UploadOrgFileOptions = {
   upsert?: boolean;
   contentType?: string;

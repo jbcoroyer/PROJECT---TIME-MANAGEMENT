@@ -1,15 +1,19 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isStockVisualFile } from "./stockVisualUtils";
-import { uploadOrgFile } from "./storageClient";
+import { createSignedStorageUrl, resolveCurrentOrganizationId } from "./storageClient";
 
 const BUCKET = "stock-plv-visuals" as const;
 
+/**
+ * Upload un visuel stock/PLV/print dans le bucket, chemin préfixé par l'organisation courante.
+ * L'organization_id est lu depuis profiles via la session Supabase.
+ */
 export async function uploadStockVisual(
   supabase: SupabaseClient,
-  organizationId: string,
   file: File,
   folder: "print" | "goodies" | "plv",
 ): Promise<{ url: string | null; path: string | null; error: string | null }> {
+  const organizationId = await resolveCurrentOrganizationId(supabase);
   if (!organizationId) {
     return { url: null, path: null, error: "Organisation introuvable." };
   }
@@ -20,16 +24,23 @@ export async function uploadStockVisual(
   const extRaw = file.name.split(".").pop() ?? (file.type === "application/pdf" ? "pdf" : "png");
   const ext = extRaw.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "png";
   const contentType = file.type || (ext === "pdf" ? "application/pdf" : "image/png");
-  const relativePath = `${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
-  const result = await uploadOrgFile(supabase, BUCKET, organizationId, relativePath, file, {
+  // Convention : {organizationId}/{folder}/{timestamp}-{uuid}.{ext}
+  const path = `${organizationId}/${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+  const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
     upsert: true,
     contentType,
   });
 
-  if (!result.ok) {
-    return { url: null, path: null, error: result.error };
+  if (upErr) {
+    return { url: null, path: null, error: upErr.message };
   }
 
-  return { url: result.signedUrl, path: result.path, error: null };
+  const signed = await createSignedStorageUrl(supabase, BUCKET, path);
+  if (!signed.ok) {
+    return { url: null, path, error: signed.error };
+  }
+
+  return { url: signed.url, path, error: null };
 }

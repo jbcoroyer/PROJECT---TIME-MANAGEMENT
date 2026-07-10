@@ -34,7 +34,7 @@ import type { AdminId } from "../../lib/types";
 import { parsePrintSpecies, parseSocialThematics } from "../../lib/taxonomies";
 import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
-import { uploadOrgFile } from "../../lib/storageClient";
+import { resolveCurrentOrganizationId, uploadOrgFile } from "../../lib/storageClient";
 
 /* ─────────────────────────── Types ─────────────────────────── */
 type TeamMemberRow = {
@@ -429,7 +429,7 @@ export default function AdminSettingsPanel() {
                         return;
                       }
                       setMarkUploading(true);
-                      const organizationId = currentUser?.organizationId ?? branding.organizationId;
+                      const organizationId = await resolveCurrentOrganizationId(supabase);
                       if (!organizationId) {
                         toastError("Organisation introuvable.");
                         setMarkUploading(false);
@@ -752,7 +752,7 @@ export default function AdminSettingsPanel() {
                             const file = e.target.files?.[0];
                             if (!file) return;
                             const ext = file.name.split(".").pop() ?? "jpg";
-                            const organizationId = currentUser?.organizationId ?? branding.organizationId;
+                            const organizationId = await resolveCurrentOrganizationId(supabase);
                             if (!organizationId) {
                               toastError("Organisation introuvable.");
                               return;
@@ -868,7 +868,7 @@ export default function AdminSettingsPanel() {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         const ext = file.name.split(".").pop() ?? "png";
-                        const organizationId = currentUser?.organizationId ?? branding.organizationId;
+                        const organizationId = await resolveCurrentOrganizationId(supabase);
                         if (!organizationId) {
                           toastError("Organisation introuvable.");
                           return;

@@ -85,12 +85,7 @@ export default function InventoryGoodiesModal(props: Props) {
     try {
       let resolvedVisualUrl = visualUrl.trim() || null;
       if (visualFile) {
-        const organizationId = user?.organizationId ?? branding.organizationId;
-        if (!organizationId) {
-          toastError("Organisation introuvable.");
-          return;
-        }
-        const { path, url, error } = await uploadStockVisual(supabase, organizationId, visualFile, "goodies");
+        const { path, url, error } = await uploadStockVisual(supabase, visualFile, "goodies");
         if (error || !path) {
           toastError(`Upload image impossible : ${error}`);
           return;

@@ -97,12 +97,7 @@ export default function InventoryPlvModal(props: Props) {
     try {
       let resolvedVisualUrl = visualUrl.trim() || null;
       if (visualFile) {
-        const organizationId = user?.organizationId ?? branding.organizationId;
-        if (!organizationId) {
-          toastError("Organisation introuvable.");
-          return;
-        }
-        const { path, url, error } = await uploadStockVisual(supabase, organizationId, visualFile, "plv");
+        const { path, url, error } = await uploadStockVisual(supabase, visualFile, "plv");
         if (error || !path) {
           toastError(`Upload impossible : ${error}`);
           return;
