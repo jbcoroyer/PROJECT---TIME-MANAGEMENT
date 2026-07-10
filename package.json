@@ -19,7 +19,8 @@
     "db:multi-tenant-remaining": "node scripts/apply-multi-tenant-remaining.mjs",
     "db:app-settings-per-org": "node scripts/apply-app-settings-per-org.mjs",
     "audit:storage": "npx tsx scripts/audit-storage-paths.ts",
-    "migrate:storage": "node scripts/migrate-storage-paths.mjs"
+    "migrate:storage": "node scripts/migrate-storage-paths.mjs",
+    "db:storage-isolation": "node scripts/apply-storage-org-isolation.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
