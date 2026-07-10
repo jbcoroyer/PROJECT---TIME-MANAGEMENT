@@ -96,17 +96,43 @@ export async function createTestOrgsAndUsers(
   const userAId = userA.user.id;
   const userBId = userB.user.id;
 
+  const { data: profileA } = await admin
+    .from("profiles")
+    .select("team_member_id")
+    .eq("id", userAId)
+    .single();
+  const { data: profileB } = await admin
+    .from("profiles")
+    .select("team_member_id")
+    .eq("id", userBId)
+    .single();
+
+  if (profileA?.team_member_id) {
+    await admin.from("team_members").update({ organization_id: orgA.id }).eq("id", profileA.team_member_id);
+  }
+  if (profileB?.team_member_id) {
+    await admin.from("team_members").update({ organization_id: orgB.id }).eq("id", profileB.team_member_id);
+  }
+
   const { error: profileAError } = await admin
     .from("profiles")
-    .update({ organization_id: orgA.id })
+    .update({ organization_id: orgA.id, role: "admin" })
     .eq("id", userAId);
   if (profileAError) throw profileAError;
 
   const { error: profileBError } = await admin
     .from("profiles")
-    .update({ organization_id: orgB.id })
+    .update({ organization_id: orgB.id, role: "admin" })
     .eq("id", userBId);
   if (profileBError) throw profileBError;
+
+  await admin.from("organization_members").upsert(
+    [
+      { user_id: userAId, organization_id: orgA.id, role: "admin" },
+      { user_id: userBId, organization_id: orgB.id, role: "admin" },
+    ],
+    { onConflict: "user_id,organization_id" },
+  );
 
   return {
     prefix,
@@ -119,6 +145,7 @@ export async function createTestOrgsAndUsers(
     userAPassword,
     userBPassword,
     cleanup: async () => {
+      await admin.from("organization_members").delete().in("user_id", [userAId, userBId]);
       await admin.from("profiles").delete().in("id", [userAId, userBId]);
       await admin.auth.admin.deleteUser(userAId);
       await admin.auth.admin.deleteUser(userBId);

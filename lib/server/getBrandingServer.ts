@@ -5,6 +5,7 @@ import {
 } from "../branding";
 import { getPublicBrandingOrganizationId, getServerOrgContext } from "./orgContext";
 import { createServerSupabase } from "./supabaseServer";
+import { createServerSignedStorageUrl } from "./storageSignedUrl";
 
 const APP_SETTINGS_SELECT =
   "id, organization_id, idena_mark_url, app_name, app_short_name, tagline, logo_url, icon_url, mark_url, primary_color, locale, timezone, sector, outlook_category_name, default_public_survey_id, is_configured, social_thematics, print_species, updated_at";
@@ -33,4 +34,14 @@ export async function getBrandingServer(): Promise<AppBranding> {
     console.warn("[branding] getBrandingServer:", e);
     return mergeBranding(null);
   }
+}
+
+/** Branding avec URLs storage résolues (signées 5 min) pour affichage serveur. */
+export async function getBrandingServerResolved(): Promise<AppBranding> {
+  const branding = await getBrandingServer();
+  const markSigned = await createServerSignedStorageUrl("idena-mark", branding.markUrl);
+  return {
+    ...branding,
+    markUrl: markSigned ?? branding.markUrl,
+  };
 }

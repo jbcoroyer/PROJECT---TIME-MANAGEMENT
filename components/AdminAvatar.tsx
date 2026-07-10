@@ -4,16 +4,18 @@ import Image from "next/image";
 import type { AdminId } from "../lib/types";
 import { adminAvatarMetaFor } from "../lib/kanbanStyles";
 import { useAdminAvatarMap } from "../lib/adminAvatarContext";
+import { useResolvedStorageUrl } from "../lib/useResolvedStorageUrl";
 
 export default function AdminAvatar(props: {
   admin: AdminId;
   size?: "sm" | "md";
-  /** URL forcée (override le contexte). Utile dans settings. */
+  /** Chemin storage ou URL (override le contexte). */
   avatarUrl?: string | null;
 }) {
   const { admin, size = "sm", avatarUrl: urlProp } = props;
   const avatarMap = useAdminAvatarMap();
-  const avatarUrl = urlProp !== undefined ? urlProp : (avatarMap[admin] ?? null);
+  const rawUrl = urlProp !== undefined ? urlProp : (avatarMap[admin] ?? null);
+  const avatarUrl = useResolvedStorageUrl("member-avatars", rawUrl);
 
   const meta = adminAvatarMetaFor(admin);
   const dim = size === "md" ? 32 : 20;

@@ -17,6 +17,8 @@ import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
+import { uploadOrgFile } from "../../lib/storageClient";
+import { useCurrentUser } from "../../lib/useCurrentUser";
 import { normalizeHexColor } from "../../lib/brandColorPresets";
 import { toastError, toastSuccess } from "../../lib/toast";
 
@@ -44,13 +46,17 @@ export default function SetupWizard() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const { branding, reload } = useBranding();
+  const { user } = useCurrentUser();
   const { t } = useTranslation({ preferBrowser: true });
 
   const [step, setStep] = useState<Step>(1);
   const [appName, setAppName] = useState(branding.appName === "Workspace" ? "" : branding.appName);
   const [tagline, setTagline] = useState(branding.tagline);
   const [primaryColor, setPrimaryColor] = useState(branding.primaryColor);
-  const [markUrl, setMarkUrl] = useState<string | null>(branding.markUrl);
+  /** Chemin storage enregistré en base (mark_url). */
+  const [markStoragePath, setMarkStoragePath] = useState<string | null>(branding.markUrl);
+  /** URL signée pour l'aperçu immédiat après upload. */
+  const [markPreviewUrl, setMarkPreviewUrl] = useState<string | null>(branding.markUrl);
   const [timezone, setTimezone] = useState(branding.timezone);
   const [sector, setSector] = useState(branding.sector ?? "");
   const [locale, setLocale] = useState<AppLocale>(resolveLocale(branding.locale));
@@ -61,6 +67,12 @@ export default function SetupWizard() {
   const previewName = appName.trim() || "Workspace";
 
   async function handleMarkUpload(file: File) {
+    const organizationId = user?.organizationId ?? branding.organizationId;
+    if (!organizationId) {
+      toastError(t("setup.uploadFailed", { message: "Organisation introuvable." }));
+      return;
+    }
+
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
     const allowed = ["png", "webp", "jpg", "jpeg", "gif", "svg"];
     if (!allowed.includes(ext)) {
@@ -69,20 +81,22 @@ export default function SetupWizard() {
     }
 
     setMarkUploading(true);
-    const path = `app-mark-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from(APP_MARK_STORAGE_BUCKET).upload(path, file, {
-      upsert: true,
-      contentType: file.type || undefined,
-    });
-    if (upErr) {
-      toastError(t("setup.uploadFailed", { message: upErr.message }));
+    const relativePath = `app-mark-${Date.now()}.${ext}`;
+    const upload = await uploadOrgFile(
+      supabase,
+      APP_MARK_STORAGE_BUCKET,
+      organizationId,
+      relativePath,
+      file,
+      { upsert: true, contentType: file.type || undefined },
+    );
+    if (!upload.ok) {
+      toastError(t("setup.uploadFailed", { message: upload.error }));
       setMarkUploading(false);
       return;
     }
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(APP_MARK_STORAGE_BUCKET).getPublicUrl(path);
-    setMarkUrl(publicUrl);
+    setMarkStoragePath(upload.path);
+    setMarkPreviewUrl(upload.signedUrl);
     setMarkUploading(false);
     toastSuccess(t("setup.markAdded"));
   }
@@ -103,7 +117,7 @@ export default function SetupWizard() {
       appShortName: name,
       tagline: tagline.trim(),
       primaryColor: normalizeHexColor(primaryColor) || primaryColor,
-      markUrl,
+      markUrl: markStoragePath,
       timezone,
       sector: sector.trim() || null,
       locale,
@@ -176,9 +190,9 @@ export default function SetupWizard() {
               className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--surface)]"
               style={{ ["--brand-primary" as string]: primaryColor }}
             >
-              {markUrl ? (
+              {markPreviewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={markUrl} alt="" className="h-14 w-14 object-contain" />
+                <img src={markPreviewUrl} alt="" className="h-14 w-14 object-contain" />
               ) : (
                 <AppMark className="h-14 w-14" />
               )}
@@ -219,11 +233,14 @@ export default function SetupWizard() {
                   }}
                 />
               </label>
-              {markUrl ? (
+              {markStoragePath || markPreviewUrl ? (
                 <button
                   type="button"
                   disabled={markUploading}
-                  onClick={() => setMarkUrl(null)}
+                  onClick={() => {
+                    setMarkStoragePath(null);
+                    setMarkPreviewUrl(null);
+                  }}
                   className="ui-transition rounded-xl border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
                 >
                   {t("common.remove")}

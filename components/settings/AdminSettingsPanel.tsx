@@ -34,6 +34,7 @@ import type { AdminId } from "../../lib/types";
 import { parsePrintSpecies, parseSocialThematics } from "../../lib/taxonomies";
 import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
+import { uploadOrgFile } from "../../lib/storageClient";
 
 /* ─────────────────────────── Types ─────────────────────────── */
 type TeamMemberRow = {
@@ -428,21 +429,29 @@ export default function AdminSettingsPanel() {
                         return;
                       }
                       setMarkUploading(true);
-                      const path = `app-mark-${Date.now()}.${ext}`;
-                      const { error: upErr } = await supabase.storage.from(APP_MARK_STORAGE_BUCKET).upload(path, file, {
-                        upsert: true,
-                        contentType: file.type || undefined,
-                      });
-                      if (upErr) {
-                        toastError(`Envoi impossible : ${upErr.message}`);
+                      const organizationId = currentUser?.organizationId ?? branding.organizationId;
+                      if (!organizationId) {
+                        toastError("Organisation introuvable.");
                         setMarkUploading(false);
                         e.target.value = "";
                         return;
                       }
-                      const {
-                        data: { publicUrl },
-                      } = supabase.storage.from(APP_MARK_STORAGE_BUCKET).getPublicUrl(path);
-                      const result = await updateBranding({ markUrl: publicUrl });
+                      const relativePath = `app-mark-${Date.now()}.${ext}`;
+                      const upload = await uploadOrgFile(
+                        supabase,
+                        APP_MARK_STORAGE_BUCKET,
+                        organizationId,
+                        relativePath,
+                        file,
+                        { upsert: true, contentType: file.type || undefined },
+                      );
+                      if (!upload.ok) {
+                        toastError(`Envoi impossible : ${upload.error}`);
+                        setMarkUploading(false);
+                        e.target.value = "";
+                        return;
+                      }
+                      const result = await updateBranding({ markUrl: upload.path });
                       if (!result.ok) {
                         toastError(`Enregistrement impossible : ${result.error}`);
                         setMarkUploading(false);
@@ -743,13 +752,28 @@ export default function AdminSettingsPanel() {
                             const file = e.target.files?.[0];
                             if (!file) return;
                             const ext = file.name.split(".").pop() ?? "jpg";
-                            const path = `${row.id}.${ext}`;
-                            const { error: upErr } = await supabase.storage
-                              .from("member-avatars")
-                              .upload(path, file, { upsert: true });
-                            if (upErr) { toastError(`Upload impossible: ${upErr.message}`); return; }
-                            const { data: { publicUrl } } = supabase.storage.from("member-avatars").getPublicUrl(path);
-                            const { error: dbErr } = await supabase.from("team_members").update({ avatar_url: publicUrl }).eq("id", row.id);
+                            const organizationId = currentUser?.organizationId ?? branding.organizationId;
+                            if (!organizationId) {
+                              toastError("Organisation introuvable.");
+                              return;
+                            }
+                            const relativePath = `${row.id}.${ext}`;
+                            const upload = await uploadOrgFile(
+                              supabase,
+                              "member-avatars",
+                              organizationId,
+                              relativePath,
+                              file,
+                              { upsert: true, contentType: file.type },
+                            );
+                            if (!upload.ok) {
+                              toastError(`Upload impossible: ${upload.error}`);
+                              return;
+                            }
+                            const { error: dbErr } = await supabase
+                              .from("team_members")
+                              .update({ avatar_url: upload.path })
+                              .eq("id", row.id);
                             if (dbErr) { toastError("Impossible de sauvegarder l'avatar."); return; }
                             await loadAll();
                             toastSuccess("Photo mise à jour !");
@@ -844,15 +868,28 @@ export default function AdminSettingsPanel() {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         const ext = file.name.split(".").pop() ?? "png";
-                        const path = `${row.id}.${ext}`;
-                        // Utiliser le client SSR qui transmet la session Auth
-                        const { error: upErr } = await supabase.storage
-                          .from("company-logos")
-                          .upload(path, file, { upsert: true, contentType: file.type });
-                        if (upErr) { toastError(`Upload impossible: ${upErr.message}`); return; }
-                        const { data: urlData } = supabase.storage.from("company-logos").getPublicUrl(path);
-                        const publicUrl = urlData.publicUrl + `?v=${Date.now()}`;
-                        const { error: dbErr } = await supabase.from("companies").update({ logo_url: publicUrl }).eq("id", row.id);
+                        const organizationId = currentUser?.organizationId ?? branding.organizationId;
+                        if (!organizationId) {
+                          toastError("Organisation introuvable.");
+                          return;
+                        }
+                        const relativePath = `${row.id}.${ext}`;
+                        const upload = await uploadOrgFile(
+                          supabase,
+                          "company-logos",
+                          organizationId,
+                          relativePath,
+                          file,
+                          { upsert: true, contentType: file.type },
+                        );
+                        if (!upload.ok) {
+                          toastError(`Upload impossible: ${upload.error}`);
+                          return;
+                        }
+                        const { error: dbErr } = await supabase
+                          .from("companies")
+                          .update({ logo_url: upload.path })
+                          .eq("id", row.id);
                         if (dbErr) { toastError("Mise à jour impossible."); return; }
                         await loadAll();
                         toastSuccess("Logo mis à jour.");

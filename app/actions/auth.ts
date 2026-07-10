@@ -5,7 +5,6 @@ import {
   brandingToDbPatch,
   type AppBrandingPatch,
 } from "../../lib/branding";
-import { slugifyOrganizationName } from "../../lib/tenantConstants";
 import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 
@@ -21,17 +20,10 @@ export type SignUpWithOrganizationResult =
   | { ok: true }
   | { ok: false; error: string };
 
-async function uniqueOrganizationSlug(admin: ReturnType<typeof createSupabaseAdmin>, base: string) {
-  let slug = slugifyOrganizationName(base);
-  for (let i = 0; i < 5; i++) {
-    const candidate = i === 0 ? slug : `${slug}-${i + 1}`;
-    const { data } = await admin.from("organizations").select("id").eq("slug", candidate).maybeSingle();
-    if (!data) return candidate;
-  }
-  return `${slug}-${Date.now()}`;
-}
-
-/** Inscription publique : crée l'utilisateur, son organisation et les réglages initiaux. */
+/**
+ * Inscription publique B2C : handle_new_user crée l'espace personnel
+ * (organisation + profil admin + réglages) à partir des metadata.
+ */
 export async function signUpWithOrganization(
   input: SignUpWithOrganizationInput,
 ): Promise<SignUpWithOrganizationResult> {
@@ -54,71 +46,12 @@ export async function signUpWithOrganization(
     user_metadata: {
       display_name: displayName,
       job_title: input.jobTitle?.trim() || null,
+      organization_name: organizationName,
     },
   });
 
   if (createError || !created.user) {
     return { ok: false, error: createError?.message ?? "Création du compte impossible." };
-  }
-
-  const userId = created.user.id;
-  const slug = await uniqueOrganizationSlug(admin, organizationName);
-
-  const { data: org, error: orgError } = await admin
-    .from("organizations")
-    .insert({ name: organizationName, slug })
-    .select("id")
-    .single();
-
-  if (orgError || !org) {
-    await admin.auth.admin.deleteUser(userId);
-    return { ok: false, error: orgError?.message ?? "Création de l'organisation impossible." };
-  }
-
-  const { data: profile, error: profileError } = await admin
-    .from("profiles")
-    .select("team_member_id")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (profileError || !profile?.team_member_id) {
-    await admin.from("organizations").delete().eq("id", org.id);
-    await admin.auth.admin.deleteUser(userId);
-    return { ok: false, error: "Profil utilisateur introuvable après inscription." };
-  }
-
-  const { error: teamError } = await admin
-    .from("team_members")
-    .update({ organization_id: org.id })
-    .eq("id", profile.team_member_id);
-
-  const { error: profileUpdateError } = await admin
-    .from("profiles")
-    .update({ organization_id: org.id, role: "admin", display_name: displayName })
-    .eq("id", userId);
-
-  if (teamError || profileUpdateError) {
-    await admin.from("organizations").delete().eq("id", org.id);
-    await admin.auth.admin.deleteUser(userId);
-    return { ok: false, error: teamError?.message ?? profileUpdateError?.message ?? "Liaison organisation impossible." };
-  }
-
-  const { error: settingsError } = await admin.from("app_settings").upsert(
-    {
-      id: org.id,
-      organization_id: org.id,
-      app_name: organizationName,
-      app_short_name: organizationName,
-      is_configured: false,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "organization_id" },
-  );
-
-  if (settingsError) {
-    await admin.from("organizations").delete().eq("id", org.id);
-    await admin.auth.admin.deleteUser(userId);
-    return { ok: false, error: settingsError.message };
   }
 
   revalidatePath("/", "layout");

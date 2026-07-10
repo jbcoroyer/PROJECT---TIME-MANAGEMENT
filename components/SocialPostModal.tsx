@@ -4,9 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Image as ImageIcon, Trash2, X } from "lucide-react";
 import type { ReferenceRecord } from "../lib/referenceData";
 import { getSupabaseBrowser } from "../lib/supabaseBrowser";
+import { uploadOrgFile } from "../lib/storageClient";
 import { toastError } from "../lib/toast";
 import CompanyAvatar from "./CompanyAvatar";
 import { useBranding } from "../lib/brandingContext";
+import { useCurrentUser } from "../lib/useCurrentUser";
+import { useResolvedStorageUrl } from "../lib/useResolvedStorageUrl";
 import {
   socialFormatOptions,
   socialPostStatuses,
@@ -67,6 +70,7 @@ export default function SocialPostModal(props: SocialPostModalProps) {
     onSubmit,
   } = props;
   const { branding } = useBranding();
+  const { user } = useCurrentUser();
   const isEditing = !!initialPost?.id;
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [title, setTitle] = useState("");
@@ -89,6 +93,7 @@ export default function SocialPostModal(props: SocialPostModalProps) {
   const [wording, setWording] = useState("");
   const [wordingEn, setWordingEn] = useState("");
   const [visualUrl, setVisualUrl] = useState("");
+  const resolvedStoredVisual = useResolvedStorageUrl("social-post-visuals", visualUrl || null);
   const [publicationStatus, setPublicationStatus] = useState("");
   const [reactionsCount, setReactionsCount] = useState("");
   const [engagementRate, setEngagementRate] = useState("");
@@ -217,18 +222,27 @@ export default function SocialPostModal(props: SocialPostModalProps) {
     try {
       let resolvedVisualUrl: string | null = visualUrl.trim() || null;
       if (visualFile) {
-        const extRaw = visualFile.name.split(".").pop() ?? "png";
-        const ext = extRaw.trim().toLowerCase() || "png";
-        const path = `${resolvedCompanyId}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("social-post-visuals")
-          .upload(path, visualFile, { upsert: true, contentType: visualFile.type });
-        if (upErr) {
-          toastError(`Upload visuel impossible : ${upErr.message}`);
+        const organizationId = user?.organizationId ?? branding.organizationId;
+        if (!organizationId) {
+          toastError("Organisation introuvable pour l'upload.");
           return;
         }
-        const { data: urlData } = supabase.storage.from("social-post-visuals").getPublicUrl(path);
-        resolvedVisualUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+        const extRaw = visualFile.name.split(".").pop() ?? "png";
+        const ext = extRaw.trim().toLowerCase() || "png";
+        const relativePath = `${resolvedCompanyId}/${crypto.randomUUID()}.${ext}`;
+        const upload = await uploadOrgFile(
+          supabase,
+          "social-post-visuals",
+          organizationId,
+          relativePath,
+          visualFile,
+          { upsert: true, contentType: visualFile.type },
+        );
+        if (!upload.ok) {
+          toastError(`Upload visuel impossible : ${upload.error}`);
+          return;
+        }
+        resolvedVisualUrl = upload.path;
       }
       await onSubmit({
         draft: {
@@ -556,12 +570,12 @@ export default function SocialPostModal(props: SocialPostModalProps) {
                   {(visualPreviewUrl || visualUrl) && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={visualPreviewUrl ?? visualUrl}
+                      src={visualPreviewUrl ?? resolvedStoredVisual ?? ""}
                       alt="Aperçu visuel"
                       className="h-16 w-16 rounded-md border border-[var(--line)] bg-white object-contain"
                     />
                   )}
-                  {!visualPreviewUrl && !visualUrl && (
+                  {!visualPreviewUrl && !resolvedStoredVisual && (
                     <div className="flex h-16 w-16 items-center justify-center rounded-md border border-dashed border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/40">
                       <ImageIcon className="h-6 w-6" />
                     </div>

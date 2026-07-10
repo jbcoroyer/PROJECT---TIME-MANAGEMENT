@@ -2,6 +2,7 @@
 
 import { Heart, MessageCircle, MoreHorizontal, Repeat2, Send, ThumbsUp } from "lucide-react";
 import { useBranding } from "../../../lib/brandingContext";
+import { useResolvedStorageUrl } from "../../../lib/useResolvedStorageUrl";
 
 type SocialPreviewProps = {
   network: string;
@@ -29,7 +30,8 @@ function Avatar({ name, url }: { name: string; url?: string | null }) {
 }
 
 function VisualBlock({ url }: { url?: string | null }) {
-  if (!url) {
+  const resolved = useResolvedStorageUrl("social-post-visuals", url);
+  if (!resolved) {
     return (
       <div className="flex aspect-video w-full items-center justify-center rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface-soft)] text-xs text-[color:var(--foreground)]/45">
         Aperçu visuel
@@ -38,7 +40,7 @@ function VisualBlock({ url }: { url?: string | null }) {
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="Visuel" className="w-full rounded-lg border border-[var(--line)] object-cover" />
+    <img src={resolved} alt="Visuel" className="w-full rounded-lg border border-[var(--line)] object-cover" />
   );
 }
 

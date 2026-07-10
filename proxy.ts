@@ -16,6 +16,7 @@ export async function proxy(request: NextRequest) {
   // Attention : /questionnaire/reponses reste protégé (page interne du service Communication).
   if (
     pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
     pathname.startsWith("/auth/callback") ||
     pathname.startsWith("/ideas") ||
     pathname === "/questionnaire" ||
@@ -68,5 +69,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|login|ideas|api/public).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|login|signup|ideas|api/public).*)"],
 };

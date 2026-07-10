@@ -3,13 +3,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "./supabaseBrowser";
-import { ideaToClient, type StockIdeaDto } from "./stockIdeasApi";
+import { ideaFromRow, ideaToClient, type StockIdeaDto } from "./stockIdeasApi";
 import type { StockIdea } from "./stockIdeasTypes";
+import { useBranding } from "./brandingContext";
+import { LEGACY_ORG_ID } from "./tenantConstants";
 import { toastError } from "./toast";
 
 export type { StockIdea, StockIdeaCategory, StockIdeaStatus } from "./stockIdeasTypes";
 
 const PUBLIC_IDEAS_API = "/api/public/ideas";
+const SELECT = "id, created_at, title, description, category, status";
 const POLL_MS = 12_000;
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -20,15 +23,34 @@ async function parseJson<T>(res: Response): Promise<T> {
   return data;
 }
 
+function publicIdeasUrl(organizationId: string | null): string {
+  const org = organizationId ?? LEGACY_ORG_ID;
+  return `${PUBLIC_IDEAS_API}?org=${encodeURIComponent(org)}`;
+}
+
 export function useStockIdeas() {
+  const { branding } = useBranding();
   const [ideas, setIdeas] = useState<StockIdea[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [canManage, setCanManage] = useState(false);
   const supabase = useMemo(() => getSupabaseBrowser(), []);
+  const organizationId = branding.organizationId;
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(PUBLIC_IDEAS_API, { cache: "no-store" });
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
+        const { data, error } = await supabase
+          .from("stock_ideas")
+          .select(SELECT)
+          .order("created_at", { ascending: false })
+          .limit(500);
+        if (error) throw error;
+        setIdeas((data ?? []).map((row: Parameters<typeof ideaFromRow>[0]) => ideaToClient(ideaFromRow(row))));
+        return;
+      }
+
+      const res = await fetch(publicIdeasUrl(organizationId), { cache: "no-store" });
       const rows = await parseJson<StockIdeaDto[]>(res);
       setIdeas(rows.map(ideaToClient));
     } catch (e) {
@@ -38,7 +60,7 @@ export function useStockIdeas() {
     } finally {
       setHydrated(true);
     }
-  }, []);
+  }, [supabase, organizationId]);
 
   useEffect(() => {
     let mounted = true;
@@ -65,7 +87,24 @@ export function useStockIdeas() {
     (draft: Omit<StockIdea, "id" | "createdAt">) => {
       void (async () => {
         try {
-          const res = await fetch(PUBLIC_IDEAS_API, {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData.session) {
+            const { data, error } = await supabase
+              .from("stock_ideas")
+              .insert({
+                title: draft.title,
+                description: draft.description || null,
+                category: draft.category,
+                status: "nouveau",
+              })
+              .select(SELECT)
+              .single();
+            if (error) throw error;
+            setIdeas((prev) => [ideaToClient(ideaFromRow(data)), ...prev].slice(0, 500));
+            return;
+          }
+
+          const res = await fetch(publicIdeasUrl(organizationId), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -82,13 +121,26 @@ export function useStockIdeas() {
         }
       })();
     },
-    [],
+    [supabase, organizationId],
   );
 
   const updateIdea = useCallback(
     (id: string, patch: Partial<Pick<StockIdea, "title" | "description" | "category" | "status">>) => {
       void (async () => {
         try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData.session) {
+            const { data, error } = await supabase
+              .from("stock_ideas")
+              .update(patch)
+              .eq("id", id)
+              .select(SELECT)
+              .single();
+            if (error) throw error;
+            setIdeas((prev) => prev.map((i) => (i.id === id ? ideaToClient(ideaFromRow(data)) : i)));
+            return;
+          }
+
           const res = await fetch(`${PUBLIC_IDEAS_API}/${id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -102,23 +154,34 @@ export function useStockIdeas() {
         }
       })();
     },
-    [],
+    [supabase],
   );
 
-  const removeIdea = useCallback((id: string) => {
-    void (async () => {
-      try {
-        const res = await fetch(`${PUBLIC_IDEAS_API}/${id}`, { method: "DELETE" });
-        if (!res.ok && res.status !== 204) {
-          await parseJson(res);
+  const removeIdea = useCallback(
+    (id: string) => {
+      void (async () => {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData.session) {
+            const { error } = await supabase.from("stock_ideas").delete().eq("id", id);
+            if (error) throw error;
+            setIdeas((prev) => prev.filter((i) => i.id !== id));
+            return;
+          }
+
+          const res = await fetch(`${PUBLIC_IDEAS_API}/${id}`, { method: "DELETE" });
+          if (!res.ok && res.status !== 204) {
+            await parseJson(res);
+          }
+          setIdeas((prev) => prev.filter((i) => i.id !== id));
+        } catch (e) {
+          console.warn("[StockIdeas] remove:", e);
+          toastError("Suppression impossible. Connectez-vous pour gérer les idées.");
         }
-        setIdeas((prev) => prev.filter((i) => i.id !== id));
-      } catch (e) {
-        console.warn("[StockIdeas] remove:", e);
-        toastError("Suppression impossible. Connectez-vous pour gérer les idées.");
-      }
-    })();
-  }, []);
+      })();
+    },
+    [supabase],
+  );
 
   const exportJson = useCallback(() => {
     const blob = new Blob([JSON.stringify(ideas, null, 2)], { type: "application/json" });

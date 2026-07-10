@@ -407,8 +407,18 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     }
     setPhotoUploading(true);
     try {
-      const { url, error } = await uploadStockVisual(supabase, file, visualUploadFolder(detail.category));
-      if (error || !url) {
+      const organizationId = currentUser?.organizationId;
+      if (!organizationId) {
+        toastError("Organisation introuvable.");
+        return;
+      }
+      const { path, error } = await uploadStockVisual(
+        supabase,
+        organizationId,
+        file,
+        visualUploadFolder(detail.category),
+      );
+      if (error || !path) {
         toastError(error ? `Upload impossible : ${error}` : "Upload impossible.");
         return;
       }
@@ -420,7 +430,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         unitPrice: detail.unitPrice,
         alertThreshold: detail.alertThreshold,
         language: detail.language,
-        visualUrl: url,
+        visualUrl: path,
       });
       toastSuccess(isPdfFile(file) ? "PDF enregistré" : "Photo enregistrée");
     } catch (err) {

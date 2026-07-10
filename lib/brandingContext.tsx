@@ -18,6 +18,8 @@ import {
 import { LEGACY_ORG_ID } from "./tenantConstants";
 import { getSupabaseBrowser } from "./supabaseBrowser";
 import { useRealtimeReload } from "./useRealtimeReload";
+import { resolveStorageAssetUrl } from "./storageClient";
+import { APP_MARK_STORAGE_BUCKET } from "./storageBuckets";
 
 type BrandingContextValue = {
   branding: AppBranding;
@@ -62,8 +64,12 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     }
 
     const next = mergeBranding(data ? mapAppSettingsRow(data) : null);
-    setBranding(next);
-    applyBrandingToDocument(next);
+    const resolvedMark = next.markUrl
+      ? await resolveStorageAssetUrl(supabase, APP_MARK_STORAGE_BUCKET, next.markUrl)
+      : null;
+    const brandingWithUrls = { ...next, markUrl: resolvedMark ?? next.markUrl };
+    setBranding(brandingWithUrls);
+    applyBrandingToDocument(brandingWithUrls);
     setLoading(false);
   }, [supabase]);
 

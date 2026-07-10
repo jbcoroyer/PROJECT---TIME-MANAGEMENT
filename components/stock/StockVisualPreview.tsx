@@ -1,6 +1,7 @@
 "use client";
 
 import { isPdfUrl, pdfEmbedSrc } from "../../lib/stockVisualUtils";
+import { useResolvedStorageUrl } from "../../lib/useResolvedStorageUrl";
 
 type StockVisualPreviewProps = {
   url: string;
@@ -43,14 +44,17 @@ export default function StockVisualPreview({
   mode = "thumb",
   className = "",
 }: StockVisualPreviewProps) {
-  if (isPdfUrl(url)) {
+  const resolvedUrl = useResolvedStorageUrl("stock-plv-visuals", url);
+  if (!resolvedUrl) return null;
+
+  if (isPdfUrl(resolvedUrl)) {
     if (mode === "thumb") {
-      return <PdfEmbed url={url} name={name} className={["h-full w-full", className].join(" ")} badge />;
+      return <PdfEmbed url={resolvedUrl} name={name} className={["h-full w-full", className].join(" ")} badge />;
     }
 
     const heightClass =
       mode === "full" ? "h-[80vh] min-h-[20rem]" : "h-full min-h-[14rem] rounded-lg border border-[var(--line)]";
-    return <PdfEmbed url={url} name={name} className={[heightClass, className].join(" ")} />;
+    return <PdfEmbed url={resolvedUrl} name={name} className={[heightClass, className].join(" ")} />;
   }
 
   const objectClass =
@@ -62,6 +66,6 @@ export default function StockVisualPreview({
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt={name} className={[objectClass, className].filter(Boolean).join(" ")} />
+    <img src={resolvedUrl} alt={name} className={[objectClass, className].filter(Boolean).join(" ")} />
   );
 }

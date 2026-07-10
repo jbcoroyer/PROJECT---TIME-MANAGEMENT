@@ -1,6 +1,7 @@
 "use client";
 
 import { Building2 } from "lucide-react";
+import { useResolvedStorageUrl } from "../lib/useResolvedStorageUrl";
 
 type CompanyAvatarProps = {
   name?: string | null;
@@ -12,12 +13,12 @@ type CompanyAvatarProps = {
 
 export default function CompanyAvatar(props: CompanyAvatarProps) {
   const { name, logoUrl, className, fallbackClassName, iconClassName = "h-4 w-4" } = props;
-
-  if (logoUrl) {
+  const resolvedLogo = useResolvedStorageUrl("company-logos", logoUrl);
+  if (resolvedLogo) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={logoUrl}
+        src={resolvedLogo}
         alt={name ?? "Logo société"}
         className={className}
       />

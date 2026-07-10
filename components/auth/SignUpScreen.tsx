@@ -22,6 +22,7 @@ import { AppMark, AppWordmark } from "../AppBrand";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
+import { uploadOrgFile } from "../../lib/storageClient";
 
 type SignupStep = 1 | 2;
 
@@ -117,22 +118,24 @@ export default function SignUpScreen() {
           const ext = photoFile.name.split(".").pop() ?? "jpg";
           const { data: profileRow } = await supabase
             .from("profiles")
-            .select("team_member_id")
+            .select("team_member_id, organization_id")
             .eq("id", user.id)
             .maybeSingle();
 
-          if (profileRow?.team_member_id) {
-            const path = `${String(profileRow.team_member_id)}.${ext}`;
-            const { error: upErr } = await supabase.storage
-              .from("member-avatars")
-              .upload(path, photoFile, { upsert: true });
-            if (!upErr) {
-              const {
-                data: { publicUrl },
-              } = supabase.storage.from("member-avatars").getPublicUrl(path);
+          if (profileRow?.team_member_id && profileRow.organization_id) {
+            const relativePath = `${String(profileRow.team_member_id)}.${ext}`;
+            const upload = await uploadOrgFile(
+              supabase,
+              "member-avatars",
+              String(profileRow.organization_id),
+              relativePath,
+              photoFile,
+              { upsert: true, contentType: photoFile.type },
+            );
+            if (upload.ok) {
               await supabase
                 .from("team_members")
-                .update({ avatar_url: publicUrl })
+                .update({ avatar_url: upload.path })
                 .eq("id", String(profileRow.team_member_id));
             }
           }

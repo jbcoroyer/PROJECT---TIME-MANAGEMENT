@@ -36,6 +36,8 @@ import type { Task } from "../../lib/types";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { formatCurrency, formatInventoryEventItemName, formatNumber } from "../../lib/stockUtils";
 import { useCurrentUser } from "../../lib/useCurrentUser";
+import { createSignedStorageUrl, uploadOrgFile } from "../../lib/storageClient";
+import { orgStoragePath, type StorageBucket } from "../../lib/storagePaths";
 import { getInventoryErrorMessage } from "../../lib/useInventory";
 import { useEventTasks } from "../../lib/useEventTasks";
 import { useReferenceData } from "../../lib/useReferenceData";
@@ -45,7 +47,7 @@ import { completedAtIsoForNewTaskInColumn, completedAtPatchForColumnChange } fro
 import { markTaskMutatedLocally } from "../../lib/taskMutatedLocally";
 
 type Tab = "tasks" | "stock" | "budget" | "documents";
-const EVENT_DOCUMENTS_BUCKET = "event-documents";
+const EVENT_DOCUMENTS_BUCKET = "event-documents" as StorageBucket;
 
 type ExpenseDb = {
   id: string;
@@ -208,11 +210,13 @@ export default function EventDetailWorkspace({
   }, [id]);
 
   const loadDocuments = useCallback(async () => {
-    if (!id) return;
+    if (!id || !currentUser?.organizationId) return;
+    const organizationId = currentUser.organizationId;
     const supabase = getSupabaseBrowser();
     setLoadingDocuments(true);
     try {
-      const { data, error } = await supabase.storage.from(EVENT_DOCUMENTS_BUCKET).list(id, {
+      const listPrefix = orgStoragePath(organizationId, id);
+      const { data, error } = await supabase.storage.from(EVENT_DOCUMENTS_BUCKET).list(listPrefix, {
         limit: 200,
         sortBy: { column: "created_at", order: "desc" },
       });
@@ -227,31 +231,31 @@ export default function EventDetailWorkspace({
         ),
       );
 
-      const rows = ((data ?? []) as StorageListItem[])
-        .filter((file) => !!file.name)
-        .map((file) => {
-          const path = `${id}/${file.name}`;
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from(EVENT_DOCUMENTS_BUCKET).getPublicUrl(path);
-          const meta = metaByPath.get(path);
-          return {
-            path,
-            name: file.name,
-            createdAt: file.created_at ?? null,
-            size: Number(file.metadata?.size ?? 0) || 0,
-            publicUrl,
-            docType: (meta?.doc_type as EventDocumentType) ?? "autre",
-            expenseId: meta?.expense_id ?? null,
-          } satisfies EventDocument;
-        });
+      const rows = await Promise.all(
+        ((data ?? []) as StorageListItem[])
+          .filter((file) => !!file.name)
+          .map(async (file) => {
+            const path = orgStoragePath(organizationId, id, file.name);
+            const signed = await createSignedStorageUrl(supabase, EVENT_DOCUMENTS_BUCKET, path);
+            const meta = metaByPath.get(path) ?? metaByPath.get(`${id}/${file.name}`);
+            return {
+              path,
+              name: file.name,
+              createdAt: file.created_at ?? null,
+              size: Number(file.metadata?.size ?? 0) || 0,
+              publicUrl: signed.ok ? signed.url : "",
+              docType: (meta?.doc_type as EventDocumentType) ?? "autre",
+              expenseId: meta?.expense_id ?? null,
+            } satisfies EventDocument;
+          }),
+      );
       setDocuments(rows);
     } catch (e) {
       toastError(getInventoryErrorMessage(e, "Impossible de charger les documents de l'événement."));
     } finally {
       setLoadingDocuments(false);
     }
-  }, [id]);
+  }, [id, currentUser?.organizationId]);
 
   useEffect(() => {
     void loadEvent();
@@ -398,22 +402,27 @@ export default function EventDetailWorkspace({
   };
 
   const handleUploadDocuments = async (files: FileList | null) => {
-    if (!id || !files || files.length === 0) return;
+    if (!id || !files || files.length === 0 || !currentUser?.organizationId) return;
+    const organizationId = currentUser.organizationId;
     const supabase = getSupabaseBrowser();
     setUploadingDocuments(true);
     try {
       for (const file of Array.from(files)) {
         const cleanedName = file.name.replace(/[^\w.\-]/g, "_");
-        const storagePath = `${id}/${Date.now()}-${cleanedName}`;
-        const { error } = await supabase.storage.from(EVENT_DOCUMENTS_BUCKET).upload(storagePath, file, {
-          upsert: false,
-          contentType: file.type || undefined,
-        });
-        if (error) throw error;
+        const relativePath = `${id}/${Date.now()}-${cleanedName}`;
+        const upload = await uploadOrgFile(
+          supabase,
+          EVENT_DOCUMENTS_BUCKET,
+          organizationId,
+          relativePath,
+          file,
+          { upsert: false, contentType: file.type || undefined },
+        );
+        if (!upload.ok) throw new Error(upload.error);
         await supabase.from("event_document_meta").upsert(
           {
             event_id: id,
-            storage_path: storagePath,
+            storage_path: upload.path,
             doc_type: uploadDocType,
             title: file.name,
           },

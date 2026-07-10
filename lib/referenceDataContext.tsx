@@ -12,6 +12,7 @@ import {
 } from "react";
 import { fallbackReferenceData, type ReferenceRecord } from "./referenceData";
 import { getSupabaseBrowser } from "./supabaseBrowser";
+import { resolveStorageAssetUrl } from "./storageClient";
 
 type ReferenceDataState = {
   admins: ReferenceRecord[];
@@ -79,23 +80,36 @@ export function ReferenceDataProvider({ children }: { children: ReactNode }) {
         .order("sort_order", { ascending: true }),
     ]);
 
-    const admins =
-      ((adminsRes.data ?? []) as TeamMemberRecord[])
-        .map((item) => ({
+    const adminsRaw = (adminsRes.data ?? []) as TeamMemberRecord[];
+    const companiesRaw = (companiesRes.data ?? []) as CompanyRecord[];
+
+    const admins = await Promise.all(
+      adminsRaw.map(async (item) => {
+        const rawAvatar = item.avatar_url ?? null;
+        const avatarUrl = rawAvatar
+          ? await resolveStorageAssetUrl(supabase, "member-avatars", rawAvatar)
+          : null;
+        return {
           id: String(item.id ?? ""),
           name: String(item.display_name ?? ""),
-          avatarUrl: item.avatar_url ?? null,
-        }))
-        .filter((item) => item.id && item.name) || [];
+          avatarUrl,
+        };
+      }),
+    ).then((rows) => rows.filter((item) => item.id && item.name));
 
-    const companies =
-      ((companiesRes.data ?? []) as CompanyRecord[])
-        .map((item) => ({
+    const companies = await Promise.all(
+      companiesRaw.map(async (item) => {
+        const rawLogo = item.logo_url ?? null;
+        const logoUrl = rawLogo
+          ? await resolveStorageAssetUrl(supabase, "company-logos", rawLogo)
+          : null;
+        return {
           id: String(item.id ?? ""),
           name: String(item.name ?? ""),
-          logoUrl: item.logo_url ?? null,
-        }))
-        .filter((item) => item.id && item.name) || [];
+          logoUrl,
+        };
+      }),
+    ).then((rows) => rows.filter((item) => item.id && item.name));
 
     const domains =
       ((domainsRes.data ?? []) as DomainRecord[])

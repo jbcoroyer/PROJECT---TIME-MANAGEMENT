@@ -7,6 +7,8 @@ import type { InventoryItem, InventoryItemDraft } from "../lib/inventoryTypes";
 import { uploadStockVisual } from "../lib/stockVisualUpload";
 import { STOCK_VISUAL_ACCEPT, stockVisualFileError } from "../lib/stockVisualUtils";
 import { toastError } from "../lib/toast";
+import { useBranding } from "../lib/brandingContext";
+import { useCurrentUser } from "../lib/useCurrentUser";
 import StockVisualPreview from "./stock/StockVisualPreview";
 
 type Props = {
@@ -19,6 +21,8 @@ type Props = {
 
 export default function InventoryGoodiesModal(props: Props) {
   const { open, initialItem, onClose, onSubmit, onDelete } = props;
+  const { branding } = useBranding();
+  const { user } = useCurrentUser();
   const isEditing = Boolean(initialItem?.id);
   const supabase = useMemo(() => getSupabaseBrowser(), []);
 
@@ -81,12 +85,18 @@ export default function InventoryGoodiesModal(props: Props) {
     try {
       let resolvedVisualUrl = visualUrl.trim() || null;
       if (visualFile) {
-        const { url, error } = await uploadStockVisual(supabase, visualFile, "goodies");
-        if (error) {
+        const organizationId = user?.organizationId ?? branding.organizationId;
+        if (!organizationId) {
+          toastError("Organisation introuvable.");
+          return;
+        }
+        const { path, url, error } = await uploadStockVisual(supabase, organizationId, visualFile, "goodies");
+        if (error || !path) {
           toastError(`Upload image impossible : ${error}`);
           return;
         }
-        resolvedVisualUrl = url;
+        if (url) setVisualPreviewUrl(url);
+        resolvedVisualUrl = path;
       }
 
       await onSubmit({

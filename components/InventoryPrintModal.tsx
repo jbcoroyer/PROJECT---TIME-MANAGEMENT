@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2, Upload, X } from "lucide-react";
 import { useBranding } from "../lib/brandingContext";
+import { useCurrentUser } from "../lib/useCurrentUser";
 import { printDocumentTypeOptions } from "../lib/printDocumentTypes";
 import { PRINT_LANGUAGES_FR, PRINT_LANGUAGES_FEATURED_FR } from "../lib/printLanguages";
 import type { InventoryItem, InventoryItemDraft } from "../lib/inventoryTypes";
@@ -51,6 +52,7 @@ function newLangRow(partial?: Partial<LangRow>): LangRow {
 export default function InventoryPrintModal(props: Props) {
   const { open, initialItem, allItems, onClose, onSubmit, onSubmitMany, onDelete } = props;
   const { branding } = useBranding();
+  const { user } = useCurrentUser();
   const printSpeciesOptions = branding.printSpecies;
   const isEditing = Boolean(initialItem?.id);
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -142,12 +144,18 @@ export default function InventoryPrintModal(props: Props) {
     try {
       let resolvedVisualUrl = visualUrl.trim() || null;
       if (visualFile) {
-        const { url, error } = await uploadStockVisual(supabase, visualFile, "print");
-        if (error) {
+        const organizationId = user?.organizationId ?? branding.organizationId;
+        if (!organizationId) {
+          toastError("Organisation introuvable.");
+          return;
+        }
+        const { path, url, error } = await uploadStockVisual(supabase, organizationId, visualFile, "print");
+        if (error || !path) {
           toastError(`Upload image impossible : ${error}`);
           return;
         }
-        resolvedVisualUrl = url;
+        if (url) setVisualPreviewUrl(url);
+        resolvedVisualUrl = path;
       }
 
     if (isEditing) {

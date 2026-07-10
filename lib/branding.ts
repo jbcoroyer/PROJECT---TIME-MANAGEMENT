@@ -11,6 +11,7 @@ import {
 export const APP_SETTINGS_ID = "default" as const;
 
 export type AppBranding = {
+  organizationId: string | null;
   appName: string;
   appShortName: string;
   tagline: string;
@@ -90,6 +91,7 @@ export function isExternalImageSrc(src: string): boolean {
 
 function envBrandingDefaults(): AppBranding {
   return {
+    organizationId: null,
     appName: envString("NEXT_PUBLIC_APP_NAME") ?? "Workspace",
     appShortName: envString("NEXT_PUBLIC_APP_SHORT_NAME", "NEXT_PUBLIC_APP_NAME") ?? "Workspace",
     tagline: envString("NEXT_PUBLIC_APP_TAGLINE") ?? "",
@@ -152,6 +154,7 @@ export function mapAppSettingsRow(row: unknown): AppSettingsRow {
     default_public_survey_id:
       typeof r.default_public_survey_id === "string" ? r.default_public_survey_id : null,
     is_configured: typeof r.is_configured === "boolean" ? r.is_configured : null,
+    organization_id: typeof r.organization_id === "string" ? r.organization_id : null,
     social_thematics: r.social_thematics,
     print_species: r.print_species,
     updated_at: typeof r.updated_at === "string" ? r.updated_at : null,
@@ -167,6 +170,7 @@ export function mergeBranding(row: AppSettingsRow | null | undefined): AppBrandi
     null;
 
   return {
+    organizationId: pickNullable(row?.organization_id, env.organizationId),
     appName: pickString(row?.app_name, env.appName, "Workspace"),
     appShortName: pickString(row?.app_short_name, env.appShortName, "Workspace"),
     tagline: pickString(row?.tagline, env.tagline, ""),

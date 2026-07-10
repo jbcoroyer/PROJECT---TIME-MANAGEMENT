@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
+import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
 import {
   createStarterDefinition,
   isQuestionVisible,
@@ -386,9 +387,19 @@ export async function submitSurveyResponse(
   const indexed = extractIndexedFields(exports, input?.answers ?? {});
   const respondentName = respondentNameFromInput ?? indexed.respondent_name;
 
-  const supabase = await createServerSupabase();
+  const admin = createSupabaseAdmin();
+  const { data: surveyRow, error: surveyLookupError } = await admin
+    .from("survey_definitions")
+    .select("organization_id")
+    .eq("id", surveyId)
+    .maybeSingle();
 
-  const { error } = await supabase.from("survey_responses").insert({
+  if (surveyLookupError || !surveyRow?.organization_id) {
+    return { ok: false, error: "Questionnaire introuvable." };
+  }
+
+  const { error } = await admin.from("survey_responses").insert({
+    organization_id: surveyRow.organization_id,
     survey_version: definition.version,
     entity: indexed.entity,
     service: indexed.service,

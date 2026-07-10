@@ -15,10 +15,12 @@ import {
   clearInvalidSupabaseSession,
   isInvalidRefreshTokenError,
 } from "./supabaseAuthRecovery";
+import { resolveStorageAssetUrl } from "./storageClient";
 
 export type CurrentUser = {
   id: string;
   email: string;
+  organizationId: string | null;
   displayName: string | null;
   teamMemberId: string | null;
   teamMemberName: string | null;
@@ -42,7 +44,7 @@ async function fetchProfile(
 ): Promise<CurrentUser> {
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, team_member_id, role, team_members(display_name, job_title, avatar_url)")
+    .select("display_name, team_member_id, role, organization_id, team_members(display_name, job_title, avatar_url)")
     .eq("id", authUser.id)
     .maybeSingle();
 
@@ -53,15 +55,20 @@ async function fetchProfile(
   } | null) ?? null;
 
   const role = (profile?.role as string | null) === "admin" ? "admin" : "user";
+  const rawAvatar = member?.avatar_url ?? null;
+  const avatarUrl = rawAvatar
+    ? await resolveStorageAssetUrl(supabase, "member-avatars", rawAvatar)
+    : null;
 
   return {
     id: authUser.id,
     email: authUser.email ?? "",
+    organizationId: (profile?.organization_id as string | null) ?? null,
     displayName: (profile?.display_name as string | null) ?? null,
     teamMemberId: (profile?.team_member_id as string | null) ?? null,
     teamMemberName: member?.display_name ?? null,
     jobTitle: member?.job_title ?? null,
-    avatarUrl: member?.avatar_url ?? null,
+    avatarUrl,
     role,
     isAdmin: role === "admin",
   };
