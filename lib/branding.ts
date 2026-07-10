@@ -7,7 +7,7 @@ import {
   type PrintSpeciesOption,
 } from "./taxonomies";
 
-/** Identifiant unique de la ligne de configuration organisation. */
+/** @deprecated Utiliser organization_id ; conservé pour rétro-compat des lignes historiques. */
 export const APP_SETTINGS_ID = "default" as const;
 
 export type AppBranding = {
@@ -44,6 +44,7 @@ export type AppSettingsRow = {
   outlook_category_name?: string | null;
   default_public_survey_id?: string | null;
   is_configured?: boolean | null;
+  organization_id?: string | null;
   social_thematics?: unknown;
   print_species?: unknown;
   updated_at?: string | null;
@@ -205,9 +206,13 @@ export function brandingToMetadata(branding: AppBranding): Metadata {
   };
 }
 
-export function brandingToDbPatch(patch: AppBrandingPatch): Record<string, unknown> {
+export function brandingToDbPatch(
+  patch: AppBrandingPatch,
+  organizationId: string,
+): Record<string, unknown> {
   const row: Record<string, unknown> = {
-    id: APP_SETTINGS_ID,
+    id: organizationId,
+    organization_id: organizationId,
     updated_at: new Date().toISOString(),
   };
   if (patch.appName !== undefined) row.app_name = patch.appName;

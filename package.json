@@ -14,7 +14,10 @@
     "db:event-organization": "node scripts/apply-event-organization.mjs",
     "db:outlook-calendar-sync": "node scripts/apply-outlook-calendar-sync.mjs",
     "db:v2-automations-intake": "node scripts/apply-v2-automations-intake.mjs",
-    "db:satisfaction-survey": "node scripts/apply-satisfaction-survey.mjs"
+    "db:satisfaction-survey": "node scripts/apply-satisfaction-survey.mjs",
+    "db:multi-tenant": "node scripts/apply-multi-tenant.mjs",
+    "db:multi-tenant-remaining": "node scripts/apply-multi-tenant-remaining.mjs",
+    "db:app-settings-per-org": "node scripts/apply-app-settings-per-org.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSetupExemptPath, SETUP_PATH } from "./setupPaths";
+import { isSetupExemptPath, SETUP_PATH, SIGNUP_PATH } from "./setupPaths";
 
 describe("isSetupExemptPath", () => {
   it("autorise l'accueil et la connexion", () => {
@@ -8,8 +8,9 @@ describe("isSetupExemptPath", () => {
     expect(isSetupExemptPath("/login/reset-password")).toBe(true);
   });
 
-  it("autorise l'assistant et les formulaires publics", () => {
+  it("autorise l'assistant, l'inscription et les formulaires publics", () => {
     expect(isSetupExemptPath(SETUP_PATH)).toBe(true);
+    expect(isSetupExemptPath(SIGNUP_PATH)).toBe(true);
     expect(isSetupExemptPath("/questionnaire/f/abc")).toBe(true);
     expect(isSetupExemptPath("/auth/callback")).toBe(true);
   });

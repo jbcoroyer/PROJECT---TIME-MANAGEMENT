@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import {
-  APP_SETTINGS_ID,
   brandingToDbPatch,
   type AppBrandingPatch,
 } from "../../lib/branding";
 import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
+import { getServerOrgContext } from "../../lib/server/orgContext";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 
 export type SetupAccess = {
@@ -14,15 +14,17 @@ export type SetupAccess = {
   isAuthenticated: boolean;
   canCompleteSetup: boolean;
   isAdmin: boolean;
+  organizationId: string | null;
 };
 
-async function countAdmins(): Promise<number> {
+async function countAdminsForOrg(organizationId: string): Promise<number> {
   try {
     const admin = createSupabaseAdmin();
     const { count, error } = await admin
       .from("profiles")
       .select("id", { count: "exact", head: true })
-      .eq("role", "admin");
+      .eq("role", "admin")
+      .eq("organization_id", organizationId);
     if (error) return 0;
     return count ?? 0;
   } catch {
@@ -30,53 +32,50 @@ async function countAdmins(): Promise<number> {
   }
 }
 
-/** Indique si l'utilisateur courant peut lancer ou terminer l'installation. */
+/** Indique si l'utilisateur courant peut lancer ou terminer l'installation de son organisation. */
 export async function getSetupAccess(): Promise<SetupAccess> {
   const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data } = await supabase
-    .from("app_settings")
-    .select("is_configured")
-    .eq("id", APP_SETTINGS_ID)
-    .maybeSingle();
+  const ctx = await getServerOrgContext();
+  const organizationId = ctx?.organizationId ?? null;
 
-  const isConfigured = data?.is_configured === true;
-  const isAuthenticated = Boolean(user);
-
-  let isAdmin = false;
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
+  let isConfigured = false;
+  if (organizationId) {
+    const { data } = await supabase
+      .from("app_settings")
+      .select("is_configured")
+      .eq("organization_id", organizationId)
       .maybeSingle();
-    isAdmin = profile?.role === "admin";
+    isConfigured = data?.is_configured === true;
   }
 
+  const isAuthenticated = Boolean(user);
+  const isAdmin = ctx?.isAdmin ?? false;
+
   let canCompleteSetup = false;
-  if (isAuthenticated && !isConfigured) {
+  if (isAuthenticated && organizationId && !isConfigured) {
     if (isAdmin) {
       canCompleteSetup = true;
     } else {
-      const adminCount = await countAdmins();
+      const adminCount = await countAdminsForOrg(organizationId);
       canCompleteSetup = adminCount === 0;
     }
   }
 
-  return { isConfigured, isAuthenticated, canCompleteSetup, isAdmin };
+  return { isConfigured, isAuthenticated, canCompleteSetup, isAdmin, organizationId };
 }
 
 export type CompleteSetupResult = { ok: true } | { ok: false; error: string };
 
-/** Enregistre la configuration initiale et marque l'application comme installée. */
+/** Enregistre la configuration initiale de l'organisation courante. */
 export async function completeInitialSetup(
   patch: AppBrandingPatch,
 ): Promise<CompleteSetupResult> {
   const access = await getSetupAccess();
-  if (!access.canCompleteSetup) {
+  if (!access.canCompleteSetup || !access.organizationId) {
     return { ok: false, error: "Vous n'avez pas l'autorisation de finaliser l'installation." };
   }
 
@@ -89,19 +88,22 @@ export async function completeInitialSetup(
   const appName = patch.appName?.trim();
   if (!appName) return { ok: false, error: "Le nom de l'application est obligatoire." };
 
-  const row = brandingToDbPatch({
-    ...patch,
-    appName,
-    appShortName: patch.appShortName?.trim() || appName,
-    tagline: patch.tagline?.trim() ?? "",
-    isConfigured: true,
-  });
+  const row = brandingToDbPatch(
+    {
+      ...patch,
+      appName,
+      appShortName: patch.appShortName?.trim() || appName,
+      tagline: patch.tagline?.trim() ?? "",
+      isConfigured: true,
+    },
+    access.organizationId,
+  );
 
-  const { error } = await supabase.from("app_settings").upsert(row, { onConflict: "id" });
+  const { error } = await supabase.from("app_settings").upsert(row, { onConflict: "organization_id" });
   if (error) return { ok: false, error: error.message };
 
   if (!access.isAdmin) {
-    const adminCount = await countAdmins();
+    const adminCount = await countAdminsForOrg(access.organizationId);
     if (adminCount === 0) {
       try {
         const admin = createSupabaseAdmin();

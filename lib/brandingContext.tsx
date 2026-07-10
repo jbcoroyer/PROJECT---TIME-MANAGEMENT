@@ -10,12 +10,12 @@ import {
   type ReactNode,
 } from "react";
 import {
-  APP_SETTINGS_ID,
   DEFAULT_BRANDING,
   mergeBranding,
   mapAppSettingsRow,
   type AppBranding,
 } from "./branding";
+import { LEGACY_ORG_ID } from "./tenantConstants";
 import { getSupabaseBrowser } from "./supabaseBrowser";
 import { useRealtimeReload } from "./useRealtimeReload";
 
@@ -28,7 +28,7 @@ type BrandingContextValue = {
 const BrandingContext = createContext<BrandingContextValue | null>(null);
 
 const APP_SETTINGS_SELECT =
-  "id, idena_mark_url, app_name, app_short_name, tagline, logo_url, icon_url, mark_url, primary_color, locale, timezone, sector, outlook_category_name, default_public_survey_id, is_configured, social_thematics, print_species, updated_at";
+  "id, organization_id, idena_mark_url, app_name, app_short_name, tagline, logo_url, icon_url, mark_url, primary_color, locale, timezone, sector, outlook_category_name, default_public_survey_id, is_configured, social_thematics, print_species, updated_at";
 
 function applyBrandingToDocument(branding: AppBranding) {
   if (typeof document === "undefined") return;
@@ -42,11 +42,17 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("app_settings")
-      .select(APP_SETTINGS_SELECT)
-      .eq("id", APP_SETTINGS_ID)
-      .maybeSingle();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    let query = supabase.from("app_settings").select(APP_SETTINGS_SELECT);
+
+    if (!user) {
+      query = query.eq("organization_id", LEGACY_ORG_ID);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) {
       console.warn("[Branding] app_settings:", error.message);

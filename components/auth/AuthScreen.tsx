@@ -1,32 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Briefcase,
-  Camera,
-  Eye,
-  EyeOff,
-  KeyRound,
-  Mail,
-  User,
-  UserRound,
-} from "lucide-react";
+import { Eye, EyeOff, KeyRound, Mail } from "lucide-react";
 import { AppMark, AppWordmark } from "../AppBrand";
 import { getPublicAppOrigin } from "../../lib/publicAppUrl";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 
-type AuthMode = "signin" | "signup";
-type SignupStep = 1 | 2;
-
 type AuthScreenProps = {
-  /** Chemin nettoyé après erreur OAuth dans l’URL (ex. `/` ou `/login`). */
+  /** Chemin nettoyé après erreur OAuth dans l'URL (ex. `/` ou `/login`). */
   cleanPath?: string;
 };
 
@@ -44,32 +29,14 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
     return message;
   }
 
-  const [mode, setMode] = useState<AuthMode>("signin");
-  const [step, setStep] = useState<SignupStep>(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const photoInputRef = useRef<HTMLInputElement>(null);
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPassword, setSignupPassword] = useState("");
-  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [urlAuthError, setUrlAuthError] = useState<string | null>(null);
-
-  const subtitle =
-    mode === "signin"
-      ? t("auth.signInToWorkspace", { app: branding.appName })
-      : step === 1
-        ? t("auth.signUpStep1")
-        : t("auth.signUpStep2");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -91,24 +58,6 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
     }
     window.history.replaceState(null, "", cleanPath);
   }, [cleanPath, t]);
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPhotoFile(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const goToStep2 = () => {
-    if (!firstName.trim() || !lastName.trim()) {
-      setError(t("auth.nameRequired"));
-      return;
-    }
-    setError(null);
-    setStep(2);
-  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,75 +105,6 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!signupEmail.trim() || !signupPassword) {
-      setError(t("auth.fieldsRequired"));
-      return;
-    }
-    setError(null);
-    setLoading(true);
-
-    const displayName = `${firstName.trim()} ${lastName.trim()}`;
-
-    try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: signupEmail.trim(),
-        password: signupPassword,
-        options: {
-          data: {
-            display_name: displayName,
-            job_title: jobTitle.trim() || null,
-          },
-        },
-      });
-      if (signUpError) throw signUpError;
-
-      if (data.session && photoFile) {
-        const ext = photoFile.name.split(".").pop() ?? "jpg";
-        const { data: profileRow } = await supabase
-          .from("profiles")
-          .select("team_member_id")
-          .eq("id", data.session.user.id)
-          .maybeSingle();
-
-        if (profileRow?.team_member_id) {
-          const path = `${String(profileRow.team_member_id)}.${ext}`;
-          const { error: upErr } = await supabase.storage
-            .from("member-avatars")
-            .upload(path, photoFile, { upsert: true });
-          if (!upErr) {
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from("member-avatars").getPublicUrl(path);
-            await supabase
-              .from("team_members")
-              .update({ avatar_url: publicUrl })
-              .eq("id", String(profileRow.team_member_id));
-          }
-        }
-        router.push("/");
-        router.refresh();
-        return;
-      }
-
-      setSuccess(t("auth.accountCreated"));
-      setMode("signin");
-      setStep(1);
-    } catch (err: unknown) {
-      setError(translateAuthError(err instanceof Error ? err.message : String(err)));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetMode = (m: AuthMode) => {
-    setMode(m);
-    setStep(1);
-    setError(null);
-    setSuccess(null);
-  };
-
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
@@ -246,7 +126,9 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
           {branding.tagline.trim() ? (
             <p className="mt-2 text-sm text-[color:var(--foreground)]/50">{branding.tagline}</p>
           ) : null}
-          <p className="mt-4 text-sm text-[color:var(--foreground)]/60">{subtitle}</p>
+          <p className="mt-4 text-sm text-[color:var(--foreground)]/60">
+            {t("auth.signInToWorkspace", { app: branding.appName })}
+          </p>
         </header>
 
         <div className="rounded-2xl border border-[var(--line)]/80 bg-[var(--surface)]/90 p-6 shadow-[var(--shadow-2)] backdrop-blur-sm">
@@ -257,202 +139,66 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
           ) : null}
 
           <div className="mb-5 flex rounded-xl bg-[var(--surface-soft)] p-1">
-            {(["signin", "signup"] as AuthMode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => resetMode(m)}
-                className={[
-                  "flex-1 rounded-lg py-2 text-sm font-medium transition",
-                  mode === m
-                    ? "bg-[var(--surface)] text-[var(--foreground)] shadow-sm"
-                    : "text-[color:var(--foreground)]/55 hover:text-[var(--foreground)]",
-                ].join(" ")}
-              >
-                {m === "signin" ? t("auth.signInTab") : t("auth.signUpTab")}
-              </button>
-            ))}
+            <button
+              type="button"
+              className="flex-1 rounded-lg bg-[var(--surface)] py-2 text-sm font-medium text-[var(--foreground)] shadow-sm"
+            >
+              {t("auth.signInTab")}
+            </button>
+            <Link
+              href="/signup"
+              className="flex flex-1 items-center justify-center rounded-lg py-2 text-sm font-medium text-[color:var(--foreground)]/55 transition hover:text-[var(--foreground)]"
+            >
+              {t("auth.signUpTab")}
+            </Link>
           </div>
 
-          {mode === "signin" && (
-            <form onSubmit={(e) => void handleSignIn(e)} className="space-y-4">
-              <Field
-                id="email"
-                label={t("auth.email")}
-                icon={<Mail className="h-4 w-4" />}
-                type="email"
-                value={email}
-                onChange={setEmail}
-                autoComplete="email"
-                placeholder="vous@example.com"
-              />
-              <PasswordField
-                id="signin-password"
-                label={t("auth.password")}
-                value={password}
-                onChange={setPassword}
-                show={showPassword}
-                onToggleShow={() => setShowPassword((v) => !v)}
-                autoComplete="current-password"
-              />
-              <div className="-mt-1 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => void handleForgotPassword()}
-                  disabled={sendingReset || loading}
-                  className="text-xs font-medium text-[color:var(--foreground)]/50 transition hover:text-[var(--brand-primary)] disabled:opacity-50"
-                >
-                  {sendingReset ? t("auth.sendingReset") : t("auth.forgotPassword")}
-                </button>
-              </div>
-              <AlertBox error={error} success={success} />
-              <SubmitBtn
-                loading={loading}
-                loadingLabel={t("auth.signingIn")}
-                label={t("auth.signInButton")}
-              />
-            </form>
-          )}
-
-          {mode === "signup" && step === 1 && (
-            <div className="space-y-4">
-              <div className="flex flex-col items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => photoInputRef.current?.click()}
-                  className="group relative h-20 w-20 overflow-hidden rounded-full border border-dashed border-[var(--line)] bg-[var(--surface-soft)] transition hover:border-[var(--brand-primary)]/40"
-                  title={t("auth.photo")}
-                >
-                  {photoPreview ? (
-                    <Image src={photoPreview} alt="" fill className="object-cover" unoptimized />
-                  ) : (
-                    <div className="flex h-full flex-col items-center justify-center gap-1">
-                      <Camera className="h-5 w-5 text-[color:var(--foreground)]/30 group-hover:text-[color:var(--foreground)]/45" />
-                    </div>
-                  )}
-                </button>
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={handlePhotoChange}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field
-                  id="firstName"
-                  label={t("auth.firstName")}
-                  icon={<User className="h-4 w-4" />}
-                  type="text"
-                  value={firstName}
-                  onChange={setFirstName}
-                  autoComplete="given-name"
-                />
-                <Field
-                  id="lastName"
-                  label={t("auth.lastName")}
-                  icon={<UserRound className="h-4 w-4" />}
-                  type="text"
-                  value={lastName}
-                  onChange={setLastName}
-                  autoComplete="family-name"
-                />
-              </div>
-
-              <Field
-                id="jobTitle"
-                label={t("auth.jobTitle")}
-                icon={<Briefcase className="h-4 w-4" />}
-                type="text"
-                value={jobTitle}
-                onChange={setJobTitle}
-                autoComplete="organization-title"
-              />
-
-              <AlertBox error={error} />
-
+          <form onSubmit={(e) => void handleSignIn(e)} className="space-y-4">
+            <Field
+              id="email"
+              label={t("auth.email")}
+              icon={<Mail className="h-4 w-4" />}
+              type="email"
+              value={email}
+              onChange={setEmail}
+              autoComplete="email"
+              placeholder="vous@example.com"
+            />
+            <PasswordField
+              id="signin-password"
+              label={t("auth.password")}
+              value={password}
+              onChange={setPassword}
+              show={showPassword}
+              onToggleShow={() => setShowPassword((v) => !v)}
+              autoComplete="current-password"
+            />
+            <div className="-mt-1 flex justify-end">
               <button
                 type="button"
-                onClick={goToStep2}
-                className="ui-transition flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                onClick={() => void handleForgotPassword()}
+                disabled={sendingReset || loading}
+                className="text-xs font-medium text-[color:var(--foreground)]/50 transition hover:text-[var(--brand-primary)] disabled:opacity-50"
               >
-                {t("common.continue")}
-                <ArrowRight className="h-4 w-4" />
+                {sendingReset ? t("auth.sendingReset") : t("auth.forgotPassword")}
               </button>
             </div>
-          )}
-
-          {mode === "signup" && step === 2 && (
-            <form onSubmit={(e) => void handleSignUp(e)} className="space-y-4">
-              <div className="flex items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2.5">
-                {photoPreview ? (
-                  <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
-                    <Image src={photoPreview} alt="" fill className="object-cover" unoptimized />
-                  </div>
-                ) : (
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--surface)]">
-                    <User className="h-4 w-4 text-[color:var(--foreground)]/60" />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[var(--foreground)]">
-                    {firstName} {lastName}
-                  </p>
-                  {jobTitle ? (
-                    <p className="truncate text-xs text-[color:var(--foreground)]/50">{jobTitle}</p>
-                  ) : null}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep(1);
-                    setError(null);
-                  }}
-                  aria-label={t("common.back")}
-                  className="shrink-0 rounded-lg p-1.5 text-[color:var(--foreground)]/45 transition hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-              </div>
-
-              <Field
-                id="signup-email"
-                label={t("auth.email")}
-                icon={<Mail className="h-4 w-4" />}
-                type="email"
-                value={signupEmail}
-                onChange={setSignupEmail}
-                autoComplete="email"
-                placeholder="vous@example.com"
-              />
-              <PasswordField
-                id="signup-password"
-                label={t("auth.password")}
-                value={signupPassword}
-                onChange={setSignupPassword}
-                show={showSignupPassword}
-                onToggleShow={() => setShowSignupPassword((v) => !v)}
-                autoComplete="new-password"
-              />
-
-              <AlertBox error={error} success={success} />
-              <SubmitBtn
-                loading={loading}
-                loadingLabel={t("common.saving")}
-                label={t("auth.createAccount")}
-              />
-            </form>
-          )}
+            <AlertBox error={error} success={success} />
+            <SubmitBtn
+              loading={loading}
+              loadingLabel={t("auth.signingIn")}
+              label={t("auth.signInButton")}
+            />
+          </form>
         </div>
 
         <p className="mt-6 text-center text-xs text-[color:var(--foreground)]/40">
-          <Link
-            href="/login/reset-password"
-            className="transition hover:text-[var(--brand-primary)]"
-          >
+          <Link href="/login/reset-password" className="transition hover:text-[var(--brand-primary)]">
             {t("auth.forgotPassword")}
+          </Link>
+          <span className="mx-2">·</span>
+          <Link href="/signup" className="transition hover:text-[var(--brand-primary)]">
+            {t("auth.signUp")}
           </Link>
         </p>
       </div>
