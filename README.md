@@ -60,9 +60,13 @@ Variables **obligatoires** :
 
 Appliquez les fichiers SQL dans `supabase/migrations/` dans l'ordre chronologique :
 
-- via le **SQL Editor** Supabase,
-- ou avec la CLI : `supabase db push`,
-- ou les scripts `npm run db:*` (nécessitent `SUPABASE_DB_PASSWORD`).
+```bash
+npx supabase link --project-ref <votre-ref>
+npx supabase db push
+```
+
+> Les policies Storage (`storage.objects`) nécessitent le **session pooler** sur Supabase hébergé :
+> `npx supabase db query --linked -f supabase/migrations/20260711000000_storage_org_isolation.sql`
 
 La migration `20260520000000_initial_base_schema.sql` crée le schéma complet (tables, RLS, buckets Storage).
 
@@ -151,11 +155,7 @@ return <button>{t("common.save")}</button>;
 | `npm run start` | Serveur de production |
 | `npm test` | Tests Vitest |
 | `npm run lint` | ESLint |
-| `npm run db:ideas-public` | Migration boîte à idées publique |
-| `npm run db:event-organization` | Migration organisation événements |
-| `npm run db:outlook-calendar-sync` | Migration sync Outlook |
-| `npm run db:v2-automations-intake` | Migration automatisations & intake V2 |
-| `npm run db:satisfaction-survey` | Migration questionnaires satisfaction |
+| `npm run audit:storage` | Vérifie que les chemins Storage sont préfixés par `organization_id` |
 
 ---
 

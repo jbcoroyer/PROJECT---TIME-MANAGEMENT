@@ -126,14 +126,6 @@ export async function createTestOrgsAndUsers(
     .eq("id", userBId);
   if (profileBError) throw profileBError;
 
-  await admin.from("organization_members").upsert(
-    [
-      { user_id: userAId, organization_id: orgA.id, role: "admin" },
-      { user_id: userBId, organization_id: orgB.id, role: "admin" },
-    ],
-    { onConflict: "user_id,organization_id" },
-  );
-
   return {
     prefix,
     orgAId: orgA.id,
@@ -145,7 +137,6 @@ export async function createTestOrgsAndUsers(
     userAPassword,
     userBPassword,
     cleanup: async () => {
-      await admin.from("organization_members").delete().in("user_id", [userAId, userBId]);
       await admin.from("profiles").delete().in("id", [userAId, userBId]);
       await admin.auth.admin.deleteUser(userAId);
       await admin.auth.admin.deleteUser(userBId);
