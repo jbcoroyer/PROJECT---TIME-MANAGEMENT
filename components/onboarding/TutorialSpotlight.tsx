@@ -70,17 +70,9 @@ export default function TutorialSpotlight({
   cardPosition = "auto",
 }: TutorialSpotlightProps) {
   const [rect, setRect] = useState<Rect | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   useLayoutEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!visible) {
-      setRect(null);
-      return;
-    }
+    if (!visible) return;
 
     const update = () => setRect(measureTarget(targetSelector, padding));
     update();
@@ -102,7 +94,7 @@ export default function TutorialSpotlight({
     };
   }, [visible, targetSelector, padding]);
 
-  if (!mounted || !visible || !rect) return null;
+  if (typeof document === "undefined" || !visible || !rect) return null;
 
   return createPortal(
     <>

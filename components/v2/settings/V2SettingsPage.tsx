@@ -42,7 +42,9 @@ function V2SettingsPageContent() {
   const { t } = useTranslation();
   const { user } = useCurrentUser();
   const isAdmin = Boolean(user?.isAdmin);
-  const [tab, setTab] = useState<SettingsTab>(() => tabForSection(section));
+  const sectionTab = section ? tabForSection(section) : null;
+  const [manualTab, setManualTab] = useState<SettingsTab>("modules");
+  const tab = sectionTab ?? manualTab;
 
   const tabs = useMemo(
     () => ALL_TABS.filter((item) => !item.adminOnly || isAdmin),
@@ -53,7 +55,6 @@ function V2SettingsPageContent() {
 
   useEffect(() => {
     if (!section) return;
-    setTab(tabForSection(section));
     const anchorId = SECTION_ANCHORS[section];
     if (!anchorId) return;
 
@@ -97,7 +98,7 @@ function V2SettingsPageContent() {
             <button
               key={id}
               type="button"
-              onClick={() => setTab(id)}
+              onClick={() => setManualTab(id)}
               className={[
                 "ui-transition inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold",
                 active

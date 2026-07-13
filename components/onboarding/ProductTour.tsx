@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -19,22 +19,20 @@ export default function ProductTour() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t } = useTranslation({ preferBrowser: true });
-  const [open, setOpen] = useState(false);
+  const fromSetup = searchParams.get("tour") === "1";
+  const [tourDone, setTourDone] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean(window.localStorage.getItem(TOUR_STORAGE_KEY));
+  });
+  const [dismissed, setDismissed] = useState(false);
+  const open = !dismissed && (!tourDone || fromSetup);
   const [step, setStep] = useState(0);
   const [taskDraft, setTaskDraft] = useState("");
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const done = window.localStorage.getItem(TOUR_STORAGE_KEY);
-    const fromSetup = searchParams.get("tour") === "1";
-    if (!done || fromSetup) {
-      setOpen(true);
-    }
-  }, [searchParams]);
-
   function closeTour() {
     window.localStorage.setItem(TOUR_STORAGE_KEY, "1");
-    setOpen(false);
+    setTourDone(true);
+    setDismissed(true);
     if (searchParams.get("tour") === "1") {
       const params = new URLSearchParams(searchParams.toString());
       params.delete("tour");

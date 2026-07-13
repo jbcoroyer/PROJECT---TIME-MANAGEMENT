@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import type { PublicPlan } from "../../lib/billing/plans";
@@ -16,21 +17,24 @@ export default function PricingCard({ planId, features, ctaHref = "/signup", com
     planId === "free" ? "var(--mkt-free)" : planId === "starter" ? "var(--mkt-standard)" : "var(--mkt-pro)";
 
   return (
-    <div
+    <article
       className={[
         "mkt-pricing-card mkt-card-hover",
         planId === "free" && "mkt-pricing-card--free",
         planId === "starter" && "mkt-pricing-card--standard",
         planId === "pro" && "mkt-pricing-card--pro",
-        plan.highlighted && !compact && "md:-mt-2 md:mb-2",
+        plan.highlighted && !compact && "mkt-pricing-card--featured",
       ]
         .filter(Boolean)
         .join(" ")}
+      style={{ "--card-accent": accentVar } as CSSProperties}
     >
-      {plan.badge && (
+      <div className="mkt-pricing-card__accent" aria-hidden />
+
+      {plan.badge ? (
         <span
           className={[
-            "mkt-plan-badge mb-3 self-start",
+            "mkt-plan-badge",
             planId === "free" && "mkt-plan-badge--free",
             planId === "starter" && "mkt-plan-badge--standard",
             planId === "pro" && "mkt-plan-badge--pro",
@@ -40,33 +44,27 @@ export default function PricingCard({ planId, features, ctaHref = "/signup", com
         >
           {plan.badge}
         </span>
-      )}
+      ) : null}
 
-      <h2 className="text-xl font-bold text-[var(--foreground)]" style={{ color: accentVar }}>
-        {plan.name}
-      </h2>
-      <p className="mt-2 flex items-baseline gap-1">
-        <span className="ui-display text-3xl font-bold" style={{ color: accentVar }}>
-          {plan.price}
-        </span>
-        {plan.priceSuffix ? (
-          <span className="text-sm font-medium text-[color:var(--foreground)]/50">{plan.priceSuffix}</span>
-        ) : null}
-      </p>
-      <p className="mt-1 text-sm font-medium text-[color:var(--foreground)]/75">{plan.tagline}</p>
-      {!compact && <p className="mt-2 text-sm leading-relaxed text-[color:var(--foreground)]/60">{plan.description}</p>}
+      <div className="mkt-pricing-card__header">
+        <h2 className="mkt-pricing-card__name">{plan.name}</h2>
+        <p className="mkt-pricing-card__price-row">
+          <span className="mkt-pricing-card__price">{plan.price}</span>
+          {plan.priceSuffix ? <span className="mkt-pricing-card__suffix">{plan.priceSuffix}</span> : null}
+        </p>
+        <p className="mkt-pricing-card__tagline">{plan.tagline}</p>
+        {!compact ? <p className="mkt-pricing-card__desc">{plan.description}</p> : null}
+      </div>
 
-      <ul className={compact ? "mt-4 space-y-1.5" : "mt-6 space-y-2.5"}>
+      <div className="mkt-pricing-card__divider" aria-hidden />
+
+      <ul className={["mkt-pricing-card__features", compact && "mkt-pricing-card__features--compact"].filter(Boolean).join(" ")}>
         {features.map((feature) => (
-          <li
-            key={feature}
-            className={[
-              "flex items-start gap-2 text-[color:var(--foreground)]/80",
-              compact ? "text-xs" : "text-sm",
-            ].join(" ")}
-          >
-            <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accentVar }} />
-            {feature}
+          <li key={feature} className="mkt-pricing-card__feature">
+            <span className="mkt-pricing-card__check" aria-hidden>
+              <Check className="mkt-pricing-card__check-icon" strokeWidth={2.5} />
+            </span>
+            <span>{feature}</span>
           </li>
         ))}
       </ul>
@@ -74,13 +72,12 @@ export default function PricingCard({ planId, features, ctaHref = "/signup", com
       <Link
         href={ctaHref}
         className={[
-          "ui-btn mt-auto flex w-full items-center justify-center px-4 py-2.5 text-sm",
+          "mkt-pricing-card__cta ui-btn",
           plan.highlighted ? "ui-btn-primary" : "ui-btn-secondary",
-          compact ? "mt-4" : "mt-8",
         ].join(" ")}
       >
         {plan.ctaLabel}
       </Link>
-    </div>
+    </article>
   );
 }

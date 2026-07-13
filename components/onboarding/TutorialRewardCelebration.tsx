@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Star, Trophy } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -17,17 +17,15 @@ type TutorialRewardCelebrationProps = {
 export default function TutorialRewardCelebration({ open, onComplete }: TutorialRewardCelebrationProps) {
   const { t } = useTranslation({ preferBrowser: true });
 
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 28 }, (_, i) => ({
-        id: i,
-        color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
-        x: (Math.random() - 0.5) * 280,
-        y: (Math.random() - 0.5) * 220 - 40,
-        delay: Math.random() * 0.35,
-        size: 4 + Math.random() * 6,
-      })),
-    [],
+  const [particles] = useState(() =>
+    Array.from({ length: 28 }, (_, i) => ({
+      id: i,
+      color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+      x: (Math.random() - 0.5) * 280,
+      y: (Math.random() - 0.5) * 220 - 40,
+      delay: Math.random() * 0.35,
+      size: 4 + Math.random() * 6,
+    })),
   );
 
   if (!open || typeof document === "undefined") return null;
