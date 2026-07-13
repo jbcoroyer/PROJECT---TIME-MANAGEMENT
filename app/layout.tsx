@@ -1,23 +1,30 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
-import { Inter, Schibsted_Grotesk } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import AppProviders from "../components/AppProviders";
 import SonnerToaster from "../components/SonnerToaster";
 import { brandingToMetadata, brandingStyleVars, htmlLangFromBranding } from "../lib/branding";
 import { getBrandingServer } from "../lib/server/getBrandingServer";
 
-const inter = Inter({
-  variable: "--font-sans",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
-const schibsted = Schibsted_Grotesk({
-  variable: "--font-display",
+const ibmPlexSans = IBM_Plex_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["500"],
   display: "swap",
 });
 
@@ -36,7 +43,7 @@ export default async function RootLayout({
   return (
     <html lang={htmlLangFromBranding(branding.locale)}>
       <body
-        className={`${inter.variable} ${schibsted.variable} antialiased`}
+        className={`${ibmPlexSans.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} antialiased`}
         style={brandingStyleVars(branding.primaryColor)}
       >
         <AppProviders>

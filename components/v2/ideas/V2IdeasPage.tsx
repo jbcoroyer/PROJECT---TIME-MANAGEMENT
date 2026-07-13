@@ -25,7 +25,7 @@ const CATEGORY_LABELS: Record<StockIdeaCategory, string> = {
 const STATUS_COLUMNS: { status: StockIdeaStatus; label: string; cls: string }[] = [
   { status: "nouveau", label: "Idée", cls: "border-t-slate-300" },
   { status: "etude", label: "Retenue", cls: "border-t-sky-400" },
-  { status: "adopte", label: "En cours", cls: "border-t-emerald-400" },
+  { status: "adopte", label: "En cours", cls: "border-t-[var(--accent-violet)]" },
   { status: "archive", label: "Archivée", cls: "border-t-[var(--line-strong)]" },
 ];
 

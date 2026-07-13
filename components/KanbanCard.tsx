@@ -36,7 +36,7 @@ function SubtaskBadge(props: { subtasks: Task[]; minimal?: boolean }) {
         aria-hidden
       >
         <span
-          className="block h-full rounded-full bg-[var(--success)]"
+          className="block h-full rounded-full bg-[var(--accent)]"
           style={{ width: `${pct}%` }}
         />
       </span>
@@ -207,6 +207,7 @@ function CardBody(props: {
       <p
         className={[
           "line-clamp-2 pl-0.5 font-semibold leading-tight tracking-tight text-[var(--foreground)]",
+          isDone ? "text-[color-mix(in_srgb,var(--ink)_45%,transparent)] line-through" : "",
           props.variant === "dense"
             ? "text-[13px] leading-snug"
             : props.variant === "compact"
@@ -353,6 +354,7 @@ function KanbanCardUIComponent(props: {
   const { task, currentNow, onEdit, onDelete, isMyTask } = props;
   const variant = props.variant ?? "full";
   const isOverlay = props.isOverlay ?? false;
+  const isDone = task.column === "Terminé";
 
   const primaryAdmin = task.admins[0] ?? "";
   const adminColor = adminSolidColorFor(primaryAdmin);
@@ -372,13 +374,16 @@ function KanbanCardUIComponent(props: {
       transition={isOverlay ? undefined : { duration: 0.2 }}
       className={[
         "group relative flex flex-col border border-[var(--line)] text-xs text-[var(--foreground)] ui-transition",
-        variant === "dense" ? "gap-1 rounded-xl p-2" : variant === "compact" ? "gap-1.5 rounded-2xl p-2.5" : "gap-2.5 rounded-2xl p-4",
-        isMyTask ? "bg-[var(--surface)] shadow-[0_0_0_2px_var(--accent)]/20" : "bg-[var(--surface)]",
+        variant === "dense" ? "gap-1 rounded-[14px] p-3.5" : variant === "compact" ? "gap-2 rounded-[14px] p-3.5" : "gap-2.5 rounded-[14px] p-3.5",
+        isDone ? "opacity-60" : "",
+        isMyTask && !isDone ? "bg-[var(--surface)] shadow-[0_2px_10px_rgba(23,20,15,0.05)]" : "bg-[var(--surface)]",
         isOverlay
           ? "pointer-events-none rotate-2 shadow-2xl ring-1 ring-[var(--line)]/40"
-          : variant === "dense"
-            ? "hover:border-[var(--line-strong)] hover:shadow-[0_8px_20px_rgba(20,17,13,0.1)]"
-            : "hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:shadow-[0_16px_30px_rgba(20,17,13,0.12)]",
+          : !isDone && variant !== "dense"
+            ? "hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:shadow-[0_16px_30px_rgba(23,20,15,0.08)]"
+            : !isDone
+              ? "hover:border-[var(--line-strong)] hover:shadow-[0_8px_20px_rgba(23,20,15,0.06)]"
+              : "",
       ].join(" ")}
     >
       <CardBody

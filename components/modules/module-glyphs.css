@@ -1,0 +1,380 @@
+/* Puces géométriques colorées par module */
+
+.module-glyph {
+  --glyph-fg: var(--accent);
+  --glyph-bg: var(--accent-soft-bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--glyph-bg);
+}
+
+.module-glyph--sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 7px;
+}
+
+.module-glyph--md {
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: 10px;
+}
+
+.module-glyph--lg {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9px;
+}
+
+.module-glyph--nav {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 7px;
+}
+
+.module-glyph--on-dark {
+  --glyph-fg: #fff;
+}
+
+.module-glyph--orange {
+  --glyph-fg: oklch(0.6 0.19 45);
+  --glyph-bg: oklch(0.94 0.05 45);
+}
+
+.module-glyph--teal {
+  --glyph-fg: oklch(0.58 0.11 190);
+  --glyph-bg: oklch(0.94 0.04 190);
+}
+
+.module-glyph--violet {
+  --glyph-fg: oklch(0.58 0.14 300);
+  --glyph-bg: oklch(0.94 0.05 300);
+}
+
+.module-glyph--yellow {
+  --glyph-fg: oklch(0.62 0.15 90);
+  --glyph-bg: oklch(0.94 0.06 90);
+}
+
+.module-glyph--pink {
+  --glyph-fg: oklch(0.58 0.17 350);
+  --glyph-bg: oklch(0.94 0.05 350);
+}
+
+.module-glyph--blue {
+  --glyph-fg: oklch(0.55 0.13 230);
+  --glyph-bg: oklch(0.94 0.04 230);
+}
+
+.module-glyph--ai {
+  --glyph-fg: #fff;
+  --glyph-bg: oklch(0.6 0.19 45);
+}
+
+.module-glyph__shape {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Formes */
+
+.mg-grid4 {
+  display: grid;
+  grid-template-columns: repeat(2, 4px);
+  grid-template-rows: repeat(2, 4px);
+  gap: 1.5px;
+}
+
+.module-glyph--md .mg-grid4 {
+  grid-template-columns: repeat(2, 6px);
+  grid-template-rows: repeat(2, 6px);
+  gap: 2px;
+}
+
+.mg-grid4 span {
+  border-radius: 1px;
+  background: var(--glyph-fg);
+}
+
+.ui-nav-link--active .module-glyph {
+  --glyph-bg: var(--accent);
+  --glyph-fg: #fff;
+}
+
+.ui-nav-link--active .module-glyph--orange,
+.ui-nav-link--active .module-glyph--teal,
+.ui-nav-link--active .module-glyph--violet,
+.ui-nav-link--active .module-glyph--yellow,
+.ui-nav-link--active .module-glyph--pink,
+.ui-nav-link--active .module-glyph--blue {
+  --glyph-bg: var(--accent);
+}
+
+.mg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mg-list__row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mg-list__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--glyph-fg);
+}
+
+.mg-list__line {
+  height: 2px;
+  border-radius: 1px;
+  background: var(--glyph-fg);
+}
+
+.mg-list__line--lg {
+  width: 10px;
+}
+
+.mg-list__line--sm {
+  width: 6px;
+}
+
+.mg-cal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.mg-cal__pins {
+  display: flex;
+  gap: 3px;
+}
+
+.mg-cal__pin {
+  width: 1.5px;
+  height: 3px;
+  border-radius: 1px;
+  background: var(--glyph-fg);
+}
+
+.mg-cal__body {
+  width: 10px;
+  height: 7px;
+  border: 1.5px solid var(--glyph-fg);
+  border-radius: 1.5px;
+}
+
+.module-glyph--md .mg-cal__body {
+  width: 15px;
+  height: 11px;
+  border-width: 2px;
+  border-radius: 2px;
+}
+
+.mg-bulb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mg-bulb__top {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--glyph-fg);
+}
+
+.mg-bulb__base {
+  width: 4px;
+  height: 2px;
+  margin-top: 0.5px;
+  border-radius: 0 0 1px 1px;
+  background: var(--glyph-fg);
+}
+
+.mg-check-circle {
+  position: relative;
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--glyph-fg);
+}
+
+.mg-check-circle::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 3.5px;
+  width: 4px;
+  height: 2.5px;
+  border-left: 1.5px solid var(--glyph-fg);
+  border-bottom: 1.5px solid var(--glyph-fg);
+  transform: rotate(-45deg);
+}
+
+.module-glyph--md .mg-check-circle {
+  width: 12px;
+  height: 12px;
+}
+
+.mg-plane {
+  display: block;
+  width: 11px;
+  height: 11px;
+  background: var(--glyph-fg);
+  clip-path: polygon(0% 0%, 100% 50%, 0% 100%, 26% 50%);
+}
+
+.module-glyph--md .mg-plane {
+  width: 14px;
+  height: 14px;
+}
+
+.mg-flag {
+  position: relative;
+  display: block;
+  width: 11px;
+  height: 12px;
+}
+
+.mg-flag__pole {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.5px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--glyph-fg);
+}
+
+.mg-flag__cloth {
+  position: absolute;
+  left: 2.5px;
+  top: 1px;
+  width: 8px;
+  height: 7px;
+  background: var(--glyph-fg);
+  clip-path: polygon(0% 0%, 100% 25%, 100% 75%, 0% 100%);
+}
+
+.mg-megaphone {
+  display: block;
+  width: 11px;
+  height: 9px;
+  background: var(--glyph-fg);
+  clip-path: polygon(0% 32%, 58% 6%, 58% 94%, 0% 68%);
+}
+
+.module-glyph--md .mg-megaphone {
+  width: 16px;
+  height: 13px;
+}
+
+.mg-stack {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+
+.mg-stack__back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: var(--glyph-fg);
+  opacity: 0.4;
+}
+
+.mg-stack__front {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: var(--glyph-fg);
+}
+
+.mg-box {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--glyph-fg);
+  border-radius: 1.5px;
+}
+
+.mg-box::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: -1.5px;
+  right: -1.5px;
+  height: 1.5px;
+  background: var(--glyph-fg);
+}
+
+.mg-target {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--glyph-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mg-target__dot {
+  width: 3.5px;
+  height: 3.5px;
+  border-radius: 50%;
+  background: var(--glyph-fg);
+}
+
+.mg-doc {
+  width: 12px;
+  height: 15px;
+  border: 1.5px solid var(--glyph-fg);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.mg-doc span {
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--glyph-fg);
+}
+
+.mg-doc span:nth-child(1) {
+  width: 6px;
+}
+
+.mg-doc span:nth-child(2) {
+  width: 6px;
+}
+
+.mg-doc span:nth-child(3) {
+  width: 4px;
+}
+
+.mg-star {
+  width: 14px;
+  height: 14px;
+  background: var(--glyph-fg);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}

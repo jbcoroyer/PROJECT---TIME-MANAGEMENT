@@ -400,7 +400,7 @@ export default function AdminSettingsPanel() {
         <Section
           icon={ImageIcon}
           title="Identité visuelle"
-          subtitle={`Pictogramme affiché dans la barre latérale et sur la page de connexion (${branding.appName}).`}
+          subtitle={`Logo affiché dans la barre latérale et sur la page de connexion (${branding.appName}).`}
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <div className="flex shrink-0 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-4">
@@ -408,7 +408,7 @@ export default function AdminSettingsPanel() {
                 // eslint-disable-next-line @next/next/no-img-element -- pictogramme personnalisé uploadé
                 <img
                   src={branding.markUrl}
-                  alt={`Pictogramme ${branding.appName}`}
+                  alt={`Logo ${branding.appName}`}
                   className="h-16 w-16 object-contain"
                 />
               ) : (
@@ -417,7 +417,7 @@ export default function AdminSettingsPanel() {
             </div>
             <div className="min-w-0 flex-1 space-y-3">
               <p className="text-sm text-[color:var(--foreground)]/70">
-                Par défaut, un pictogramme neutre est utilisé. Vous pouvez envoyer une image personnalisée (PNG,
+                Par défaut, un logo neutre est utilisé. Vous pouvez envoyer une image personnalisée (PNG,
                 WebP, JPG ou SVG), ou définir{" "}
                 <code className="rounded bg-[var(--surface-soft)] px-1 text-xs">NEXT_PUBLIC_APP_MARK_SRC</code>{" "}
                 dans l&apos;environnement.
@@ -460,7 +460,7 @@ export default function AdminSettingsPanel() {
                         return;
                       }
                       await reloadBranding();
-                      toastSuccess("Pictogramme mis à jour.");
+                      toastSuccess("Logo mis à jour.");
                       setMarkUploading(false);
                       e.target.value = "";
                     }}
@@ -479,7 +479,7 @@ export default function AdminSettingsPanel() {
                         return;
                       }
                       await reloadBranding();
-                      toastSuccess("Pictogramme réinitialisé.");
+                      toastSuccess("Logo réinitialisé.");
                       setMarkUploading(false);
                     }}
                     className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)] disabled:opacity-50"
@@ -593,7 +593,7 @@ export default function AdminSettingsPanel() {
                 toastSuccess("Taxonomies enregistrées.");
                 setTaxonomiesSaving(false);
               }}
-              className="ui-transition rounded-xl bg-[var(--brand-primary)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+              className="ui-btn ui-btn-primary px-4 py-2.5 text-sm disabled:opacity-60"
             >
               {taxonomiesSaving ? "Enregistrement…" : "Enregistrer les taxonomies"}
             </button>

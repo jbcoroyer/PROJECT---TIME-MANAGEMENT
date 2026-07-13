@@ -11,7 +11,7 @@ export default function SetupPageContent() {
   const { t } = useTranslation({ preferBrowser: true });
   const { branding, loading: brandingLoading } = useBranding();
   const { user, loading: userLoading } = useCurrentUser();
-  const primary = branding.primaryColor || "#5C6B5A";
+  const primary = branding.primaryColor || "oklch(0.6 0.19 45)";
 
   const ready = !brandingLoading && !userLoading && Boolean(user?.organizationId ?? branding.organizationId);
 
@@ -33,7 +33,7 @@ export default function SetupPageContent() {
       className="setup-ambient min-h-screen px-4 py-8 sm:px-6 sm:py-10"
       style={{ ["--brand-primary" as string]: primary }}
     >
-      <div className="setup-shell mx-auto w-full max-w-2xl">
+      <div className="setup-shell relative z-[1] mx-auto w-full max-w-[620px]">
         <header className="setup-header mb-8 sm:mb-10">
           <div className="mb-6 flex items-center gap-3">
             <AppMark className="h-10 w-10" />

@@ -13,13 +13,14 @@ import { completeInitialSetup } from "../../app/actions/setup";
 import { uploadOrgAsset } from "../../app/actions/storage";
 import { AppMark } from "../AppBrand";
 import BrandColorPicker from "./BrandColorPicker";
+import { detectAccentFromFile } from "../../lib/detectLogoAccentColor";
 import ModuleCatalog from "./ModuleCatalog";
 import { useBranding } from "../../lib/brandingContext";
 import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
 import { useCurrentUser } from "../../lib/useCurrentUser";
-import { normalizeHexColor } from "../../lib/brandColorPresets";
+import { findClosestPresetHex, isPresetColor, normalizeHexColor } from "../../lib/brandColorPresets";
 import { DEFAULT_ONBOARDING_MODULES, getDefaultModuleRoute, type AppModuleId } from "../../lib/modules";
 import { toastError, toastSuccess } from "../../lib/toast";
 import "./setup-onboarding.css";
@@ -78,7 +79,10 @@ export default function SetupWizard() {
     queueMicrotask(() => {
       const name = initialAppName(branding.appName);
       if (name && !appName.trim()) setAppName(name);
-      if (branding.primaryColor) setPrimaryColor(branding.primaryColor);
+      if (branding.primaryColor) {
+        const hex = normalizeHexColor(branding.primaryColor) || branding.primaryColor;
+        setPrimaryColor(isPresetColor(hex) ? hex : findClosestPresetHex(hex));
+      }
       if (branding.tagline && !tagline.trim()) setTagline(branding.tagline);
       setHydratedFromBranding(true);
     });
@@ -98,6 +102,11 @@ export default function SetupWizard() {
     if (!allowed.includes(ext)) {
       toastError(t("setup.markInvalidFormat"));
       return;
+    }
+
+    const detected = await detectAccentFromFile(file);
+    if (detected) {
+      setPrimaryColor(detected);
     }
 
     setMarkUploading(true);
@@ -183,10 +192,10 @@ export default function SetupWizard() {
       <div className="setup-glass rounded-[var(--radius-xl)] p-5 sm:p-6">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[color:var(--foreground)]/42">
-              {t("setup.stepOf", { step })}
+            <p className="ui-mono-label uppercase">
+              {t("setup.stepOf", { step }).replace(/\s/g, " ").toUpperCase()}
             </p>
-            <h2 className="ui-heading mt-1 text-xl text-[var(--foreground)] sm:text-[1.35rem]">
+            <h2 className="ui-heading mt-1.5 text-[21px] text-[var(--foreground)] sm:text-[1.35rem]">
               {stepTitle}
             </h2>
           </div>
@@ -233,34 +242,7 @@ export default function SetupWizard() {
 
           {step === 2 && (
             <div className="space-y-6">
-              <p className="text-sm leading-relaxed text-[color:var(--foreground)]/65">
-                {t("setup.step2Intro")}
-              </p>
-
-              <div className="flex flex-col gap-4 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface-soft)] p-5 sm:flex-row sm:items-center">
-                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)]">
-                  {markPreviewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={markPreviewUrl} alt="" className="h-12 w-12 object-contain" />
-                  ) : (
-                    <AppMark className="h-12 w-12" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="app-wordmark ui-display text-xl text-[var(--foreground)]">{previewName}</p>
-                  {tagline.trim() ? (
-                    <p className="mt-1 text-sm text-[color:var(--foreground)]/55">{tagline.trim()}</p>
-                  ) : null}
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-3 text-sm font-semibold text-[var(--foreground)]">{t("setup.primaryColor")}</p>
-                <BrandColorPicker
-                  value={primaryColor}
-                  onChange={(hex) => setPrimaryColor(normalizeHexColor(hex) || hex)}
-                />
-              </div>
+              <p className="text-sm leading-relaxed text-[var(--ink-muted)]">{t("setup.step2Intro")}</p>
 
               <div>
                 <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
@@ -296,17 +278,38 @@ export default function SetupWizard() {
                     </button>
                   ) : null}
                 </div>
+                <p className="mt-2 text-xs text-[var(--ink-muted)]">{t("setup.markHint")}</p>
+              </div>
+
+              <div className="flex flex-col gap-4 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface-soft)] p-5 sm:flex-row sm:items-center">
+                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)]">
+                  {markPreviewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={markPreviewUrl} alt="" className="h-12 w-12 object-contain" />
+                  ) : (
+                    <AppMark className="h-12 w-12" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="app-wordmark ui-display text-xl text-[var(--foreground)]">{previewName}</p>
+                  {tagline.trim() ? (
+                    <p className="mt-1 text-sm text-[var(--ink-muted)]">{tagline.trim()}</p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-3 text-sm font-semibold text-[var(--foreground)]">{t("setup.primaryColor")}</p>
+                <BrandColorPicker
+                  value={primaryColor}
+                  onChange={(hex) => setPrimaryColor(normalizeHexColor(hex) || hex)}
+                />
               </div>
             </div>
           )}
 
           {step === 3 && (
-            <div className="space-y-4">
-              <p className="text-sm leading-relaxed text-[color:var(--foreground)]/65">
-                {t("setup.step3Intro")}
-              </p>
-              <ModuleCatalog variant="onboarding" value={enabledModules} onChange={setEnabledModules} />
-            </div>
+            <ModuleCatalog variant="onboarding" value={enabledModules} onChange={setEnabledModules} />
           )}
 
           {step === 4 && (

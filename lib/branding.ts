@@ -78,7 +78,7 @@ export type AppBrandingPatch = Partial<{
   enabledModules: AppModuleId[];
 }>;
 
-const NEUTRAL_PRIMARY = "#5C6B5A";
+const NEUTRAL_PRIMARY = "#E07A28";
 const DEFAULT_OUTLOOK_CATEGORY = "Planification";
 
 function envString(...keys: string[]): string | null {

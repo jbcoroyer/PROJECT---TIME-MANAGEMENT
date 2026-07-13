@@ -4,55 +4,40 @@ export type BrandColorPreset = {
   labelKey: string;
 };
 
-export type BrandColorPresetGroup = {
-  id: "pastel" | "design" | "trend";
-  labelKey: string;
-  presets: BrandColorPreset[];
-};
+/** Accent par défaut — orange Recueil (oklch 0.6 0.19 45). */
+export const DEFAULT_BRAND_PRIMARY = "#E07A28";
 
-/** Palettes d'accent pour l'onboarding — contrastes adaptés aux boutons blancs. */
-export const BRAND_COLOR_PRESET_GROUPS: BrandColorPresetGroup[] = [
-  {
-    id: "pastel",
-    labelKey: "setup.colorGroups.pastel",
-    presets: [
-      { id: "pastel-sky", hex: "#5B9FED", labelKey: "setup.colors.pastelSky" },
-      { id: "pastel-lavender", hex: "#8B7FD4", labelKey: "setup.colors.pastelLavender" },
-      { id: "pastel-mint", hex: "#4DA88A", labelKey: "setup.colors.pastelMint" },
-      { id: "pastel-peach", hex: "#E8927C", labelKey: "setup.colors.pastelPeach" },
-      { id: "pastel-rose", hex: "#D97AA8", labelKey: "setup.colors.pastelRose" },
-      { id: "pastel-honey", hex: "#C9A03A", labelKey: "setup.colors.pastelHoney" },
-    ],
-  },
-  {
-    id: "design",
-    labelKey: "setup.colorGroups.design",
-    presets: [
-      // Remplace design-indigo (#4F46E5) — choix retenu : C) olive sauge
-      // Alternatives : A) #4A6B5D vert sauge foncé, B) #4A5D6E bleu ardoise
-      { id: "design-sage", hex: "#5C6B5A", labelKey: "setup.colors.designIndigo" },
-      { id: "design-emerald", hex: "#059669", labelKey: "setup.colors.designEmerald" },
-      { id: "design-violet", hex: "#7C3AED", labelKey: "setup.colors.designViolet" },
-      { id: "design-slate", hex: "#475569", labelKey: "setup.colors.designSlate" },
-      { id: "design-coral", hex: "#EA580C", labelKey: "setup.colors.designCoral" },
-      { id: "design-teal", hex: "#0D9488", labelKey: "setup.colors.designTeal" },
-    ],
-  },
-  {
-    id: "trend",
-    labelKey: "setup.colorGroups.trend",
-    presets: [
-      { id: "trend-terracotta", hex: "#B45309", labelKey: "setup.colors.trendTerracotta" },
-      { id: "trend-olive", hex: "#65A30D", labelKey: "setup.colors.trendOlive" },
-      { id: "trend-midnight", hex: "#1E3A5F", labelKey: "setup.colors.trendMidnight" },
-      { id: "trend-magenta", hex: "#BE185D", labelKey: "setup.colors.trendMagenta" },
-      { id: "trend-pool", hex: "#0891B2", labelKey: "setup.colors.trendPool" },
-      { id: "trend-forest", hex: "#3F6212", labelKey: "setup.colors.trendForest" },
-    ],
-  },
+/** 4 couleurs visibles au départ de l'onboarding. */
+export const BRAND_COLOR_PRESETS_DEFAULT: BrandColorPreset[] = [
+  { id: "accent-orange", hex: "#E07A28", labelKey: "setup.colors.accentOrange" },
+  { id: "accent-coral", hex: "#EA580C", labelKey: "setup.colors.accentCoral" },
+  { id: "accent-teal", hex: "#0D9488", labelKey: "setup.colors.accentTeal" },
+  { id: "accent-violet", hex: "#7C3AED", labelKey: "setup.colors.accentViolet" },
 ];
 
-export const ALL_BRAND_COLOR_PRESETS = BRAND_COLOR_PRESET_GROUPS.flatMap((g) => g.presets);
+/** 6 couleurs supplémentaires via « + de couleurs » (10 max au total). */
+export const BRAND_COLOR_PRESETS_EXTENDED: BrandColorPreset[] = [
+  { id: "accent-midnight", hex: "#1E3A5F", labelKey: "setup.colors.accentMidnight" },
+  { id: "accent-magenta", hex: "#BE185D", labelKey: "setup.colors.accentMagenta" },
+  { id: "accent-emerald", hex: "#059669", labelKey: "setup.colors.accentEmerald" },
+  { id: "accent-terracotta", hex: "#B45309", labelKey: "setup.colors.accentTerracotta" },
+  { id: "accent-pool", hex: "#0891B2", labelKey: "setup.colors.accentPool" },
+  { id: "accent-slate", hex: "#475569", labelKey: "setup.colors.accentSlate" },
+];
+
+export const ALL_BRAND_COLOR_PRESETS: BrandColorPreset[] = [
+  ...BRAND_COLOR_PRESETS_DEFAULT,
+  ...BRAND_COLOR_PRESETS_EXTENDED,
+];
+
+/** @deprecated Conservé pour compat tests — regroupement unique. */
+export const BRAND_COLOR_PRESET_GROUPS = [
+  {
+    id: "onboarding" as const,
+    labelKey: "setup.primaryColor",
+    presets: ALL_BRAND_COLOR_PRESETS,
+  },
+];
 
 export function normalizeHexColor(value: string): string {
   const raw = value.trim();
@@ -67,7 +52,10 @@ export function normalizeHexColor(value: string): string {
 }
 
 /** Couleur hex sûre pour persistance / injection CSS (fail-closed). */
-export function sanitizePrimaryColor(value: string | undefined, fallback = "#5C6B5A"): string {
+export function sanitizePrimaryColor(
+  value: string | undefined,
+  fallback = DEFAULT_BRAND_PRIMARY,
+): string {
   if (value === undefined || !value.trim()) return fallback;
   const normalized = normalizeHexColor(value);
   return /^#[0-9A-F]{6}$/.test(normalized) ? normalized : fallback;
@@ -80,4 +68,41 @@ export function findPresetByHex(hex: string): BrandColorPreset | undefined {
 
 export function isPresetColor(hex: string): boolean {
   return Boolean(findPresetByHex(hex));
+}
+
+export function findClosestPresetHex(hex: string): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return DEFAULT_BRAND_PRIMARY;
+
+  let best = ALL_BRAND_COLOR_PRESETS[0];
+  let bestDist = Infinity;
+
+  for (const preset of ALL_BRAND_COLOR_PRESETS) {
+    const presetRgb = hexToRgb(preset.hex);
+    if (!presetRgb) continue;
+    const dist = rgbDistance(rgb, presetRgb);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = preset;
+    }
+  }
+
+  return best.hex;
+}
+
+function hexToRgb(hex: string): [number, number, number] | null {
+  const normalized = normalizeHexColor(hex);
+  if (!/^#[0-9A-F]{6}$/.test(normalized)) return null;
+  return [
+    parseInt(normalized.slice(1, 3), 16),
+    parseInt(normalized.slice(3, 5), 16),
+    parseInt(normalized.slice(5, 7), 16),
+  ];
+}
+
+function rgbDistance(a: [number, number, number], b: [number, number, number]): number {
+  const dr = a[0] - b[0];
+  const dg = a[1] - b[1];
+  const db = a[2] - b[2];
+  return dr * dr + dg * dg + db * db;
 }

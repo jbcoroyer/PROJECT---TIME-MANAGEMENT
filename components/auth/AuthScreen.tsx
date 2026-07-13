@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, KeyRound, Mail } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { AppMark, AppWordmark } from "../AppBrand";
-import LegalFooter from "../legal/LegalFooter";
 import OAuthButtons from "./OAuthButtons";
 import { getPublicAppOrigin } from "../../lib/publicAppUrl";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
@@ -115,58 +114,52 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--background)] px-5 py-12">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div
-          className="absolute left-1/2 top-[-12rem] h-[28rem] w-[36rem] -translate-x-1/2 rounded-full opacity-[0.14] blur-3xl"
-          style={{
-            background: "radial-gradient(circle, var(--brand-primary) 0%, transparent 68%)",
-          }}
-        />
-        <div className="absolute bottom-[-8rem] right-[-6rem] h-64 w-64 rounded-full bg-[var(--line)]/30 blur-3xl" />
+        <div className="ui-hero-halo ui-hero-halo--orange left-1/2 top-[-10rem] h-[32.5rem] w-[40rem] -translate-x-1/2" />
+        <div className="ui-hero-dots" />
       </div>
 
-      <div className="relative z-10 w-full max-w-[400px]">
+      <div className="relative z-10 w-full max-w-[392px]">
         <header className="mb-8 text-center">
           <div className="mb-5 flex justify-center">
-            <AppMark className="h-[3.25rem] w-[3.25rem]" />
+            <AppMark className="h-11 w-11 rounded-xl" />
           </div>
           <AppWordmark size="compact" />
           {branding.tagline.trim() ? (
-            <p className="mt-2 text-sm text-[color:var(--foreground)]/50">{branding.tagline}</p>
+            <p className="mt-2 text-[13.5px] text-[var(--ink-muted)]">{branding.tagline}</p>
           ) : null}
-          <p className="mt-4 text-sm text-[color:var(--foreground)]/60">
+          <p className="mt-4 text-[13.5px] text-[var(--ink-muted)]">
             {t("auth.signInToWorkspace", { app: branding.appName })}
           </p>
         </header>
 
-        <div className="rounded-2xl border border-[var(--line)]/80 bg-[var(--surface)]/90 p-6 shadow-[var(--shadow-2)] backdrop-blur-sm">
+        <div className="rounded-[20px] border border-[var(--line)] bg-[var(--surface)] p-[26px] shadow-[0_12px_32px_rgba(23,20,15,0.06)]">
           {urlAuthError ? (
             <div className="ui-alert ui-alert-warning mb-4 rounded-xl px-3 py-2.5 text-sm">
               {urlAuthError}
             </div>
           ) : null}
 
-          <div className="mb-5 flex rounded-xl bg-[var(--surface-soft)] p-1">
+          <div className="mb-[22px] flex rounded-xl bg-[var(--surface-soft)] p-1">
             <button
               type="button"
-              className="flex-1 rounded-lg bg-[var(--surface)] py-2 text-sm font-medium text-[var(--foreground)] shadow-sm"
+              className="flex-1 rounded-[9px] bg-[var(--surface)] py-2.5 text-[13.5px] font-semibold text-[var(--ink)] shadow-[0_1px_3px_rgba(23,20,15,0.08)]"
             >
               {t("auth.signInTab")}
             </button>
             <Link
               href="/signup"
-              className="flex flex-1 items-center justify-center rounded-lg py-2 text-sm font-medium text-[color:var(--foreground)]/55 transition hover:text-[var(--foreground)]"
+              className="flex flex-1 items-center justify-center rounded-[9px] py-2.5 text-[13.5px] font-medium text-[var(--ink-muted)] transition hover:text-[var(--ink)]"
             >
               {t("auth.signUpTab")}
             </Link>
           </div>
 
-          <form onSubmit={(e) => void handleSignIn(e)} className="space-y-4">
+          <form onSubmit={(e) => void handleSignIn(e)} className="space-y-3.5">
             <Field
               id="email"
               label={t("auth.email")}
-              icon={<Mail className="h-4 w-4" />}
               type="email"
               value={email}
               onChange={setEmail}
@@ -187,7 +180,7 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
                 type="button"
                 onClick={() => void handleForgotPassword()}
                 disabled={sendingReset || loading}
-                className="text-xs font-medium text-[color:var(--foreground)]/50 transition hover:text-[var(--brand-primary)] disabled:opacity-50"
+                className="text-xs font-medium text-[var(--ink-muted)] transition hover:text-[var(--ink)] disabled:opacity-50"
               >
                 {sendingReset ? t("auth.sendingReset") : t("auth.forgotPassword")}
               </button>
@@ -202,20 +195,15 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
           <OAuthButtons nextPath="/dashboard" />
         </div>
 
-        <p className="mt-6 text-center text-xs text-[color:var(--foreground)]/40">
-          <Link href="/login/reset-password" className="transition hover:text-[var(--brand-primary)]">
-            {t("auth.forgotPassword")}
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/signup" className="transition hover:text-[var(--brand-primary)]">
+        <p className="mt-6 text-center text-[12.5px] text-[var(--ink-muted)]">
+          <Link href="/signup" className="font-semibold text-[var(--ink)] hover:underline">
             {t("auth.signUp")}
           </Link>
           <span className="mx-2">·</span>
-          <Link href="/pricing" className="transition hover:text-[var(--brand-primary)]">
+          <Link href="/pricing" className="font-semibold text-[var(--ink)] hover:underline">
             Tarifs
           </Link>
         </p>
-        <LegalFooter />
       </div>
     </div>
   );
@@ -232,7 +220,6 @@ export function AuthLoadingShell() {
 function Field(props: {
   id: string;
   label: string;
-  icon: React.ReactNode;
   type: string;
   value: string;
   onChange: (v: string) => void;
@@ -241,23 +228,18 @@ function Field(props: {
 }) {
   return (
     <div>
-      <label htmlFor={props.id} className="mb-1.5 block text-sm font-medium text-[var(--foreground)]">
+      <label htmlFor={props.id} className="mb-1.5 block text-[13px] font-semibold text-[var(--ink)]">
         {props.label}
       </label>
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--foreground)]/35">
-          {props.icon}
-        </span>
-        <input
-          id={props.id}
-          type={props.type}
-          value={props.value}
-          onChange={(e) => props.onChange(e.target.value)}
-          autoComplete={props.autoComplete}
-          placeholder={props.placeholder}
-          className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface-soft)]/80 py-2.5 pl-10 pr-4 text-sm text-[var(--foreground)] placeholder:text-[color:var(--foreground)]/30 focus:border-[var(--brand-primary)]/30 focus:outline-none"
-        />
-      </div>
+      <input
+        id={props.id}
+        type={props.type}
+        value={props.value}
+        onChange={(e) => props.onChange(e.target.value)}
+        autoComplete={props.autoComplete}
+        placeholder={props.placeholder}
+        className="ui-focus-ring w-full rounded-[11px] border border-[var(--line)] bg-[#faf8f4] px-3 py-2.5 text-[13.5px] text-[var(--ink)] placeholder:text-[color-mix(in_srgb,var(--ink)_32%,transparent)] focus:border-[var(--line-strong)] focus:outline-none"
+      />
     </div>
   );
 }
@@ -273,11 +255,10 @@ function PasswordField(props: {
 }) {
   return (
     <div>
-      <label htmlFor={props.id} className="mb-1.5 block text-sm font-medium text-[var(--foreground)]">
+      <label htmlFor={props.id} className="mb-1.5 block text-[13px] font-semibold text-[var(--ink)]">
         {props.label}
       </label>
       <div className="relative">
-        <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--foreground)]/35" />
         <input
           id={props.id}
           type={props.show ? "text" : "password"}
@@ -285,7 +266,7 @@ function PasswordField(props: {
           onChange={(e) => props.onChange(e.target.value)}
           autoComplete={props.autoComplete}
           placeholder="••••••••"
-          className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface-soft)]/80 py-2.5 pl-10 pr-10 text-sm text-[var(--foreground)] placeholder:text-[color:var(--foreground)]/30 focus:border-[var(--brand-primary)]/30 focus:outline-none"
+          className="ui-focus-ring w-full rounded-[11px] border border-[var(--line)] bg-[#faf8f4] px-3 py-2.5 pr-10 text-[13.5px] text-[var(--ink)] placeholder:text-[color-mix(in_srgb,var(--ink)_32%,transparent)] focus:border-[var(--line-strong)] focus:outline-none"
         />
         <button
           type="button"
@@ -323,7 +304,7 @@ function SubmitBtn(props: { loading: boolean; label: string; loadingLabel: strin
     <button
       type="submit"
       disabled={props.loading}
-      className="ui-transition w-full rounded-xl bg-[var(--brand-primary)] py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+      className="ui-transition mt-0.5 w-full rounded-[11px] bg-[var(--ink)] py-3 text-sm font-semibold text-[var(--background)] hover:bg-[color-mix(in_srgb,var(--ink)_88%,var(--accent))] disabled:opacity-60"
     >
       {props.loading ? props.loadingLabel : props.label}
     </button>

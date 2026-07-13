@@ -16,14 +16,11 @@ import {
 } from "@dnd-kit/core";
 import {
   CalendarRange,
-  CheckCircle2,
   ChevronDown,
   ChevronRight,
-  Clock3,
   LayoutGrid,
   ListTodo,
   Plus,
-  ShieldCheck,
   X,
 } from "lucide-react";
 import { KanbanCardUI } from "./KanbanCard";
@@ -33,7 +30,6 @@ import type { ReferenceRecord } from "../lib/referenceData";
 import {
   adminFilterPillClassFor,
   adminSolidColorFor,
-  columnStyles,
 } from "../lib/kanbanStyles";
 import {
   loadCollapsedEventGroupIds,
@@ -64,74 +60,50 @@ function resolveKanbanCardDisplayMode(
   return "compact";
 }
 
-const COLUMN_META: Record<
-  string,
-  { icon: typeof ListTodo; subtitle: string }
-> = {
-  "À faire": { icon: ListTodo, subtitle: "À planifier" },
-  "En cours": { icon: Clock3, subtitle: "En production" },
-  "En validation": { icon: ShieldCheck, subtitle: "Contrôle qualité" },
-  Terminé: { icon: CheckCircle2, subtitle: "Livré" },
+const COLUMN_DOT: Record<string, string> = {
+  "À faire": "bg-[color-mix(in_srgb,var(--ink)_30%,transparent)]",
+  "En cours": "bg-[var(--accent)]",
+  "En validation": "bg-[var(--accent-violet)]",
+  Terminé: "bg-[color-mix(in_srgb,var(--success)_70%,var(--ink))]",
 };
-
-const FALLBACK_META = { icon: ListTodo, subtitle: "Backlog" };
 
 function DroppableColumn(props: {
   id: string;
   children: React.ReactNode;
   count: number;
   onAddTask?: () => void;
-  /** Colonne chargée : espacement vertical réduit entre les cartes */
   tightList?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: props.id });
-  const meta = COLUMN_META[props.id] ?? FALLBACK_META;
-  const Icon = meta.icon;
-  const styles = columnStyles[props.id] ?? columnStyles["À faire"];
+  const dotClass = COLUMN_DOT[props.id] ?? COLUMN_DOT["À faire"];
+  const countLabel = String(props.count).padStart(2, "0");
 
   return (
     <div className="flex min-w-[260px] flex-1 flex-col">
-      <div
-        className={[
-          "mb-2 flex items-center justify-between rounded-2xl border border-[var(--line)] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]",
-          styles.headerBg,
-          styles.headerText,
-        ].join(" ")}
-      >
-        <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4 shrink-0" />
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em]">{props.id}</p>
-            <p className="text-[9px] font-medium uppercase tracking-[0.12em] opacity-60">
-              {meta.subtitle}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-flex min-w-[28px] items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] px-2 py-0.5 text-[11px] font-bold text-[color:var(--foreground)]/75">
-            {props.count}
-          </span>
-          {props.onAddTask && (
-            <button
-              type="button"
-              onClick={props.onAddTask}
-              className="ui-transition inline-flex h-6 w-6 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)]/70 text-[color:var(--foreground)]/55 hover:bg-[var(--surface-soft)] hover:text-[color:var(--foreground)]/75"
-              title="Ajouter une tâche dans cette colonne"
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
+      <div className="mb-3 flex items-center gap-2">
+        <span className={["h-2 w-2 shrink-0 rounded-full", dotClass].join(" ")} aria-hidden />
+        <span className="ui-display text-[13.5px] font-semibold text-[var(--ink)]">{props.id}</span>
+        <span className="font-[family-name:var(--font-mono)] text-[11px] text-[color-mix(in_srgb,var(--ink)_40%,transparent)]">
+          {countLabel}
+        </span>
+        {props.onAddTask ? (
+          <button
+            type="button"
+            onClick={props.onAddTask}
+            className="ui-transition ml-auto inline-flex h-6 w-6 items-center justify-center rounded-[10px] border border-dashed border-[var(--line-strong)] text-[color-mix(in_srgb,var(--ink)_35%,transparent)] hover:border-[var(--line)] hover:text-[var(--ink-muted)]"
+            title="Ajouter une tâche dans cette colonne"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        ) : null}
       </div>
 
       <div
         ref={setNodeRef}
         className={[
-          "flex flex-1 flex-col rounded-2xl border border-dashed transition-all duration-150",
-          props.tightList ? "gap-1 p-1.5" : "gap-2 p-2",
-          isOver
-            ? "border-[var(--line-strong)] bg-[var(--surface-soft)]/50 shadow-[inset_0_0_0_2px_rgba(26,26,26,0.08)]"
-            : "border-[var(--line)] bg-[var(--surface)]/70",
+          "flex flex-1 flex-col transition-all duration-150",
+          props.tightList ? "gap-2.5" : "gap-2.5",
+          isOver ? "rounded-[14px] bg-[var(--surface-soft)]/60" : "",
         ].join(" ")}
         style={{ minHeight: 140 }}
       >

@@ -76,7 +76,7 @@ export default function ModulesSettingsSection() {
               type="button"
               disabled={saving}
               onClick={() => void handleSave()}
-              className="ui-transition inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+              className="ui-btn ui-btn-primary gap-2 px-4 py-2.5 text-sm"
             >
               <Save className="h-4 w-4" />
               {saving ? t("common.saving") : t("common.save")}

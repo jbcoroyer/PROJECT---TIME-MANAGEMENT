@@ -209,3 +209,12 @@ export function validateEnabledModules(modules: AppModuleId[]): string | null {
   }
   return null;
 }
+
+export {
+  LANDING_MODULE_ORDER,
+  MODULE_GLYPH_META,
+  getModuleGlyphMeta,
+  type ModuleGlyphColor,
+  type ModuleGlyphMeta,
+  type ModuleGlyphShape,
+} from "./moduleGlyphs";

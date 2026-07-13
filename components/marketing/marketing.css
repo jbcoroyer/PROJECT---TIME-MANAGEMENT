@@ -1,84 +1,263 @@
-/* Marketing public — animations scroll & accents tarifs */
+/* Marketing public — handoff Recueil */
 
 .mkt-page {
-  --mkt-free: #7a756e;
-  --mkt-free-soft: color-mix(in srgb, #7a756e 9%, var(--surface));
-  --mkt-free-border: color-mix(in srgb, #7a756e 28%, var(--line));
-  --mkt-standard: #3d7a6a;
-  --mkt-standard-soft: color-mix(in srgb, #3d7a6a 10%, var(--surface));
-  --mkt-standard-border: color-mix(in srgb, #3d7a6a 32%, var(--line));
-  --mkt-pro: #8b5e3c;
-  --mkt-pro-soft: color-mix(in srgb, #8b5e3c 11%, var(--surface));
-  --mkt-pro-border: color-mix(in srgb, #8b5e3c 38%, var(--line));
-  --mkt-pro-glow: color-mix(in srgb, #c49a6c 25%, transparent);
-  --mkt-warm-blush: #f0e4d8;
-  --mkt-warm-sage: #dce8e0;
+  --mkt-ink: var(--ink);
+  --mkt-ink-muted: var(--ink-muted);
 }
 
 .mkt-hero-glow {
   position: absolute;
   border-radius: 9999px;
   pointer-events: none;
-  filter: blur(72px);
+  filter: blur(55px);
 }
 
 .mkt-hero-glow--1 {
-  left: 10%;
-  top: -4rem;
-  width: 22rem;
-  height: 22rem;
-  background: radial-gradient(circle, color-mix(in srgb, var(--brand-primary) 28%, var(--mkt-warm-sage)) 0%, transparent 70%);
-  animation: mkt-float-a 14s ease-in-out infinite;
+  top: -8.75rem;
+  left: 50%;
+  width: 40rem;
+  height: 32.5rem;
+  transform: translateX(-62%);
+  background: radial-gradient(circle, oklch(0.78 0.13 45 / 0.55), transparent 70%);
+  animation: ui-float-blob 14s ease-in-out infinite;
 }
 
 .mkt-hero-glow--2 {
-  right: 8%;
-  top: 2rem;
-  width: 18rem;
-  height: 18rem;
-  background: radial-gradient(circle, color-mix(in srgb, #c49a6c 22%, var(--mkt-warm-blush)) 0%, transparent 72%);
-  animation: mkt-float-b 18s ease-in-out infinite;
+  top: -5rem;
+  left: 50%;
+  width: 35rem;
+  height: 28.75rem;
+  transform: translateX(-30%);
+  background: radial-gradient(circle, oklch(0.75 0.1 190 / 0.4), transparent 70%);
+  animation: ui-float-blob-2 16s ease-in-out infinite;
 }
 
-.mkt-hero-glow--3 {
-  left: 42%;
-  bottom: -6rem;
-  width: 26rem;
-  height: 14rem;
-  background: radial-gradient(ellipse, color-mix(in srgb, var(--brand-primary) 18%, transparent) 0%, transparent 68%);
-  animation: mkt-float-c 20s ease-in-out infinite;
+.mkt-hero-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(23, 20, 15, 0.06) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 700px 420px at 50% 30%, black, transparent);
+  pointer-events: none;
 }
 
-@keyframes mkt-float-a {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(12px, 18px) scale(1.04);
-  }
+.mkt-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.375rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
 }
 
-@keyframes mkt-float-b {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-16px, 12px) scale(0.96);
-  }
+.mkt-hero-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 
-@keyframes mkt-float-c {
-  0%,
-  100% {
-    transform: translateX(-50%) scale(1);
-    opacity: 0.85;
-  }
-  50% {
-    transform: translateX(calc(-50% + 20px)) scale(1.06);
-    opacity: 1;
-  }
+.mkt-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.375rem 0.875rem;
+  font-size: 0.78125rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
+}
+
+.mkt-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  padding: 0.875rem 1.625rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--background);
+  background: var(--ink);
+  transition:
+    transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+    background 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.mkt-cta-primary:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--ink) 88%, var(--accent));
+}
+
+.mkt-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid #e2dccf;
+  background: var(--surface);
+  padding: 0.875rem 1.625rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+  transition: background 0.2s ease;
+}
+
+.mkt-cta-secondary:hover {
+  background: var(--surface-soft);
+}
+
+.mkt-cta-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  padding: 0.875rem 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  transition: opacity 0.2s ease;
+}
+
+.mkt-cta-accent:hover {
+  opacity: 0.92;
+}
+
+/* Grille modules type tableau */
+.mkt-module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.mkt-module-cell {
+  background: var(--surface);
+  padding: 1.75rem;
+}
+
+.mkt-module-cell--inverted {
+  background: oklch(0.2 0.02 45);
+}
+
+.mkt-module-cell--inverted h3 {
+  color: #fff;
+}
+
+.mkt-module-cell--inverted p {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.mkt-module-cell h3 {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  margin-top: 1rem;
+}
+
+.mkt-module-cell p {
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+.mkt-check {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 6px;
+  background: var(--accent);
+  margin-top: 1px;
+}
+
+.mkt-check::after {
+  content: "";
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translateY(-1px);
+}
+
+.mkt-pricing-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.mkt-pricing-tier {
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 1.5rem;
+}
+
+.mkt-pricing-tier--featured {
+  position: relative;
+  border: none;
+  background: var(--ink);
+  color: var(--background);
+}
+
+.mkt-pricing-tier--featured p {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.mkt-pricing-popular {
+  position: absolute;
+  top: -0.625rem;
+  right: 1.25rem;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.1875rem 0.625rem;
+}
+
+.mkt-cta-band {
+  background: oklch(0.2 0.02 45);
+  text-align: center;
+  padding: 5.5rem 2rem;
+}
+
+.mkt-cta-band h2 {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+  color: #fff;
+}
+
+.mkt-cta-band p {
+  max-width: 28.75rem;
+  margin: 0.875rem auto 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.mkt-plan-badge-pro {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.1875rem 0.5625rem;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -102,163 +281,8 @@
     transform: translateX(24px);
   }
 
-  .mkt-reveal--scale {
-    transform: scale(0.96);
-  }
-
   .mkt-reveal--visible {
     opacity: 1;
     transform: none;
   }
-
-  .mkt-card-hover {
-    transition:
-      transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
-      box-shadow 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
-      border-color 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
-  }
-
-  .mkt-card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(20, 17, 13, 0.07);
-  }
-}
-
-.mkt-module-card {
-  border: 1px solid var(--line);
-  background: var(--surface);
-  border-radius: var(--radius-2xl);
-  padding: 1.25rem;
-  box-shadow: var(--shadow-1);
-}
-
-.mkt-module-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-xl);
-  background: color-mix(in srgb, var(--brand-primary) 11%, var(--surface));
-  color: var(--brand-primary);
-}
-
-.mkt-pricing-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--radius-2xl);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  padding: 1.5rem;
-}
-
-.mkt-pricing-card--free {
-  border-color: var(--mkt-free-border);
-  background: linear-gradient(165deg, var(--mkt-free-soft) 0%, var(--surface) 55%);
-}
-
-.mkt-pricing-card--standard {
-  border-color: var(--mkt-standard-border);
-  background: linear-gradient(165deg, var(--mkt-standard-soft) 0%, var(--surface) 55%);
-}
-
-.mkt-pricing-card--pro {
-  border-color: var(--mkt-pro-border);
-  background: linear-gradient(165deg, var(--mkt-pro-soft) 0%, var(--surface) 50%);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--mkt-pro) 8%, transparent),
-    0 16px 40px var(--mkt-pro-glow);
-}
-
-.mkt-pricing-card--pro::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--mkt-pro) 45%, transparent),
-    color-mix(in srgb, #c49a6c 30%, transparent),
-    transparent 60%
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-.mkt-plan-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 9999px;
-  padding: 0.2rem 0.65rem;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.mkt-plan-badge--free {
-  background: color-mix(in srgb, var(--mkt-free) 12%, var(--surface));
-  color: var(--mkt-free);
-  border: 1px solid color-mix(in srgb, var(--mkt-free) 22%, var(--line));
-}
-
-.mkt-plan-badge--standard {
-  background: color-mix(in srgb, var(--mkt-standard) 14%, var(--surface));
-  color: var(--mkt-standard);
-  border: 1px solid color-mix(in srgb, var(--mkt-standard) 26%, var(--line));
-}
-
-.mkt-plan-badge--pro {
-  background: color-mix(in srgb, var(--mkt-pro) 16%, var(--surface));
-  color: var(--mkt-pro);
-  border: 1px solid color-mix(in srgb, var(--mkt-pro) 30%, var(--line));
-}
-
-.mkt-cta-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-xl);
-  padding: 0.75rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(
-    135deg,
-    var(--brand-primary) 0%,
-    color-mix(in srgb, var(--brand-primary) 75%, #3d5a4a) 100%
-  );
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--brand-primary) 28%, transparent);
-  transition:
-    transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
-    box-shadow 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
-    opacity 0.25s;
-}
-
-.mkt-cta-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--brand-primary) 34%, transparent);
-  opacity: 0.95;
-}
-
-.mkt-stat-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border-radius: 9999px;
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--surface) 80%, var(--background));
-  padding: 0.35rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--foreground) 72%, transparent);
 }

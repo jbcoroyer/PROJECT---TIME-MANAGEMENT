@@ -8,7 +8,6 @@ import {
   LogOut,
   Menu,
   Settings2,
-  UserCircle2,
   X,
 } from "lucide-react";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
@@ -20,6 +19,8 @@ import { useBillingPlan } from "../../lib/billing/useBillingPlan";
 import { isNavActive, NAV_ITEMS } from "../../lib/navigation";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { BrandHeading } from "../AppBrand";
+import ModuleGlyph from "../modules/ModuleGlyph";
+import type { AppModuleId } from "../../lib/modules";
 
 type V2AppShellProps = {
   children: ReactNode;
@@ -50,27 +51,50 @@ function UserCard({
   jobTitle?: string | null;
 }) {
   if (!name && !email) return null;
+  const initials =
+    (name ?? email ?? "?")
+      .split(/\s+/)
+      .map((p) => p[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "?";
+
   return (
-    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
-      <div className="flex items-center gap-3">
-        <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-[var(--line)]">
+    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2">
+      <div className="flex items-center gap-2.5">
+        <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[var(--accent)]">
           {avatarUrl ? (
-            <Image src={avatarUrl} alt={name ?? ""} fill sizes="36px" className="object-cover" />
+            <Image src={avatarUrl} alt={name ?? ""} fill sizes="32px" className="object-cover" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[var(--surface-soft)]">
-              <UserCircle2 className="h-5 w-5 text-[color:var(--foreground)]/35" />
-            </div>
+            <span className="flex h-full w-full items-center justify-center font-[family-name:var(--font-display)] text-[13px] font-bold text-white">
+              {initials}
+            </span>
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-[var(--foreground)]">{name ?? email}</p>
+          <p className="truncate text-[13px] font-semibold leading-tight text-[var(--foreground)]">
+            {name ?? email}
+          </p>
           {jobTitle ? (
-            <p className="truncate text-[11px] text-[color:var(--foreground)]/50">{jobTitle}</p>
+            <p className="truncate text-[11.5px] leading-tight text-[var(--ink-muted)]">{jobTitle}</p>
           ) : null}
         </div>
       </div>
     </div>
   );
+}
+
+function NavModuleIcon({
+  moduleId,
+  active,
+}: {
+  moduleId: AppModuleId | null;
+  active: boolean;
+}) {
+  if (!moduleId) {
+    return <Settings2 className="h-4 w-4 shrink-0 opacity-80" aria-hidden />;
+  }
+  return <ModuleGlyph moduleId={moduleId} size="nav" onDark={active} />;
 }
 
 export default function V2AppShell({
@@ -134,14 +158,18 @@ export default function V2AppShell({
   };
 
   const navLinkClass = (active: boolean) =>
-    ["ui-nav-link ui-transition", active ? "ui-nav-link--active" : ""].filter(Boolean).join(" ");
+    [
+      "ui-nav-link ui-transition rounded-[10px] py-2.5 text-[13.5px]",
+      active ? "ui-nav-link--active" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
   const sidebarContent = (onNavClick?: () => void) => (
     <>
       <BrandHeading />
-      <nav className="mt-6 flex-1 space-y-0.5">
+      <nav className="mt-[26px] flex-1 space-y-0.5">
         {items.map((item) => {
-          const Icon = item.icon;
           const active = isNavActive(item.href, pathname);
           return (
             <Link
@@ -150,7 +178,7 @@ export default function V2AppShell({
               onClick={onNavClick}
               className={navLinkClass(active)}
             >
-              <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+              <NavModuleIcon moduleId={item.moduleId} active={active} />
               <span>{t(item.labelKey)}</span>
             </Link>
           );
@@ -189,7 +217,7 @@ export default function V2AppShell({
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <div className="mx-auto w-full max-w-[1680px] px-4 py-5 lg:px-8">
         <aside
-          className="fixed bottom-5 left-4 top-5 hidden w-[15.5rem] flex-col border-r border-[var(--line)] bg-[var(--background)] pr-3 lg:flex"
+          className="fixed bottom-5 left-4 top-5 hidden w-[252px] flex-col border-r border-[var(--line)] bg-[var(--background)] px-3.5 py-[22px] lg:flex"
           style={{ zIndex: "var(--z-sidebar)" }}
         >
           {sidebarContent()}
@@ -227,34 +255,34 @@ export default function V2AppShell({
           </>
         ) : null}
 
-        <div className="min-w-0 lg:pl-[17rem]">
-          <header className="mb-6 flex flex-wrap items-center gap-3 border-b border-[var(--line)] pb-4">
+        <div className="min-w-0 lg:pl-[268px]">
+          <header className="mb-6 flex flex-wrap items-center gap-4 border-b border-[var(--line)] px-0 py-5">
             <button
               type="button"
               onClick={() => setMobileNavOpen(true)}
-              className="ui-btn ui-btn-secondary h-10 w-10 p-0 lg:hidden"
+              className="ui-btn ui-btn-secondary h-10 w-10 rounded-[10px] p-0 lg:hidden"
               aria-label="Ouvrir le menu"
               aria-expanded={mobileNavOpen}
             >
               <Menu className="h-5 w-5" aria-hidden />
             </button>
 
-            <div className="min-w-[180px] flex-1">
+            <div className="min-w-[180px] flex-1 max-w-[420px]">
               {searchSlot ?? (
-                <div className="flex max-w-md items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2">
-                  <span className="text-sm text-[color:var(--foreground)]/40" aria-hidden>
+                <div className="flex items-center gap-2 rounded-[11px] border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5">
+                  <span className="text-sm text-[var(--ink-muted)]" aria-hidden>
                     ⌕
                   </span>
                   <input
                     type="text"
-                    placeholder="Rechercher…"
+                    placeholder="Rechercher un projet, une tâche…"
                     aria-label="Recherche globale"
-                    className="ui-focus-ring w-full bg-transparent text-sm text-[var(--foreground)] placeholder:text-[color:var(--foreground)]/40 focus:outline-none"
+                    className="ui-focus-ring w-full bg-transparent text-[13.5px] text-[var(--foreground)] placeholder:text-[color-mix(in_srgb,var(--ink)_35%,transparent)] focus:outline-none"
                   />
                 </div>
               )}
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="ml-auto flex shrink-0 items-center gap-2.5">
               {toolbarRight}
             </div>
           </header>

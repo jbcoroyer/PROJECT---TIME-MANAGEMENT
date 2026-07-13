@@ -30,19 +30,30 @@ export default function OAuthButtons({ nextPath = "/setup" }: { nextPath?: strin
 
   return (
     <div className="space-y-3">
-      <div className="relative flex items-center py-1">
+      <div className="relative flex items-center gap-2.5 py-1">
         <div className="flex-1 border-t border-[var(--line)]" />
-        <span className="px-3 text-xs text-[color:var(--foreground)]/45">ou continuer avec</span>
+        <span className="text-[11.5px] text-[color-mix(in_srgb,var(--ink)_40%,transparent)]">ou</span>
         <div className="flex-1 border-t border-[var(--line)]" />
       </div>
       <button
         type="button"
         disabled={busy}
         onClick={() => void handleGoogle()}
-        className="ui-transition flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2.5 text-sm font-semibold text-[var(--foreground)] hover:bg-[var(--surface)] disabled:opacity-60"
+        className="ui-transition flex w-full items-center justify-center gap-2.5 rounded-[11px] border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-[13.5px] font-semibold text-[var(--ink)] hover:bg-[var(--surface-soft)] disabled:opacity-60"
       >
-        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        Google
+        {busy ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <span
+            className="h-4 w-4 shrink-0 rounded-[4px]"
+            style={{
+              background:
+                "conic-gradient(from 90deg, oklch(0.6 0.19 45), oklch(0.58 0.11 190), oklch(0.58 0.14 300), oklch(0.6 0.19 45))",
+            }}
+            aria-hidden
+          />
+        )}
+        Continuer avec Google
       </button>
     </div>
   );

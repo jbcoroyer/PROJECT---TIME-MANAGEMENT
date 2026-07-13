@@ -50,13 +50,13 @@ const BADGE_VARIANTS = [
 
 const SOLID_COLORS = [
   "#78716c",
-  "#5c6b5a",
+  "oklch(0.6 0.19 45)",
+  "oklch(0.58 0.11 190)",
+  "oklch(0.58 0.14 300)",
   "#6b6358",
-  "#5a5248",
-  "#4a6b5d",
+  "oklch(0.62 0.15 90)",
   "#6d665c",
   "#524b40",
-  "#4f5d4e",
 ] as const;
 
 const FILTER_PILL_VARIANTS = [
@@ -79,7 +79,7 @@ export type AdminAvatarMetaResolved = {
 
 const AVATAR_META_VARIANTS: readonly AdminAvatarMetaResolved[] = [
   { gender: "female", avatarBg: "bg-[var(--surface-soft)]", avatarText: "text-[color:var(--foreground)]/75", calendarColor: "#78716c" },
-  { gender: "male", avatarBg: "bg-[var(--accent-soft)]", avatarText: "text-[var(--accent-strong)]", calendarColor: "#5c6b5a" },
+  { gender: "male", avatarBg: "bg-[var(--accent-soft)]", avatarText: "text-[var(--accent-strong)]", calendarColor: "oklch(0.6 0.19 45)" },
   { gender: "female", avatarBg: "bg-[#ebe6de]", avatarText: "text-[#5a5248]", calendarColor: "#6b6358" },
   { gender: "male", avatarBg: "bg-[#e3ddd1]", avatarText: "text-[#4f483e]", calendarColor: "#5a5248" },
   { gender: "female", avatarBg: "bg-[color-mix(in_srgb,var(--brand-primary)_8%,var(--surface))]", avatarText: "text-[var(--accent-strong)]", calendarColor: "#4a6b5d" },
@@ -124,7 +124,7 @@ export function adminAvatarMetaFor(name: string): AdminAvatarMetaResolved {
 }
 
 export const domainCalendarColors: Record<string, string> = {
-  "🖥️ Digitale": "#5c6b5a",
+  "🖥️ Digitale": "oklch(0.6 0.19 45)",
   "📮 Client": "#6b6358",
   "🎟️ Event": "#a68a5b",
   "🌎 General": "#4a6b5d",

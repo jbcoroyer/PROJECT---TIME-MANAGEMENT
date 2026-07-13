@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import ModuleToggle from "../modules/ModuleToggle";
-import ModuleIllustration from "../modules/ModuleIllustration";
+import ModuleGlyph from "../modules/ModuleGlyph";
 import OnboardingModulePicker from "./OnboardingModulePicker";
 import {
   DEFAULT_ONBOARDING_MODULES,
@@ -95,20 +95,13 @@ function SettingsModuleCatalog({
                       className={[
                         "flex flex-col rounded-xl border transition",
                         active
-                          ? "border-[color:var(--brand-primary)]/40 bg-[color:var(--brand-primary)]/[0.05]"
+                          ? "border-[var(--ink)] bg-[var(--background)]"
                           : "border-[var(--line)] bg-[var(--surface-soft)]/40 hover:border-[var(--line-strong)]",
                       ].join(" ")}
                     >
                       <div className="flex items-start gap-3 p-3.5 pb-2">
-                        <div
-                          className={[
-                            "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border p-1.5",
-                            active
-                              ? "border-[color:var(--brand-primary)]/25 bg-[color:var(--brand-primary)]/8 text-[var(--brand-primary)]"
-                              : "border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/50",
-                          ].join(" ")}
-                        >
-                          <ModuleIllustration moduleId={mod.id} active={active} size="sm" />
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                          <ModuleGlyph moduleId={mod.id} size="lg" />
                         </div>
 
                         <div className="min-w-0 flex-1 pt-0.5">
@@ -119,7 +112,7 @@ function SettingsModuleCatalog({
                                   {moduleName}
                                 </h4>
                                 {mod.recommended ? (
-                                  <span className="rounded bg-[color:var(--brand-primary)]/10 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-[var(--brand-primary)]">
+                                  <span className="rounded bg-[var(--accent-soft)] px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-[var(--accent-strong)]">
                                     {t("modules.recommended")}
                                   </span>
                                 ) : null}
@@ -167,7 +160,7 @@ function SettingsModuleCatalog({
                                 key={key}
                                 className="flex items-start gap-2 text-xs leading-relaxed text-[color:var(--foreground)]/70"
                               >
-                                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand-primary)]" />
+                                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" />
                                 <span>{t(`modules.${mod.id}.highlights.${key}`)}</span>
                               </li>
                             ))}

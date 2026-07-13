@@ -160,30 +160,25 @@ export default function SignUpScreen() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--background)] px-5 py-12">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div
-          className="absolute left-1/2 top-[-12rem] h-[28rem] w-[36rem] -translate-x-1/2 rounded-full opacity-[0.14] blur-3xl"
-          style={{
-            background: "radial-gradient(circle, var(--brand-primary) 0%, transparent 68%)",
-          }}
-        />
-        <div className="absolute bottom-[-8rem] right-[-6rem] h-64 w-64 rounded-full bg-[var(--line)]/30 blur-3xl" />
+        <div className="ui-hero-halo ui-hero-halo--orange left-1/2 top-[-10rem] h-[32.5rem] w-[40rem] -translate-x-1/2" />
+        <div className="ui-hero-dots" />
       </div>
 
-      <div className="relative z-10 w-full max-w-[400px]">
+      <div className="relative z-10 w-full max-w-[392px]">
         <header className="mb-8 text-center">
           <div className="mb-5 flex justify-center">
-            <AppMark className="h-[3.25rem] w-[3.25rem]" />
+            <AppMark className="h-11 w-11 rounded-xl" />
           </div>
           <AppWordmark size="compact" />
           {branding.tagline.trim() ? (
-            <p className="mt-2 text-sm text-[color:var(--foreground)]/50">{branding.tagline}</p>
+            <p className="mt-2 text-[13.5px] text-[var(--ink-muted)]">{branding.tagline}</p>
           ) : null}
-          <p className="mt-4 text-sm text-[color:var(--foreground)]/60">{subtitle}</p>
+          <p className="mt-4 text-[13.5px] text-[var(--ink-muted)]">{subtitle}</p>
         </header>
 
-        <div className="rounded-2xl border border-[var(--line)]/80 bg-[var(--surface)]/90 p-6 shadow-[var(--shadow-2)] backdrop-blur-sm">
+        <div className="rounded-[20px] border border-[var(--line)] bg-[var(--surface)] p-[26px] shadow-[0_12px_32px_rgba(23,20,15,0.06)]">
           {step === 1 && (
             <div className="space-y-4">
               <Field
@@ -256,7 +251,7 @@ export default function SignUpScreen() {
               <button
                 type="button"
                 onClick={goToStep2}
-                className="ui-transition flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                className="ui-btn ui-btn-primary w-full py-3"
               >
                 {t("common.continue")}
                 <ArrowRight className="h-4 w-4" />
@@ -446,7 +441,7 @@ function SubmitBtn(props: { loading: boolean; label: string; loadingLabel: strin
     <button
       type="submit"
       disabled={props.loading}
-      className="ui-transition w-full rounded-xl bg-[var(--brand-primary)] py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+      className="ui-btn ui-btn-primary w-full py-3 disabled:opacity-60"
     >
       {props.loading ? props.loadingLabel : props.label}
     </button>

@@ -66,17 +66,10 @@ export default function PricingCard({ planId, features, ctaHref = "/signup", com
       <Link
         href={ctaHref}
         className={[
-          "ui-transition mt-auto flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold",
-          plan.highlighted
-            ? "text-white hover:opacity-90"
-            : "border border-[var(--line)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:bg-[var(--surface)]",
+          "ui-btn mt-auto flex w-full items-center justify-center px-4 py-2.5 text-sm",
+          plan.highlighted ? "ui-btn-primary" : "ui-btn-secondary",
           compact ? "mt-4" : "mt-8",
         ].join(" ")}
-        style={
-          plan.highlighted
-            ? { background: `linear-gradient(135deg, ${accentVar}, color-mix(in srgb, ${accentVar} 80%, #1a1713))` }
-            : undefined
-        }
       >
         {plan.ctaLabel}
       </Link>

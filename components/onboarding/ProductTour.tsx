@@ -84,7 +84,7 @@ export default function ProductTour() {
             <Link
               href={current.href}
               onClick={closeTour}
-              className="rounded-xl bg-[var(--brand-primary)] px-3 py-2 text-sm font-semibold text-white"
+              className="ui-btn ui-btn-primary px-3 py-2 text-sm"
             >
               Aller aux réglages
             </Link>
@@ -92,7 +92,7 @@ export default function ProductTour() {
             <button
               type="button"
               onClick={() => setStep((value) => value + 1)}
-              className="rounded-xl bg-[var(--brand-primary)] px-3 py-2 text-sm font-semibold text-white"
+              className="ui-btn ui-btn-primary px-3 py-2 text-sm"
             >
               Suivant
             </button>

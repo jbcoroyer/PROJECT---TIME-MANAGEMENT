@@ -9,12 +9,12 @@ import {
 
 describe("sanitizePrimaryColor", () => {
   it("accepte un hex valide", () => {
-    expect(sanitizePrimaryColor("#5C6B5A")).toBe("#5C6B5A");
-    expect(sanitizePrimaryColor("5c6b5a")).toBe("#5C6B5A");
+    expect(sanitizePrimaryColor("#E07A28")).toBe("#E07A28");
+    expect(sanitizePrimaryColor("e07a28")).toBe("#E07A28");
   });
 
   it("rejette une injection CSS", () => {
-    expect(sanitizePrimaryColor("red; background: url(evil)")).toBe("#5C6B5A");
+    expect(sanitizePrimaryColor("red; background: url(evil)")).toBe("#E07A28");
   });
 });
 
