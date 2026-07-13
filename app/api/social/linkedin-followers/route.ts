@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireAuth } from "../../../../lib/server/apiAuth";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { createServerSupabase } from "../../../../lib/server/supabaseServer";
 
 function linkedInConfig(): { url: string; slug: string } | null {
@@ -47,7 +49,14 @@ function shiftMonth(date: Date, diff: number): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + diff, 1));
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = apiRateLimit(request, "api/social/linkedin-followers", 10);
+  if (limited) return limited;
+
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  const organizationId = auth.organizationId;
+
   const config = linkedInConfig();
   if (!config) {
     return NextResponse.json(
@@ -100,6 +109,7 @@ export async function GET() {
           source_url: LINKEDIN_COMPANY_URL,
           captured_date: todayIso,
           followers_count: followersCount,
+          organization_id: organizationId,
         },
         { onConflict: "company_slug,captured_date" },
       );
@@ -110,6 +120,7 @@ export async function GET() {
         .from("linkedin_company_metrics")
         .select("captured_date, followers_count")
         .eq("company_slug", LINKEDIN_COMPANY_SLUG)
+        .eq("organization_id", organizationId)
         .gte("captured_date", startWindowIso)
         .order("captured_date", { ascending: true });
       if (snapshotsError) throw snapshotsError;

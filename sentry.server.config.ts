@@ -1,0 +1,13 @@
+const dsn = process.env.SENTRY_DSN;
+
+if (dsn) {
+  void import("@sentry/nextjs").then((Sentry) => {
+    Sentry.init({
+      dsn,
+      tracesSampleRate: 0.1,
+      enabled: process.env.NODE_ENV === "production",
+    });
+  });
+}
+
+export {};

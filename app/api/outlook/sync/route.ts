@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { requirePlanFeature } from "../../../../lib/server/apiAuth";
 import { createServerSupabase } from "../../../../lib/server/supabaseServer";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import {
   removeTaskFromOutlook,
   syncTaskToOutlook,
@@ -11,13 +13,14 @@ type SyncBody = { taskId?: string; remove?: boolean };
 
 /** Synchronise une tâche (et ses jours planifiés) vers l'agenda Outlook de l'utilisateur. */
 export async function POST(request: NextRequest) {
+  const limited = apiRateLimit(request, "api/outlook/sync", 30);
+  if (limited) return limited;
+
+  const planCheck = await requirePlanFeature("outlook_sync");
+  if (planCheck instanceof NextResponse) return planCheck;
+
   const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
-  }
+  const userId = planCheck.ctx.userId;
 
   let body: SyncBody;
   try {
@@ -34,7 +37,7 @@ export async function POST(request: NextRequest) {
   // Mode suppression : retire tous les événements Outlook liés à la tâche.
   if (body.remove) {
     try {
-      const result = await removeTaskFromOutlook(user.id, taskId);
+      const result = await removeTaskFromOutlook(userId, taskId);
       return NextResponse.json(result);
     } catch (e) {
       console.error("Outlook remove error", e);
@@ -71,7 +74,7 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    const result = await syncTaskToOutlook(user.id, task);
+    const result = await syncTaskToOutlook(userId, task);
     return NextResponse.json(result);
   } catch (e) {
     console.error("Outlook sync error", e);

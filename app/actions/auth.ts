@@ -7,6 +7,7 @@ import {
 } from "../../lib/branding";
 import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
+import { sendTransactionalEmail } from "../../lib/server/email";
 
 export type SignUpWithOrganizationInput = {
   email: string;
@@ -17,12 +18,13 @@ export type SignUpWithOrganizationInput = {
 };
 
 export type SignUpWithOrganizationResult =
-  | { ok: true }
+  | { ok: true; needsEmailConfirmation: boolean }
   | { ok: false; error: string };
 
 /**
  * Inscription publique B2C : handle_new_user crée l'espace personnel
  * (organisation + profil admin + réglages) à partir des metadata.
+ * La confirmation email est requise sauf si désactivée côté Supabase.
  */
 export async function signUpWithOrganization(
   input: SignUpWithOrganizationInput,
@@ -37,25 +39,41 @@ export async function signUpWithOrganization(
   if (!organizationName) return { ok: false, error: "Le nom de l'organisation est obligatoire." };
   if (password.length < 6) return { ok: false, error: "Mot de passe trop court (6 caractères minimum)." };
 
-  const admin = createSupabaseAdmin();
+  const supabase = await createServerSupabase();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "http://localhost:3000";
 
-  const { data: created, error: createError } = await admin.auth.admin.createUser({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    email_confirm: true,
-    user_metadata: {
-      display_name: displayName,
-      job_title: input.jobTitle?.trim() || null,
-      organization_name: organizationName,
+    options: {
+      data: {
+        display_name: displayName,
+        job_title: input.jobTitle?.trim() || null,
+        organization_name: organizationName,
+      },
+      emailRedirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent("/setup")}`,
     },
   });
 
-  if (createError || !created.user) {
-    return { ok: false, error: createError?.message ?? "Création du compte impossible." };
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  if (!data.user) {
+    return { ok: false, error: "Création du compte impossible." };
+  }
+
+  if (data.session) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "http://localhost:3000";
+    void sendTransactionalEmail({
+      to: email,
+      subject: `Bienvenue sur ${organizationName}`,
+      html: `<p>Bonjour ${displayName},</p><p>Votre espace <strong>${organizationName}</strong> est prêt. <a href="${baseUrl}/setup">Terminez la configuration</a> pour commencer.</p>`,
+    });
   }
 
   revalidatePath("/", "layout");
-  return { ok: true };
+  return { ok: true, needsEmailConfirmation: !data.session };
 }
 
 /** Connexion après inscription (côté client : signInWithPassword). */

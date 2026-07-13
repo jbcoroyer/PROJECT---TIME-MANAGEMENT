@@ -75,11 +75,13 @@ export default function SetupWizard() {
     if (hydratedFromBranding) return;
     if (!branding.organizationId && branding.appName === "Workspace") return;
 
-    const name = initialAppName(branding.appName);
-    if (name && !appName.trim()) setAppName(name);
-    if (branding.primaryColor) setPrimaryColor(branding.primaryColor);
-    if (branding.tagline && !tagline.trim()) setTagline(branding.tagline);
-    setHydratedFromBranding(true);
+    queueMicrotask(() => {
+      const name = initialAppName(branding.appName);
+      if (name && !appName.trim()) setAppName(name);
+      if (branding.primaryColor) setPrimaryColor(branding.primaryColor);
+      if (branding.tagline && !tagline.trim()) setTagline(branding.tagline);
+      setHydratedFromBranding(true);
+    });
   }, [appName, branding, hydratedFromBranding, tagline]);
 
   const previewName = appName.trim() || branding.appName || "Workspace";
@@ -162,7 +164,8 @@ export default function SetupWizard() {
     });
 
     toastSuccess(t("setup.complete"));
-    router.replace(getDefaultModuleRoute(enabledModules));
+    const destination = getDefaultModuleRoute(enabledModules);
+    router.replace(`${destination}${destination.includes("?") ? "&" : "?"}tour=1`);
     void reload();
   }
 

@@ -108,13 +108,13 @@ export default function SocialPreview({
           <Avatar name={authorName} url={authorAvatarUrl} />
           <div>
             <p className="text-sm font-semibold">{authorName}</p>
-            <p className="text-xs text-slate-500">À l'instant · 🌎</p>
+            <p className="text-xs text-slate-500">À l&apos;instant · 🌎</p>
           </div>
         </div>
         <p className="whitespace-pre-wrap px-3 pb-3 text-sm">{displayText}</p>
         <VisualBlock url={visualUrl} />
         <div className="flex items-center justify-around border-t border-slate-100 p-2 text-slate-600">
-          <span className="flex items-center gap-1 text-xs"><ThumbsUp className="h-4 w-4" /> J'aime</span>
+          <span className="flex items-center gap-1 text-xs"><ThumbsUp className="h-4 w-4" /> J&apos;aime</span>
           <span className="flex items-center gap-1 text-xs"><MessageCircle className="h-4 w-4" /> Commenter</span>
           <span className="flex items-center gap-1 text-xs"><Send className="h-4 w-4" /> Partager</span>
         </div>
@@ -136,7 +136,7 @@ export default function SocialPreview({
       <p className="whitespace-pre-wrap px-3 pb-3 text-sm">{displayText}</p>
       <VisualBlock url={visualUrl} />
       <div className="flex items-center justify-around border-t border-slate-100 p-2 text-slate-600">
-        <span className="flex items-center gap-1 text-xs"><ThumbsUp className="h-4 w-4" /> J'aime</span>
+        <span className="flex items-center gap-1 text-xs"><ThumbsUp className="h-4 w-4" /> J&apos;aime</span>
         <span className="flex items-center gap-1 text-xs"><MessageCircle className="h-4 w-4" /> Commenter</span>
         <span className="flex items-center gap-1 text-xs"><Repeat2 className="h-4 w-4" /> Republier</span>
         <span className="flex items-center gap-1 text-xs"><Send className="h-4 w-4" /> Envoyer</span>

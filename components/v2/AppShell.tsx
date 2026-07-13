@@ -15,6 +15,8 @@ import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { isModuleEnabled } from "../../lib/modules";
+import { isModuleAllowedForPlan } from "../../lib/billing/plans";
+import { useBillingPlan } from "../../lib/billing/useBillingPlan";
 import { isNavActive, NAV_ITEMS } from "../../lib/navigation";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { BrandHeading } from "../AppBrand";
@@ -84,6 +86,7 @@ export default function V2AppShell({
   const supabase = getSupabaseBrowser();
   const { branding } = useBranding();
   const { t } = useTranslation();
+  const { plan } = useBillingPlan();
   const { user, loading: userLoading } = useCurrentUser();
   const displayName =
     currentUserName ?? user?.teamMemberName ?? user?.displayName ?? undefined;
@@ -97,7 +100,8 @@ export default function V2AppShell({
     ...NAV_ITEMS.filter((item) => {
       if (item.adminOnly && !isAdmin) return false;
       if (!item.moduleId) return true;
-      return isModuleEnabled(branding.enabledModules, item.moduleId);
+      if (!isModuleEnabled(branding.enabledModules, item.moduleId)) return false;
+      return isModuleAllowedForPlan(plan, item.moduleId);
     }),
     settingsNavItem,
   ];

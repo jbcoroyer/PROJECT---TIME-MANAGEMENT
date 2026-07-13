@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdmin } from "../../../../../lib/server/supabaseAdmin";
 import { getServerOrgContext } from "../../../../../lib/server/orgContext";
+import { apiRateLimit } from "../../../../../lib/server/rateLimit";
 import { ideaFromRow } from "../../../../../lib/stockIdeasApi";
 import type { StockIdeaCategory, StockIdeaStatus } from "../../../../../lib/stockIdeasTypes";
 
@@ -16,6 +17,9 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const limited = apiRateLimit(request, "api/public/ideas:patch", 30);
+  if (limited) return limited;
+
   const ctx = await requireOrgScopedUser();
   if (!ctx) {
     return NextResponse.json({ error: "Connexion requise pour modifier une idée." }, { status: 401 });
@@ -66,9 +70,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const limited = apiRateLimit(request, "api/public/ideas:delete", 30);
+  if (limited) return limited;
+
   const ctx = await requireOrgScopedUser();
   if (!ctx) {
     return NextResponse.json({ error: "Connexion requise pour supprimer une idée." }, { status: 401 });

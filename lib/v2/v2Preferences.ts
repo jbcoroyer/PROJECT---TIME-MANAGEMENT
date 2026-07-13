@@ -23,10 +23,11 @@ function readAutoArchiveHours(): number {
  * Plafonné à 24 h (le socle partagé archive de toute façon à 24 h).
  */
 export function useAutoArchiveHours(): [number, (hours: number) => void] {
-  const [hours, setHours] = useState<number>(DEFAULT_AUTO_ARCHIVE_HOURS);
+  const [hours, setHours] = useState<number>(() =>
+    typeof window === "undefined" ? DEFAULT_AUTO_ARCHIVE_HOURS : readAutoArchiveHours(),
+  );
 
   useEffect(() => {
-    setHours(readAutoArchiveHours());
     const onChange = () => setHours(readAutoArchiveHours());
     window.addEventListener(AUTO_ARCHIVE_EVENT, onChange);
     window.addEventListener("storage", onChange);

@@ -27,7 +27,7 @@ export default function IntakeTaskMappingModal({
   const [form, setForm] = useState<IntakeTaskDraft | null>(draft);
 
   useEffect(() => {
-    if (open && draft) setForm(draft);
+    if (open && draft) queueMicrotask(() => setForm(draft));
   }, [open, draft]);
 
   if (!open || !form) return null;

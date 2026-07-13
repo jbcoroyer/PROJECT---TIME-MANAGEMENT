@@ -102,7 +102,9 @@ export function useIntakeRequests() {
   }, [supabase]);
 
   useEffect(() => {
-    void reload();
+    queueMicrotask(() => {
+      void reload();
+    });
   }, [reload]);
 
   const updateRequest = useCallback(

@@ -31,7 +31,9 @@ function isEditableTarget(target: EventTarget | null): boolean {
  */
 export function useAppShortcuts(bindings: ShortcutMap): void {
   const bindingsRef = useRef(bindings);
-  bindingsRef.current = bindings;
+  useEffect(() => {
+    bindingsRef.current = bindings;
+  }, [bindings]);
 
   const keySignature = Object.keys(bindings).sort().join("|");
 

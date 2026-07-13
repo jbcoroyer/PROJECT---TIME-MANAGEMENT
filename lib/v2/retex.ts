@@ -38,7 +38,7 @@ export function useRetexInputs(eventId: string | null) {
 
   useEffect(() => {
     if (!eventId) {
-      setInputs(EMPTY_RETEX);
+      queueMicrotask(() => setInputs(EMPTY_RETEX));
       return;
     }
     let cancelled = false;

@@ -23,11 +23,11 @@ describe("t", () => {
   });
 
   it("interpole les variables", () => {
-    expect(t("fr", "setup.stepOf", { step: 2 })).toBe("Étape 2 sur 3");
+    expect(t("fr", "setup.stepOf", { step: 2 })).toBe("Étape 2 sur 4");
   });
 
   it("retombe sur le français si la clé manque en anglais", () => {
-    expect(t("en", "setup.stepOf", { step: 1 })).toBe("Step 1 of 3");
+    expect(t("en", "setup.stepOf", { step: 1 })).toBe("Step 1 of 4");
   });
 });
 

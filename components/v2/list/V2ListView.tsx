@@ -524,9 +524,8 @@ export default function V2ListView(props: V2ListViewProps) {
 
   useEffect(() => {
     if (filterTouchedRef.current) return;
-    if (currentUserName && admins.includes(currentUserName)) {
-      setSelectedAdmins(new Set([currentUserName]));
-    }
+    if (!currentUserName || !admins.includes(currentUserName)) return;
+    queueMicrotask(() => setSelectedAdmins(new Set([currentUserName])));
   }, [currentUserName, admins]);
 
   const toggleAdminFilter = (admin: AdminId) => {

@@ -19,7 +19,7 @@ export default function ModulesSettingsSection() {
     enabledModules.some((id) => !branding.enabledModules.includes(id));
 
   useEffect(() => {
-    setEnabledModules(branding.enabledModules);
+    queueMicrotask(() => setEnabledModules(branding.enabledModules));
   }, [branding.enabledModules]);
 
   async function handleSave() {

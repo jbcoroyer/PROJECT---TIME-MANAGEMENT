@@ -17,11 +17,11 @@ export function useResolvedStorageUrl(
 
   useEffect(() => {
     if (!storedValue?.trim()) {
-      setUrl(null);
+      queueMicrotask(() => setUrl(null));
       return;
     }
     if (isHttpUrl(storedValue)) {
-      setUrl(storedValue);
+      queueMicrotask(() => setUrl(storedValue));
       return;
     }
     let cancelled = false;

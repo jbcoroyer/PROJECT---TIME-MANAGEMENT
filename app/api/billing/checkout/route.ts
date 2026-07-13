@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { isPaidPlan, priceIdForPlan } from "../../../../lib/billing/plans";
 import { getOrganizationBilling, updateOrganizationBilling } from "../../../../lib/server/billingOrg";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { appBaseUrl, getStripe, isStripeConfigured } from "../../../../lib/server/stripe";
 
 export async function POST(request: Request) {
+  const limited = apiRateLimit(request, "api/billing/checkout", 20);
+  if (limited) return limited;
+
   try {
     if (!isStripeConfigured()) {
       return NextResponse.json({ error: "Stripe n'est pas configuré sur ce serveur." }, { status: 503 });

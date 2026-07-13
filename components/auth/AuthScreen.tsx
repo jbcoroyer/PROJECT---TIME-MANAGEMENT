@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, KeyRound, Mail } from "lucide-react";
 import { AppMark, AppWordmark } from "../AppBrand";
+import LegalFooter from "../legal/LegalFooter";
+import OAuthButtons from "./OAuthButtons";
 import { getPublicAppOrigin } from "../../lib/publicAppUrl";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useBranding } from "../../lib/brandingContext";
@@ -40,6 +42,13 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    if (params.get("signup") === "confirm") {
+      setSuccess(t("auth.accountCreated"));
+      params.delete("signup");
+      const next = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
+      window.history.replaceState(null, "", next);
+      return;
+    }
     const errorCode = params.get("error_code");
     const accessDenied = params.get("error");
     let desc = params.get("error_description");
@@ -190,6 +199,7 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
               label={t("auth.signInButton")}
             />
           </form>
+          <OAuthButtons nextPath="/dashboard" />
         </div>
 
         <p className="mt-6 text-center text-xs text-[color:var(--foreground)]/40">
@@ -200,7 +210,12 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
           <Link href="/signup" className="transition hover:text-[var(--brand-primary)]">
             {t("auth.signUp")}
           </Link>
+          <span className="mx-2">·</span>
+          <Link href="/pricing" className="transition hover:text-[var(--brand-primary)]">
+            Tarifs
+          </Link>
         </p>
+        <LegalFooter />
       </div>
     </div>
   );

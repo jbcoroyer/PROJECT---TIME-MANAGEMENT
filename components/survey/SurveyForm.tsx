@@ -38,18 +38,26 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    setLoadError(null);
-    setDefinition(null);
-    setPhase("intro");
-    setStepIndex(0);
-    setAnswers({});
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setLoadError(null);
+      setDefinition(null);
+      setPhase("intro");
+      setStepIndex(0);
+      setAnswers({});
+    });
     void fetchSurveyDefinition(surveyId).then((result) => {
+      if (cancelled) return;
       if (result.ok) {
         setDefinition(result.definition);
         return;
       }
       setLoadError(result.error);
     });
+    return () => {
+      cancelled = true;
+    };
   }, [surveyId]);
 
   const companyOptions = useMemo(() => {

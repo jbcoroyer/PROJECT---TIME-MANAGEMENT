@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import V2AppShell from "./AppShell";
 import ModuleRouteGuard from "./ModuleRouteGuard";
+import ProductTour from "../onboarding/ProductTour";
 import { V2ShellSlotsProvider, useV2ShellSlots } from "../../lib/v2/shellSlotsContext";
 
 function V2AppShellWithSlots({ children }: { children: ReactNode }) {
@@ -20,6 +21,7 @@ export default function V2AppLayout({ children }: { children: ReactNode }) {
   return (
     <V2ShellSlotsProvider>
       <V2AppShellWithSlots>{children}</V2AppShellWithSlots>
+      <ProductTour />
     </V2ShellSlotsProvider>
   );
 }

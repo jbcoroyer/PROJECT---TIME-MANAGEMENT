@@ -5,6 +5,7 @@ import { BILLING_REQUIRED_PATH } from "../../lib/billing/billingPaths";
 import { isBillingEnforcementEnabled } from "../../lib/billing/enforcement";
 import { resolveBillingAccess } from "../../lib/billing/resolveBillingAccess";
 import { getBrandingServer } from "../../lib/server/getBrandingServer";
+import { isPlatformAdminEmail } from "../../lib/server/platformAdmin";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 import { SETUP_PATH } from "../../lib/setupPaths";
 
@@ -22,7 +23,8 @@ export default async function WorkspaceLayout({ children }: { children: ReactNod
 
     if (isBillingEnforcementEnabled()) {
       const billing = await resolveBillingAccess(supabase, user.id);
-      if (!billing.allowed) {
+      const platformAdmin = isPlatformAdminEmail(user.email);
+      if (!billing.allowed && !platformAdmin) {
         redirect(BILLING_REQUIRED_PATH);
       }
     }

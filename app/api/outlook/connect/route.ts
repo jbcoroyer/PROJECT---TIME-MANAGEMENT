@@ -1,12 +1,16 @@
 import { randomBytes } from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
-import { createServerSupabase } from "../../../../lib/server/supabaseServer";
+import { requirePlanFeature } from "../../../../lib/server/apiAuth";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { buildAuthorizeUrl, isMicrosoftConfigured } from "../../../../lib/server/microsoftGraph";
 import { getOutlookRedirectUri } from "../../../../lib/server/outlookRedirect";
 import { getStableOAuthOrigin } from "../../../../lib/server/publicAppOrigin";
 
 /** Étape 1 du flux OAuth : redirige l'utilisateur vers la page de connexion Microsoft. */
 export async function GET(request: NextRequest) {
+  const limited = apiRateLimit(request, "api/outlook/connect", 30);
+  if (limited) return limited;
+
   const { origin } = new URL(request.url);
   const oauthOrigin = getStableOAuthOrigin(request.url);
 
@@ -20,12 +24,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/settings?outlook=not_configured", origin));
   }
 
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.redirect(new URL("/login", origin));
+  const planCheck = await requirePlanFeature("outlook_sync");
+  if (planCheck instanceof NextResponse) {
+    return NextResponse.redirect(new URL("/settings?upgrade=pro", origin));
   }
 
   const state = randomBytes(16).toString("hex");

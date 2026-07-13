@@ -9,9 +9,13 @@ import {
 } from "../../../../lib/billing/plans";
 import { getOrganizationBilling } from "../../../../lib/server/billingOrg";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { isStripeConfigured } from "../../../../lib/server/stripe";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = apiRateLimit(request, "api/billing/status", 60);
+  if (limited) return limited;
+
   try {
     const ctx = await getServerOrgContext();
     if (!ctx) {

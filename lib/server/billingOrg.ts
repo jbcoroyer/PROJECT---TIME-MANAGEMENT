@@ -105,3 +105,16 @@ export async function findOrganizationByStripeSubscriptionId(
   if (error || !data) return null;
   return rowToBilling(data as OrgBillingRow);
 }
+
+export async function listTrialingOrganizations(): Promise<OrganizationBilling[]> {
+  const admin = createSupabaseAdmin();
+  const { data, error } = await admin
+    .from("organizations")
+    .select(SELECT)
+    .eq("plan", "trial")
+    .eq("billing_status", "trialing")
+    .not("trial_ends_at", "is", null);
+
+  if (error || !data?.length) return [];
+  return data.map((row) => rowToBilling(row as OrgBillingRow));
+}

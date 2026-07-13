@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
-import { createServerSupabase } from "../../../../lib/server/supabaseServer";
+import { requirePlanFeature } from "../../../../lib/server/apiAuth";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { deleteOutlookConnection } from "../../../../lib/server/outlookSync";
 
 /** Déconnecte Outlook : supprime jetons et associations d'événements.
  * Les événements déjà créés dans l'agenda Outlook ne sont pas supprimés. */
-export async function POST() {
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
-  }
+export async function POST(request: Request) {
+  const limited = apiRateLimit(request, "api/outlook/disconnect", 20);
+  if (limited) return limited;
 
-  await deleteOutlookConnection(user.id);
+  const planCheck = await requirePlanFeature("outlook_sync");
+  if (planCheck instanceof NextResponse) return planCheck;
+
+  await deleteOutlookConnection(planCheck.ctx.userId);
   return NextResponse.json({ ok: true });
 }

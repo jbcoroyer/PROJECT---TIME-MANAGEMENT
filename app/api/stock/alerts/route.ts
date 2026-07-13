@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { requirePlanFeature } from "../../../../lib/server/apiAuth";
+import { verifyInternalApiSecret } from "../../../../lib/server/internalApiAuth";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { sendStockAlertWebhook } from "../../../../lib/server/sendStockAlertWebhook";
 
 type AlertPayload = {
@@ -8,6 +11,15 @@ type AlertPayload = {
 };
 
 export async function POST(request: Request) {
+  const limited = apiRateLimit(request, "api/stock/alerts", 20);
+  if (limited) return limited;
+
+  const isInternal = verifyInternalApiSecret(request);
+  if (!isInternal) {
+    const planCheck = await requirePlanFeature("slack_alerts");
+    if (planCheck instanceof NextResponse) return planCheck;
+  }
+
   try {
     const body = (await request.json()) as AlertPayload;
     const itemName = body.itemName?.trim() ?? "";

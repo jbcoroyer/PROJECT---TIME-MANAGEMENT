@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { CheckCircle2, Clock, Megaphone, PencilLine, Recycle, Sparkles, ThumbsUp, TrendingUp, XCircle } from "lucide-react";
 import SocialPreview from "./SocialPreview";
 import RepurposePanel from "./RepurposePanel";
+import PlanFeatureGate from "../../billing/PlanFeatureGate";
 import { useCurrentUser } from "../../../lib/useCurrentUser";
 import { useBranding } from "../../../lib/brandingContext";
 import { useReferenceData } from "../../../lib/useReferenceData";
@@ -118,7 +119,7 @@ export default function V2SocialPage() {
               </p>
               <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Studio &amp; validations</h1>
               <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
-                Aperçu « comme en vrai », circuit d'approbation et repurposing IA.
+                Aperçu « comme en vrai », circuit d&apos;approbation et repurposing IA.
               </p>
             </div>
             <select
@@ -293,7 +294,9 @@ export default function V2SocialPage() {
             </section>
           </div>
         ) : tab === "studio" ? (
-          <RepurposePanel />
+          <PlanFeatureGate feature="ai">
+            <RepurposePanel />
+          </PlanFeatureGate>
         ) : tab === "insights" ? (
           <div className="space-y-5">
             {recommendation ? (
@@ -303,7 +306,7 @@ export default function V2SocialPage() {
               </div>
             ) : (
               <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-8 text-center text-sm text-[color:var(--foreground)]/55">
-                Pas encore assez de posts publiés avec des métriques d'engagement pour recommander un créneau.
+                Pas encore assez de posts publiés avec des métriques d&apos;engagement pour recommander un créneau.
               </div>
             )}
             <div className="grid gap-5 lg:grid-cols-2">
@@ -362,7 +365,7 @@ export default function V2SocialPage() {
             </h2>
             {topPosts.length === 0 ? (
               <p className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-10 text-center text-sm text-[color:var(--foreground)]/55">
-                Aucun post publié avec métriques pour l'instant. Les meilleurs contenus apparaîtront ici pour recyclage evergreen.
+                Aucun post publié avec métriques pour l&apos;instant. Les meilleurs contenus apparaîtront ici pour recyclage evergreen.
               </p>
             ) : (
               <ul className="space-y-2">

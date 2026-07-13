@@ -230,10 +230,12 @@ export default function AdminSettingsPanel() {
   const [taxonomiesSaving, setTaxonomiesSaving] = useState(false);
 
   useEffect(() => {
-    setDraftSocialThematics(branding.socialThematics.join("\n"));
-    setDraftPrintSpecies(
-      branding.printSpecies.map((item) => `${item.value}|${item.label}`).join("\n"),
-    );
+    queueMicrotask(() => {
+      setDraftSocialThematics(branding.socialThematics.join("\n"));
+      setDraftPrintSpecies(
+        branding.printSpecies.map((item) => `${item.value}|${item.label}`).join("\n"),
+      );
+    });
   }, [branding.printSpecies, branding.socialThematics]);
 
   /* ─── Chargement ─── */

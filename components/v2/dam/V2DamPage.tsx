@@ -38,7 +38,7 @@ export default function V2DamPage() {
       <div className="space-y-5">
         <header className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-            <FolderOpen className="h-3.5 w-3.5" /> Bibliothèque d'assets
+            <FolderOpen className="h-3.5 w-3.5" /> Bibliothèque d&apos;assets
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">DAM léger multi-marques</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/55">

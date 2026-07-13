@@ -15,6 +15,7 @@ export async function proxy(request: NextRequest) {
   // Laisser passer les routes publiques (boîte à idées + questionnaire accessibles sans compte).
   // Attention : /questionnaire/reponses reste protégé (page interne du service Communication).
   if (
+    pathname === "/" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
     pathname.startsWith("/auth/callback") ||
@@ -22,6 +23,10 @@ export async function proxy(request: NextRequest) {
     pathname === "/questionnaire" ||
     pathname.startsWith("/questionnaire/f/") ||
     pathname.startsWith("/billing") ||
+    pathname.startsWith("/pricing") ||
+    pathname.startsWith("/privacy") ||
+    pathname.startsWith("/terms") ||
+    pathname.startsWith("/legal") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.includes(".")
@@ -67,5 +72,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|login|signup|ideas|api/public).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|login|signup|ideas|pricing|privacy|terms|legal|api/public).*)"],
 };

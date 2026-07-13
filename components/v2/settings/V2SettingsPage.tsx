@@ -1,25 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { Bot, Layers, SlidersHorizontal } from "lucide-react";
 import AutomationsManager from "./AutomationsManager";
 import AdminSettingsPanel from "../../settings/AdminSettingsPanel";
 import ModulesSettingsSection from "../../settings/ModulesSettingsSection";
+import TeamInviteSection from "../../settings/TeamInviteSection";
+import UpgradeProBanner from "../../settings/UpgradeProBanner";
+import GdprDataSection from "../../settings/GdprDataSection";
+import PlatformAdminShortcut from "../../platform/PlatformAdminShortcut";
 import { useReferenceData } from "../../../lib/useReferenceData";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
+import { useCurrentUser } from "../../../lib/useCurrentUser";
 
 type SettingsTab = "modules" | "automations" | "admin";
 
-const TABS: { id: SettingsTab; icon: typeof Layers; labelKey: string }[] = [
+const ALL_TABS: { id: SettingsTab; icon: typeof Layers; labelKey: string; adminOnly?: boolean }[] = [
   { id: "modules", icon: Layers, labelKey: "settings.tabs.modules" },
   { id: "automations", icon: Bot, labelKey: "settings.tabs.automations" },
-  { id: "admin", icon: SlidersHorizontal, labelKey: "settings.tabs.admin" },
+  { id: "admin", icon: SlidersHorizontal, labelKey: "settings.tabs.admin", adminOnly: true },
 ];
 
 export default function V2SettingsPage() {
   const { admins, columns, domains } = useReferenceData();
   const { t } = useTranslation();
+  const { user } = useCurrentUser();
+  const isAdmin = Boolean(user?.isAdmin);
   const [tab, setTab] = useState<SettingsTab>("modules");
+
+  const tabs = useMemo(
+    () => ALL_TABS.filter((item) => !item.adminOnly || isAdmin),
+    [isAdmin],
+  );
+
+  const activeTab = tabs.some((item) => item.id === tab) ? tab : "modules";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -35,12 +49,22 @@ export default function V2SettingsPage() {
         </p>
       </header>
 
+      <Suspense fallback={null}>
+        <UpgradeProBanner />
+      </Suspense>
+
+      {isAdmin ? <TeamInviteSection /> : null}
+
+      <GdprDataSection />
+
+      <PlatformAdminShortcut />
+
       <nav
         className="flex flex-wrap gap-2"
         aria-label={t("settings.tabsLabel")}
       >
-        {TABS.map(({ id, icon: Icon, labelKey }) => {
-          const active = tab === id;
+        {tabs.map(({ id, icon: Icon, labelKey }) => {
+          const active = activeTab === id;
           return (
             <button
               key={id}
@@ -60,9 +84,9 @@ export default function V2SettingsPage() {
         })}
       </nav>
 
-      {tab === "modules" ? <ModulesSettingsSection /> : null}
+      {activeTab === "modules" ? <ModulesSettingsSection /> : null}
 
-      {tab === "automations" ? (
+      {activeTab === "automations" ? (
         <section className="space-y-4">
           <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)]/50 px-4 py-3">
             <p className="text-sm text-[color:var(--foreground)]/65">{t("settings.automationsIntro")}</p>
@@ -75,7 +99,7 @@ export default function V2SettingsPage() {
         </section>
       ) : null}
 
-      {tab === "admin" ? (
+      {activeTab === "admin" && isAdmin ? (
         <section>
           <div className="mb-4 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)]/50 px-4 py-3">
             <p className="text-sm text-[color:var(--foreground)]/65">{t("settings.adminIntro")}</p>

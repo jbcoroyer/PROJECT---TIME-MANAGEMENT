@@ -7,6 +7,7 @@ import { InAppNotificationProvider } from "../lib/inAppNotificationsContext";
 import { ReferenceDataProvider } from "../lib/referenceDataContext";
 import { TasksProvider } from "../lib/tasksContext";
 import { ConfirmDialogProvider } from "./ui/ConfirmDialog";
+import CookieBanner from "./legal/CookieBanner";
 import SetupRedirect from "./SetupRedirect";
 
 export default function AppProviders({ children }: { children: ReactNode }) {
@@ -19,6 +20,7 @@ export default function AppProviders({ children }: { children: ReactNode }) {
               <InAppNotificationProvider>
                 <SetupRedirect />
                 {children}
+                <CookieBanner />
               </InAppNotificationProvider>
             </ConfirmDialogProvider>
           </TasksProvider>

@@ -1,8 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
+  canAddOrgMember,
   daysLeftInTrial,
+  hasPlanFeature,
+  isModuleAllowedForPlan,
   isOrgAccessAllowed,
   mapStripeSubscriptionStatus,
+  maxMembersForPlan,
 } from "./plans";
 
 describe("billing plans", () => {
@@ -44,5 +48,26 @@ describe("billing plans", () => {
         trialEndsAt: null,
       }),
     ).toBe(false);
+  });
+
+  it("limite les membres sur le plan Starter", () => {
+    expect(maxMembersForPlan("starter")).toBe(5);
+    expect(maxMembersForPlan("pro")).toBeNull();
+    expect(canAddOrgMember("starter", 4)).toBe(true);
+    expect(canAddOrgMember("starter", 5)).toBe(false);
+    expect(canAddOrgMember("pro", 100)).toBe(true);
+  });
+
+  it("mappe les statuts Stripe", () => {
+    expect(mapStripeSubscriptionStatus("past_due")).toBe("past_due");
+    expect(mapStripeSubscriptionStatus("incomplete_expired")).toBe("canceled");
+  });
+
+  it("restreint les modules et features sur Starter", () => {
+    expect(isModuleAllowedForPlan("starter", "dashboard")).toBe(true);
+    expect(isModuleAllowedForPlan("starter", "social")).toBe(false);
+    expect(hasPlanFeature("starter", "ai")).toBe(false);
+    expect(hasPlanFeature("pro", "ai")).toBe(true);
+    expect(hasPlanFeature("trial", "outlook_sync")).toBe(true);
   });
 });

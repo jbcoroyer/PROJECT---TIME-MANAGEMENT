@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { getOrganizationBilling } from "../../../../lib/server/billingOrg";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { appBaseUrl, getStripe, isStripeConfigured } from "../../../../lib/server/stripe";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const limited = apiRateLimit(request, "api/billing/portal", 20);
+  if (limited) return limited;
+
   try {
     if (!isStripeConfigured()) {
       return NextResponse.json({ error: "Stripe n'est pas configuré sur ce serveur." }, { status: 503 });

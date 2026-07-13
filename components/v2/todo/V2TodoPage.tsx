@@ -48,7 +48,7 @@ export default function V2TodoPage() {
       const bullets = plan
         .filter((b) => b.kind === "task")
         .map((b) => `${b.start}-${b.end} : ${b.title} (${b.reason})`);
-      if (bullets.length === 0) bullets.push("Aucune tâche assignée aujourd'hui");
+      if (bullets.length === 0) bullets.push("Aucune tâche assignée aujourd&apos;hui");
       const result = await summarize(
         `Mon agenda du ${now.toLocaleDateString("fr-FR")}`,
         bullets,
@@ -120,7 +120,7 @@ export default function V2TodoPage() {
                 </p>
               ) : plan.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-10 text-center text-sm text-[color:var(--foreground)]/55">
-                  Aucune tâche à planifier aujourd'hui. Profitez-en !
+                  Aucune tâche à planifier aujourd&apos;hui. Profitez-en !
                 </p>
               ) : (
                 <ol className="space-y-2">
@@ -182,7 +182,7 @@ export default function V2TodoPage() {
                 </pre>
               ) : (
                 <p className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-8 text-center text-xs text-[color:var(--foreground)]/55">
-                  Lancez « Optimiser » pour obtenir des conseils d'organisation sur votre journée.
+                  Lancez « Optimiser » pour obtenir des conseils d&apos;organisation sur votre journée.
                 </p>
               )}
             </section>

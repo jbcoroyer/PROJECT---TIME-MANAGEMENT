@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import HomeLogin from "../components/auth/HomeLogin";
+import LandingPage from "../components/marketing/LandingPage";
 import { getDefaultModuleRoute } from "../lib/modules";
 import { getBrandingServer } from "../lib/server/getBrandingServer";
 import { createServerSupabase } from "../lib/server/supabaseServer";
@@ -12,7 +12,7 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return <HomeLogin />;
+    return <LandingPage />;
   }
 
   const branding = await getBrandingServer();

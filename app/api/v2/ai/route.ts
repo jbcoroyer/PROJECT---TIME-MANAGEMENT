@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { aiRepurpose, aiSummary } from "../../../../lib/server/aiGenerate";
+import { requirePlanFeature } from "../../../../lib/server/apiAuth";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 
 type RepurposeBody = {
   kind: "repurpose";
@@ -17,6 +19,12 @@ type SummaryBody = {
 type Body = RepurposeBody | SummaryBody;
 
 export async function POST(request: Request) {
+  const limited = apiRateLimit(request, "api/v2/ai", 30);
+  if (limited) return limited;
+
+  const auth = await requirePlanFeature("ai");
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = (await request.json()) as Body;
 

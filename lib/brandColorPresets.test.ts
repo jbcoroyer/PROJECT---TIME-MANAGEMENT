@@ -19,9 +19,9 @@ describe("brandColorPresets", () => {
   });
 
   it("retrouve un preset par hex", () => {
-    const preset = findPresetByHex("#4F46E5");
-    expect(preset?.id).toBe("design-indigo");
-    expect(isPresetColor("#4F46E5")).toBe(true);
+    const preset = findPresetByHex("#5C6B5A");
+    expect(preset?.id).toBe("design-sage");
+    expect(isPresetColor("#5C6B5A")).toBe(true);
     expect(isPresetColor("#FF00FF")).toBe(false);
   });
 });

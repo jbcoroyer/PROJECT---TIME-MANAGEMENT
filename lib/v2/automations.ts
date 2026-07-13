@@ -121,7 +121,9 @@ export function useAutomationRules() {
   }, [supabase]);
 
   useEffect(() => {
-    void reload();
+    queueMicrotask(() => {
+      void reload();
+    });
   }, [reload]);
 
   const createRule = useCallback(
@@ -218,7 +220,9 @@ export function useAutomationRunner(params: {
     processedRef.current = loadProcessedAutomationKeys();
   }
   const runActionRef = useRef(runAction);
-  runActionRef.current = runAction;
+  useEffect(() => {
+    runActionRef.current = runAction;
+  }, [runAction]);
 
   useEffect(() => {
     if (!enabled) return;

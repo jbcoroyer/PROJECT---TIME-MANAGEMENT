@@ -254,7 +254,8 @@ export default function KanbanBoardView(props: {
 
   useEffect(() => {
     if (filterTouchedRef.current) return;
-    if (defaultFilterAdmin !== "Tous") setFilterAdminState(defaultFilterAdmin);
+    if (defaultFilterAdmin === "Tous") return;
+    queueMicrotask(() => setFilterAdminState(defaultFilterAdmin));
   }, [defaultFilterAdmin]);
   const [filterCompany, setFilterCompany] = useState<string>("Toutes");
   const [activeId, setActiveId] = useState<string | null>(null);

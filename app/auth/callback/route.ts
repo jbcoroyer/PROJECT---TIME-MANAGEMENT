@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
+import { sendTransactionalEmail } from "../../../lib/server/email";
 
 const EMAIL_OTP_TYPES: EmailOtpType[] = [
   "recovery",
@@ -10,6 +11,26 @@ const EMAIL_OTP_TYPES: EmailOtpType[] = [
   "email_change",
   "email",
 ];
+
+async function sendWelcomeIfNeeded(
+  supabase: ReturnType<typeof createServerClient>,
+  type: string | null,
+) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user?.email) return;
+
+  const isInvite = type === "invite" || user.user_metadata?.invited === true;
+  if (!isInvite) return;
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "http://localhost:3000";
+  await sendTransactionalEmail({
+    to: user.email,
+    subject: "Bienvenue dans votre espace Workspace",
+    html: `<p>Votre compte est prêt. <a href="${baseUrl}/setup">Accéder à l'espace</a></p>`,
+  });
+}
 
 /**
  * Échange PKCE du lien email (recovery, etc.) côté serveur pour que les cookies
@@ -66,6 +87,7 @@ export async function GET(request: NextRequest) {
           : error.message,
       );
     }
+    await sendWelcomeIfNeeded(supabase, type);
     return response;
   }
 
@@ -86,6 +108,7 @@ export async function GET(request: NextRequest) {
           : error.message,
       );
     }
+    await sendWelcomeIfNeeded(supabase, type);
     return response;
   }
 

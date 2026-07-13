@@ -105,7 +105,7 @@ export default function V2IdeasPage() {
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
             <Lightbulb className="h-3.5 w-3.5" /> Boîte à idées
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Pipeline d'innovation</h1>
+          <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Pipeline d&apos;innovation</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
             Votez, faites avancer les idées par statut et convertissez-les en tâches en un clic.
           </p>

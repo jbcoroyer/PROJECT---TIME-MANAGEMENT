@@ -1,11 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createServerSupabase } from "../../../../lib/server/supabaseServer";
+import { requirePlanFeature } from "../../../../lib/server/apiAuth";
+import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { createSupabaseAdmin } from "../../../../lib/server/supabaseAdmin";
 import { exchangeCodeForTokens, fetchGraphUser } from "../../../../lib/server/microsoftGraph";
 import { getOutlookRedirectUri } from "../../../../lib/server/outlookRedirect";
 
 /** Étape 2 du flux OAuth : Microsoft renvoie un code, on l'échange contre des jetons. */
 export async function GET(request: NextRequest) {
+  const limited = apiRateLimit(request, "api/outlook/callback", 30);
+  if (limited) return limited;
+
   const { searchParams, origin } = new URL(request.url);
   const settings = (status: string) => new URL(`/settings?outlook=${status}`, origin);
 
@@ -21,13 +25,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(settings("state_mismatch"));
   }
 
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.redirect(new URL("/login", origin));
+  const planCheck = await requirePlanFeature("outlook_sync");
+  if (planCheck instanceof NextResponse) {
+    return NextResponse.redirect(new URL("/settings?upgrade=pro", origin));
   }
+
+  const { ctx } = planCheck;
 
   try {
     const redirectUri = getOutlookRedirectUri(request.url);
@@ -37,7 +40,7 @@ export async function GET(request: NextRequest) {
     const admin = createSupabaseAdmin();
     await admin.from("outlook_connections").upsert(
       {
-        user_id: user.id,
+        user_id: ctx.userId,
         ms_user_id: graphUser.id,
         account_email: graphUser.mail ?? graphUser.userPrincipalName ?? null,
         access_token: tokens.access_token,

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CreditCard, ExternalLink, Loader2 } from "lucide-react";
+import { CreditCard, ExternalLink, Loader2, Check } from "lucide-react";
+import { PLAN_MARKETING_FEATURES } from "../../lib/billing/plans";
 import { toastError, toastSuccess } from "../../lib/toast";
 
 type BillingStatusResponse = {
@@ -144,6 +145,7 @@ export default function BillingCard() {
           <PlanOffer
             name="Starter"
             description="Pour un usage solo ou une petite équipe."
+            features={PLAN_MARKETING_FEATURES.starter}
             busy={busy === "starter"}
             disabled={busy !== null || billing.plan === "starter"}
             onSelect={() => void startCheckout("starter")}
@@ -151,6 +153,7 @@ export default function BillingCard() {
           <PlanOffer
             name="Pro"
             description="Modules avancés et collaboration étendue."
+            features={PLAN_MARKETING_FEATURES.pro}
             highlighted
             busy={busy === "pro"}
             disabled={busy !== null || billing.plan === "pro"}
@@ -171,6 +174,7 @@ export default function BillingCard() {
 function PlanOffer(props: {
   name: string;
   description: string;
+  features: string[];
   highlighted?: boolean;
   busy: boolean;
   disabled: boolean;
@@ -190,6 +194,14 @@ function PlanOffer(props: {
         <h3 className="font-semibold text-[var(--foreground)]">{props.name}</h3>
       </div>
       <p className="mt-2 text-sm text-[color:var(--foreground)]/65">{props.description}</p>
+      <ul className="mt-3 space-y-1.5">
+        {props.features.map((feature) => (
+          <li key={feature} className="flex items-start gap-2 text-xs text-[color:var(--foreground)]/70">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand-primary)]" />
+            {feature}
+          </li>
+        ))}
+      </ul>
       <button
         type="button"
         onClick={props.onSelect}

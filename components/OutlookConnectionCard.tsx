@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { CalendarCheck2, CalendarX2, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { requestOutlookSyncAll } from "../lib/outlookClientSync";
+import { hasPlanFeature } from "../lib/billing/plans";
+import { useBillingPlan } from "../lib/billing/useBillingPlan";
 import { getPublicAppOrigin } from "../lib/publicAppUrl";
 import { useBranding } from "../lib/brandingContext";
 import { toastError, toastSuccess } from "../lib/toast";
@@ -11,10 +13,12 @@ type StatusResponse = {
   configured: boolean;
   connected: boolean;
   email?: string | null;
+  requiresPro?: boolean;
 };
 
 export default function OutlookConnectionCard() {
   const { branding } = useBranding();
+  const { plan, loading: planLoading } = useBillingPlan();
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -104,11 +108,22 @@ export default function OutlookConnectionCard() {
     }
   }, [loadStatus]);
 
-  if (loading) {
+  if (loading || planLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-[color:var(--foreground)]/60">
         <Loader2 className="h-4 w-4 animate-spin" />
         Chargement de l&apos;état de connexion…
+      </div>
+    );
+  }
+
+  if (!hasPlanFeature(plan, "outlook_sync") || status?.requiresPro) {
+    return (
+      <div className="rounded-2xl border border-[color-mix(in_srgb,var(--accent)_30%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] px-4 py-4 text-sm text-[color:var(--foreground)]/70">
+        La synchronisation Outlook est incluse dans le plan Pro.{" "}
+        <a href="/pricing" className="font-semibold text-[var(--brand-primary)] hover:underline">
+          Voir les offres
+        </a>
       </div>
     );
   }

@@ -20,6 +20,8 @@ import {
 import { signInAfterSignUp, signUpWithOrganization } from "../../app/actions/auth";
 import { uploadOrgAsset } from "../../app/actions/storage";
 import { AppMark, AppWordmark } from "../AppBrand";
+import LegalFooter from "../legal/LegalFooter";
+import OAuthButtons from "./OAuthButtons";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
@@ -45,6 +47,7 @@ export default function SignUpScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const subtitle = step === 1 ? t("auth.signUpStep1") : t("auth.signUpStep2");
 
@@ -86,6 +89,10 @@ export default function SignUpScreen() {
       setError(t("auth.fieldsRequired"));
       return;
     }
+    if (!acceptedTerms) {
+      setError("Vous devez accepter les conditions générales et la politique de confidentialité.");
+      return;
+    }
 
     setError(null);
     setLoading(true);
@@ -103,6 +110,12 @@ export default function SignUpScreen() {
 
       if (!result.ok) {
         throw new Error(result.error);
+      }
+
+      if (result.needsEmailConfirmation) {
+        router.push("/login?signup=confirm");
+        router.refresh();
+        return;
       }
 
       const signIn = await signInAfterSignUp(email.trim(), password);
@@ -305,11 +318,33 @@ export default function SignUpScreen() {
               />
 
               <AlertBox error={error} />
+
+              <label className="flex items-start gap-2.5 text-sm text-[color:var(--foreground)]/70">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-[var(--line)] accent-[var(--brand-primary)]"
+                />
+                <span>
+                  J&apos;accepte les{" "}
+                  <Link href="/terms" target="_blank" className="font-medium text-[var(--brand-primary)] hover:underline">
+                    conditions générales
+                  </Link>{" "}
+                  et la{" "}
+                  <Link href="/privacy" target="_blank" className="font-medium text-[var(--brand-primary)] hover:underline">
+                    politique de confidentialité
+                  </Link>
+                  .
+                </span>
+              </label>
+
               <SubmitBtn
                 loading={loading}
                 loadingLabel={t("common.saving")}
                 label={t("auth.createAccount")}
               />
+              <OAuthButtons nextPath="/setup" />
             </form>
           )}
         </div>
@@ -320,6 +355,7 @@ export default function SignUpScreen() {
             {t("auth.signInButton")}
           </Link>
         </p>
+        <LegalFooter />
       </div>
     </div>
   );
