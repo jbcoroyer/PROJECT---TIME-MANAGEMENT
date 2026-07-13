@@ -106,16 +106,16 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
 
   const iconWrapper =
     variant === "destructive"
-      ? "bg-rose-50 text-rose-600"
+      ? "bg-[color-mix(in_srgb,var(--danger)_10%,var(--surface))] text-[var(--danger)]"
       : variant === "warning"
-        ? "bg-amber-50 text-amber-600"
+        ? "bg-[color-mix(in_srgb,var(--warning)_10%,var(--surface))] text-[var(--warning)]"
         : "bg-[var(--accent-soft)] text-[var(--accent-strong)]";
 
   const confirmButton =
     variant === "destructive"
-      ? "bg-rose-600 text-white hover:bg-rose-700"
+      ? "ui-btn ui-btn-danger"
       : variant === "warning"
-        ? "bg-amber-500 text-white hover:bg-amber-600"
+        ? "bg-[var(--warning)] text-white hover:opacity-90"
         : "bg-[var(--foreground)] text-[var(--accent-contrast)] hover:opacity-90";
 
   const overlay =

@@ -48,9 +48,9 @@ function InfoChip(props: {
 /* ─── Badge priorité ─── */
 function PriorityBadge({ priority }: { priority: Priority }) {
   const cls = {
-    Haute: "border-rose-200 bg-rose-50 text-rose-700",
-    Moyenne: "border-amber-200 bg-amber-50 text-amber-700",
-    Basse: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    Haute: "ui-pill ui-pill-danger",
+    Moyenne: "ui-pill ui-pill-warning",
+    Basse: "ui-pill ui-pill-success",
   }[priority] ?? "border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/70";
   return (
     <span className={["inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold", cls].join(" ")}>
@@ -459,7 +459,7 @@ export default function TaskDetailPanel(props: {
                   onChange={(e) => setPlanDeadline(e.target.value)}
                   className={[
                     "ui-focus-ring mt-1 w-full rounded-lg border bg-[var(--surface)] px-2.5 py-1.5 text-sm",
-                    isOverdue ? "border-rose-300" : "border-[var(--line)]",
+                    isOverdue ? "border-[color-mix(in_srgb,var(--danger)_35%,var(--line))]" : "border-[var(--line)]",
                   ].join(" ")}
                 />
               </div>
@@ -638,7 +638,7 @@ export default function TaskDetailPanel(props: {
                       <button
                         type="button"
                         onClick={() => setPlanProjectedWork((prev) => prev.filter((_, i) => i !== index))}
-                        className="ml-auto rounded-md px-2 py-1 text-rose-600 hover:bg-rose-50"
+                        className="ml-auto rounded-md px-2 py-1 text-[var(--danger)] hover:bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))]"
                       >
                         Supprimer
                       </button>

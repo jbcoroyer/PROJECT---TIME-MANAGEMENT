@@ -31,35 +31,35 @@ const CATEGORY_META: Record<
   overdue: {
     label: "En retard",
     emoji: "🔴",
-    accentClass: "bg-rose-500",
-    borderClass: "border-rose-200",
-    bgClass: "bg-rose-50/60",
+    accentClass: "bg-[var(--danger)]",
+    borderClass: "border-[color-mix(in_srgb,var(--danger)_22%,var(--line))]",
+    bgClass: "bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))]/60",
   },
   today: {
     label: "Aujourd'hui",
     emoji: "🟠",
-    accentClass: "bg-orange-400",
-    borderClass: "border-orange-200",
-    bgClass: "bg-orange-50/60",
+    accentClass: "bg-[var(--warning)]",
+    borderClass: "border-[color-mix(in_srgb,var(--warning)_22%,var(--line))]",
+    bgClass: "bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface))]/60",
   },
   week: {
     label: "Cette semaine",
     emoji: "🟡",
-    accentClass: "bg-amber-400",
-    borderClass: "border-amber-200",
-    bgClass: "bg-amber-50/30",
+    accentClass: "bg-[var(--warning)]",
+    borderClass: "border-[color-mix(in_srgb,var(--warning)_22%,var(--line))]",
+    bgClass: "bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface))]/30",
   },
   month: {
     label: "Ce mois",
     emoji: "🔵",
-    accentClass: "bg-blue-400",
-    borderClass: "border-blue-200",
-    bgClass: "bg-blue-50/20",
+    accentClass: "bg-[var(--brand-primary)]",
+    borderClass: "border-[color-mix(in_srgb,var(--brand-primary)_22%,var(--line))]",
+    bgClass: "bg-[color-mix(in_srgb,var(--brand-primary)_6%,var(--surface))]/20",
   },
   later: {
     label: "Plus tard",
     emoji: "⚪",
-    accentClass: "bg-slate-300",
+    accentClass: "bg-[var(--line-strong)]",
     borderClass: "border-[var(--line)]",
     bgClass: "",
   },
@@ -101,9 +101,9 @@ function TodoTaskRow(props: {
       className={[
         "group w-full flex items-center gap-3 rounded-xl border bg-[var(--surface)] px-4 py-3 text-left transition hover:shadow-[0_6px_20px_rgba(20,17,13,0.10)]",
         isOverdue
-          ? "border-rose-200 bg-rose-50/40 hover:border-rose-300"
+          ? "border-[color-mix(in_srgb,var(--danger)_22%,var(--line))] bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))]/40 hover:border-[color-mix(in_srgb,var(--danger)_35%,var(--line))]"
           : isToday
-            ? "border-orange-200 bg-orange-50/30 hover:border-orange-300"
+            ? "border-[color-mix(in_srgb,var(--warning)_22%,var(--line))] bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface))]/30 hover:border-[color-mix(in_srgb,var(--warning)_35%,var(--line))]"
             : "border-[var(--line)] hover:border-[var(--line-strong)]",
         !onTaskClick ? "cursor-default" : "cursor-pointer",
       ].join(" ")}
@@ -140,9 +140,9 @@ function TodoTaskRow(props: {
           className={[
             "hidden items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium sm:inline-flex",
             isOverdue
-              ? "border-rose-200 bg-rose-50 text-rose-700"
+              ? "ui-pill ui-pill-danger border px-2 py-1 text-[11px] font-medium"
               : isToday
-                ? "border-orange-200 bg-orange-50 text-orange-700"
+                ? "ui-pill ui-pill-warning border px-2 py-1 text-[11px] font-medium"
                 : "border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/65",
           ].join(" ")}
         >

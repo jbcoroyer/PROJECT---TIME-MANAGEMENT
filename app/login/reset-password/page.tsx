@@ -144,12 +144,12 @@ export default function ResetPasswordPage() {
               </div>
 
               {error && (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                <div className="ui-alert ui-alert-danger rounded-xl px-3 py-2 text-sm">
                   {error}
                 </div>
               )}
               {success && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                <div className="ui-alert ui-alert-success rounded-xl px-3 py-2 text-sm">
                   {success}
                 </div>
               )}

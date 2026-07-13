@@ -1,30 +1,24 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import AuthScreen, { AuthLoadingShell } from "../components/auth/AuthScreen";
-import { useCurrentUser } from "../lib/useCurrentUser";
-import { useBranding } from "../lib/brandingContext";
+import { redirect } from "next/navigation";
+import HomeLogin from "../components/auth/HomeLogin";
 import { getDefaultModuleRoute } from "../lib/modules";
+import { getBrandingServer } from "../lib/server/getBrandingServer";
+import { createServerSupabase } from "../lib/server/supabaseServer";
 import { SETUP_PATH } from "../lib/setupPaths";
 
-export default function Home() {
-  const router = useRouter();
-  const { user, loading } = useCurrentUser();
-  const { branding, loading: brandingLoading } = useBranding();
+export default async function Home() {
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  useEffect(() => {
-    if (loading || brandingLoading || !user) return;
-    if (!branding.isConfigured) {
-      router.replace(SETUP_PATH);
-      return;
-    }
-    router.replace(getDefaultModuleRoute(branding.enabledModules));
-  }, [loading, brandingLoading, user, branding.isConfigured, branding.enabledModules, router]);
-
-  if (loading || brandingLoading || user) {
-    return <AuthLoadingShell />;
+  if (!user) {
+    return <HomeLogin />;
   }
 
-  return <AuthScreen cleanPath="/" />;
+  const branding = await getBrandingServer();
+  if (!branding.isConfigured) {
+    redirect(SETUP_PATH);
+  }
+
+  redirect(getDefaultModuleRoute(branding.enabledModules));
 }

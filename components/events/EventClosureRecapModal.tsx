@@ -89,7 +89,7 @@ export default function EventClosureRecapModal(props: Props) {
           </div>
           <div className="flex justify-between border-t border-[var(--line)] pt-2">
             <dt className="font-medium">Écart</dt>
-            <dd className={delta > 0 ? "font-semibold text-rose-700" : "font-semibold text-emerald-800"}>
+            <dd className={delta > 0 ? "font-semibold text-[var(--danger)]" : "font-semibold text-[var(--success)]"}>
               {delta > 0 ? "+" : ""}
               {formatCurrency(delta)}
             </dd>

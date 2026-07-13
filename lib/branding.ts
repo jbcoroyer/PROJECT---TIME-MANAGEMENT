@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { sanitizePrimaryColor } from "./brandColorPresets";
 import {
   DEFAULT_PRINT_SPECIES,
   DEFAULT_SOCIAL_THEMATICS,
@@ -77,7 +78,7 @@ export type AppBrandingPatch = Partial<{
   enabledModules: AppModuleId[];
 }>;
 
-const NEUTRAL_PRIMARY = "#2563eb";
+const NEUTRAL_PRIMARY = "#5C6B5A";
 const DEFAULT_OUTLOOK_CATEGORY = "Planification";
 
 function envString(...keys: string[]): string | null {
@@ -239,7 +240,9 @@ export function brandingToDbPatch(
     row.mark_url = patch.markUrl;
     row.idena_mark_url = patch.markUrl;
   }
-  if (patch.primaryColor !== undefined) row.primary_color = patch.primaryColor;
+  if (patch.primaryColor !== undefined) {
+    row.primary_color = sanitizePrimaryColor(patch.primaryColor, NEUTRAL_PRIMARY);
+  }
   if (patch.locale !== undefined) row.locale = patch.locale;
   if (patch.timezone !== undefined) row.timezone = patch.timezone;
   if (patch.sector !== undefined) row.sector = patch.sector;
@@ -259,4 +262,16 @@ export function brandingToDbPatch(
 export function htmlLangFromBranding(locale: string): string {
   const base = locale.trim().split(/[-_]/)[0];
   return base || "fr";
+}
+
+/** Variables CSS d'accent dérivées de la couleur marque (SSR + client). */
+export function brandingStyleVars(primaryColor: string): Record<string, string> {
+  const safe = sanitizePrimaryColor(primaryColor, NEUTRAL_PRIMARY);
+  return {
+    "--brand-primary": safe,
+    "--accent": safe,
+    "--accent-strong": `color-mix(in srgb, ${safe} 78%, var(--foreground))`,
+    "--accent-soft": `color-mix(in srgb, ${safe} 10%, var(--surface))`,
+    "--ring": `color-mix(in srgb, ${safe} 20%, transparent)`,
+  };
 }

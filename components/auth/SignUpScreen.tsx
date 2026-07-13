@@ -18,11 +18,11 @@ import {
   UserRound,
 } from "lucide-react";
 import { signInAfterSignUp, signUpWithOrganization } from "../../app/actions/auth";
+import { uploadOrgAsset } from "../../app/actions/storage";
 import { AppMark, AppWordmark } from "../AppBrand";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
-import { uploadOrgFile } from "../../lib/storageClient";
 
 type SignupStep = 1 | 2;
 
@@ -124,14 +124,9 @@ export default function SignUpScreen() {
 
           if (profileRow?.team_member_id && profileRow.organization_id) {
             const relativePath = `${String(profileRow.team_member_id)}.${ext}`;
-            const upload = await uploadOrgFile(
-              supabase,
-              "member-avatars",
-              String(profileRow.organization_id),
-              relativePath,
-              photoFile,
-              { upsert: true, contentType: photoFile.type },
-            );
+            const formData = new FormData();
+            formData.set("file", photoFile);
+            const upload = await uploadOrgAsset(formData, "member-avatars", relativePath);
             if (upload.ok) {
               await supabase
                 .from("team_members")
@@ -404,7 +399,7 @@ function PasswordField(props: {
 function AlertBox(props: { error?: string | null }) {
   if (!props.error) return null;
   return (
-    <div className="rounded-xl border border-rose-200/80 bg-rose-50/90 px-3 py-2 text-sm text-rose-800">
+    <div className="ui-alert ui-alert-danger rounded-xl px-3 py-2 text-sm">
       {props.error}
     </div>
   );

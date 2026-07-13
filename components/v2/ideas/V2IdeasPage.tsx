@@ -12,7 +12,6 @@ import { useCurrentUser } from "../../../lib/useCurrentUser";
 import { useReferenceData } from "../../../lib/useReferenceData";
 import { useStockIdeas } from "../../../lib/useStockIdeas";
 import type { StockIdea, StockIdeaCategory, StockIdeaStatus } from "../../../lib/stockIdeasTypes";
-import { useIdeaVotes } from "../../../lib/v2/ideaVotes";
 import { createQuickTask } from "../../../lib/v2/createTask";
 import { toastError, toastSuccess } from "../../../lib/toast";
 
@@ -40,8 +39,7 @@ const NEXT_STATUS: Record<StockIdeaStatus, StockIdeaStatus | null> = {
 export default function V2IdeasPage() {
   const { user } = useCurrentUser();
   const { admins, companies, domains } = useReferenceData();
-  const { ideas, canManage, addIdea, updateIdea } = useStockIdeas();
-  const { votes, setVote } = useIdeaVotes();
+  const { ideas, canManage, addIdea, updateIdea, voteIdea } = useStockIdeas();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -57,10 +55,10 @@ export default function V2IdeasPage() {
     };
     for (const idea of ideas) byStatus[idea.status]?.push(idea);
     for (const status of Object.keys(byStatus) as StockIdeaStatus[]) {
-      byStatus[status].sort((a, b) => (votes[b.id] ?? 0) - (votes[a.id] ?? 0));
+      byStatus[status].sort((a, b) => b.votes - a.votes);
     }
     return byStatus;
-  }, [ideas, votes]);
+  }, [ideas]);
 
   const handleAdd = () => {
     if (!title.trim()) return;
@@ -170,12 +168,12 @@ export default function V2IdeasPage() {
                       <div className="flex items-start gap-2">
                         <button
                           type="button"
-                          onClick={() => setVote(idea.id, 1)}
+                          onClick={() => voteIdea(idea.id, 1)}
                           className="ui-transition flex flex-col items-center rounded-lg border border-[var(--line)] px-2 py-1 text-[color:var(--foreground)]/60 hover:border-[var(--accent)] hover:text-[var(--accent)]"
                           aria-label="Voter pour cette idée"
                         >
                           <ChevronUp className="h-4 w-4" />
-                          <span className="text-xs font-bold">{votes[idea.id] ?? 0}</span>
+                          <span className="text-xs font-bold">{idea.votes}</span>
                         </button>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-[var(--foreground)]">{idea.title}</p>

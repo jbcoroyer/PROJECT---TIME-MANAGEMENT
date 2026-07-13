@@ -45,18 +45,18 @@ export default function EventPreparationDashboard(props: Props) {
               : `${stats.totalTasks} tâches liées à cet événement`}
           </li>
           {stats.overdueTasks > 0 ? (
-            <li className="flex items-center gap-2 font-semibold text-rose-700">
+            <li className="flex items-center gap-2 font-semibold text-[var(--danger)]">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               {stats.overdueTasks} en retard
             </li>
           ) : (
-            <li className="flex items-center gap-2 text-emerald-800">
+            <li className="flex items-center gap-2 text-[var(--success)]">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
               Aucun retard sur les échéances
             </li>
           )}
           {stats.unscheduledOpen > 0 ? (
-            <li className="text-amber-800">
+            <li className="text-[var(--warning)]">
               {stats.unscheduledOpen} tâche(s) ouverte(s) sans date limite
             </li>
           ) : null}

@@ -24,9 +24,9 @@ import {
 } from "../../../lib/types";
 
 const PRIORITY_STYLES: Record<Priority, string> = {
-  Haute: "bg-rose-100 text-rose-800 border-rose-200",
-  Moyenne: "bg-amber-100 text-amber-800 border-amber-200",
-  Basse: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  Haute: "ui-pill ui-pill-danger",
+  Moyenne: "ui-pill ui-pill-warning",
+  Basse: "ui-pill ui-pill-success",
 };
 
 function formatElapsed(ms: number): string {
@@ -328,7 +328,7 @@ function ListRow({
           }}
           className={[
             "w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30",
-            isOverdue ? "border-rose-300 text-rose-700" : "",
+            isOverdue ? "border-[color-mix(in_srgb,var(--danger)_35%,var(--line))] text-[var(--danger)]" : "",
           ].join(" ")}
           aria-label="Échéance"
         />

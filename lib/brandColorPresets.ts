@@ -28,7 +28,9 @@ export const BRAND_COLOR_PRESET_GROUPS: BrandColorPresetGroup[] = [
     id: "design",
     labelKey: "setup.colorGroups.design",
     presets: [
-      { id: "design-indigo", hex: "#4F46E5", labelKey: "setup.colors.designIndigo" },
+      // Remplace design-indigo (#4F46E5) — choix retenu : C) olive sauge
+      // Alternatives : A) #4A6B5D vert sauge foncé, B) #4A5D6E bleu ardoise
+      { id: "design-sage", hex: "#5C6B5A", labelKey: "setup.colors.designIndigo" },
       { id: "design-emerald", hex: "#059669", labelKey: "setup.colors.designEmerald" },
       { id: "design-violet", hex: "#7C3AED", labelKey: "setup.colors.designViolet" },
       { id: "design-slate", hex: "#475569", labelKey: "setup.colors.designSlate" },
@@ -61,7 +63,14 @@ export function normalizeHexColor(value: string): string {
     const h = withHash.slice(1);
     return `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}`.toUpperCase();
   }
-  return raw;
+  return "";
+}
+
+/** Couleur hex sûre pour persistance / injection CSS (fail-closed). */
+export function sanitizePrimaryColor(value: string | undefined, fallback = "#5C6B5A"): string {
+  if (value === undefined || !value.trim()) return fallback;
+  const normalized = normalizeHexColor(value);
+  return /^#[0-9A-F]{6}$/.test(normalized) ? normalized : fallback;
 }
 
 export function findPresetByHex(hex: string): BrandColorPreset | undefined {

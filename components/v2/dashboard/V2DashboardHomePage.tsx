@@ -138,7 +138,6 @@ export default function V2DashboardHomePage() {
   const { rules: automationRules } = useAutomationRules();
   const {
     requests: intakeRequests,
-    backend: intakeBackend,
     loading: intakeLoading,
     updateRequest: updateIntakeRequest,
   } = useIntakeRequests();
@@ -1124,7 +1123,6 @@ export default function V2DashboardHomePage() {
           {activeTab === "triage" && (
             <V2TriagePanel
               requests={intakeRequests}
-              backend={intakeBackend}
               loading={intakeLoading}
               tasks={tasks}
               admins={admins}

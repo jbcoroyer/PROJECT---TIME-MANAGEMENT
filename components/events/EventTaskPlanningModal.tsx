@@ -177,7 +177,7 @@ export default function EventTaskPlanningModal(props: Props) {
                     <button
                       type="button"
                       onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}
-                      className="ml-auto rounded-md px-2 py-1 text-rose-600 hover:bg-rose-50"
+                      className="ml-auto rounded-md px-2 py-1 text-[var(--danger)] hover:bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))]"
                     >
                       Supprimer
                     </button>

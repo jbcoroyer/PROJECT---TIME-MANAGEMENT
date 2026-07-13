@@ -4,7 +4,7 @@ import { getServerOrgContext } from "../../../../../lib/server/orgContext";
 import { ideaFromRow } from "../../../../../lib/stockIdeasApi";
 import type { StockIdeaCategory, StockIdeaStatus } from "../../../../../lib/stockIdeasTypes";
 
-const SELECT = "id, created_at, title, description, category, status";
+const SELECT = "id, created_at, title, description, category, status, votes";
 
 async function requireOrgScopedUser() {
   const ctx = await getServerOrgContext();

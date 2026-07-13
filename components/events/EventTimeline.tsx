@@ -47,9 +47,9 @@ export default function EventTimeline(props: EventTimelineProps) {
                   className={[
                     "rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em]",
                     ev.status === "Terminé"
-                      ? "bg-emerald-50 text-emerald-800"
+                      ? "ui-pill ui-pill-success"
                       : ev.status === "En préparation"
-                        ? "bg-amber-50 text-amber-800"
+                        ? "ui-pill ui-pill-warning"
                         : "bg-[var(--surface-soft)] text-[color:var(--foreground)]/65",
                   ].join(" ")}
                 >
@@ -83,7 +83,7 @@ export default function EventTimeline(props: EventTimelineProps) {
                       />
                     </div>
                     {stats.overdueTasks > 0 ? (
-                      <p className="mt-1 text-xs font-semibold text-rose-700">{stats.overdueTasks} en retard</p>
+                      <p className="mt-1 text-xs font-semibold text-[var(--danger)]">{stats.overdueTasks} en retard</p>
                     ) : null}
                   </div>
                 );
@@ -93,7 +93,7 @@ export default function EventTimeline(props: EventTimelineProps) {
               <button
                 type="button"
                 title="Supprimer l'événement"
-                className="ui-transition absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100"
+                className="ui-transition ui-btn ui-btn-outline-danger absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full !p-0"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();

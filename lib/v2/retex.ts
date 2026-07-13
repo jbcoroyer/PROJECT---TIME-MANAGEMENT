@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getSupabaseBrowser } from "../supabaseBrowser";
 
 export type RetexInputs = {
   highlights: string;
@@ -14,68 +15,82 @@ export const EMPTY_RETEX: RetexInputs = {
   followUps: "",
 };
 
-const LOCAL_KEY = "v2-retex-inputs";
+type RetexRow = {
+  event_id: string;
+  highlights: string;
+  improvements: string;
+  follow_ups: string;
+};
 
-type Store = Record<string, RetexInputs>;
-
-function normalizeInputs(raw: Partial<RetexInputs> | undefined): RetexInputs {
+function rowToInputs(row: RetexRow): RetexInputs {
   return {
-    highlights: raw?.highlights ?? "",
-    improvements: raw?.improvements ?? "",
-    followUps: raw?.followUps ?? "",
+    highlights: row.highlights ?? "",
+    improvements: row.improvements ?? "",
+    followUps: row.follow_ups ?? "",
   };
 }
 
-function readStore(): Store {
-  try {
-    const raw = window.localStorage.getItem(LOCAL_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, Partial<RetexInputs>>;
-    if (!parsed || typeof parsed !== "object") return {};
-    return Object.fromEntries(
-      Object.entries(parsed).map(([id, value]) => [id, normalizeInputs(value)]),
-    );
-  } catch {
-    return {};
-  }
-}
-
-function writeStore(store: Store) {
-  try {
-    window.localStorage.setItem(LOCAL_KEY, JSON.stringify(store));
-  } catch {
-    /* ignoré */
-  }
-}
-
-/** Persistance locale des saisies RETEX par événement. */
+/** Persistance Supabase des saisies RETEX par événement. */
 export function useRetexInputs(eventId: string | null) {
+  const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [inputs, setInputs] = useState<RetexInputs>(EMPTY_RETEX);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!eventId) {
       setInputs(EMPTY_RETEX);
       return;
     }
-    setInputs(readStore()[eventId] ?? EMPTY_RETEX);
-  }, [eventId]);
+    let cancelled = false;
+    void (async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("event_retex")
+        .select("event_id, highlights, improvements, follow_ups")
+        .eq("event_id", eventId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        console.error("event_retex load failed", error);
+        setInputs(EMPTY_RETEX);
+      } else {
+        setInputs(data ? rowToInputs(data as RetexRow) : EMPTY_RETEX);
+      }
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId, supabase]);
+
+  const persist = useCallback(
+    async (next: RetexInputs) => {
+      if (!eventId) return;
+      const payload = {
+        event_id: eventId,
+        highlights: next.highlights,
+        improvements: next.improvements,
+        follow_ups: next.followUps,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from("event_retex").upsert(payload, { onConflict: "event_id" });
+      if (error) console.error("event_retex save failed", error);
+    },
+    [eventId, supabase],
+  );
 
   const update = useCallback(
     (patch: Partial<RetexInputs>) => {
       setInputs((prev) => {
         const next = { ...prev, ...patch };
-        if (eventId) {
-          const store = readStore();
-          store[eventId] = next;
-          writeStore(store);
-        }
+        void persist(next);
         return next;
       });
     },
-    [eventId],
+    [persist],
   );
 
-  return { inputs, update };
+  return { inputs, update, loading };
 }
 
 export function buildRetexDraft(input: {

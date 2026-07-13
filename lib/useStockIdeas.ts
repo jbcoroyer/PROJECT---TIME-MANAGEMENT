@@ -12,7 +12,7 @@ import { toastError } from "./toast";
 export type { StockIdea, StockIdeaCategory, StockIdeaStatus } from "./stockIdeasTypes";
 
 const PUBLIC_IDEAS_API = "/api/public/ideas";
-const SELECT = "id, created_at, title, description, category, status";
+const SELECT = "id, created_at, title, description, category, status, votes";
 const POLL_MS = 12_000;
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -84,7 +84,7 @@ export function useStockIdeas() {
   }, [load]);
 
   const addIdea = useCallback(
-    (draft: Omit<StockIdea, "id" | "createdAt">) => {
+    (draft: Omit<StockIdea, "id" | "createdAt" | "votes"> & { votes?: number }) => {
       void (async () => {
         try {
           const { data: sessionData } = await supabase.auth.getSession();
@@ -183,6 +183,27 @@ export function useStockIdeas() {
     [supabase],
   );
 
+  const voteIdea = useCallback(
+    (id: string, delta: number) => {
+      void (async () => {
+        const current = ideas.find((i) => i.id === id);
+        if (!current) return;
+        const nextVotes = Math.max(0, current.votes + delta);
+        setIdeas((prev) => prev.map((i) => (i.id === id ? { ...i, votes: nextVotes } : i)));
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (!sessionData.session) return;
+          const { error } = await supabase.from("stock_ideas").update({ votes: nextVotes }).eq("id", id);
+          if (error) throw error;
+        } catch (e) {
+          console.warn("[StockIdeas] vote:", e);
+          void load();
+        }
+      })();
+    },
+    [ideas, supabase, load],
+  );
+
   const exportJson = useCallback(() => {
     const blob = new Blob([JSON.stringify(ideas, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -201,9 +222,10 @@ export function useStockIdeas() {
       addIdea,
       updateIdea,
       removeIdea,
+      voteIdea,
       exportJson,
       reload: load,
     }),
-    [ideas, hydrated, canManage, addIdea, updateIdea, removeIdea, exportJson, load],
+    [ideas, hydrated, canManage, addIdea, updateIdea, removeIdea, voteIdea, exportJson, load],
   );
 }

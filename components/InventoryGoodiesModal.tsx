@@ -85,7 +85,7 @@ export default function InventoryGoodiesModal(props: Props) {
     try {
       let resolvedVisualUrl = visualUrl.trim() || null;
       if (visualFile) {
-        const { path, url, error } = await uploadStockVisual(supabase, visualFile, "goodies");
+        const { path, url, error } = await uploadStockVisual(visualFile, "goodies");
         if (error || !path) {
           toastError(`Upload image impossible : ${error}`);
           return;
@@ -242,7 +242,7 @@ export default function InventoryGoodiesModal(props: Props) {
                 <button
                   type="button"
                   onClick={() => void onDelete(initialItem)}
-                  className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+                  className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold"
                 >
                   <Trash2 className="h-4 w-4" />
                   Supprimer

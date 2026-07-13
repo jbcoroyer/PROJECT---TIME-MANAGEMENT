@@ -1,31 +1,32 @@
 import type { PrintSpeciesOption } from "./taxonomies";
 import { printSpeciesLabel } from "./taxonomies";
 
+/** Chips espèces — neutres chauds, pas de couleurs arc-en-ciel */
 const SPECIES_CHIP_PALETTE = [
   {
-    badgeClass: "border-slate-200 bg-slate-50 text-slate-700",
-    borderClass: "border-slate-300",
-    panelClass: "bg-slate-50/50",
+    badgeClass: "ui-pill ui-pill-neutral",
+    borderClass: "border-[var(--line-strong)]",
+    panelClass: "bg-[var(--surface-soft)]",
   },
   {
-    badgeClass: "border-amber-200 bg-amber-50 text-amber-700",
-    borderClass: "border-amber-300",
-    panelClass: "bg-amber-50/45",
+    badgeClass: "ui-pill ui-pill-brand",
+    borderClass: "border-[color-mix(in_srgb,var(--brand-primary)_22%,var(--line))]",
+    panelClass: "bg-[color-mix(in_srgb,var(--brand-primary)_5%,var(--surface))]",
   },
   {
-    badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    borderClass: "border-emerald-300",
-    panelClass: "bg-emerald-50/45",
+    badgeClass: "ui-pill ui-pill-neutral",
+    borderClass: "border-[var(--line-strong)]",
+    panelClass: "bg-[var(--surface)]",
   },
   {
-    badgeClass: "border-rose-200 bg-rose-50 text-rose-700",
-    borderClass: "border-rose-300",
-    panelClass: "bg-rose-50/45",
+    badgeClass: "ui-pill ui-pill-brand",
+    borderClass: "border-[color-mix(in_srgb,var(--brand-primary)_18%,var(--line))]",
+    panelClass: "bg-[color-mix(in_srgb,var(--brand-primary)_4%,var(--surface-soft))]",
   },
   {
-    badgeClass: "border-violet-200 bg-violet-50 text-violet-700",
-    borderClass: "border-violet-300",
-    panelClass: "bg-violet-50/45",
+    badgeClass: "ui-pill ui-pill-neutral",
+    borderClass: "border-[var(--line)]",
+    panelClass: "bg-[var(--surface-soft)]",
   },
 ] as const;
 

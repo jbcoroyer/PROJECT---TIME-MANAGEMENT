@@ -22,8 +22,8 @@ export default function SetupGate({ variant }: SetupGateProps) {
           <AppWordmark size="login" />
           <p className="mt-4 text-sm text-[color:var(--foreground)]/65">{t("setup.notConfigured")}</p>
           <Link
-            href="/"
-            className="ui-transition mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
+            href="/login"
+            className="ui-btn ui-btn-primary mt-8 inline-flex items-center gap-2 px-6 py-3"
           >
             {t("setup.signIn")}
             <ArrowRight className="h-4 w-4" />

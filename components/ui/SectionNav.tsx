@@ -33,11 +33,11 @@ export default function SectionNav(props: {
             key={item.href}
             href={item.href}
             className={[
-              "ui-transition inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold",
-              active
-                ? "bg-[var(--foreground)] text-[var(--accent-contrast)] shadow-sm"
-                : "text-[color:var(--foreground)]/65 hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]",
-            ].join(" ")}
+              "ui-nav-link ui-transition text-sm",
+              active ? "ui-nav-link--active" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
             {Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden /> : null}
             {item.label}

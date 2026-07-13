@@ -130,7 +130,7 @@ function AddSubtaskForm(props: {
         </div>
       </div>
       {error && (
-        <p className="mt-2 text-xs text-rose-600">{error}</p>
+        <p className="mt-2 text-xs text-[var(--danger)]">{error}</p>
       )}
       <div className="mt-3 flex gap-2">
         <button
@@ -173,9 +173,9 @@ function SubtaskRow(props: {
       className={[
         "flex items-center gap-2.5 rounded-xl border px-3 py-2.5",
         isDone
-          ? "border-emerald-200 bg-emerald-50/50 opacity-70"
+          ? "border-[color-mix(in_srgb,var(--success)_22%,var(--line))] bg-[color-mix(in_srgb,var(--success)_8%,var(--surface))]/50 opacity-70"
           : isOverdue
-            ? "border-rose-200 bg-rose-50/40"
+            ? "border-[color-mix(in_srgb,var(--danger)_22%,var(--line))] bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))]/40"
             : "border-[var(--line)] bg-[var(--surface)]",
       ].join(" ")}
     >
@@ -187,8 +187,8 @@ function SubtaskRow(props: {
         className={[
           "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition",
           isDone
-            ? "border-emerald-400 bg-emerald-100 text-emerald-600"
-            : "border-[var(--line)] bg-[var(--surface-soft)] hover:border-emerald-400 hover:bg-emerald-50",
+            ? "border-[var(--success)] bg-[color-mix(in_srgb,var(--success)_12%,var(--surface))] text-[var(--success)]"
+            : "border-[var(--line)] bg-[var(--surface-soft)] hover:border-[var(--success)] hover:bg-[color-mix(in_srgb,var(--success)_8%,var(--surface))]",
         ].join(" ")}
       >
         {isDone && <Check className="h-3 w-3" />}
@@ -223,7 +223,7 @@ function SubtaskRow(props: {
           className={[
             "hidden shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] sm:inline-flex",
             isOverdue
-              ? "border-rose-200 bg-rose-50 text-rose-700"
+              ? "ui-pill ui-pill-danger border px-2 py-0.5 text-[11px]"
               : "border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/65",
           ].join(" ")}
         >
@@ -248,7 +248,7 @@ function SubtaskRow(props: {
         type="button"
         onClick={props.onDelete}
         title="Supprimer cette étape"
-        className="ui-transition flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-rose-400 hover:bg-rose-50 hover:text-rose-600"
+        className="ui-transition flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-[color-mix(in_srgb,var(--danger)_65%,var(--foreground))] hover:bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))] hover:text-[var(--danger)]"
       >
         <Trash2 className="h-3 w-3" />
       </button>
@@ -352,7 +352,7 @@ export default function SubtasksPanel(props: {
       {total > 0 && (
         <div className="mx-4 h-1.5 overflow-hidden rounded-full bg-[var(--line)]">
           <div
-            className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+            className="h-full rounded-full bg-[var(--success)] transition-all duration-500"
             style={{ width: `${progressPct}%` }}
           />
         </div>

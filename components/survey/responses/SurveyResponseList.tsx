@@ -70,7 +70,7 @@ export default function SurveyResponseList({
               type="button"
               onClick={() => onDelete(response.id)}
               disabled={deletingId === response.id}
-              className="ui-transition inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+              className="ui-btn ui-btn-ghost inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[var(--danger)] disabled:opacity-50"
             >
               <Trash2 className="h-3.5 w-3.5" />
               {deletingId === response.id ? "Suppression…" : "Supprimer"}

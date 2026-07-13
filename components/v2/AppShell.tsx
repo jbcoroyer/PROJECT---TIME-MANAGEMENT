@@ -130,12 +130,7 @@ export default function V2AppShell({
   };
 
   const navLinkClass = (active: boolean) =>
-    [
-      "ui-transition flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] font-medium",
-      active
-        ? "bg-[var(--foreground)] text-[var(--accent-contrast)]"
-        : "text-[color:var(--foreground)]/60 hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]",
-    ].join(" ");
+    ["ui-nav-link ui-transition", active ? "ui-nav-link--active" : ""].filter(Boolean).join(" ");
 
   const sidebarContent = (onNavClick?: () => void) => (
     <>
@@ -190,7 +185,7 @@ export default function V2AppShell({
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <div className="mx-auto w-full max-w-[1680px] px-4 py-5 lg:px-8">
         <aside
-          className="fixed bottom-5 left-4 top-5 hidden w-[15.5rem] flex-col border-r border-[var(--line)] bg-[var(--background)] pr-4 lg:flex"
+          className="fixed bottom-5 left-4 top-5 hidden w-[15.5rem] flex-col border-r border-[var(--line)] bg-[var(--background)] pr-3 lg:flex"
           style={{ zIndex: "var(--z-sidebar)" }}
         >
           {sidebarContent()}
@@ -201,7 +196,7 @@ export default function V2AppShell({
             <button
               type="button"
               aria-label="Fermer le menu"
-              className="fixed inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 bg-[var(--foreground)]/20 lg:hidden"
               style={{ zIndex: "var(--z-overlay)" }}
               onClick={() => setMobileNavOpen(false)}
             />
@@ -229,7 +224,7 @@ export default function V2AppShell({
         ) : null}
 
         <div className="min-w-0 lg:pl-[17rem]">
-          <header className="mb-8 flex flex-wrap items-center gap-3 border-b border-[var(--line)] pb-5 pr-24">
+          <header className="mb-6 flex flex-wrap items-center gap-3 border-b border-[var(--line)] pb-4">
             <button
               type="button"
               onClick={() => setMobileNavOpen(true)}

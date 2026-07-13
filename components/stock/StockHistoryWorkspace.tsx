@@ -96,8 +96,8 @@ export default function StockHistoryWorkspace({
                           className={[
                             "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
                             isOutput
-                              ? "border-amber-200 bg-amber-50 text-amber-700"
-                              : "border-emerald-200 bg-emerald-50 text-emerald-700",
+                              ? "ui-pill ui-pill-warning"
+                              : "ui-pill ui-pill-success",
                           ].join(" ")}
                         >
                           {isOutput ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />}

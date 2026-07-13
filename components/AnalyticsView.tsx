@@ -140,7 +140,7 @@ export default function AnalyticsView(props: { tasks: Task[] }) {
           </div>
         </div>
         <div className="ui-surface flex gap-3 rounded-2xl p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--success)_10%,var(--surface))] text-[var(--success)]">
             <Clock className="h-5 w-5" />
           </div>
           <div className="min-w-0">
@@ -153,7 +153,7 @@ export default function AnalyticsView(props: { tasks: Task[] }) {
           </div>
         </div>
         <div className="ui-surface flex gap-3 rounded-2xl p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-strong)]">
             <Users className="h-5 w-5" />
           </div>
           <div className="min-w-0">
@@ -164,7 +164,7 @@ export default function AnalyticsView(props: { tasks: Task[] }) {
           </div>
         </div>
         <div className="ui-surface flex gap-3 rounded-2xl p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-800">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--warning)_10%,var(--surface))] text-[var(--warning)]">
             <PieChartIcon className="h-5 w-5" />
           </div>
           <div className="min-w-0">
@@ -233,7 +233,7 @@ export default function AnalyticsView(props: { tasks: Task[] }) {
             <div className="h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData} margin={{ top: 8, right: 8, left: 0, bottom: 48 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
                   <XAxis
                     dataKey="company"
                     angle={-35}
@@ -243,7 +243,7 @@ export default function AnalyticsView(props: { tasks: Task[] }) {
                   />
                   <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={32} />
                   <Tooltip />
-                  <Bar dataKey="count" name="Demandes" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" name="Demandes" fill={defaultDomainColor} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

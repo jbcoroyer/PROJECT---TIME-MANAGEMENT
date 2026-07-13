@@ -39,21 +39,54 @@ export async function getSetupAccess(): Promise<SetupAccess> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const ctx = await getServerOrgContext();
-  const organizationId = ctx?.organizationId ?? null;
+  let ctx = await getServerOrgContext();
+  let organizationId = ctx?.organizationId ?? null;
+  let isAdmin = ctx?.isAdmin ?? false;
+
+  // Secours : profil pas encore visible via RLS juste après l'inscription.
+  if (user && !organizationId) {
+    try {
+      const admin = createSupabaseAdmin();
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("organization_id, role")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.organization_id) {
+        organizationId = profile.organization_id as string;
+        isAdmin = profile.role === "admin";
+        ctx = {
+          userId: user.id,
+          organizationId,
+          isAdmin,
+        };
+      }
+    } catch (e) {
+      console.warn("[setup] profil admin:", e);
+    }
+  }
 
   let isConfigured = false;
   if (organizationId) {
-    const { data } = await supabase
-      .from("app_settings")
-      .select("is_configured")
-      .eq("organization_id", organizationId)
-      .maybeSingle();
-    isConfigured = data?.is_configured === true;
+    try {
+      const admin = createSupabaseAdmin();
+      const { data } = await admin
+        .from("app_settings")
+        .select("is_configured")
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      isConfigured = data?.is_configured === true;
+    } catch {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("is_configured")
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      isConfigured = data?.is_configured === true;
+    }
   }
 
   const isAuthenticated = Boolean(user);
-  const isAdmin = ctx?.isAdmin ?? false;
 
   let canCompleteSetup = false;
   if (isAuthenticated && organizationId && !isConfigured) {
@@ -103,8 +136,14 @@ export async function completeInitialSetup(
     access.organizationId,
   );
 
-  const { error } = await supabase.from("app_settings").upsert(row, { onConflict: "organization_id" });
-  if (error) return { ok: false, error: error.message };
+  try {
+    const admin = createSupabaseAdmin();
+    const { error } = await admin.from("app_settings").upsert(row, { onConflict: "organization_id" });
+    if (error) return { ok: false, error: error.message };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Erreur serveur";
+    return { ok: false, error: message };
+  }
 
   if (!access.isAdmin) {
     const adminCount = await countAdminsForOrg(access.organizationId);

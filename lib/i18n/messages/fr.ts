@@ -21,6 +21,10 @@ export const fr: MessageTree = {
   setup: {
     title: "Bienvenue",
     subtitle: "Quelques étapes pour personnaliser votre espace de travail.",
+    welcomeHeadline: "Configurons votre espace de travail",
+    welcomeUser: "Bonjour {name}",
+    welcomeBody:
+      "En quelques minutes, vous choisissez le nom, l'apparence et les modules de votre outil. Tout reste modifiable ensuite dans les paramètres.",
     notConfigured: "Cette application n'est pas encore configurée. Connectez-vous pour lancer l'installation.",
     signIn: "Se connecter",
     pendingTitle: "Installation en attente",

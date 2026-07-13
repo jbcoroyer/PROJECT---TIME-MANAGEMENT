@@ -74,20 +74,20 @@ const CATEGORY_META: Record<
   Print: {
     label: "Print",
     icon: FileText,
-    gradient: "from-sky-100 via-sky-50 to-white",
-    chip: "border-sky-200 bg-sky-50 text-sky-700",
+    gradient: "from-[var(--surface-soft)] via-[var(--surface)] to-white",
+    chip: "ui-pill ui-pill-neutral",
   },
   Goodies: {
     label: "Goodies",
     icon: Gift,
-    gradient: "from-violet-100 via-violet-50 to-white",
-    chip: "border-violet-200 bg-violet-50 text-violet-700",
+    gradient: "from-[color-mix(in_srgb,var(--brand-primary)_6%,var(--surface))] via-[var(--surface)] to-white",
+    chip: "ui-pill ui-pill-brand",
   },
   PLV: {
     label: "PLV",
     icon: ImageIcon,
-    gradient: "from-amber-100 via-amber-50 to-white",
-    chip: "border-amber-200 bg-amber-50 text-amber-700",
+    gradient: "from-[var(--surface-soft)] via-[var(--surface)] to-white",
+    chip: "ui-pill ui-pill-neutral",
   },
 };
 
@@ -114,9 +114,9 @@ function stockGauge(item: InventoryItem): { pct: number; tone: "ok" | "warn" | "
 }
 
 const GAUGE_TONE: Record<"ok" | "warn" | "low", string> = {
-  ok: "bg-emerald-500",
-  warn: "bg-amber-500",
-  low: "bg-rose-500",
+  ok: "bg-[var(--success)]",
+  warn: "bg-[var(--warning)]",
+  low: "bg-[var(--danger)]",
 };
 
 function itemSubtitle(item: InventoryItem, printSpeciesOptions: PrintSpeciesOption[]): string {
@@ -407,11 +407,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     }
     setPhotoUploading(true);
     try {
-      const { path, error } = await uploadStockVisual(
-        supabase,
-        file,
-        visualUploadFolder(detail.category),
-      );
+      const { path, error } = await uploadStockVisual(file, visualUploadFolder(detail.category));
       if (error || !path) {
         toastError(error ? `Upload impossible : ${error}` : "Upload impossible.");
         return;
@@ -533,8 +529,8 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           "inline-flex items-center gap-1 rounded-full border font-semibold",
           compact ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs",
           low
-            ? "border-rose-200 bg-rose-50 text-rose-700"
-            : "border-emerald-200 bg-emerald-50 text-emerald-700",
+            ? "ui-pill ui-pill-danger"
+            : "ui-pill ui-pill-success",
         ].join(" ")}
       >
         {low ? <AlertTriangle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
@@ -551,7 +547,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           e.stopPropagation();
           startMovement(item, "add");
         }}
-        className="ui-transition inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+        className="ui-transition ui-btn ui-btn-outline-success inline-flex flex-1 items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
       >
         <Plus className="h-3.5 w-3.5" />
         Entrée
@@ -562,7 +558,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           e.stopPropagation();
           startMovement(item, "remove");
         }}
-        className="ui-transition inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-100"
+        className="ui-transition ui-btn ui-btn-outline-warning inline-flex flex-1 items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
       >
         <Minus className="h-3.5 w-3.5" />
         Sortie
@@ -584,14 +580,14 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         <div className="relative">
           {renderVisual(item, "h-40")}
           <span
-            className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${meta.chip}`}
+            className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.chip}`}
           >
             <Icon className="h-3 w-3" />
             {meta.label}
           </span>
           {printMeta && printMeta.species !== "general" ? (
             <span
-              className={`absolute bottom-3 left-3 inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${printMeta.chipClass}`}
+              className={`absolute bottom-3 left-3 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${printMeta.chipClass}`}
             >
               {printMeta.speciesLabel}
             </span>
@@ -646,13 +642,13 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${meta.chip}`}>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${meta.chip}`}>
               <Icon className="h-3 w-3" />
               {meta.label}
             </span>
             {printMeta && printMeta.species !== "general" ? (
               <span
-                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${printMeta.chipClass}`}
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${printMeta.chipClass}`}
               >
                 {printMeta.speciesLabel}
               </span>
@@ -698,8 +694,8 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               <div className="mb-4 flex items-center gap-3">
                 <span
                   className={[
-                    "inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold",
-                    section.chipClass ?? "border-[var(--line)] bg-[var(--surface-soft)]",
+                    "inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold",
+                    section.chipClass ?? "border border-[var(--line)] bg-[var(--surface-soft)]",
                   ].join(" ")}
                 >
                   {section.title}
@@ -770,14 +766,14 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               className={[
                 "ui-transition rounded-2xl border px-4 py-3 text-left",
                 alertCount > 0
-                  ? "border-rose-200 bg-rose-50 hover:bg-rose-100"
+                  ? "border-[color-mix(in_srgb,var(--danger)_22%,var(--line))] bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))] hover:bg-[color-mix(in_srgb,var(--danger)_14%,var(--surface))]"
                   : "border-[var(--line)] bg-[var(--surface)]",
               ].join(" ")}
             >
               <div
                 className={[
                   "flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em]",
-                  alertCount > 0 ? "text-rose-600" : "text-[color:var(--foreground)]/45",
+                  alertCount > 0 ? "text-[var(--danger)]" : "text-[color:var(--foreground)]/45",
                 ].join(" ")}
               >
                 <AlertTriangle className="h-3.5 w-3.5" /> Alertes
@@ -785,7 +781,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               <p
                 className={[
                   "mt-1.5 text-xl font-semibold",
-                  alertCount > 0 ? "text-rose-700" : "text-[var(--foreground)]",
+                  alertCount > 0 ? "text-[var(--danger)]" : "text-[var(--foreground)]",
                 ].join(" ")}
               >
                 {formatNumber(alertCount)}
@@ -913,7 +909,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                         onClick={() => openCreate(cat)}
                         className="ui-transition flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium text-[color:var(--foreground)]/80 hover:bg-[var(--surface-soft)]"
                       >
-                        <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg border ${meta.chip}`}>
+                        <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg ${meta.chip}`}>
                           <Icon className="h-4 w-4" />
                         </span>
                         {cat === "Print" ? "Document print" : cat === "PLV" ? "Support PLV" : "Goodies"}
@@ -965,7 +961,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           className={[
             "ui-transition inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold",
             alertOnly
-              ? "border-rose-300 bg-rose-50 text-rose-700"
+              ? "ui-pill ui-pill-danger border-transparent"
               : "border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]",
           ].join(" ")}
         >
@@ -1062,7 +1058,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                 <X className="h-4 w-4" />
               </button>
               <span
-                className={`absolute left-4 top-4 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${CATEGORY_META[detail.category].chip}`}
+                className={`absolute left-4 top-4 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${CATEGORY_META[detail.category].chip}`}
               >
                 {CATEGORY_META[detail.category].label}
               </span>
@@ -1078,7 +1074,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                 {detail.category === "Print" ? (
                   <div className="mt-2 flex flex-wrap gap-2">
                     <span
-                      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${getPrintMeta(detail, printSpeciesOptions).chipClass}`}
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${getPrintMeta(detail, printSpeciesOptions).chipClass}`}
                     >
                       {getPrintMeta(detail, printSpeciesOptions).speciesLabel}
                     </span>
@@ -1142,7 +1138,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                 <button
                   type="button"
                   onClick={() => startMovement(detail, "add")}
-                  className="ui-transition inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+                  className="ui-transition ui-btn ui-btn-outline-success inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold"
                 >
                   <Plus className="h-4 w-4" />
                   Entrée
@@ -1150,7 +1146,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                 <button
                   type="button"
                   onClick={() => startMovement(detail, "remove")}
-                  className="ui-transition inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm font-semibold text-amber-700 hover:bg-amber-100"
+                  className="ui-transition ui-btn ui-btn-outline-warning inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold"
                 >
                   <Minus className="h-4 w-4" />
                   Sortie
@@ -1176,7 +1172,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                 <button
                   type="button"
                   onClick={() => void handleDeleteItem(detail)}
-                  className="ui-transition inline-flex items-center justify-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+                  className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center justify-center gap-1 rounded-xl px-3 py-2.5 text-sm font-semibold"
                   aria-label="Supprimer"
                   title="Supprimer"
                 >

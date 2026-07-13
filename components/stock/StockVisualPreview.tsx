@@ -30,7 +30,7 @@ function PdfEmbed({
         tabIndex={-1}
       />
       {badge ? (
-        <span className="absolute bottom-1.5 right-1.5 rounded border border-rose-200/90 bg-white/90 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-700 shadow-sm backdrop-blur-sm">
+        <span className="ui-pill ui-pill-danger absolute bottom-1.5 right-1.5 bg-[var(--surface)]/95 uppercase tracking-wide shadow-sm">
           PDF
         </span>
       ) : null}

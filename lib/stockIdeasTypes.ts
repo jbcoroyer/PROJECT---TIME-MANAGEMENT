@@ -8,4 +8,5 @@ export type StockIdea = {
   description: string;
   category: StockIdeaCategory;
   status: StockIdeaStatus;
+  votes: number;
 };

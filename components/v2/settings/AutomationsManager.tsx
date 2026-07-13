@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Archive, Bolt, Database, HardDrive, Plus, Power, Trash2 } from "lucide-react";
+import { Archive, Bolt, Database, Plus, Power, Trash2 } from "lucide-react";
 import { priorities } from "../../../lib/types";
 import {
   ACTION_LABELS,
@@ -42,7 +42,7 @@ export default function AutomationsManager({
   domains: string[];
   admins: string[];
 }) {
-  const { rules, backend, loading, createRule, updateRule, deleteRule } = useAutomationRules();
+  const { rules, loading, createRule, updateRule, deleteRule } = useAutomationRules();
   const [autoArchiveHours, setAutoArchiveHours] = useAutoArchiveHours();
 
   const [name, setName] = useState("");
@@ -94,23 +94,12 @@ export default function AutomationsManager({
           </div>
           <span
             className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60"
-            title={
-              backend === "supabase"
-                ? "Règles partagées (table Supabase)"
-                : "Stockage local — appliquez la migration pour le mode partagé"
-            }
+            title="Règles partagées (Supabase)"
           >
-            {backend === "supabase" ? <Database className="h-3.5 w-3.5" /> : <HardDrive className="h-3.5 w-3.5" />}
-            {backend === "supabase" ? "Partagé" : "Local"}
+            <Database className="h-3.5 w-3.5" />
+            Partagé
           </span>
         </div>
-
-        {backend === "local" ? (
-          <p className="mt-3 rounded-xl border border-dashed border-[var(--line-strong)] bg-[var(--surface-soft)] px-3 py-2 text-[11px] text-[color:var(--foreground)]/65">
-            Mode local (par appareil). Pour partager les règles à toute l'équipe, appliquez la migration&nbsp;:
-            <code className="ml-1 rounded bg-[var(--surface)] px-1">npm run db:v2-automations-intake</code>
-          </p>
-        ) : null}
 
         <div className="mt-4 grid gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1 text-xs font-semibold text-[color:var(--foreground)]/70 sm:col-span-2">

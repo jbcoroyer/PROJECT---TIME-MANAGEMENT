@@ -550,7 +550,7 @@ export default function SurveyEditorWorkspace({
                 <button
                   type="button"
                   onClick={() => void removeSection(sectionIndex)}
-                  className="ui-btn ui-btn-ghost h-8 w-8 p-0 text-rose-600 hover:bg-rose-50"
+                  className="ui-btn ui-btn-ghost h-8 w-8 p-0 text-[var(--danger)]"
                   aria-label="Supprimer l'écran"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -612,7 +612,7 @@ export default function SurveyEditorWorkspace({
                             <button
                               type="button"
                               onClick={() => void removeQuestion(sectionIndex, questionIndex)}
-                              className="ui-btn ui-btn-ghost h-8 w-8 p-0 text-rose-600 hover:bg-rose-50"
+                              className="ui-btn ui-btn-ghost h-8 w-8 p-0 text-[var(--danger)]"
                               aria-label="Supprimer la question"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -693,7 +693,7 @@ export default function SurveyEditorWorkspace({
                                             onClick={() =>
                                               removeOption(sectionIndex, questionIndex, optIndex)
                                             }
-                                            className="ui-btn ui-btn-ghost h-9 w-9 shrink-0 p-0 text-rose-600 hover:bg-rose-50"
+                                            className="ui-btn ui-btn-ghost h-9 w-9 shrink-0 p-0 text-[var(--danger)]"
                                             aria-label="Supprimer l'option"
                                           >
                                             <Trash2 className="h-3.5 w-3.5" />

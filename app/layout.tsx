@@ -3,7 +3,7 @@ import { Inter, Schibsted_Grotesk } from "next/font/google";
 import "./globals.css";
 import AppProviders from "../components/AppProviders";
 import SonnerToaster from "../components/SonnerToaster";
-import { brandingToMetadata, htmlLangFromBranding } from "../lib/branding";
+import { brandingToMetadata, brandingStyleVars, htmlLangFromBranding } from "../lib/branding";
 import { getBrandingServer } from "../lib/server/getBrandingServer";
 
 const inter = Inter({
@@ -36,7 +36,7 @@ export default async function RootLayout({
     <html lang={htmlLangFromBranding(branding.locale)}>
       <body
         className={`${inter.variable} ${schibsted.variable} antialiased`}
-        style={{ ["--brand-primary" as string]: branding.primaryColor }}
+        style={brandingStyleVars(branding.primaryColor)}
       >
         <AppProviders>
           <SonnerToaster />

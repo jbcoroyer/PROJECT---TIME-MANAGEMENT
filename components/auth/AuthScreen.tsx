@@ -133,7 +133,7 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
 
         <div className="rounded-2xl border border-[var(--line)]/80 bg-[var(--surface)]/90 p-6 shadow-[var(--shadow-2)] backdrop-blur-sm">
           {urlAuthError ? (
-            <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-3 py-2.5 text-sm text-amber-950">
+            <div className="ui-alert ui-alert-warning mb-4 rounded-xl px-3 py-2.5 text-sm">
               {urlAuthError}
             </div>
           ) : null}
@@ -288,14 +288,14 @@ function PasswordField(props: {
 function AlertBox(props: { error?: string | null; success?: string | null }) {
   if (props.error) {
     return (
-      <div className="rounded-xl border border-rose-200/80 bg-rose-50/90 px-3 py-2 text-sm text-rose-800">
+      <div className="ui-alert ui-alert-danger rounded-xl px-3 py-2 text-sm">
         {props.error}
       </div>
     );
   }
   if (props.success) {
     return (
-      <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-3 py-2 text-sm text-emerald-800">
+      <div className="ui-alert ui-alert-success rounded-xl px-3 py-2 text-sm">
         {props.success}
       </div>
     );

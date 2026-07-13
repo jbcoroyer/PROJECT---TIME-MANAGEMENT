@@ -18,8 +18,9 @@ export type StorageBucket = (typeof STORAGE_BUCKETS)[number];
 
 /** Construit un chemin storage préfixé par l'organisation : `{orgId}/segment1/segment2`. */
 export function orgStoragePath(organizationId: string, ...segments: string[]): string {
+  const org = organizationId.trim().toLowerCase();
   const tail = segments.map((s) => s.replace(/^\/+|\/+$/g, "")).filter(Boolean);
-  return [organizationId, ...tail].join("/");
+  return [org, ...tail].join("/");
 }
 
 /** Vérifie si le 1er segment du chemin est un UUID d'organisation valide. */

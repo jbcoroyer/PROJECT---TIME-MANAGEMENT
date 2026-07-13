@@ -1,36 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  /* Studio editorial — encre & argile */
-  --background: #f4f1ea;
+  /* Workspace — neutres chauds + accent unique (--brand-primary) */
+  --background: #fdfcfa;
   --foreground: #1a1713;
-  --surface: #fcfbf7;
-  --surface-soft: #ede9df;
-  --line: #e3ddd1;
-  --line-strong: #cfc7b6;
-  --brand-primary: #2563eb;
-  --accent: #bc5a3c;
-  --accent-strong: #9e4830;
-  --accent-soft: rgba(188, 90, 60, 0.1);
-  --accent-contrast: #fcfbf7;
+  --surface: #faf9f6;
+  --surface-soft: #f3f1ec;
+  --line: #e8e4dc;
+  --line-strong: #d9d3c8;
+  --brand-primary: #5c6b5a;
+  --accent: var(--brand-primary);
+  --accent-strong: color-mix(in srgb, var(--brand-primary) 78%, var(--foreground));
+  --accent-soft: color-mix(in srgb, var(--brand-primary) 10%, var(--surface));
+  --accent-contrast: #fdfcfa;
   --ink: #1a1713;
   --ink-muted: rgba(26, 23, 19, 0.62);
   --success: #3e7d52;
   --warning: #b07320;
   --danger: #b4453f;
-  --ring: rgba(26, 23, 19, 0.18);
+  --ring: color-mix(in srgb, var(--brand-primary) 20%, transparent);
   --motion-fast: 160ms;
   --motion-base: 200ms;
   --motion-slow: 260ms;
-  --radius-xs: 4px;
+  --radius-xs: 3px;
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 16px;
-  --radius-2xl: 18px;
-  --radius-3xl: 22px;
-  --shadow-1: 0 1px 2px rgba(20, 17, 13, 0.04), 0 8px 20px rgba(20, 17, 13, 0.05);
-  --shadow-2: 0 2px 4px rgba(20, 17, 13, 0.05), 0 16px 40px rgba(20, 17, 13, 0.08);
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
+  --radius-3xl: 16px;
+  --shadow-1: 0 1px 2px rgba(20, 17, 13, 0.025);
+  --shadow-2: 0 2px 6px rgba(20, 17, 13, 0.045);
 
   --z-sticky: 20;
   --z-sidebar: 30;
@@ -53,24 +53,17 @@
     --surface-soft: #282520;
     --line: #3a3630;
     --line-strong: #4e4840;
-    --accent: #d47352;
-    --accent-strong: #e08a6a;
-    --accent-soft: rgba(212, 115, 82, 0.15);
-    --accent-contrast: #fcfbf7;
+    --accent-contrast: #fdfcfa;
     --ink: #f0ebe3;
     --ink-muted: rgba(240, 235, 227, 0.62);
     --success: #5cb86a;
     --warning: #e0a050;
     --danger: #e07070;
-    --ring: rgba(240, 235, 227, 0.28);
   }
 }
 
 body {
-  background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(188, 90, 60, 0.06), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 90% 0%, rgba(26, 23, 19, 0.03), transparent 45%),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 15px;
@@ -137,7 +130,7 @@ body {
 
 .ui-focus-ring:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px color-mix(in srgb, var(--foreground) 35%, transparent);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ring);
 }
 
 .ui-input {
@@ -204,17 +197,128 @@ select.ui-input {
 
 @media (prefers-reduced-motion: no-preference) {
   .ui-page-enter {
-    animation: ui-page-enter 0.12s ease-out;
+    animation: ui-page-enter 0.22s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 }
 
 @keyframes ui-page-enter {
   from {
-    opacity: 0.96;
+    opacity: 0;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
+}
+
+/* Navigation — style Height : indicateur gauche, fond discret */
+.ui-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+  border: 1px solid transparent;
+  transition:
+    color var(--motion-base),
+    background-color var(--motion-base),
+    border-color var(--motion-base),
+    box-shadow var(--motion-base);
+}
+
+.ui-nav-link:hover {
+  color: var(--foreground);
+  background: var(--surface-soft);
+}
+
+.ui-nav-link--active {
+  color: var(--foreground);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--brand-primary) 7%, var(--surface));
+  border-color: color-mix(in srgb, var(--brand-primary) 12%, var(--line));
+  box-shadow: inset 3px 0 0 var(--brand-primary);
+}
+
+.ui-nav-link--active:hover {
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface));
+}
+
+/* Pills & statuts sémantiques — pas de couleurs arc-en-ciel */
+.ui-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ui-pill-neutral {
+  background: var(--surface-soft);
+  color: color-mix(in srgb, var(--foreground) 72%, transparent);
+}
+
+.ui-pill-success {
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--success) 22%, var(--line));
+  color: var(--success);
+}
+
+.ui-pill-warning {
+  background: color-mix(in srgb, var(--warning) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--warning) 22%, var(--line));
+  color: var(--warning);
+}
+
+.ui-pill-danger {
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--danger) 22%, var(--line));
+  color: var(--danger);
+}
+
+.ui-pill-brand {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--brand-primary) 22%, var(--line));
+  color: var(--accent-strong);
+}
+
+.ui-alert {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.ui-alert-success {
+  background: color-mix(in srgb, var(--success) 8%, var(--surface));
+  border-color: color-mix(in srgb, var(--success) 20%, var(--line));
+  color: color-mix(in srgb, var(--success) 85%, var(--foreground));
+}
+
+.ui-alert-warning {
+  background: color-mix(in srgb, var(--warning) 8%, var(--surface));
+  border-color: color-mix(in srgb, var(--warning) 20%, var(--line));
+  color: color-mix(in srgb, var(--warning) 85%, var(--foreground));
+}
+
+.ui-alert-danger {
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+  border-color: color-mix(in srgb, var(--danger) 20%, var(--line));
+  color: color-mix(in srgb, var(--danger) 85%, var(--foreground));
+}
+
+.ui-alert-info {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--line));
+  color: color-mix(in srgb, var(--brand-primary) 75%, var(--foreground));
 }
 
 /* Boutons — convention studio */
@@ -239,13 +343,14 @@ select.ui-input {
 }
 
 .ui-btn-primary {
-  background: var(--foreground);
+  background: var(--brand-primary);
   color: var(--accent-contrast);
-  border: 1px solid var(--foreground);
+  border: 1px solid var(--brand-primary);
 }
 
 .ui-btn-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--foreground) 88%, white);
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
 }
 
 .ui-btn-secondary {
@@ -259,13 +364,15 @@ select.ui-input {
   border-color: var(--line-strong);
 }
 
-.ui-btn-accent {
-  background: var(--accent);
+.ui-btn-accent,
+.ui-btn-brand {
+  background: var(--brand-primary);
   color: var(--accent-contrast);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--brand-primary);
 }
 
-.ui-btn-accent:hover:not(:disabled) {
+.ui-btn-accent:hover:not(:disabled),
+.ui-btn-brand:hover:not(:disabled) {
   background: var(--accent-strong);
   border-color: var(--accent-strong);
 }
@@ -279,6 +386,46 @@ select.ui-input {
 .ui-btn-ghost:hover:not(:disabled) {
   background: var(--surface-soft);
   color: var(--foreground);
+}
+
+.ui-btn-outline-danger {
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 22%, var(--line));
+}
+
+.ui-btn-outline-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface));
+}
+
+.ui-btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border: 1px solid var(--danger);
+}
+
+.ui-btn-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 88%, var(--foreground));
+}
+
+.ui-btn-outline-success {
+  background: color-mix(in srgb, var(--success) 8%, var(--surface));
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 22%, var(--line));
+}
+
+.ui-btn-outline-success:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+}
+
+.ui-btn-outline-warning {
+  background: color-mix(in srgb, var(--warning) 8%, var(--surface));
+  color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 22%, var(--line));
+}
+
+.ui-btn-outline-warning:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface));
 }
 
 .rbc-calendar {
@@ -296,9 +443,10 @@ select.ui-input {
 }
 
 .rbc-toolbar button.rbc-active {
-  background: var(--foreground) !important;
-  color: var(--accent-contrast) !important;
-  border-color: var(--foreground) !important;
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface)) !important;
+  color: var(--foreground) !important;
+  border-color: color-mix(in srgb, var(--brand-primary) 25%, var(--line)) !important;
+  box-shadow: inset 0 -2px 0 var(--brand-primary) !important;
 }
 
 .rbc-month-view,

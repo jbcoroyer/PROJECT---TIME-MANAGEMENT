@@ -276,7 +276,7 @@ export default function EventMaterialNeeds(props: Props) {
                       {n.quantityFulfilled}/{n.quantityNeeded}
                     </span>
                     {ok ? (
-                      <span className="ml-2 text-xs font-semibold text-emerald-700">OK</span>
+                      <span className="ml-2 text-xs font-semibold text-[var(--success)]">OK</span>
                     ) : null}
                   </div>
                   <div className="flex gap-2">

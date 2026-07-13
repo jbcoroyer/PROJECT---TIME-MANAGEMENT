@@ -346,7 +346,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                   setMovementItem(item);
                   setMovementMode("add");
                 }}
-                className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+                className="ui-transition ui-btn ui-btn-outline-success inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold"
               >
                 <Plus className="h-4 w-4" />
                 Entrée
@@ -357,7 +357,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                   setMovementItem(item);
                   setMovementMode("remove");
                 }}
-                className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-100"
+                className="ui-transition ui-btn ui-btn-outline-warning inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold"
               >
                 <Minus className="h-4 w-4" />
                 Sortie
@@ -374,8 +374,8 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
             className={[
               "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
               lowStock
-                ? "border-rose-200 bg-rose-50 text-rose-700"
-                : "border-emerald-200 bg-emerald-50 text-emerald-700",
+                ? "ui-pill ui-pill-danger"
+                : "ui-pill ui-pill-success",
             ].join(" ")}
           >
             {lowStock ? <AlertTriangle className="h-3.5 w-3.5" /> : null}
@@ -398,7 +398,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
               className={[
                 "ui-transition rounded-xl px-3 py-2 text-sm font-semibold",
                 lowStock
-                  ? "border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                  ? "ui-btn ui-btn-outline-danger border"
                   : "border border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/70 hover:bg-[var(--surface)]",
               ].join(" ")}
             >
@@ -407,7 +407,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
             <button
               type="button"
               onClick={() => void handleDeleteItem(item)}
-              className="ui-transition inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-800 hover:bg-rose-100"
+              className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-semibold"
               title="Supprimer"
             >
               <Trash2 className="h-4 w-4" />
@@ -461,7 +461,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                     setMovementItem(item);
                     setMovementMode("add");
                   }}
-                  className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+                  className="ui-transition ui-btn ui-btn-outline-success inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold"
                 >
                   <Plus className="h-4 w-4" />
                   Entrée
@@ -472,7 +472,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                     setMovementItem(item);
                     setMovementMode("remove");
                   }}
-                  className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-100"
+                  className="ui-transition ui-btn ui-btn-outline-warning inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold"
                 >
                   <Minus className="h-4 w-4" />
                   Sortie
@@ -489,8 +489,8 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
               className={[
                 "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
                 lowStock
-                  ? "border-rose-200 bg-rose-50 text-rose-700"
-                  : "border-emerald-200 bg-emerald-50 text-emerald-700",
+                  ? "ui-pill ui-pill-danger"
+                  : "ui-pill ui-pill-success",
               ].join(" ")}
             >
               {lowStock ? <AlertTriangle className="h-3.5 w-3.5" /> : null}
@@ -513,7 +513,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                 className={[
                   "ui-transition rounded-xl px-3 py-2 text-sm font-semibold",
                   lowStock
-                    ? "border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                    ? "ui-btn ui-btn-outline-danger border"
                     : "border border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/70 hover:bg-[var(--surface)]",
                 ].join(" ")}
               >
@@ -522,7 +522,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
               <button
                 type="button"
                 onClick={() => void handleDeleteItem(item)}
-                className="ui-transition inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-800 hover:bg-rose-100"
+                className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-semibold"
                 title="Supprimer"
               >
                 <Trash2 className="h-4 w-4" />
@@ -645,7 +645,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                   <span
                     className={[
                       "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
-                      speciesAlertCount > 0 ? "border-rose-200 bg-rose-50 text-rose-700" : "border-emerald-200 bg-emerald-50 text-emerald-700",
+                      speciesAlertCount > 0 ? "ui-pill ui-pill-danger" : "ui-pill ui-pill-success",
                     ].join(" ")}
                   >
                     {speciesAlertCount > 0 ? <AlertTriangle className="h-3.5 w-3.5" /> : null}
@@ -735,7 +735,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                                   setMovementItem(item);
                                   setMovementMode("add");
                                 }}
-                                className="ui-transition inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                                className="ui-transition ui-btn ui-btn-outline-success inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold"
                               >
                                 <Plus className="h-3.5 w-3.5" />
                                 Entrée
@@ -746,7 +746,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                                   setMovementItem(item);
                                   setMovementMode("remove");
                                 }}
-                                className="ui-transition inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100"
+                                className="ui-transition ui-btn ui-btn-outline-warning inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold"
                               >
                                 <Minus className="h-3.5 w-3.5" />
                                 Sortie
@@ -767,7 +767,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                                 className={[
                                   "ui-transition rounded-lg px-2 py-1 text-xs font-semibold",
                                   lowStock
-                                    ? "border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                    ? "ui-btn ui-btn-outline-danger border"
                                     : "border border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/70 hover:bg-[var(--surface)]",
                                 ].join(" ")}
                               >
@@ -776,7 +776,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                               <button
                                 type="button"
                                 onClick={() => void handleDeleteItem(item)}
-                                className="ui-transition inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-800 hover:bg-rose-100"
+                                className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold"
                                 title="Supprimer"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -929,7 +929,7 @@ export default function StockInventoryWorkspace({ basePath = "/stock" }: { baseP
                 <p
                   className={[
                     "mt-3 text-sm font-semibold",
-                    stats.alertCount > 0 ? "text-rose-700" : "text-emerald-700",
+                    stats.alertCount > 0 ? "text-[var(--danger)]" : "text-[var(--success)]",
                   ].join(" ")}
                 >
                   {stats.alertCount > 0 ? `${stats.alertCount} article(s) à recommander` : "Aucune alerte"}

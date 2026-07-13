@@ -45,8 +45,8 @@ function taskPrimaryDate(task: Task): Date | null {
 }
 
 const PRIORITY_DOT: Record<string, string> = {
-  Haute: "bg-rose-500",
-  Moyenne: "bg-amber-500",
+  Haute: "bg-[var(--danger)]",
+  Moyenne: "bg-[var(--warning)]",
   Basse: "bg-slate-400",
 };
 
@@ -127,11 +127,11 @@ export default function V2PlanningPage() {
             </p>
           </div>
           {conflicts.length > 0 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-3 py-1.5 text-xs font-semibold text-rose-800">
+            <span className="ui-pill ui-pill-danger inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold">
               <ShieldAlert className="h-4 w-4" /> {conflicts.length} conflit(s)
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-800">
+            <span className="ui-pill ui-pill-success inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold">
               Aucun conflit
             </span>
           )}
@@ -363,7 +363,7 @@ export default function V2PlanningPage() {
                     <span
                       className={[
                         "mt-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                        c.kind === "overload" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800",
+                        c.kind === "overload" ? "ui-pill ui-pill-danger" : "ui-pill ui-pill-warning",
                       ].join(" ")}
                     >
                       {c.kind === "overload" ? "Surcharge" : "Chevauchement"}

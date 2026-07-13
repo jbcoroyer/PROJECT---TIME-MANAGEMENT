@@ -36,7 +36,7 @@ function SubtaskBadge(props: { subtasks: Task[]; minimal?: boolean }) {
         aria-hidden
       >
         <span
-          className="block h-full rounded-full bg-emerald-500"
+          className="block h-full rounded-full bg-[var(--success)]"
           style={{ width: `${pct}%` }}
         />
       </span>
@@ -46,10 +46,10 @@ function SubtaskBadge(props: { subtasks: Task[]; minimal?: boolean }) {
 
 function PriorityBadge({ priority, dense }: { priority: Task["priority"]; dense?: boolean }) {
   const cls = {
-    Haute: "border-rose-200 bg-rose-50 text-rose-700",
-    Moyenne: "border-amber-200 bg-amber-50 text-amber-700",
-    Basse: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  }[priority] ?? "border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/65";
+    Haute: "ui-pill ui-pill-danger",
+    Moyenne: "ui-pill ui-pill-warning",
+    Basse: "ui-pill ui-pill-success",
+  }[priority] ?? "ui-pill ui-pill-neutral";
 
   return (
     <span
@@ -130,7 +130,7 @@ function CardBody(props: {
           {isOverdue && (
             <span
               className={[
-                "shrink-0 rounded-full bg-rose-100 font-bold uppercase text-rose-700",
+                "shrink-0 ui-pill ui-pill-danger rounded-full font-bold uppercase",
                 props.variant === "dense" ? "px-1 py-px text-[7px]" : "px-1.5 py-0.5 text-[9px] tracking-wide",
               ].join(" ")}
             >
@@ -140,7 +140,7 @@ function CardBody(props: {
           {isUrgent48h && !isOverdue && (
             <span
               className={[
-                "shrink-0 rounded-full bg-amber-100 font-bold uppercase text-amber-700",
+                "shrink-0 ui-pill ui-pill-warning rounded-full font-bold uppercase",
                 props.variant === "dense" ? "px-1 py-px text-[7px]" : "px-1.5 py-0.5 text-[9px] tracking-wide",
               ].join(" ")}
             >
@@ -150,7 +150,7 @@ function CardBody(props: {
           {task.priority === "Haute" && (
             <span title="Priorité haute">
               <AlertTriangle
-                className={props.variant === "dense" ? "h-2.5 w-2.5 text-amber-500" : "h-3 w-3 text-amber-500"}
+                className={props.variant === "dense" ? "h-2.5 w-2.5 text-[var(--warning)]" : "h-3 w-3 text-[var(--warning)]"}
               />
             </span>
           )}
@@ -193,7 +193,7 @@ function CardBody(props: {
               className={[
                 "inline-flex items-center justify-center rounded-full text-[color:var(--foreground)]/45 transition-colors",
                 props.variant === "dense" ? "h-4 w-4" : "h-5 w-5",
-                interactive ? "hover:bg-rose-50 hover:text-rose-600" : "pointer-events-none",
+                interactive ? "hover:bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))] hover:text-[var(--danger)]" : "pointer-events-none",
               ].join(" ")}
               title="Archiver"
             >
@@ -250,9 +250,9 @@ function CardBody(props: {
                 className={[
                   "inline-flex shrink-0 items-center gap-0.5 rounded border px-1 py-px",
                   isOverdue
-                    ? "border-rose-200 bg-rose-50 text-rose-700"
+                    ? "ui-pill ui-pill-danger"
                     : isUrgent48h
-                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                      ? "ui-pill ui-pill-warning"
                       : "border-[var(--line)] bg-[var(--surface-soft)]/80",
                 ].join(" ")}
               >
@@ -299,9 +299,9 @@ function CardBody(props: {
                 className={[
                   "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5",
                   isOverdue
-                    ? "border-rose-200 bg-rose-50 text-rose-700"
+                    ? "ui-pill ui-pill-danger"
                     : isUrgent48h
-                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                      ? "ui-pill ui-pill-warning"
                       : "border-[var(--line)] bg-[var(--surface-soft)]/80",
                 ].join(" ")}
               >

@@ -19,6 +19,10 @@ export const en: MessageTree = {
   setup: {
     title: "Welcome",
     subtitle: "A few steps to customize your workspace.",
+    welcomeHeadline: "Let's set up your workspace",
+    welcomeUser: "Hello {name}",
+    welcomeBody:
+      "In a few minutes you'll choose your workspace name, look and modules. Everything can be changed later in settings.",
     notConfigured: "This application is not configured yet. Sign in to start setup.",
     signIn: "Sign in",
     pendingTitle: "Setup pending",

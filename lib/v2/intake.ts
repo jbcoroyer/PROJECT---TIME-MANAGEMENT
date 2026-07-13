@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "../supabaseBrowser";
 import type { Priority } from "../types";
 
@@ -13,7 +12,6 @@ export type IntakeRequest = {
   title: string;
   description: string;
   company: string;
-  /** Support attendu (ex. flyer, visuel RS…). */
   concern: string;
   supportFormat: string;
   deadline: string;
@@ -28,10 +26,6 @@ export type IntakeRequest = {
   linkedTaskId: string | null;
   decidedAt: string | null;
 };
-
-export type IntakeBackend = "supabase" | "local";
-
-const LOCAL_KEY = "v2-intake-requests";
 
 type IntakeRow = {
   id: string;
@@ -77,60 +71,6 @@ function rowToRequest(row: IntakeRow): IntakeRequest {
   };
 }
 
-function normalizeLocal(entry: Partial<IntakeRequest> & Pick<IntakeRequest, "id" | "createdAt" | "title">): IntakeRequest {
-  return {
-    id: entry.id,
-    createdAt: entry.createdAt,
-    title: entry.title,
-    description: entry.description ?? "",
-    company: entry.company ?? "",
-    concern: entry.concern ?? "",
-    supportFormat: entry.supportFormat ?? "",
-    deadline: entry.deadline ?? "",
-    budget: entry.budget ?? "",
-    estimatedHours: entry.estimatedHours ?? 0,
-    requesterName: entry.requesterName ?? "",
-    requesterService: entry.requesterService ?? "",
-    priority: entry.priority ?? "Moyenne",
-    status: entry.status ?? "triage",
-    suggestedDomain: entry.suggestedDomain ?? null,
-    suggestedAssignee: entry.suggestedAssignee ?? null,
-    linkedTaskId: entry.linkedTaskId ?? null,
-    decidedAt: entry.decidedAt ?? null,
-  };
-}
-
-function readLocal(): IntakeRequest[] {
-  try {
-    const raw = window.localStorage.getItem(LOCAL_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as Partial<IntakeRequest>[];
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map((r) =>
-      normalizeLocal({
-        ...r,
-        id: r.id ?? newId(),
-        createdAt: r.createdAt ?? new Date().toISOString(),
-        title: r.title ?? "",
-      }),
-    );
-  } catch {
-    return [];
-  }
-}
-
-function writeLocal(list: IntakeRequest[]) {
-  try {
-    window.localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
-  } catch {
-    /* ignoré */
-  }
-}
-
-function newId(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
 export function suggestDomainFromText(text: string): string {
   const t = text.toLowerCase();
   if (/(print|impress|flyer|brochure|affiche|kakemono|roll)/.test(t)) return "🖨️ Print";
@@ -141,29 +81,22 @@ export function suggestDomainFromText(text: string): string {
   return "🌎 General";
 }
 
-async function detectBackend(supabase: SupabaseClient): Promise<IntakeBackend> {
-  const { error } = await supabase.from("intake_requests").select("id").limit(1);
-  return error ? "local" : "supabase";
-}
-
 export function useIntakeRequests() {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [requests, setRequests] = useState<IntakeRequest[]>([]);
-  const [backend, setBackend] = useState<IntakeBackend>("local");
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
     setLoading(true);
-    const mode = await detectBackend(supabase);
-    setBackend(mode);
-    if (mode === "supabase") {
-      const { data } = await supabase
-        .from("intake_requests")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setRequests(((data ?? []) as IntakeRow[]).map(rowToRequest));
+    const { data, error } = await supabase
+      .from("intake_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("intake_requests load failed", error);
+      setRequests([]);
     } else {
-      setRequests(readLocal().sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+      setRequests(((data ?? []) as IntakeRow[]).map(rowToRequest));
     }
     setLoading(false);
   }, [supabase]);
@@ -174,33 +107,27 @@ export function useIntakeRequests() {
 
   const updateRequest = useCallback(
     async (id: string, patch: Partial<IntakeRequest>) => {
-      setRequests((prev) => {
-        const next = prev.map((r) => (r.id === id ? { ...r, ...patch } : r));
-        if (backend === "local") writeLocal(next);
-        return next;
-      });
-      if (backend === "supabase") {
-        const dbPatch: Record<string, unknown> = {};
-        if (patch.status !== undefined) dbPatch.status = patch.status;
-        if (patch.linkedTaskId !== undefined) dbPatch.linked_task_id = patch.linkedTaskId;
-        if (patch.decidedAt !== undefined) dbPatch.decided_at = patch.decidedAt;
-        if (patch.suggestedDomain !== undefined) dbPatch.suggested_domain = patch.suggestedDomain;
-        if (patch.suggestedAssignee !== undefined) dbPatch.suggested_assignee = patch.suggestedAssignee;
-        if (patch.budget !== undefined) dbPatch.budget = patch.budget;
-        if (patch.estimatedHours !== undefined) dbPatch.estimated_hours = patch.estimatedHours;
-        if (patch.priority !== undefined) dbPatch.priority = patch.priority;
-        if (Object.keys(dbPatch).length > 0) {
-          await supabase.from("intake_requests").update(dbPatch).eq("id", id);
-        }
+      setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+      const dbPatch: Record<string, unknown> = {};
+      if (patch.status !== undefined) dbPatch.status = patch.status;
+      if (patch.linkedTaskId !== undefined) dbPatch.linked_task_id = patch.linkedTaskId;
+      if (patch.decidedAt !== undefined) dbPatch.decided_at = patch.decidedAt;
+      if (patch.suggestedDomain !== undefined) dbPatch.suggested_domain = patch.suggestedDomain;
+      if (patch.suggestedAssignee !== undefined) dbPatch.suggested_assignee = patch.suggestedAssignee;
+      if (patch.budget !== undefined) dbPatch.budget = patch.budget;
+      if (patch.estimatedHours !== undefined) dbPatch.estimated_hours = patch.estimatedHours;
+      if (patch.priority !== undefined) dbPatch.priority = patch.priority;
+      if (Object.keys(dbPatch).length > 0) {
+        const { error } = await supabase.from("intake_requests").update(dbPatch).eq("id", id);
+        if (error) console.error("intake_requests update failed", error);
       }
     },
-    [backend, supabase],
+    [supabase],
   );
 
-  return { requests, backend, loading, reload, updateRequest };
+  return { requests, loading, reload, updateRequest };
 }
 
-/** Champs saisis par les collaborateurs externes via le portail Ask. */
 export type SubmitIntakeInput = {
   title: string;
   expectedSupport: string;
@@ -212,13 +139,12 @@ export type SubmitIntakeInput = {
   requesterService?: string;
 };
 
-export async function submitIntakeRequest(input: SubmitIntakeInput): Promise<{ ok: boolean; backend: IntakeBackend }> {
+export async function submitIntakeRequest(input: SubmitIntakeInput): Promise<{ ok: boolean }> {
   const supabase = getSupabaseBrowser();
   const domainText = `${input.title} ${input.expectedSupport} ${input.supportFormat} ${input.description}`;
   const suggestedDomain = suggestDomainFromText(domainText);
-  const mode = await detectBackend(supabase);
 
-  const payload = {
+  const { error } = await supabase.from("intake_requests").insert({
     title: input.title,
     description: input.description,
     company: input.company,
@@ -232,33 +158,7 @@ export async function submitIntakeRequest(input: SubmitIntakeInput): Promise<{ o
     priority: "Moyenne",
     status: "triage",
     suggested_domain: suggestedDomain,
-  };
-
-  if (mode === "supabase") {
-    const { error } = await supabase.from("intake_requests").insert(payload);
-    return { ok: !error, backend: "supabase" };
-  }
-
-  const entry = normalizeLocal({
-    id: newId(),
-    createdAt: new Date().toISOString(),
-    title: input.title,
-    description: input.description,
-    company: input.company,
-    concern: input.expectedSupport,
-    supportFormat: input.supportFormat,
-    deadline: input.deadline,
-    budget: "",
-    estimatedHours: 0,
-    requesterName: input.requesterName ?? "",
-    requesterService: input.requesterService ?? "",
-    priority: "Moyenne",
-    status: "triage",
-    suggestedDomain,
-    suggestedAssignee: null,
-    linkedTaskId: null,
-    decidedAt: null,
   });
-  writeLocal([entry, ...readLocal()]);
-  return { ok: true, backend: "local" };
+
+  return { ok: !error };
 }

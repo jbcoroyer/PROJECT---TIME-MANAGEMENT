@@ -83,7 +83,7 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
           <div
             className={[
               "rounded-2xl border px-4 py-3",
-              lowStock ? "border-rose-200 bg-rose-50" : "border-emerald-200 bg-emerald-50",
+              lowStock ? "ui-alert ui-alert-danger" : "ui-alert ui-alert-success",
             ].join(" ")}
           >
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/45">
@@ -92,7 +92,7 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
             <p
               className={[
                 "mt-1 inline-flex items-center gap-1.5 text-sm font-semibold",
-                lowStock ? "text-rose-700" : "text-emerald-700",
+                lowStock ? "text-[var(--danger)]" : "text-[var(--success)]",
               ].join(" ")}
             >
               <AlertTriangle className="h-4 w-4" />

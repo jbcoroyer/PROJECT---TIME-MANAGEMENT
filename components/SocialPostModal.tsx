@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Image as ImageIcon, Trash2, X } from "lucide-react";
 import type { ReferenceRecord } from "../lib/referenceData";
 import { getSupabaseBrowser } from "../lib/supabaseBrowser";
-import { uploadOrgFile } from "../lib/storageClient";
+import { uploadOrgAsset } from "../app/actions/storage";
 import { toastError } from "../lib/toast";
 import CompanyAvatar from "./CompanyAvatar";
 import { useBranding } from "../lib/brandingContext";
@@ -222,22 +222,12 @@ export default function SocialPostModal(props: SocialPostModalProps) {
     try {
       let resolvedVisualUrl: string | null = visualUrl.trim() || null;
       if (visualFile) {
-        const organizationId = user?.organizationId ?? branding.organizationId;
-        if (!organizationId) {
-          toastError("Organisation introuvable pour l'upload.");
-          return;
-        }
         const extRaw = visualFile.name.split(".").pop() ?? "png";
         const ext = extRaw.trim().toLowerCase() || "png";
         const relativePath = `${resolvedCompanyId}/${crypto.randomUUID()}.${ext}`;
-        const upload = await uploadOrgFile(
-          supabase,
-          "social-post-visuals",
-          organizationId,
-          relativePath,
-          visualFile,
-          { upsert: true, contentType: visualFile.type },
-        );
+        const formData = new FormData();
+        formData.set("file", visualFile);
+        const upload = await uploadOrgAsset(formData, "social-post-visuals", relativePath);
         if (!upload.ok) {
           toastError(`Upload visuel impossible : ${upload.error}`);
           return;
@@ -596,7 +586,7 @@ export default function SocialPostModal(props: SocialPostModalProps) {
                         setVisualFile(null);
                         setVisualPreviewUrl(null);
                       }}
-                      className="ui-transition inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100"
+                      className="ui-transition ui-btn ui-btn-outline-danger inline-flex h-8 w-8 items-center justify-center rounded-lg"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

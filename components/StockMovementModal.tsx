@@ -40,11 +40,9 @@ export default function StockMovementModal(props: StockMovementModalProps) {
   const title = mode === "add" ? "Entrée de stock" : "Sortie de stock";
   const Icon = mode === "add" ? ArrowUp : ArrowDown;
   const buttonIcon = mode === "add" ? Plus : Minus;
-  const accentClass = mode === "add" ? "text-emerald-700" : "text-amber-700";
+  const accentClass = mode === "add" ? "text-[var(--success)]" : "text-[var(--warning)]";
   const buttonClass =
-    mode === "add"
-      ? "bg-emerald-600 hover:bg-emerald-700"
-      : "bg-amber-600 hover:bg-amber-700";
+    mode === "add" ? "ui-btn ui-btn-outline-success" : "ui-btn ui-btn-outline-warning";
 
   const helperText = useMemo(() => {
     if (!item) return "";

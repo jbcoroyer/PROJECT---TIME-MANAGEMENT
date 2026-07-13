@@ -1,72 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   isHttpUrl,
-  orgStoragePath,
   parseStorageReference,
   SIGNED_URL_TTL_SECONDS,
   type StorageBucket,
 } from "./storagePaths";
-
-/** Récupère l'organization_id du profil de l'utilisateur connecté. */
-export async function resolveCurrentOrganizationId(
-  supabase: SupabaseClient,
-): Promise<string | null> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("organization_id")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  return (profile?.organization_id as string | null) ?? null;
-}
-
-export type UploadOrgFileOptions = {
-  upsert?: boolean;
-  contentType?: string;
-};
-
-export type UploadOrgFileResult =
-  | { ok: true; path: string; signedUrl: string }
-  | { ok: false; error: string };
-
-/**
- * Upload un fichier dans le bucket, chemin préfixé par organizationId.
- * Retourne le chemin storage et une URL signée (5 min) pour affichage immédiat.
- */
-export async function uploadOrgFile(
-  supabase: SupabaseClient,
-  bucket: StorageBucket,
-  organizationId: string,
-  relativePath: string,
-  file: File | Blob,
-  options?: UploadOrgFileOptions,
-): Promise<UploadOrgFileResult> {
-  if (!organizationId) {
-    return { ok: false, error: "Organisation introuvable pour l'upload." };
-  }
-
-  const path = orgStoragePath(organizationId, relativePath);
-  const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
-    upsert: options?.upsert ?? false,
-    contentType: options?.contentType,
-  });
-
-  if (upErr) {
-    return { ok: false, error: upErr.message };
-  }
-
-  const signed = await createSignedStorageUrl(supabase, bucket, path);
-  if (!signed.ok) {
-    return { ok: false, error: signed.error };
-  }
-
-  return { ok: true, path, signedUrl: signed.url };
-}
 
 export type SignedUrlResult = { ok: true; url: string } | { ok: false; error: string };
 

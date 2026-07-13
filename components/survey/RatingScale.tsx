@@ -29,9 +29,9 @@ function pillColor(index: number, count: number, active: boolean): string {
     return "border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/60 hover:border-[var(--line-strong)]";
   }
   const ratio = index / Math.max(1, count - 1);
-  if (ratio < 0.4) return "border-transparent bg-rose-500 text-white shadow-md";
-  if (ratio < 0.7) return "border-transparent bg-amber-500 text-white shadow-md";
-  return "border-transparent bg-emerald-500 text-white shadow-md";
+  if (ratio < 0.4) return "border-transparent bg-[var(--danger)] text-white shadow-sm";
+  if (ratio < 0.7) return "border-transparent bg-[var(--warning)] text-white shadow-sm";
+  return "border-transparent bg-[var(--success)] text-white shadow-sm";
 }
 
 export default function RatingScale({
@@ -68,7 +68,7 @@ export default function RatingScale({
                 <Star
                   className={
                     filled
-                      ? "h-9 w-9 fill-amber-400 text-amber-400"
+                      ? "h-9 w-9 fill-[var(--warning)] text-[var(--warning)]"
                       : "h-9 w-9 text-[color:var(--foreground)]/25"
                   }
                   strokeWidth={1.75}

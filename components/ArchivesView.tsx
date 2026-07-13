@@ -115,7 +115,7 @@ export default function ArchivesView(props: {
             <button
               type="button"
               onClick={clearFilters}
-              className="ui-transition flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-100"
+              className="ui-btn ui-btn-outline-warning flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold"
             >
               <X className="h-3.5 w-3.5" />
               Réinitialiser
@@ -331,7 +331,7 @@ export default function ArchivesView(props: {
                 <button
                   type="button"
                   onClick={() => props.onDelete(task.id)}
-                  className="ui-transition flex items-center justify-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100"
+                  className="ui-btn ui-btn-outline-danger flex items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold"
                   title="Supprimer définitivement"
                 >
                   <Trash2 className="h-3.5 w-3.5" />

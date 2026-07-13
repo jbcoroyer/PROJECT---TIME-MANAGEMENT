@@ -9,6 +9,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  CreditCard,
   ImageIcon,
   Layers,
   PenLine,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import AdminAvatar from "../AdminAvatar";
 import OutlookConnectionCard from "../OutlookConnectionCard";
+import BillingCard from "./BillingCard";
 import CompanyAvatar from "../CompanyAvatar";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError, toastSuccess } from "../../lib/toast";
@@ -34,7 +36,7 @@ import type { AdminId } from "../../lib/types";
 import { parsePrintSpecies, parseSocialThematics } from "../../lib/taxonomies";
 import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
-import { resolveCurrentOrganizationId, uploadOrgFile } from "../../lib/storageClient";
+import { uploadOrgAsset } from "../../app/actions/storage";
 
 /* ─────────────────────────── Types ─────────────────────────── */
 type TeamMemberRow = {
@@ -71,8 +73,8 @@ function ConfirmDeleteModal(props: {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-[0_34px_90px_rgba(20,17,13,0.24)]">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50">
-          <Trash2 className="h-6 w-6 text-rose-600" />
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--danger)_10%,var(--surface))]">
+          <Trash2 className="h-6 w-6 text-[var(--danger)]" />
         </div>
         <h3 className="text-base font-semibold text-[var(--foreground)]">Supprimer cet élément&nbsp;?</h3>
         <p className="mt-1.5 text-sm text-[color:var(--foreground)]/65">
@@ -90,7 +92,7 @@ function ConfirmDeleteModal(props: {
           <button
             type="button"
             onClick={props.onConfirm}
-            className="ui-transition flex-1 rounded-xl bg-rose-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-700"
+            className="ui-transition ui-btn ui-btn-danger flex-1 rounded-xl py-2.5 text-sm font-semibold shadow-sm"
           >
             Supprimer
           </button>
@@ -160,7 +162,7 @@ function EntityRow(props: {
         type="button"
         onClick={props.onSave}
         title="Enregistrer"
-        className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-emerald-600 hover:bg-emerald-50"
+        className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-[var(--success)] hover:bg-[color-mix(in_srgb,var(--success)_10%,var(--surface))]"
       >
         <Check className="h-3.5 w-3.5" />
       </button>
@@ -176,7 +178,7 @@ function EntityRow(props: {
         type="button"
         onClick={props.onDelete}
         title="Supprimer"
-        className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100"
+        className="ui-transition ui-btn ui-btn-outline-danger flex h-8 w-8 shrink-0 items-center justify-center rounded-lg !p-0"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>
@@ -364,15 +366,24 @@ export default function AdminSettingsPanel() {
         </div>
 
         {loadErrors.length > 0 && (
-          <div className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+          <div className="ui-alert ui-alert-warning flex items-start gap-2 rounded-2xl px-4 py-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" />
             <div className="space-y-0.5">
               {loadErrors.map((msg) => (
-                <p key={msg} className="text-sm text-amber-800">{msg}</p>
+                <p key={msg} className="text-sm">{msg}</p>
               ))}
             </div>
           </div>
         )}
+
+        {/* ─── Facturation ─── */}
+        <Section
+          icon={CreditCard}
+          title="Facturation"
+          subtitle="Gérez votre essai gratuit et votre abonnement Stripe."
+        >
+          <BillingCard />
+        </Section>
 
         {/* ─── Agenda Outlook 365 ─── */}
         <Section
@@ -429,22 +440,10 @@ export default function AdminSettingsPanel() {
                         return;
                       }
                       setMarkUploading(true);
-                      const organizationId = await resolveCurrentOrganizationId(supabase);
-                      if (!organizationId) {
-                        toastError("Organisation introuvable.");
-                        setMarkUploading(false);
-                        e.target.value = "";
-                        return;
-                      }
                       const relativePath = `app-mark-${Date.now()}.${ext}`;
-                      const upload = await uploadOrgFile(
-                        supabase,
-                        APP_MARK_STORAGE_BUCKET,
-                        organizationId,
-                        relativePath,
-                        file,
-                        { upsert: true, contentType: file.type || undefined },
-                      );
+                      const formData = new FormData();
+                      formData.set("file", file);
+                      const upload = await uploadOrgAsset(formData, APP_MARK_STORAGE_BUCKET, relativePath);
                       if (!upload.ok) {
                         toastError(`Envoi impossible : ${upload.error}`);
                         setMarkUploading(false);
@@ -752,20 +751,10 @@ export default function AdminSettingsPanel() {
                             const file = e.target.files?.[0];
                             if (!file) return;
                             const ext = file.name.split(".").pop() ?? "jpg";
-                            const organizationId = await resolveCurrentOrganizationId(supabase);
-                            if (!organizationId) {
-                              toastError("Organisation introuvable.");
-                              return;
-                            }
                             const relativePath = `${row.id}.${ext}`;
-                            const upload = await uploadOrgFile(
-                              supabase,
-                              "member-avatars",
-                              organizationId,
-                              relativePath,
-                              file,
-                              { upsert: true, contentType: file.type },
-                            );
+                            const formData = new FormData();
+                            formData.set("file", file);
+                            const upload = await uploadOrgAsset(formData, "member-avatars", relativePath);
                             if (!upload.ok) {
                               toastError(`Upload impossible: ${upload.error}`);
                               return;
@@ -868,20 +857,10 @@ export default function AdminSettingsPanel() {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         const ext = file.name.split(".").pop() ?? "png";
-                        const organizationId = await resolveCurrentOrganizationId(supabase);
-                        if (!organizationId) {
-                          toastError("Organisation introuvable.");
-                          return;
-                        }
                         const relativePath = `${row.id}.${ext}`;
-                        const upload = await uploadOrgFile(
-                          supabase,
-                          "company-logos",
-                          organizationId,
-                          relativePath,
-                          file,
-                          { upsert: true, contentType: file.type },
-                        );
+                        const formData = new FormData();
+                        formData.set("file", file);
+                        const upload = await uploadOrgAsset(formData, "company-logos", relativePath);
                         if (!upload.ok) {
                           toastError(`Upload impossible: ${upload.error}`);
                           return;
@@ -907,7 +886,7 @@ export default function AdminSettingsPanel() {
                         await loadAll();
                         toastSuccess("Logo supprimé.");
                       }}
-                      className="ui-transition flex h-7 w-7 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-400 hover:bg-rose-100"
+                      className="ui-transition ui-btn ui-btn-outline-danger flex h-7 w-7 items-center justify-center rounded-lg !p-0"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -1109,7 +1088,7 @@ export default function AdminSettingsPanel() {
                     await loadAll();
                     toastSuccess("Colonne renommée.");
                   }}
-                  className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-emerald-600 hover:bg-emerald-50"
+                  className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-[var(--success)] hover:bg-[color-mix(in_srgb,var(--success)_10%,var(--surface))]"
                 >
                   <Check className="h-3.5 w-3.5" />
                 </button>
@@ -1150,7 +1129,7 @@ export default function AdminSettingsPanel() {
                   }}
                   className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/60 hover:bg-[var(--surface)]"
                 >
-                  {row.is_active ? <X className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5 text-emerald-600" />}
+                  {row.is_active ? <X className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5 text-[var(--success)]" />}
                 </button>
 
                 {/* Supprimer */}
@@ -1163,7 +1142,7 @@ export default function AdminSettingsPanel() {
                       toastSuccess("Colonne supprimée.");
                     })
                   }
-                  className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100"
+                  className="ui-transition ui-btn ui-btn-outline-danger flex h-8 w-8 shrink-0 items-center justify-center rounded-lg !p-0"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -1178,9 +1157,9 @@ export default function AdminSettingsPanel() {
           title="Archivage automatique"
           subtitle="Les tâches passées en 'Terminé' depuis plus de 24h sont automatiquement archivées."
         >
-          <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <div className="ui-alert ui-alert-success flex items-center gap-3 rounded-xl px-4 py-3">
             <span className="text-lg">✅</span>
-            <p className="text-sm text-emerald-800">
+            <p className="text-sm">
               <strong>Délai fixe : 24 heures.</strong> Toute tâche dans la colonne &quot;Terminé&quot; depuis plus d&apos;un jour est automatiquement déplacée dans les Archives. Ce comportement n&apos;est pas configurable.
             </p>
           </div>

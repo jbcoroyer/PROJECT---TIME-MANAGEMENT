@@ -11,112 +11,63 @@ export const columnStyles: Record<
   }
 > = {
   "À faire": {
-    headerBg: "bg-[#f3eee7]",
-    headerText: "text-[#4f4338]",
-    cellBg: "bg-[#f7f3ed]",
-    cellBorder: "border-[#e4dccf]",
+    headerBg: "bg-[var(--surface-soft)]",
+    headerText: "text-[color:var(--foreground)]/75",
+    cellBg: "bg-[var(--surface)]",
+    cellBorder: "border-[var(--line)]",
   },
   "En cours": {
-    headerBg: "bg-[#efe8de]",
-    headerText: "text-[#5a4e42]",
-    cellBg: "bg-[#f8f4ee]",
-    cellBorder: "border-[#dfd4c5]",
+    headerBg: "bg-[color-mix(in_srgb,var(--brand-primary)_6%,var(--surface-soft))]",
+    headerText: "text-[color:var(--foreground)]/80",
+    cellBg: "bg-[var(--surface)]",
+    cellBorder: "border-[color-mix(in_srgb,var(--brand-primary)_12%,var(--line))]",
   },
   "En validation": {
-    headerBg: "bg-[#ece5d9]",
-    headerText: "text-[#5d5145]",
-    cellBg: "bg-[#f8f3eb]",
-    cellBorder: "border-[#dfd2c1]",
+    headerBg: "bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface-soft))]",
+    headerText: "text-[color:var(--foreground)]/80",
+    cellBg: "bg-[var(--surface)]",
+    cellBorder: "border-[color-mix(in_srgb,var(--warning)_15%,var(--line))]",
   },
   Terminé: {
-    headerBg: "bg-[#e7decf]",
-    headerText: "text-[#4d4338]",
-    cellBg: "bg-[#f4ede3]",
-    cellBorder: "border-[#d6c7b0]",
+    headerBg: "bg-[color-mix(in_srgb,var(--success)_8%,var(--surface-soft))]",
+    headerText: "text-[color:var(--foreground)]/75",
+    cellBg: "bg-[var(--surface)]",
+    cellBorder: "border-[color-mix(in_srgb,var(--success)_15%,var(--line))]",
   },
 };
 
-/** Badges collaborateurs : 24 teintes distinctes ; index attribués par sync (sans doublon si ≤ 24 users). */
+/** Badges collaborateurs : 8 teintes chaudes sourdes */
 const BADGE_VARIANTS = [
-  "border-2 border-orange-400 bg-orange-100 text-orange-950",
-  "border-2 border-teal-500 bg-teal-100 text-teal-950",
-  "border-2 border-indigo-500 bg-indigo-100 text-indigo-950",
-  "border-2 border-rose-500 bg-rose-100 text-rose-950",
-  "border-2 border-violet-500 bg-violet-100 text-violet-950",
-  "border-2 border-emerald-500 bg-emerald-100 text-emerald-950",
-  "border-2 border-sky-500 bg-sky-100 text-sky-950",
-  "border-2 border-cyan-500 bg-cyan-100 text-cyan-950",
-  "border-2 border-red-500 bg-red-100 text-red-950",
-  "border-2 border-amber-500 bg-amber-100 text-amber-950",
-  "border-2 border-lime-500 bg-lime-100 text-lime-950",
-  "border-2 border-fuchsia-500 bg-fuchsia-100 text-fuchsia-950",
-  "border-2 border-blue-500 bg-blue-100 text-blue-950",
-  "border-2 border-pink-500 bg-pink-100 text-pink-950",
-  "border-2 border-green-600 bg-green-100 text-green-950",
-  "border-2 border-purple-600 bg-purple-100 text-purple-950",
-  "border-2 border-yellow-500 bg-yellow-100 text-yellow-950",
-  "border-2 border-slate-500 bg-slate-100 text-slate-950",
-  "border-2 border-zinc-500 bg-zinc-100 text-zinc-950",
-  "border-2 border-stone-500 bg-stone-100 text-stone-950",
-  "border-2 border-gray-500 bg-gray-100 text-gray-950",
-  "border-2 border-neutral-500 bg-neutral-100 text-neutral-950",
-  "border-2 border-blue-800 bg-blue-200 text-blue-950",
-  "border-2 border-rose-700 bg-rose-200 text-rose-950",
+  "ui-pill border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/80",
+  "ui-pill border-[color-mix(in_srgb,var(--brand-primary)_22%,var(--line))] bg-[var(--accent-soft)] text-[var(--accent-strong)]",
+  "ui-pill border-[#d9d3c8] bg-[#ebe6de] text-[#5a5248]",
+  "ui-pill border-[#cfc7b6] bg-[#e3ddd1] text-[#4f483e]",
+  "ui-pill border-[color-mix(in_srgb,var(--brand-primary)_18%,var(--line))] bg-[color-mix(in_srgb,var(--brand-primary)_6%,var(--surface))] text-[color-mix(in_srgb,var(--brand-primary)_70%,var(--foreground))]",
+  "ui-pill border-[#d4cec2] bg-[#f0ebe3] text-[#5c554a]",
+  "ui-pill border-[#c9c0b0] bg-[#e8e2d6] text-[#524b40]",
+  "ui-pill border-[color-mix(in_srgb,var(--brand-primary)_15%,var(--line))] bg-[color-mix(in_srgb,var(--brand-primary)_4%,var(--surface-soft))] text-[color-mix(in_srgb,var(--brand-primary)_65%,var(--foreground))]",
 ] as const;
 
-/** Bande gauche Kanban, calendrier, légendes : couleurs franches et distinctes. */
 const SOLID_COLORS = [
-  "#c2410c",
-  "#0f766e",
-  "#4338ca",
-  "#be123c",
-  "#6d28d9",
-  "#047857",
-  "#0369a1",
-  "#0e7490",
-  "#b91c1c",
-  "#d97706",
-  "#65a30d",
-  "#c026d3",
-  "#2563eb",
-  "#db2777",
-  "#16a34a",
-  "#9333ea",
-  "#ca8a04",
-  "#475569",
-  "#71717a",
-  "#57534e",
-  "#4b5563",
-  "#525252",
-  "#1e40af",
-  "#9f1239",
+  "#78716c",
+  "#5c6b5a",
+  "#6b6358",
+  "#5a5248",
+  "#4a6b5d",
+  "#6d665c",
+  "#524b40",
+  "#4f5d4e",
 ] as const;
 
 const FILTER_PILL_VARIANTS = [
-  "border-2 border-orange-400 bg-orange-100 text-orange-950 ring-2 ring-orange-500/40",
-  "border-2 border-teal-500 bg-teal-100 text-teal-950 ring-2 ring-teal-600/40",
-  "border-2 border-indigo-500 bg-indigo-100 text-indigo-950 ring-2 ring-indigo-600/40",
-  "border-2 border-rose-500 bg-rose-100 text-rose-950 ring-2 ring-rose-600/40",
-  "border-2 border-violet-500 bg-violet-100 text-violet-950 ring-2 ring-violet-600/40",
-  "border-2 border-emerald-500 bg-emerald-100 text-emerald-950 ring-2 ring-emerald-600/40",
-  "border-2 border-sky-500 bg-sky-100 text-sky-950 ring-2 ring-sky-600/40",
-  "border-2 border-cyan-500 bg-cyan-100 text-cyan-950 ring-2 ring-cyan-600/40",
-  "border-2 border-red-500 bg-red-100 text-red-950 ring-2 ring-red-600/40",
-  "border-2 border-amber-500 bg-amber-100 text-amber-950 ring-2 ring-amber-600/40",
-  "border-2 border-lime-500 bg-lime-100 text-lime-950 ring-2 ring-lime-600/40",
-  "border-2 border-fuchsia-500 bg-fuchsia-100 text-fuchsia-950 ring-2 ring-fuchsia-600/40",
-  "border-2 border-blue-500 bg-blue-100 text-blue-950 ring-2 ring-blue-600/40",
-  "border-2 border-pink-500 bg-pink-100 text-pink-950 ring-2 ring-pink-600/40",
-  "border-2 border-green-600 bg-green-100 text-green-950 ring-2 ring-green-600/40",
-  "border-2 border-purple-600 bg-purple-100 text-purple-950 ring-2 ring-purple-600/40",
-  "border-2 border-yellow-500 bg-yellow-100 text-yellow-950 ring-2 ring-yellow-600/40",
-  "border-2 border-slate-500 bg-slate-100 text-slate-950 ring-2 ring-slate-600/40",
-  "border-2 border-zinc-500 bg-zinc-100 text-zinc-950 ring-2 ring-zinc-600/40",
-  "border-2 border-stone-500 bg-stone-100 text-stone-950 ring-2 ring-stone-600/40",
-  "border-2 border-gray-500 bg-gray-100 text-gray-950 ring-2 ring-gray-600/40",
-  "border-2 border-neutral-500 bg-neutral-100 text-neutral-950 ring-2 ring-neutral-600/40",
-  "border-2 border-blue-800 bg-blue-200 text-blue-950 ring-2 ring-blue-800/40",
-  "border-2 border-rose-700 bg-rose-200 text-rose-950 ring-2 ring-rose-700/40",
+  "ui-pill border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/80 ring-2 ring-[var(--line)]",
+  "ui-pill border-[color-mix(in_srgb,var(--brand-primary)_22%,var(--line))] bg-[var(--accent-soft)] text-[var(--accent-strong)] ring-2 ring-[color-mix(in_srgb,var(--brand-primary)_15%,transparent)]",
+  "ui-pill border-[#d9d3c8] bg-[#ebe6de] text-[#5a5248] ring-2 ring-[#d9d3c8]/50",
+  "ui-pill border-[#cfc7b6] bg-[#e3ddd1] text-[#4f483e] ring-2 ring-[#cfc7b6]/50",
+  "ui-pill border-[color-mix(in_srgb,var(--brand-primary)_18%,var(--line))] bg-[color-mix(in_srgb,var(--brand-primary)_6%,var(--surface))] text-[color-mix(in_srgb,var(--brand-primary)_70%,var(--foreground))] ring-2 ring-[color-mix(in_srgb,var(--brand-primary)_12%,transparent)]",
+  "ui-pill border-[#d4cec2] bg-[#f0ebe3] text-[#5c554a] ring-2 ring-[#d4cec2]/50",
+  "ui-pill border-[#c9c0b0] bg-[#e8e2d6] text-[#524b40] ring-2 ring-[#c9c0b0]/50",
+  "ui-pill border-[color-mix(in_srgb,var(--brand-primary)_15%,var(--line))] bg-[color-mix(in_srgb,var(--brand-primary)_4%,var(--surface-soft))] text-[color-mix(in_srgb,var(--brand-primary)_65%,var(--foreground))] ring-2 ring-[color-mix(in_srgb,var(--brand-primary)_10%,transparent)]",
 ] as const;
 
 export type AdminAvatarMetaResolved = {
@@ -127,174 +78,36 @@ export type AdminAvatarMetaResolved = {
 };
 
 const AVATAR_META_VARIANTS: readonly AdminAvatarMetaResolved[] = [
-  {
-    gender: "female",
-    avatarBg: "bg-orange-200",
-    avatarText: "text-orange-950",
-    calendarColor: "#c2410c",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-teal-200",
-    avatarText: "text-teal-950",
-    calendarColor: "#0f766e",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-indigo-200",
-    avatarText: "text-indigo-950",
-    calendarColor: "#4338ca",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-rose-200",
-    avatarText: "text-rose-950",
-    calendarColor: "#be123c",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-violet-200",
-    avatarText: "text-violet-950",
-    calendarColor: "#6d28d9",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-emerald-200",
-    avatarText: "text-emerald-950",
-    calendarColor: "#047857",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-sky-200",
-    avatarText: "text-sky-950",
-    calendarColor: "#0369a1",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-cyan-200",
-    avatarText: "text-cyan-950",
-    calendarColor: "#0e7490",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-red-200",
-    avatarText: "text-red-950",
-    calendarColor: "#b91c1c",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-amber-200",
-    avatarText: "text-amber-950",
-    calendarColor: "#d97706",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-lime-200",
-    avatarText: "text-lime-950",
-    calendarColor: "#65a30d",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-fuchsia-200",
-    avatarText: "text-fuchsia-950",
-    calendarColor: "#c026d3",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-blue-200",
-    avatarText: "text-blue-950",
-    calendarColor: "#2563eb",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-pink-200",
-    avatarText: "text-pink-950",
-    calendarColor: "#db2777",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-green-200",
-    avatarText: "text-green-950",
-    calendarColor: "#16a34a",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-purple-200",
-    avatarText: "text-purple-950",
-    calendarColor: "#9333ea",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-yellow-200",
-    avatarText: "text-yellow-950",
-    calendarColor: "#ca8a04",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-slate-200",
-    avatarText: "text-slate-950",
-    calendarColor: "#475569",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-zinc-200",
-    avatarText: "text-zinc-950",
-    calendarColor: "#71717a",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-stone-200",
-    avatarText: "text-stone-950",
-    calendarColor: "#57534e",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-gray-200",
-    avatarText: "text-gray-950",
-    calendarColor: "#4b5563",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-neutral-200",
-    avatarText: "text-neutral-950",
-    calendarColor: "#525252",
-  },
-  {
-    gender: "female",
-    avatarBg: "bg-blue-300",
-    avatarText: "text-blue-950",
-    calendarColor: "#1e40af",
-  },
-  {
-    gender: "male",
-    avatarBg: "bg-rose-300",
-    avatarText: "text-rose-950",
-    calendarColor: "#9f1239",
-  },
+  { gender: "female", avatarBg: "bg-[var(--surface-soft)]", avatarText: "text-[color:var(--foreground)]/75", calendarColor: "#78716c" },
+  { gender: "male", avatarBg: "bg-[var(--accent-soft)]", avatarText: "text-[var(--accent-strong)]", calendarColor: "#5c6b5a" },
+  { gender: "female", avatarBg: "bg-[#ebe6de]", avatarText: "text-[#5a5248]", calendarColor: "#6b6358" },
+  { gender: "male", avatarBg: "bg-[#e3ddd1]", avatarText: "text-[#4f483e]", calendarColor: "#5a5248" },
+  { gender: "female", avatarBg: "bg-[color-mix(in_srgb,var(--brand-primary)_8%,var(--surface))]", avatarText: "text-[var(--accent-strong)]", calendarColor: "#4a6b5d" },
+  { gender: "male", avatarBg: "bg-[#f0ebe3]", avatarText: "text-[#5c554a]", calendarColor: "#6d665c" },
+  { gender: "female", avatarBg: "bg-[#e8e2d6]", avatarText: "text-[#524b40]", calendarColor: "#524b40" },
+  { gender: "male", avatarBg: "bg-[color-mix(in_srgb,var(--brand-primary)_5%,var(--surface-soft))]", avatarText: "text-[color-mix(in_srgb,var(--brand-primary)_70%,var(--foreground))]", calendarColor: "#4f5d4e" },
 ];
 
 export function getAdminColorPaletteSize(): number {
   return BADGE_VARIANTS.length;
 }
 
-
 function adminColorIdx(name: string): number {
   return getAdminColorIndex(name, BADGE_VARIANTS.length);
 }
 
 export function adminBadgeClassFor(name: string): string {
-  if (!name.trim()) return "border-slate-200 bg-slate-50 text-slate-700";
+  if (!name.trim()) return "ui-pill ui-pill-neutral";
   return BADGE_VARIANTS[adminColorIdx(name)] ?? BADGE_VARIANTS[0];
 }
 
-
 export function adminSolidColorFor(name: string): string {
-  if (!name.trim()) return "#94a3b8";
+  if (!name.trim()) return "#78716c";
   return SOLID_COLORS[adminColorIdx(name)] ?? SOLID_COLORS[0];
 }
 
 export function adminFilterPillClassFor(name: string): string {
-  if (!name.trim()) return "bg-[var(--surface-soft)] text-[color:var(--foreground)]/60 border-[var(--line)]";
+  if (!name.trim()) return "ui-pill ui-pill-neutral";
   return FILTER_PILL_VARIANTS[adminColorIdx(name)] ?? FILTER_PILL_VARIANTS[0];
 }
 
@@ -304,31 +117,29 @@ export function adminAvatarMetaFor(name: string): AdminAvatarMetaResolved {
       gender: "male",
       avatarBg: "bg-[var(--surface-soft)]",
       avatarText: "text-[color:var(--foreground)]/55",
-      calendarColor: "#64748b",
+      calendarColor: "#78716c",
     };
   }
   return AVATAR_META_VARIANTS[adminColorIdx(name)] ?? AVATAR_META_VARIANTS[0];
 }
 
-
-
 export const domainCalendarColors: Record<string, string> = {
-  "🖥️ Digitale": "#3b82f6",
-  "📮 Client": "#8b5cf6",
-  "🎟️ Event": "#f59e0b",
-  "🌎 General": "#10b981",
-  "🖨️ Print": "#ec4899",
-  "📰 Presse": "#06b6d4",
+  "🖥️ Digitale": "#5c6b5a",
+  "📮 Client": "#6b6358",
+  "🎟️ Event": "#a68a5b",
+  "🌎 General": "#4a6b5d",
+  "🖨️ Print": "#9a7b6b",
+  "📰 Presse": "#5b8a8a",
 };
 
-export const defaultDomainColor = "#64748b";
+export const defaultDomainColor = "#78716c";
 
 export const domainTagStyles: Record<string, string> = {
-  "🖥️ Digitale": "border-blue-200 bg-blue-50 text-blue-700",
-  "📮 Client": "border-violet-200 bg-violet-50 text-violet-700",
-  "🎟️ Event": "border-amber-200 bg-amber-50 text-amber-700",
-  "🌎 General": "border-emerald-200 bg-emerald-50 text-emerald-700",
-  "🖨️ Print": "border-pink-200 bg-pink-50 text-pink-700",
-  "📰 Presse": "border-cyan-200 bg-cyan-50 text-cyan-700",
-  default: "border-slate-200 bg-slate-50 text-slate-700",
+  "🖥️ Digitale": "ui-pill ui-pill-brand",
+  "📮 Client": "ui-pill ui-pill-neutral",
+  "🎟️ Event": "ui-pill ui-pill-warning",
+  "🌎 General": "ui-pill ui-pill-success",
+  "🖨️ Print": "ui-pill ui-pill-neutral",
+  "📰 Presse": "ui-pill ui-pill-brand",
+  default: "ui-pill ui-pill-neutral",
 };

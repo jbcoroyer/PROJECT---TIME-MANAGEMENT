@@ -152,7 +152,7 @@ function LoadBar(props: { hours: number; capacity: number; color: string }) {
   const pct = Math.min((props.hours / props.capacity) * 100, 100);
   const overflow = props.hours > props.capacity;
   const barColor =
-    overflow ? "#e11d48" : pct >= 90 ? "#f59e0b" : pct >= 70 ? "#f97316" : props.color;
+    overflow ? "var(--danger)" : pct >= 90 ? "var(--warning)" : pct >= 70 ? "var(--warning)" : props.color;
 
   return (
     <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-[var(--surface-soft)]">
@@ -168,25 +168,25 @@ function StatusBadge(props: { hours: number }) {
   const pct = (props.hours / WEEKLY_CAPACITY) * 100;
   if (pct > 100)
     return (
-      <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-700">
+      <span className="ui-pill ui-pill-danger px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide">
         Surchargé
       </span>
     );
   if (pct >= 90)
     return (
-      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+      <span className="ui-pill ui-pill-warning px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide">
         Presque plein
       </span>
     );
   if (pct >= 50)
     return (
-      <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-700">
+      <span className="ui-pill ui-pill-warning px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide">
         Chargé
       </span>
     );
   if (pct > 0)
     return (
-      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+      <span className="ui-pill ui-pill-success px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide">
         Disponible
       </span>
     );
@@ -210,9 +210,9 @@ function TaskRow(props: { task: Task; now: number }) {
       className={[
         "flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm",
         isOverdue
-          ? "border-rose-200 bg-rose-50/50"
+          ? "border-[color-mix(in_srgb,var(--danger)_22%,var(--line))] bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))]/50"
           : isUrgent
-            ? "border-amber-200 bg-amber-50/30"
+            ? "border-[color-mix(in_srgb,var(--warning)_22%,var(--line))] bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface))]/30"
             : "border-[var(--line)] bg-[var(--surface)]",
       ].join(" ")}
     >
@@ -221,9 +221,9 @@ function TaskRow(props: { task: Task; now: number }) {
         className={[
           "h-7 w-1 shrink-0 rounded-full",
           isOverdue
-            ? "bg-rose-500"
+            ? "bg-[var(--danger)]"
             : task.priority === "Haute"
-              ? "bg-amber-400"
+              ? "bg-[var(--warning)]"
               : "bg-[var(--line-strong)]",
         ].join(" ")}
       />
@@ -265,9 +265,9 @@ function TaskRow(props: { task: Task; now: number }) {
           className={[
             "hidden items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium sm:inline-flex",
             isOverdue
-              ? "border-rose-200 bg-rose-50 text-rose-700"
+              ? "border-[color-mix(in_srgb,var(--danger)_22%,var(--line))] bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))] text-[var(--danger)]"
               : isUrgent
-                ? "border-amber-200 bg-amber-50 text-amber-700"
+                ? "border-[color-mix(in_srgb,var(--warning)_22%,var(--line))] bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface))] text-[var(--warning)]"
                 : "border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/65",
           ].join(" ")}
         >
@@ -291,7 +291,7 @@ function TaskRow(props: { task: Task; now: number }) {
         <AlertTriangle
           className={[
             "h-4 w-4 shrink-0",
-            isOverdue ? "text-rose-500" : "text-amber-500",
+            isOverdue ? "text-[var(--danger)]" : "text-[var(--warning)]",
           ].join(" ")}
         />
       )}
@@ -361,7 +361,7 @@ function AdminCard(props: {
                 <span className="ml-1 text-[10px] text-[color:var(--foreground)]/40">(estimation)</span>
               )}
             </span>
-            <span className="font-bold" style={{ color: pct > 100 ? "#e11d48" : color }}>
+            <span className="font-bold" style={{ color: pct > 100 ? "var(--danger)" : color }}>
               {displayHours.toFixed(1)}h / {WEEKLY_CAPACITY}h
               <span className="ml-1 text-[color:var(--foreground)]/50">({pct}%)</span>
             </span>
@@ -381,13 +381,13 @@ function AdminCard(props: {
         {/* Compteurs urgences / retards */}
         <div className="mb-4 flex flex-wrap gap-2">
           {urgentCount > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">
+            <span className="ui-pill ui-pill-warning inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold">
               <AlertTriangle className="h-3 w-3" />
               {urgentCount} urgente{urgentCount > 1 ? "s" : ""}
             </span>
           )}
           {overdueCount > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700">
+            <span className="ui-pill ui-pill-danger inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold">
               <AlertTriangle className="h-3 w-3" />
               {overdueCount} en retard
             </span>
@@ -610,15 +610,15 @@ export default function WorkloadView(props: {
             </p>
           </div>
           {totalUrgent > 0 && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center">
-              <p className="text-xl font-bold text-amber-700">{totalUrgent}</p>
-              <p className="text-[10px] uppercase tracking-wide text-amber-600">urgentes</p>
+            <div className="ui-alert ui-alert-warning rounded-xl px-3 py-2 text-center">
+              <p className="text-xl font-bold text-[var(--warning)]">{totalUrgent}</p>
+              <p className="text-[10px] uppercase tracking-wide text-[color-mix(in_srgb,var(--warning)_75%,var(--foreground))]">urgentes</p>
             </div>
           )}
           {totalOverdue > 0 && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-center">
-              <p className="text-xl font-bold text-rose-700">{totalOverdue}</p>
-              <p className="text-[10px] uppercase tracking-wide text-rose-600">en retard</p>
+            <div className="ui-alert ui-alert-danger rounded-xl px-3 py-2 text-center">
+              <p className="text-xl font-bold text-[var(--danger)]">{totalOverdue}</p>
+              <p className="text-[10px] uppercase tracking-wide text-[color-mix(in_srgb,var(--danger)_75%,var(--foreground))]">en retard</p>
             </div>
           )}
         </div>

@@ -13,6 +13,7 @@ import {
   DEFAULT_BRANDING,
   mergeBranding,
   mapAppSettingsRow,
+  brandingStyleVars,
   type AppBranding,
 } from "./branding";
 import { LEGACY_ORG_ID } from "./tenantConstants";
@@ -36,7 +37,10 @@ const APP_SETTINGS_SELECT =
 function applyBrandingToDocument(branding: AppBranding) {
   if (typeof document === "undefined") return;
   document.documentElement.lang = branding.locale.trim().split(/[-_]/)[0] || "fr";
-  document.documentElement.style.setProperty("--brand-primary", branding.primaryColor);
+  const vars = brandingStyleVars(branding.primaryColor);
+  Object.entries(vars).forEach(([key, value]) => {
+    document.documentElement.style.setProperty(key, value);
+  });
 }
 
 export function BrandingProvider({ children }: { children: ReactNode }) {
@@ -52,12 +56,18 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
 
     let organizationId: string | null = null;
     if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("organization_id")
-        .eq("id", user.id)
-        .maybeSingle();
-      organizationId = (profile?.organization_id as string | null) ?? null;
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("organization_id")
+          .eq("id", user.id)
+          .maybeSingle();
+        organizationId = (profile?.organization_id as string | null) ?? null;
+        if (organizationId) break;
+        if (attempt < 5) {
+          await new Promise((resolve) => window.setTimeout(resolve, 350));
+        }
+      }
     }
 
     let query = supabase.from("app_settings").select(APP_SETTINGS_SELECT);
@@ -66,6 +76,10 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
       query = query.eq("organization_id", organizationId);
     } else if (!user) {
       query = query.eq("organization_id", LEGACY_ORG_ID);
+    } else {
+      setBranding(DEFAULT_BRANDING);
+      setLoading(false);
+      return;
     }
 
     const { data, error } = await query.maybeSingle();

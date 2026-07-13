@@ -43,19 +43,19 @@ const STATUS_COLS: {
     status: "nouveau",
     label: "Nouvelles",
     icon: Sparkles,
-    accent: "border-sky-300 bg-sky-50/80 text-sky-950",
+    accent: "border-[color-mix(in_srgb,var(--brand-primary)_20%,var(--line))] bg-[var(--accent-soft)] text-[var(--accent-strong)]",
   },
   {
     status: "etude",
     label: "À creuser",
     icon: Lightbulb,
-    accent: "border-amber-300 bg-amber-50/80 text-amber-950",
+    accent: "border-[color-mix(in_srgb,var(--warning)_20%,var(--line))] bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface))] text-[color-mix(in_srgb,var(--warning)_85%,var(--foreground))]",
   },
   {
     status: "adopte",
     label: "Adoptées",
     icon: CheckCircle2,
-    accent: "border-emerald-300 bg-emerald-50/80 text-emerald-950",
+    accent: "border-[color-mix(in_srgb,var(--success)_20%,var(--line))] bg-[color-mix(in_srgb,var(--success)_8%,var(--surface))] text-[color-mix(in_srgb,var(--success)_85%,var(--foreground))]",
   },
   {
     status: "archive",
@@ -351,7 +351,7 @@ function IdeaCard(props: {
           <button
             type="button"
             onClick={onRemove}
-            className="ui-transition ml-auto inline-flex items-center gap-1 rounded-lg border border-transparent px-2 py-1 text-[10px] font-semibold text-rose-600 hover:bg-rose-50"
+            className="ui-transition ui-btn ui-btn-ghost ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-semibold text-[var(--danger)] hover:bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))]"
             title="Supprimer"
           >
             <Trash2 className="h-3 w-3" />

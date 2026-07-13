@@ -1,24 +1,21 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdmin } from "../../../../lib/server/supabaseAdmin";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
+import { isUuid } from "../../../../lib/server/orgValidation";
 import { ideaFromRow } from "../../../../lib/stockIdeasApi";
 import type { StockIdeaCategory } from "../../../../lib/stockIdeasTypes";
 
-const SELECT = "id, created_at, title, description, category, status";
+const SELECT = "id, created_at, title, description, category, status, votes";
 
 async function resolveOrganizationId(request: Request): Promise<string | null> {
   const ctx = await getServerOrgContext();
   if (ctx) return ctx.organizationId;
 
   const orgId = new URL(request.url).searchParams.get("org");
-  if (!orgId) return null;
+  if (!orgId || !isUuid(orgId)) return null;
 
   const admin = createSupabaseAdmin();
-  const { data } = await admin
-    .from("organizations")
-    .select("id")
-    .eq("id", orgId)
-    .maybeSingle();
+  const { data } = await admin.from("organizations").select("id").eq("id", orgId).maybeSingle();
   return data?.id ?? null;
 }
 
@@ -69,10 +66,12 @@ export async function POST(request: Request) {
       status?: string;
     };
 
-    const title = String(body.title ?? "").trim();
+    const title = String(body.title ?? "").trim().slice(0, 200);
     if (!title) {
       return NextResponse.json({ error: "Titre requis." }, { status: 400 });
     }
+
+    const description = String(body.description ?? "").trim().slice(0, 5000) || null;
 
     const validCategories = new Set<StockIdeaCategory>(["materiel", "process", "communication", "autre"]);
     const category = validCategories.has(body.category as StockIdeaCategory)
@@ -84,7 +83,7 @@ export async function POST(request: Request) {
       .from("stock_ideas")
       .insert({
         title,
-        description: String(body.description ?? "").trim() || null,
+        description,
         category,
         status: "nouveau",
         organization_id: organizationId,

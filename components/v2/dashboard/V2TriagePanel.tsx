@@ -1,7 +1,7 @@
 "use client";
 
-import { AlertTriangle, Check, Database, HardDrive, Inbox, Sparkles, UserCheck, X } from "lucide-react";
-import type { IntakeBackend, IntakeRequest } from "../../../lib/v2/intake";
+import { AlertTriangle, Check, Database, Inbox, Sparkles, UserCheck, X } from "lucide-react";
+import type { IntakeRequest } from "../../../lib/v2/intake";
 import type { Task } from "../../../lib/types";
 import { findDuplicateTasks, suggestAssignee } from "../../../lib/v2/triage";
 
@@ -14,7 +14,6 @@ function formatDeadline(value: string): string {
 
 export default function V2TriagePanel({
   requests,
-  backend,
   loading,
   tasks = [],
   admins = [],
@@ -23,7 +22,6 @@ export default function V2TriagePanel({
   onOpenTask,
 }: {
   requests: IntakeRequest[];
-  backend: IntakeBackend;
   loading: boolean;
   tasks?: Task[];
   admins?: string[];
@@ -50,8 +48,8 @@ export default function V2TriagePanel({
             </div>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
-            {backend === "supabase" ? <Database className="h-3.5 w-3.5" /> : <HardDrive className="h-3.5 w-3.5" />}
-            {backend === "supabase" ? "Partagé" : "Local"}
+            <Database className="h-3.5 w-3.5" />
+            Partagé
           </span>
         </div>
 
@@ -119,8 +117,8 @@ export default function V2TriagePanel({
                       ) : null}
                     </div>
                     {duplicates.length > 0 ? (
-                      <div className="mt-2 rounded-lg border border-[var(--warning)]/40 bg-amber-50 p-2">
-                        <p className="flex items-center gap-1 text-[11px] font-semibold text-amber-800">
+                      <div className="ui-alert ui-alert-warning mt-2 rounded-lg p-2">
+                        <p className="flex items-center gap-1 text-[11px] font-semibold text-[var(--warning)]">
                           <AlertTriangle className="h-3 w-3" /> Doublon possible
                         </p>
                         <ul className="mt-1 space-y-0.5">
@@ -129,7 +127,7 @@ export default function V2TriagePanel({
                               <button
                                 type="button"
                                 onClick={() => onOpenTask?.(d.task.id)}
-                                className="ui-transition text-left text-[11px] text-amber-900 underline decoration-dotted hover:text-amber-700"
+                                className="ui-transition text-left text-[11px] text-[color-mix(in_srgb,var(--warning)_85%,var(--foreground))] underline decoration-dotted hover:text-[var(--warning)]"
                               >
                                 {d.task.projectName} ({Math.round(d.score * 100)}%)
                               </button>

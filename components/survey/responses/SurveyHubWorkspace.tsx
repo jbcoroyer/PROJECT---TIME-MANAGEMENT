@@ -149,7 +149,7 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
                   className={[
                     "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
                     meta.status === "active"
-                      ? "bg-emerald-50 text-emerald-700"
+                      ? "ui-pill ui-pill-success"
                       : "bg-[var(--surface-soft)] text-[color:var(--foreground)]/55",
                   ].join(" ")}
                 >

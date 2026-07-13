@@ -7,6 +7,7 @@ export type StockIdeaDto = {
   description: string;
   category: StockIdeaCategory;
   status: StockIdeaStatus;
+  votes: number;
 };
 
 export function ideaFromRow(row: {
@@ -16,6 +17,7 @@ export function ideaFromRow(row: {
   description: string | null;
   category: StockIdeaCategory;
   status: StockIdeaStatus;
+  votes?: number | null;
 }): StockIdeaDto {
   return {
     id: row.id,
@@ -24,6 +26,7 @@ export function ideaFromRow(row: {
     description: row.description ?? "",
     category: row.category,
     status: row.status,
+    votes: row.votes ?? 0,
   };
 }
 

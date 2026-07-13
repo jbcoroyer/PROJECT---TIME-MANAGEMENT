@@ -42,8 +42,11 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const CALENDAR_VIEWS: View[] = ["month", "week", "day", "agenda"];
+const CALENDAR_EXTRA_COLOR = domainCalendarColors["🌎 General"] ?? defaultDomainColor;
+const CALENDAR_SALON_COLOR = domainCalendarColors["🎟️ Event"] ?? defaultDomainColor;
+const CALENDAR_DEADLINE_COLOR = "var(--danger)";
 
+const CALENDAR_VIEWS: View[] = ["month", "week", "day", "agenda"];
 type CalendarEventResource = {
   task?: Task;
   domain?: string;
@@ -112,7 +115,10 @@ function ExtraEventCard(props: { event: CalendarEvent }) {
           {ex.salon}
         </p>
       )}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal-200/80" />
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[2px]"
+        style={{ backgroundColor: `color-mix(in srgb, ${CALENDAR_EXTRA_COLOR} 55%, transparent)` }}
+      />
     </div>
   );
 }
@@ -134,7 +140,10 @@ function SalonEventCard(props: { event: CalendarEvent }) {
           {se.location}
         </p>
       ) : null}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-amber-200/90" />
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[2px]"
+        style={{ backgroundColor: `color-mix(in srgb, ${CALENDAR_SALON_COLOR} 55%, transparent)` }}
+      />
     </div>
   );
 }
@@ -420,7 +429,7 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
                   onDelete();
                   onClose();
                 }}
-                className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-800 hover:bg-rose-100"
+                className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Supprimer
@@ -621,7 +630,7 @@ export default function CalendarView(props: {
         resource: {
           kind: "extra",
           owner: defaultOwner,
-          ownerColor: "#0d9488",
+          ownerColor: CALENDAR_EXTRA_COLOR,
           extra: ex,
         },
       });
@@ -645,7 +654,7 @@ export default function CalendarView(props: {
         resource: {
           kind: "salon",
           owner: defaultOwner,
-          ownerColor: "#d97706",
+          ownerColor: CALENDAR_SALON_COLOR,
           salonEvent: ev,
         },
       });
@@ -746,15 +755,21 @@ export default function CalendarView(props: {
             );
           })}
           <span className="inline-flex items-center gap-1.5 text-[11px] text-[color:var(--foreground)]/55">
-            <span className="inline-block h-3 w-3 rounded-full bg-rose-500" />
+            <span className="inline-block h-3 w-3 rounded-full bg-[var(--danger)]" />
             Deadline
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-[color:var(--foreground)]/55">
-            <span className="inline-block h-3 w-3 rounded-full bg-teal-600" />
+            <span
+              className="inline-block h-3 w-3 rounded-full"
+              style={{ backgroundColor: CALENDAR_EXTRA_COLOR }}
+            />
             Agenda perso
           </span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-[color:var(--foreground)]/55">
-            <span className="inline-block h-3 w-3 rounded-full bg-amber-600" />
+            <span
+              className="inline-block h-3 w-3 rounded-full"
+              style={{ backgroundColor: CALENDAR_SALON_COLOR }}
+            />
             Salon
           </span>
         </div>
@@ -806,8 +821,8 @@ export default function CalendarView(props: {
               if (kind === "extra") {
                 return {
                   style: {
-                    backgroundColor: "#0f766e",
-                    borderColor: "#115e59",
+                    backgroundColor: CALENDAR_EXTRA_COLOR,
+                    borderColor: `${CALENDAR_EXTRA_COLOR}cc`,
                     color: "#fff",
                     borderRadius: "8px",
                     padding: "2px 4px",
@@ -818,8 +833,8 @@ export default function CalendarView(props: {
               if (kind === "salon") {
                 return {
                   style: {
-                    backgroundColor: "#d97706",
-                    borderColor: "#b45309",
+                    backgroundColor: CALENDAR_SALON_COLOR,
+                    borderColor: `${CALENDAR_SALON_COLOR}cc`,
                     color: "#fff",
                     borderRadius: "8px",
                     padding: "2px 4px",
@@ -835,8 +850,8 @@ export default function CalendarView(props: {
               if (isDeadline) {
                 return {
                   style: {
-                    backgroundColor: "#e11d48",
-                    borderColor: "#be123c",
+                    backgroundColor: CALENDAR_DEADLINE_COLOR,
+                    borderColor: "color-mix(in srgb, var(--danger) 85%, var(--foreground))",
                     color: "#fff",
                     borderRadius: "8px",
                     padding: "2px 4px",

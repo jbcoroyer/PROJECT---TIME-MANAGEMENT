@@ -174,7 +174,7 @@ export default function EventRunOfShow(props: Props) {
               <button
                 type="button"
                 onClick={() => void removeSlot(slot.id)}
-                className="ui-transition rounded-lg border border-rose-200 bg-rose-50 p-2 text-rose-700"
+                className="ui-transition ui-btn ui-btn-outline-danger rounded-lg p-2"
                 aria-label="Supprimer"
               >
                 <Trash2 className="h-4 w-4" />

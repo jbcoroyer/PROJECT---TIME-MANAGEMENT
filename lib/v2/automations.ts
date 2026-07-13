@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "../supabaseBrowser";
 import {
   AUTOMATION_PROCESSED_SESSION_KEY,
@@ -33,10 +32,6 @@ export type AutomationRule = {
   actionParams: Record<string, string>;
   sortOrder: number;
 };
-
-export type AutomationBackend = "supabase" | "local";
-
-const LOCAL_KEY = "v2-automation-rules";
 
 function loadProcessedAutomationKeys(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -105,52 +100,22 @@ function rowToRule(row: RuleRow): AutomationRule {
   };
 }
 
-function readLocal(): AutomationRule[] {
-  try {
-    const raw = window.localStorage.getItem(LOCAL_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as AutomationRule[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeLocal(rules: AutomationRule[]) {
-  try {
-    window.localStorage.setItem(LOCAL_KEY, JSON.stringify(rules));
-  } catch {
-    /* quota / private mode : ignoré */
-  }
-}
-
-function newId(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `rule-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-async function detectBackend(supabase: SupabaseClient): Promise<AutomationBackend> {
-  const { error } = await supabase.from("automation_rules").select("id").limit(1);
-  return error ? "local" : "supabase";
-}
-
 export function useAutomationRules() {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [rules, setRules] = useState<AutomationRule[]>([]);
-  const [backend, setBackend] = useState<AutomationBackend>("local");
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
     setLoading(true);
-    const mode = await detectBackend(supabase);
-    setBackend(mode);
-    if (mode === "supabase") {
-      const { data } = await supabase
-        .from("automation_rules")
-        .select("*")
-        .order("sort_order", { ascending: true });
-      setRules(((data ?? []) as RuleRow[]).map(rowToRule));
+    const { data, error } = await supabase
+      .from("automation_rules")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (error) {
+      console.error("automation_rules load failed", error);
+      setRules([]);
     } else {
-      setRules(readLocal().sort((a, b) => a.sortOrder - b.sortOrder));
+      setRules(((data ?? []) as RuleRow[]).map(rowToRule));
     }
     setLoading(false);
   }, [supabase]);
@@ -162,77 +127,60 @@ export function useAutomationRules() {
   const createRule = useCallback(
     async (rule: Omit<AutomationRule, "id" | "sortOrder">) => {
       const sortOrder = rules.length;
-      if (backend === "supabase") {
-        const { data } = await supabase
-          .from("automation_rules")
-          .insert({
-            enabled: rule.enabled,
-            name: rule.name,
-            trigger_type: rule.triggerType,
-            trigger_params: rule.triggerParams,
-            action_type: rule.actionType,
-            action_params: rule.actionParams,
-            sort_order: sortOrder,
-          })
-          .select()
-          .single();
-        if (data) setRules((prev) => [...prev, rowToRule(data as RuleRow)]);
+      const { data, error } = await supabase
+        .from("automation_rules")
+        .insert({
+          enabled: rule.enabled,
+          name: rule.name,
+          trigger_type: rule.triggerType,
+          trigger_params: rule.triggerParams,
+          action_type: rule.actionType,
+          action_params: rule.actionParams,
+          sort_order: sortOrder,
+        })
+        .select()
+        .single();
+      if (error) {
+        console.error("automation_rules insert failed", error);
         return;
       }
-      const created: AutomationRule = { ...rule, id: newId(), sortOrder };
-      setRules((prev) => {
-        const next = [...prev, created];
-        writeLocal(next);
-        return next;
-      });
+      if (data) setRules((prev) => [...prev, rowToRule(data as RuleRow)]);
     },
-    [backend, rules.length, supabase],
+    [rules.length, supabase],
   );
 
   const updateRule = useCallback(
     async (id: string, patch: Partial<AutomationRule>) => {
-      setRules((prev) => {
-        const next = prev.map((r) => (r.id === id ? { ...r, ...patch } : r));
-        if (backend === "local") writeLocal(next);
-        return next;
-      });
-      if (backend === "supabase") {
-        const dbPatch: Record<string, unknown> = { updated_at: new Date().toISOString() };
-        if (patch.enabled !== undefined) dbPatch.enabled = patch.enabled;
-        if (patch.name !== undefined) dbPatch.name = patch.name;
-        if (patch.triggerType !== undefined) dbPatch.trigger_type = patch.triggerType;
-        if (patch.triggerParams !== undefined) dbPatch.trigger_params = patch.triggerParams;
-        if (patch.actionType !== undefined) dbPatch.action_type = patch.actionType;
-        if (patch.actionParams !== undefined) dbPatch.action_params = patch.actionParams;
-        await supabase.from("automation_rules").update(dbPatch).eq("id", id);
-      }
+      setRules((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+      const dbPatch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (patch.enabled !== undefined) dbPatch.enabled = patch.enabled;
+      if (patch.name !== undefined) dbPatch.name = patch.name;
+      if (patch.triggerType !== undefined) dbPatch.trigger_type = patch.triggerType;
+      if (patch.triggerParams !== undefined) dbPatch.trigger_params = patch.triggerParams;
+      if (patch.actionType !== undefined) dbPatch.action_type = patch.actionType;
+      if (patch.actionParams !== undefined) dbPatch.action_params = patch.actionParams;
+      const { error } = await supabase.from("automation_rules").update(dbPatch).eq("id", id);
+      if (error) console.error("automation_rules update failed", error);
     },
-    [backend, supabase],
+    [supabase],
   );
 
   const deleteRule = useCallback(
     async (id: string) => {
-      setRules((prev) => {
-        const next = prev.filter((r) => r.id !== id);
-        if (backend === "local") writeLocal(next);
-        return next;
-      });
-      if (backend === "supabase") {
-        await supabase.from("automation_rules").delete().eq("id", id);
-      }
+      setRules((prev) => prev.filter((r) => r.id !== id));
+      const { error } = await supabase.from("automation_rules").delete().eq("id", id);
+      if (error) console.error("automation_rules delete failed", error);
     },
-    [backend, supabase],
+    [supabase],
   );
 
-  return { rules, backend, loading, reload, createRule, updateRule, deleteRule };
+  return { rules, loading, reload, createRule, updateRule, deleteRule };
 }
 
 export function taskMatchesTrigger(rule: AutomationRule, task: Task, now: number): boolean {
   if (task.isArchived || task.parentTaskId) return false;
   switch (rule.triggerType) {
     case "task_created": {
-      // Ne se déclenche que sur les tâches réellement récentes (évite d'agir sur
-      // tout l'historique au premier chargement).
       if (task.createdAt) {
         const created = new Date(task.createdAt).getTime();
         if (Number.isFinite(created) && now - created > 10 * 60 * 1000) return false;
@@ -257,11 +205,6 @@ export function taskMatchesTrigger(rule: AutomationRule, task: Task, now: number
 
 export type AutomationActionRunner = (rule: AutomationRule, task: Task) => void | Promise<void>;
 
-/**
- * Applique les règles activées aux tâches (côté client, V2).
- * Chaque couple (règle, tâche) n'est déclenché qu'une fois par session pour
- * éviter les boucles avec l'écho temps réel.
- */
 export function useAutomationRunner(params: {
   rules: AutomationRule[];
   tasks: Task[];

@@ -27,7 +27,7 @@ export default function BudgetGauge(props: BudgetGaugeProps) {
           </p>
         </div>
         {over && (
-          <span className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
+          <span className="ui-pill ui-pill-danger px-3 py-1 text-xs font-semibold">
             Dépassement
           </span>
         )}
@@ -36,7 +36,7 @@ export default function BudgetGauge(props: BudgetGaugeProps) {
         <div
           className={[
             "h-full rounded-full transition-[width] duration-500 ease-out",
-            over ? "bg-rose-600" : "bg-[color:var(--foreground)]/28",
+            over ? "bg-[var(--danger)]" : "bg-[color:var(--foreground)]/28",
           ].join(" ")}
           style={{ width: `${Math.min(100, allocated > 0 ? pct : consumed > 0 ? 100 : 0)}%` }}
         />

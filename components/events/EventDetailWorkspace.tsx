@@ -36,7 +36,8 @@ import type { Task } from "../../lib/types";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { formatCurrency, formatInventoryEventItemName, formatNumber } from "../../lib/stockUtils";
 import { useCurrentUser } from "../../lib/useCurrentUser";
-import { createSignedStorageUrl, uploadOrgFile } from "../../lib/storageClient";
+import { uploadOrgAsset } from "../../app/actions/storage";
+import { createSignedStorageUrl } from "../../lib/storageClient";
 import { orgStoragePath, type StorageBucket } from "../../lib/storagePaths";
 import { getInventoryErrorMessage } from "../../lib/useInventory";
 import { useEventTasks } from "../../lib/useEventTasks";
@@ -379,7 +380,7 @@ export default function EventDetailWorkspace({
       description: (
         <>
           <span className="font-semibold text-[var(--foreground)]">« {event.name} »</span> et{" "}
-          <span className="font-semibold text-rose-600">toutes ses tâches</span> seront définitivement
+          <span className="font-semibold text-[var(--danger)]">toutes ses tâches</span> seront définitivement
           supprimés. Cette action est irréversible.
         </>
       ),
@@ -410,14 +411,9 @@ export default function EventDetailWorkspace({
       for (const file of Array.from(files)) {
         const cleanedName = file.name.replace(/[^\w.\-]/g, "_");
         const relativePath = `${id}/${Date.now()}-${cleanedName}`;
-        const upload = await uploadOrgFile(
-          supabase,
-          EVENT_DOCUMENTS_BUCKET,
-          organizationId,
-          relativePath,
-          file,
-          { upsert: false, contentType: file.type || undefined },
-        );
+        const formData = new FormData();
+        formData.set("file", file);
+        const upload = await uploadOrgAsset(formData, EVENT_DOCUMENTS_BUCKET, relativePath);
         if (!upload.ok) throw new Error(upload.error);
         await supabase.from("event_document_meta").upsert(
           {
@@ -541,7 +537,7 @@ export default function EventDetailWorkspace({
         {loadingEvent ? (
           <p className="text-sm text-[color:var(--foreground)]/55">Chargement…</p>
         ) : !event ? (
-          <p className="text-sm text-rose-700">Événement introuvable.</p>
+          <p className="text-sm text-[var(--danger)]">Événement introuvable.</p>
         ) : (
           <>
             <header className="ui-surface rounded-[24px] p-6">
@@ -557,7 +553,7 @@ export default function EventDetailWorkspace({
                   type="button"
                   onClick={() => void handleDeleteEvent()}
                   disabled={deletingEvent}
-                  className="ui-transition inline-flex shrink-0 items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-800 hover:bg-rose-100 disabled:opacity-50"
+                  className="ui-transition ui-btn ui-btn-outline-danger inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" />
                   {deletingEvent ? "Suppression…" : "Supprimer l'événement"}
@@ -831,7 +827,7 @@ export default function EventDetailWorkspace({
                           <button
                             type="button"
                             onClick={() => void handleDeleteDocument(doc)}
-                            className="ui-transition rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                            className="ui-transition ui-btn ui-btn-outline-danger rounded-lg px-2 py-1 text-xs font-semibold"
                           >
                             Supprimer
                           </button>

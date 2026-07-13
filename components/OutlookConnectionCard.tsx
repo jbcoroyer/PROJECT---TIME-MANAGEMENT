@@ -118,20 +118,20 @@ export default function OutlookConnectionCard() {
       typeof window !== "undefined" &&
       (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      <div className="ui-alert ui-alert-warning rounded-xl px-4 py-3 text-sm">
         L&apos;intégration Microsoft 365 n&apos;est pas encore configurée côté serveur. Renseignez{" "}
-        <code className="mx-1 rounded bg-amber-100 px-1">MS_CLIENT_ID</code>,{" "}
-        <code className="mx-1 rounded bg-amber-100 px-1">MS_CLIENT_SECRET</code> et{" "}
-        <code className="mx-1 rounded bg-amber-100 px-1">MS_TENANT_ID</code>{" "}
+        <code className="mx-1 rounded bg-[color-mix(in_srgb,var(--warning)_12%,var(--surface))] px-1">MS_CLIENT_ID</code>,{" "}
+        <code className="mx-1 rounded bg-[color-mix(in_srgb,var(--warning)_12%,var(--surface))] px-1">MS_CLIENT_SECRET</code> et{" "}
+        <code className="mx-1 rounded bg-[color-mix(in_srgb,var(--warning)_12%,var(--surface))] px-1">MS_TENANT_ID</code>{" "}
         {isLocal ? (
           <>
-            dans <code className="mx-1 rounded bg-amber-100 px-1">.env.local</code>.
+            dans <code className="mx-1 rounded bg-[color-mix(in_srgb,var(--warning)_12%,var(--surface))] px-1">.env.local</code>.
           </>
         ) : (
           <>
             dans les variables d&apos;environnement Vercel (Production), puis redéployez. Ajoutez
             aussi l&apos;URI de redirection{" "}
-            <code className="mx-1 rounded bg-amber-100 px-1 break-all">
+            <code className="mx-1 rounded bg-[color-mix(in_srgb,var(--warning)_12%,var(--surface))] px-1 break-all">
               {`${getPublicAppOrigin() || "https://project-management-communication.vercel.app"}/api/outlook/callback`}
             </code>{" "}
             dans Azure (App registration → Authentication).
@@ -145,7 +145,7 @@ export default function OutlookConnectionCard() {
     return (
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--success)_10%,var(--surface))] text-[var(--success)]">
             <CalendarCheck2 className="h-5 w-5" />
           </span>
           <div>
@@ -177,7 +177,7 @@ export default function OutlookConnectionCard() {
             type="button"
             onClick={() => void handleDisconnect()}
             disabled={busy}
-            className="ui-transition flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 disabled:opacity-50"
+            className="ui-transition ui-btn ui-btn-outline-danger flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold disabled:opacity-50"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CalendarX2 className="h-3.5 w-3.5" />}
             Déconnecter

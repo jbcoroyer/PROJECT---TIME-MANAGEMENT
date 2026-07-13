@@ -25,11 +25,11 @@ export default function EventMilestoneBar(props: Props) {
           const active = activeFilterDate === m.dateIso;
           const tone =
             m.status === "late"
-              ? "border-rose-300 bg-rose-50 text-rose-900"
+              ? "ui-pill ui-pill-danger border"
               : m.status === "current"
                 ? "border-[var(--line-strong)] bg-[var(--foreground)] text-[var(--accent-contrast)]"
                 : m.status === "done"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                  ? "ui-pill ui-pill-success border"
                   : "border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/70";
           return (
             <button

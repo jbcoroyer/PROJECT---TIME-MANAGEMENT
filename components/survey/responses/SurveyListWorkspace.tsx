@@ -52,34 +52,34 @@ const AUDIENCE_THEMES: Record<
     label: "Collaborateurs groupe",
     subtitle: "Diffusé à l'échelle de l'entreprise",
     icon: Users,
-    border: "border-l-sky-500",
-    iconBg: "bg-gradient-to-br from-sky-100 to-sky-50",
-    iconColor: "text-sky-700",
-    badge: "bg-sky-100 text-sky-800 ring-sky-200",
-    accent: "group-hover:text-sky-700",
-    cardHover: "hover:border-sky-300 hover:shadow-[0_8px_30px_-12px_rgba(14,165,233,0.35)]",
+    border: "border-l-[var(--brand-primary)]",
+    iconBg: "bg-[var(--accent-soft)]",
+    iconColor: "text-[var(--accent-strong)]",
+    badge: "ui-pill ui-pill-brand",
+    accent: "group-hover:text-[var(--accent-strong)]",
+    cardHover: "hover:border-[color-mix(in_srgb,var(--brand-primary)_25%,var(--line))] hover:shadow-[0_8px_30px_-12px_rgba(20,17,13,0.12)]",
   },
   interne: {
     label: "Équipe Communication",
     subtitle: "Réservé aux membres du service",
     icon: Building2,
-    border: "border-l-violet-500",
-    iconBg: "bg-gradient-to-br from-violet-100 to-fuchsia-50",
-    iconColor: "text-violet-700",
-    badge: "bg-violet-100 text-violet-800 ring-violet-200",
-    accent: "group-hover:text-violet-700",
-    cardHover: "hover:border-violet-300 hover:shadow-[0_8px_30px_-12px_rgba(139,92,246,0.35)]",
+    border: "border-l-[var(--line-strong)]",
+    iconBg: "bg-[var(--surface-soft)]",
+    iconColor: "text-[color:var(--foreground)]/75",
+    badge: "ui-pill ui-pill-neutral",
+    accent: "group-hover:text-[color:var(--foreground)]/85",
+    cardHover: "hover:border-[var(--line-strong)] hover:shadow-[0_8px_30px_-12px_rgba(20,17,13,0.1)]",
   },
   general: {
     label: "Personnalisé",
     subtitle: "Questionnaire sur mesure",
     icon: Sparkles,
-    border: "border-l-amber-500",
-    iconBg: "bg-gradient-to-br from-amber-100 to-orange-50",
-    iconColor: "text-amber-800",
-    badge: "bg-amber-100 text-amber-900 ring-amber-200",
-    accent: "group-hover:text-amber-800",
-    cardHover: "hover:border-amber-300 hover:shadow-[0_8px_30px_-12px_rgba(245,158,11,0.3)]",
+    border: "border-l-[color-mix(in_srgb,var(--warning)_50%,var(--line))]",
+    iconBg: "bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface))]",
+    iconColor: "text-[var(--warning)]",
+    badge: "ui-pill ui-pill-neutral",
+    accent: "group-hover:text-[var(--warning)]",
+    cardHover: "hover:border-[color-mix(in_srgb,var(--warning)_25%,var(--line))] hover:shadow-[0_8px_30px_-12px_rgba(20,17,13,0.1)]",
   },
 };
 
@@ -119,7 +119,7 @@ function SurveyCard({ survey }: { survey: SurveyListItem }) {
             className={[
               "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
               survey.status === "active"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "ui-pill ui-pill-success"
                 : "bg-[var(--surface-soft)] text-[color:var(--foreground)]/55",
             ].join(" ")}
           >

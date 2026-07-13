@@ -334,19 +334,19 @@ export default function SurveyResponsesWorkspace({
               icon={Smile}
               label="Satisfaction moy. (/10)"
               value={satisfactionAvg != null ? satisfactionAvg.toFixed(1) : "—"}
-              accent="bg-emerald-50 text-emerald-700"
+              accent="ui-pill ui-pill-success"
             />
             <KpiCard
               icon={ThumbsUp}
               label="NPS"
               value={nps.score != null ? String(nps.score) : "—"}
-              accent="bg-violet-50 text-violet-700"
+              accent="ui-pill ui-pill-brand"
             />
             <KpiCard
               icon={BarChart3}
               label="Promoteurs / Détracteurs"
               value={`${nps.promoters} / ${nps.detractors}`}
-              accent="bg-amber-50 text-amber-800"
+              accent="ui-pill ui-pill-warning"
             />
           </div>
 

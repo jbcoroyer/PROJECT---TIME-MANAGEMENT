@@ -31,7 +31,7 @@ import { resolveDefaultSubtaskAssignee } from "../lib/taskConcernsUser";
 import type { CurrentUser } from "../lib/useCurrentUser";
 
 function RequiredStar() {
-  return <span className="ml-1 text-red-500">*</span>;
+  return <span className="ml-1 text-[var(--danger)]">*</span>;
 }
 
 export default function NewTaskModal(props: {
@@ -254,7 +254,7 @@ export default function NewTaskModal(props: {
                     placeholder="Ex : Lancement produit printemps"
                   />
                   {errors.projectName?.message && (
-                    <p className="text-[11px] text-red-600">{errors.projectName.message}</p>
+                    <p className="text-[11px] text-[var(--danger)]">{errors.projectName.message}</p>
                   )}
                 </div>
 
@@ -276,7 +276,7 @@ export default function NewTaskModal(props: {
                     ))}
                   </select>
                   {errors.company?.message && (
-                    <p className="text-[11px] text-red-600">{errors.company.message}</p>
+                    <p className="text-[11px] text-[var(--danger)]">{errors.company.message}</p>
                   )}
                 </div>
 
@@ -298,13 +298,13 @@ export default function NewTaskModal(props: {
                     ))}
                   </select>
                   {errors.domain?.message && (
-                    <p className="text-[11px] text-red-600">{errors.domain.message}</p>
+                    <p className="text-[11px] text-[var(--danger)]">{errors.domain.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
                   <label htmlFor={`${prefix}-priority`} className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--foreground)]/75">
-                    <Flag className="h-3.5 w-3.5 text-rose-500" />
+                    <Flag className="h-3.5 w-3.5 text-[var(--danger)]" />
                     Priorité
                     <RequiredStar />
                   </label>
@@ -320,13 +320,13 @@ export default function NewTaskModal(props: {
                     ))}
                   </select>
                   {errors.priority?.message && (
-                    <p className="text-[11px] text-red-600">{errors.priority.message}</p>
+                    <p className="text-[11px] text-[var(--danger)]">{errors.priority.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--foreground)]/75">
-                    <Users className="h-3.5 w-3.5 text-sky-500" />
+                    <Users className="h-3.5 w-3.5 text-[var(--accent-strong)]" />
                     Admin(s) responsable(s)
                     <RequiredStar />
                   </label>
@@ -358,14 +358,14 @@ export default function NewTaskModal(props: {
                       );
                     })}
                   </fieldset>
-                  {adminsError && <p className="text-[11px] text-red-600">{adminsError}</p>}
+                  {adminsError && <p className="text-[11px] text-[var(--danger)]">{adminsError}</p>}
                 </div>
               </div>}
 
               {step === 1 && <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <label htmlFor={`${prefix}-deadline`} className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--foreground)]/75">
-                    <CalendarDays className="h-3.5 w-3.5 text-amber-500" />
+                    <CalendarDays className="h-3.5 w-3.5 text-[var(--warning)]" />
                     Échéance
                     <span className="ml-0.5 font-normal text-[color:var(--foreground)]/45">(optionnelle)</span>
                   </label>
@@ -375,12 +375,12 @@ export default function NewTaskModal(props: {
                     {...register("deadline")}
                     className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] shadow-sm focus:outline-none"
                   />
-                  {errors.deadline?.message && <p className="text-[11px] text-red-600">{errors.deadline.message}</p>}
+                  {errors.deadline?.message && <p className="text-[11px] text-[var(--danger)]">{errors.deadline.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
                   <label htmlFor={`${prefix}-budget`} className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--foreground)]/75">
-                    <Info className="h-3.5 w-3.5 text-emerald-500" />
+                    <Info className="h-3.5 w-3.5 text-[var(--success)]" />
                     Budget
                   </label>
                   <input
@@ -459,7 +459,7 @@ export default function NewTaskModal(props: {
                   <input type="hidden" {...register("estimatedHours")} />
                   <input type="hidden" {...register("estimatedDays")} />
 
-                  {estimateError && <p className="text-[11px] text-red-600">{estimateError}</p>}
+                  {estimateError && <p className="text-[11px] text-[var(--danger)]">{estimateError}</p>}
                 </div>
               </div>}
 
@@ -530,7 +530,7 @@ export default function NewTaskModal(props: {
                         <button
                           type="button"
                           onClick={() => remove(index)}
-                          className="ml-auto inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100"
+                          className="ui-btn ui-btn-outline-danger ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs"
                         >
                           <Trash2 className="h-3 w-3" />
                           Retirer
@@ -593,7 +593,7 @@ export default function NewTaskModal(props: {
                       className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] shadow-sm focus:outline-none"
                       placeholder="Ex : Coopérative de l&apos;Ouest"
                     />
-                    {clientNameError && <p className="text-[11px] text-red-600">{clientNameError}</p>}
+                    {clientNameError && <p className="text-[11px] text-[var(--danger)]">{clientNameError}</p>}
                   </div>
                 )}
               </div>}
@@ -635,7 +635,7 @@ export default function NewTaskModal(props: {
                         type="button"
                         onClick={() => setPendingSubtasks((prev) => prev.filter((_, i) => i !== idx))}
                         aria-label="Retirer cette étape"
-                        className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded text-rose-400 hover:bg-rose-50 hover:text-rose-600"
+                        className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[color-mix(in_srgb,var(--danger)_65%,var(--foreground))] hover:bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))] hover:text-[var(--danger)]"
                       >
                         <X className="h-3 w-3" aria-hidden />
                       </button>

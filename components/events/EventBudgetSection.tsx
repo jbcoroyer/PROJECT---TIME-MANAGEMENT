@@ -108,12 +108,12 @@ export default function EventBudgetSection(props: Props) {
           ) : null}
         </div>
         {event.closureRecap ? (
-          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <div className="ui-alert ui-alert-success mt-4 rounded-xl px-4 py-3 text-sm">
             Clôturé le{" "}
             {new Date(event.closureRecap.closedAt).toLocaleDateString("fr-FR")} — écart budget{" "}
             {formatCurrency(event.closureRecap.consumedTotal - event.closureRecap.allocatedBudget)}
             {event.closureRecap.notes ? (
-              <p className="mt-2 text-emerald-800">{event.closureRecap.notes}</p>
+              <p className="mt-2 text-[color-mix(in_srgb,var(--success)_85%,var(--foreground))]">{event.closureRecap.notes}</p>
             ) : null}
           </div>
         ) : null}
@@ -134,7 +134,7 @@ export default function EventBudgetSection(props: Props) {
               <li key={post}>
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                   <span className="font-medium">{post}</span>
-                  <span className={over ? "font-semibold text-rose-700" : "text-[color:var(--foreground)]/60"}>
+                  <span className={over ? "font-semibold text-[var(--danger)]" : "text-[color:var(--foreground)]/60"}>
                     {formatCurrency(used)} / {formatCurrency(cap)}
                   </span>
                 </div>
@@ -154,7 +154,7 @@ export default function EventBudgetSection(props: Props) {
                   />
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                     <div
-                      className={["h-full rounded-full", over ? "bg-rose-600" : "bg-[color:var(--foreground)]/25"].join(
+                      className={["h-full rounded-full", over ? "bg-[var(--danger)]" : "bg-[color:var(--foreground)]/25"].join(
                         " ",
                       )}
                       style={{ width: `${cap > 0 ? pct : used > 0 ? 100 : 0}%` }}
