@@ -154,7 +154,7 @@ export default function LandingPage() {
         >
           <div className="mx-auto max-w-[1180px]">
             <ScrollReveal className="max-w-[520px]">
-              <span className="ui-kicker">// MODULES</span>
+              <span className="ui-kicker">{"// MODULES"}</span>
               <h2 className="ui-display mt-3 text-[clamp(1.75rem,3.4vw,2.375rem)] font-bold text-[var(--ink)]">
                 Chaque brique a un nom clair
               </h2>
@@ -188,7 +188,7 @@ export default function LandingPage() {
         <section className="px-4 py-24 sm:px-8">
           <div className="mx-auto grid max-w-[1180px] gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <ScrollReveal direction="left">
-              <span className="ui-kicker">// POURQUOI RECUEIL</span>
+              <span className="ui-kicker">{"// POURQUOI RECUEIL"}</span>
               <h2 className="ui-display mt-3 text-[clamp(1.75rem,3.4vw,2.375rem)] font-bold text-[var(--ink)]">
                 Un outil qui grandit avec vous
               </h2>

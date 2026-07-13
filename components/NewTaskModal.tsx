@@ -89,7 +89,8 @@ export default function NewTaskModal(props: {
     name: "projectedWork",
   });
 
-  const watchedAdmins = useWatch({ control, name: "admins" }) ?? [];
+  const watchedAdminsRaw = useWatch({ control, name: "admins" });
+  const watchedAdmins = useMemo(() => watchedAdminsRaw ?? [], [watchedAdminsRaw]);
 
   const adminNames = useMemo(() => admins.map((a) => a.name), [admins]);
 
@@ -120,7 +121,7 @@ export default function NewTaskModal(props: {
       setNewSubAdmin("");
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [open, reset, defaultValues]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, reset, defaultValues]);
 
   useEffect(() => {
     if (!open) return;

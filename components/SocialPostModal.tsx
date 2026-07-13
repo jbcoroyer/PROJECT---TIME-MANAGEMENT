@@ -3,12 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Image as ImageIcon, Trash2, X } from "lucide-react";
 import type { ReferenceRecord } from "../lib/referenceData";
-import { getSupabaseBrowser } from "../lib/supabaseBrowser";
 import { uploadOrgAsset } from "../app/actions/storage";
 import { toastError } from "../lib/toast";
 import CompanyAvatar from "./CompanyAvatar";
 import { useBranding } from "../lib/brandingContext";
-import { useCurrentUser } from "../lib/useCurrentUser";
 import { useResolvedStorageUrl } from "../lib/useResolvedStorageUrl";
 import {
   socialFormatOptions,
@@ -70,9 +68,7 @@ export default function SocialPostModal(props: SocialPostModalProps) {
     onSubmit,
   } = props;
   const { branding } = useBranding();
-  const { user } = useCurrentUser();
   const isEditing = !!initialPost?.id;
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [title, setTitle] = useState("");
   const [allDay, setAllDay] = useState(true);
   const [dateValue, setDateValue] = useState("");

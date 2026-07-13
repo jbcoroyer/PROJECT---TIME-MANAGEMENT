@@ -2,13 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Image as ImageIcon, Trash2, Upload, X } from "lucide-react";
-import { getSupabaseBrowser } from "../lib/supabaseBrowser";
 import type { InventoryItem, InventoryItemDraft } from "../lib/inventoryTypes";
 import { uploadStockVisual } from "../lib/stockVisualUpload";
 import { STOCK_VISUAL_ACCEPT, stockVisualFileError } from "../lib/stockVisualUtils";
 import { toastError } from "../lib/toast";
-import { useBranding } from "../lib/brandingContext";
-import { useCurrentUser } from "../lib/useCurrentUser";
 import StockVisualPreview from "./stock/StockVisualPreview";
 
 type Props = {
@@ -24,10 +21,7 @@ const OTHER_TYPE = "__autre__";
 
 export default function InventoryPlvModal(props: Props) {
   const { open, initialItem, allItems, onClose, onSubmit, onDelete } = props;
-  const { branding } = useBranding();
-  const { user } = useCurrentUser();
   const isEditing = Boolean(initialItem?.id);
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
   const typeOptions = useMemo(
     () =>
       Array.from(

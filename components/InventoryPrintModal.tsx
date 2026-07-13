@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2, Upload, X } from "lucide-react";
 import { useBranding } from "../lib/brandingContext";
-import { useCurrentUser } from "../lib/useCurrentUser";
 import { printDocumentTypeOptions } from "../lib/printDocumentTypes";
 import { PRINT_LANGUAGES_FR, PRINT_LANGUAGES_FEATURED_FR } from "../lib/printLanguages";
 import type { InventoryItem, InventoryItemDraft } from "../lib/inventoryTypes";
@@ -12,7 +11,6 @@ import {
   encodePrintItemType,
   type PrintSpeciesValue,
 } from "../lib/printSpecies";
-import { getSupabaseBrowser } from "../lib/supabaseBrowser";
 import { uploadStockVisual } from "../lib/stockVisualUpload";
 import { STOCK_VISUAL_ACCEPT, stockVisualFileError } from "../lib/stockVisualUtils";
 import { toastError } from "../lib/toast";
@@ -52,10 +50,8 @@ function newLangRow(partial?: Partial<LangRow>): LangRow {
 export default function InventoryPrintModal(props: Props) {
   const { open, initialItem, allItems, onClose, onSubmit, onSubmitMany, onDelete } = props;
   const { branding } = useBranding();
-  const { user } = useCurrentUser();
   const printSpeciesOptions = branding.printSpecies;
   const isEditing = Boolean(initialItem?.id);
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
 
   const docOptions = useMemo(() => printDocumentTypeOptions(allItems), [allItems]);
   const restLang = useMemo(() => {
