@@ -92,35 +92,11 @@ Dashboard : [Authentication → URL Configuration](https://supabase.com/dashboar
 
 ---
 
-## 4. Microsoft / Azure OAuth (connexion « Continuer avec Microsoft »)
+## 4. Outlook 365 (sync calendrier — plan Pro)
 
-### 4.1 Azure Portal
+Connexion utilisateur : **email/mot de passe** ou **Google** uniquement. Outlook est une intégration calendrier distincte (variables `MS_*`).
 
-1. [App registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) → **New registration**
-2. **Redirect URI** → Web :
-   ```
-   https://tjzagxyvjnkbwfpsppqw.supabase.co/auth/v1/callback
-   ```
-3. **Certificates & secrets** → nouveau **Client secret**
-4. Noter : **Application (client) ID**, **Directory (tenant) ID**, **Secret**
-
-### 4.2 Supabase
-
-[Authentication → Providers → Azure](https://supabase.com/dashboard/project/tjzagxyvjnkbwfpsppqw/auth/providers)
-
-- Activer Azure
-- **Application (client) ID** : ID Azure
-- **Secret** : secret Azure
-- **Azure Tenant URL** : `https://login.microsoftonline.com/common` (multi-tenant) ou `/votre-tenant-id`
-- **Save**
-
----
-
-## 5. Outlook 365 (sync calendrier — plan Pro)
-
-Distinct de la connexion Microsoft ci-dessus : variables `MS_*` + inscription Azure séparée si besoin.
-
-### 5.1 Azure (API Graph)
+### 4.1 Azure (API Graph)
 
 1. Même app Azure ou une **deuxième** app registration
 2. **Redirect URI** Web :
@@ -137,7 +113,7 @@ Distinct de la connexion Microsoft ci-dessus : variables `MS_*` + inscription Az
 
 ---
 
-## 6. Stripe Webhook (nouvelle URL Vercel)
+## 5. Stripe Webhook (nouvelle URL Vercel)
 
 L'ancien projet Vercel avait une autre URL → **créer un nouvel endpoint webhook** :
 
@@ -154,7 +130,7 @@ Détails : [docs/TEST_STRIPE_WEBHOOK.md](./TEST_STRIPE_WEBHOOK.md)
 
 ---
 
-## 7. Cron rappels essai
+## 6. Cron rappels essai
 
 Déjà configuré dans `vercel.json` : `GET /api/cron/trial-reminders` à 8h UTC.
 
@@ -170,15 +146,15 @@ Invoke-WebRequest "https://project-time-management.vercel.app/api/cron/trial-rem
 
 ---
 
-## 8. Vérifications post-déploiement
+## 7. Vérifications post-déploiement
 
 | Test | URL / action |
 |------|----------------|
 | Health | https://project-time-management.vercel.app/api/health |
 | Landing | https://project-time-management.vercel.app/ |
 | Tarifs | https://project-time-management.vercel.app/pricing |
-| Login Google | `/login` → Continuer avec Google |
-| Login Microsoft | `/login` → Continuer avec Microsoft |
+| Login Google | `/login` → Google |
+| Login email | `/login` → email + mot de passe |
 | Super-admin | `/platform` (si `PLATFORM_ADMIN_EMAILS` = votre e-mail) |
 
 ---

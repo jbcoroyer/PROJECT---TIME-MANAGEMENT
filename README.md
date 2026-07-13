@@ -213,14 +213,14 @@ return <button>{t("common.save")}</button>;
 
 **Production :** [https://project-time-management.vercel.app](https://project-time-management.vercel.app)
 
-Guide complet (variables, Google/Azure OAuth, Stripe, Outlook, cron) : **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
+Guide complet (variables, Google OAuth, Stripe, Outlook, cron) : **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
 
 Résumé :
 
 1. Importer le dépôt sur [Vercel](https://vercel.com) → projet `project-time-management`
 2. Copier les variables depuis `.env.example` / `.env.local` (voir checklist dans `docs/DEPLOYMENT.md`)
 3. **`NEXT_PUBLIC_APP_URL`** en production : `https://project-time-management.vercel.app`
-4. Configurer Supabase (URLs + providers Google/Azure)
+4. Configurer Supabase (URLs + provider Google)
 5. Webhook Stripe : `https://project-time-management.vercel.app/api/webhooks/stripe`
 6. Redéployer après chaque changement de variables
 

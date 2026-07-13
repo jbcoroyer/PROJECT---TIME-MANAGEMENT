@@ -6,7 +6,7 @@ export function getServerPublicAppOrigin(fallbackRequestUrl?: string): string {
 }
 
 /**
- * Origine stable pour OAuth Microsoft — ne doit jamais utiliser une URL de preview
+ * Origine stable pour OAuth Outlook — ne doit jamais utiliser une URL de preview
  * Vercel éphémère (ex. project-xxx-4ae9l8al0.vercel.app).
  */
 export function getStableOAuthOrigin(fallbackRequestUrl?: string): string {
