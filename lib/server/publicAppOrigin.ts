@@ -1,3 +1,5 @@
+import { PRODUCTION_APP_URL } from "../config/deployment";
+
 /** URL publique de l'app côté serveur (OAuth, redirections). */
 export function getServerPublicAppOrigin(fallbackRequestUrl?: string): string {
   return getStableOAuthOrigin(fallbackRequestUrl);
@@ -22,5 +24,5 @@ export function getStableOAuthOrigin(fallbackRequestUrl?: string): string {
     if (hostname === "localhost" || hostname === "127.0.0.1") return origin;
   }
 
-  return "";
+  return PRODUCTION_APP_URL;
 }

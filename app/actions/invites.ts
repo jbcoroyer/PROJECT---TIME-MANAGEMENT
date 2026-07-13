@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { canAddOrgMember, type OrgPlan } from "../../lib/billing/plans";
+import { canAddOrgMember, effectivePlanForOrg, memberLimitErrorForPlan, type OrgPlan } from "../../lib/billing/plans";
 import { getOrganizationBilling } from "../../lib/server/billingOrg";
 import { countOrganizationMembers } from "../../lib/server/orgMembers";
 import { getServerOrgContext } from "../../lib/server/orgContext";
@@ -27,13 +27,16 @@ export async function inviteTeamMember(input: {
   }
 
   const org = await getOrganizationBilling(ctx.organizationId);
-  const plan = (org?.plan ?? "trial") as OrgPlan;
+  const plan = effectivePlanForOrg({
+    plan: (org?.plan ?? "trial") as OrgPlan,
+    trialEndsAt: org?.trialEndsAt ?? null,
+  });
   const memberCount = await countOrganizationMembers(ctx.organizationId);
 
   if (!canAddOrgMember(plan, memberCount)) {
     return {
       ok: false,
-      error: "Limite de membres atteinte pour votre plan. Passez au plan Pro pour inviter plus de collègues.",
+      error: memberLimitErrorForPlan(plan),
     };
   }
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasPlanFeature, type OrgPlan, type PlanFeature } from "../billing/plans";
+import { hasPlanFeature, effectivePlanForOrg, type OrgPlan, type PlanFeature } from "../billing/plans";
 import { getOrganizationBilling } from "./billingOrg";
 import { getServerOrgContext, type ServerOrgContext } from "./orgContext";
 
@@ -27,7 +27,10 @@ export async function requirePlanFeature(
   if (ctx instanceof NextResponse) return ctx;
 
   const org = await getOrganizationBilling(ctx.organizationId);
-  const plan = (org?.plan ?? "trial") as OrgPlan;
+  const plan = effectivePlanForOrg({
+    plan: (org?.plan ?? "trial") as OrgPlan,
+    trialEndsAt: org?.trialEndsAt ?? null,
+  });
   if (!hasPlanFeature(plan, feature)) {
     return NextResponse.json(
       { error: "Fonctionnalité disponible avec le plan Pro." },

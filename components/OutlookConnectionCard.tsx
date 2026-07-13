@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CalendarCheck2, CalendarX2, ExternalLink, Loader2, RefreshCw } from "lucide-react";
-import { requestOutlookSyncAll } from "../lib/outlookClientSync";
+import { outlookCallbackUrl, PRODUCTION_APP_URL } from "../lib/config/deployment";
 import { hasPlanFeature } from "../lib/billing/plans";
 import { useBillingPlan } from "../lib/billing/useBillingPlan";
+import { requestOutlookSyncAll } from "../lib/outlookClientSync";
 import { getPublicAppOrigin } from "../lib/publicAppUrl";
 import { useBranding } from "../lib/brandingContext";
 import { toastError, toastSuccess } from "../lib/toast";
@@ -147,7 +148,7 @@ export default function OutlookConnectionCard() {
             dans les variables d&apos;environnement Vercel (Production), puis redéployez. Ajoutez
             aussi l&apos;URI de redirection{" "}
             <code className="mx-1 rounded bg-[color-mix(in_srgb,var(--warning)_12%,var(--surface))] px-1 break-all">
-              {`${getPublicAppOrigin() || "https://project-management-communication.vercel.app"}/api/outlook/callback`}
+              {outlookCallbackUrl(getPublicAppOrigin() || PRODUCTION_APP_URL)}
             </code>{" "}
             dans Azure (App registration → Authentication).
           </>

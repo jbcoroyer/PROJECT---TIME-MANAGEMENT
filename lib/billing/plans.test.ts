@@ -25,14 +25,25 @@ describe("billing plans", () => {
     ).toBe(true);
   });
 
-  it("bloque l'accès après expiration de l'essai", () => {
+  it("bloque l'accès après expiration de l'essai sans rétrogradation", () => {
+    // Avant rétrogradation en base, le plan effectif reste autorisé (Gratuit).
     expect(
       isOrgAccessAllowed({
         plan: "trial",
         billingStatus: "trialing",
         trialEndsAt: "2026-07-10T10:00:00Z",
       }),
-    ).toBe(false);
+    ).toBe(true);
+  });
+
+  it("autorise le plan Gratuit", () => {
+    expect(
+      isOrgAccessAllowed({
+        plan: "free",
+        billingStatus: "active",
+        trialEndsAt: null,
+      }),
+    ).toBe(true);
   });
 
   it("calcule les jours restants d'essai", () => {
@@ -50,9 +61,12 @@ describe("billing plans", () => {
     ).toBe(false);
   });
 
-  it("limite les membres sur le plan Starter", () => {
+  it("limite les membres sur les plans Gratuit et Starter", () => {
+    expect(maxMembersForPlan("free")).toBe(2);
     expect(maxMembersForPlan("starter")).toBe(5);
     expect(maxMembersForPlan("pro")).toBeNull();
+    expect(canAddOrgMember("free", 1)).toBe(true);
+    expect(canAddOrgMember("free", 2)).toBe(false);
     expect(canAddOrgMember("starter", 4)).toBe(true);
     expect(canAddOrgMember("starter", 5)).toBe(false);
     expect(canAddOrgMember("pro", 100)).toBe(true);
@@ -63,9 +77,12 @@ describe("billing plans", () => {
     expect(mapStripeSubscriptionStatus("incomplete_expired")).toBe("canceled");
   });
 
-  it("restreint les modules et features sur Starter", () => {
+  it("restreint les modules et features sur Gratuit et Starter", () => {
+    expect(isModuleAllowedForPlan("free", "dashboard")).toBe(true);
+    expect(isModuleAllowedForPlan("free", "social")).toBe(false);
     expect(isModuleAllowedForPlan("starter", "dashboard")).toBe(true);
     expect(isModuleAllowedForPlan("starter", "social")).toBe(false);
+    expect(hasPlanFeature("free", "ai")).toBe(false);
     expect(hasPlanFeature("starter", "ai")).toBe(false);
     expect(hasPlanFeature("pro", "ai")).toBe(true);
     expect(hasPlanFeature("trial", "outlook_sync")).toBe(true);

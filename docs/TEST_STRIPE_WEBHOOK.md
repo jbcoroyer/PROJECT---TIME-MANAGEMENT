@@ -318,9 +318,9 @@ Configurer pour l’environnement **Production** (et **Preview** si besoin de te
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…` | Secret de l’endpoint webhook **production** (Dashboard Stripe, pas `stripe listen`) |
 | `STRIPE_PRICE_STARTER` | `price_…` | Prix Starter **live** |
 | `STRIPE_PRICE_PRO` | `price_…` | Prix Pro **live** |
-| `NEXT_PUBLIC_APP_URL` | `https://votre-domaine.com` | URL canonique de production |
+| `NEXT_PUBLIC_APP_URL` | `https://project-time-management.vercel.app` | URL canonique de production |
 | `SUPABASE_SERVICE_ROLE_KEY` | (existant) | Indispensable pour `updateOrganizationBilling` |
-| `BILLING_ENFORCEMENT` | `true` ou `false` | `true` pour bloquer l’accès après essai expiré |
+| `BILLING_ENFORCEMENT` | `true` ou `false` | `true` pour bloquer l'accès sans abonnement actif (le plan Gratuit reste accessible) |
 
 > Les prix et clés **test** (`sk_test_`, `price_` test) ne doivent **pas** être utilisés en production.
 
@@ -329,7 +329,7 @@ Configurer pour l’environnement **Production** (et **Preview** si besoin de te
 1. [Dashboard Stripe](https://dashboard.stripe.com) → basculer en **mode Live** (interrupteur en haut à droite).
 2. **Developers** → **Webhooks** → **Add endpoint**.
 3. **Endpoint URL** :  
-   `https://votre-domaine.com/api/webhooks/stripe`
+   `https://project-time-management.vercel.app/api/webhooks/stripe`
 4. **Événements à écouter** (minimum requis par le handler) :
    - `checkout.session.completed`
    - `customer.subscription.updated`

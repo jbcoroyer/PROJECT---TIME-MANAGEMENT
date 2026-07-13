@@ -2,12 +2,32 @@ import Link from "next/link";
 import { Check, CreditCard } from "lucide-react";
 import { AppMark, AppWordmark } from "../../components/AppBrand";
 import LegalFooter from "../../components/legal/LegalFooter";
-import { PLAN_MARKETING_FEATURES, TRIAL_DAYS } from "../../lib/billing/plans";
+import { PLAN_MARKETING_FEATURES, TRIAL_DAYS, type PublicPlan } from "../../lib/billing/plans";
 
 export const metadata = {
   title: "Tarifs",
-  description: "Découvrez nos offres Starter et Pro pour piloter vos projets et votre communication.",
+  description:
+    "Découvrez nos offres Gratuit, Starter et Pro pour piloter vos projets et votre communication.",
 };
+
+const PUBLIC_PLANS: { id: PublicPlan; name: string; description: string; highlighted?: boolean }[] = [
+  {
+    id: "free",
+    name: "Gratuit",
+    description: "Pour démarrer seul ou à deux, sans engagement.",
+  },
+  {
+    id: "starter",
+    name: "Starter",
+    description: "Pour un usage solo ou une petite équipe.",
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    description: "Modules avancés, IA et collaboration étendue.",
+    highlighted: true,
+  },
+];
 
 export default function PricingPage() {
   return (
@@ -32,35 +52,32 @@ export default function PricingPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-12">
+      <main className="mx-auto max-w-6xl px-4 py-12">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-[var(--foreground)]">Tarifs simples et transparents</h1>
           <p className="mt-3 text-[color:var(--foreground)]/65">
-            {TRIAL_DAYS} jours d&apos;essai gratuit avec toutes les fonctionnalités. Sans carte bancaire.
+            {TRIAL_DAYS} jours d&apos;essai avec toutes les fonctionnalités, puis plan Gratuit (1 à 2
+            utilisateurs) sans carte bancaire.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          <PricingCard
-            name="Starter"
-            description="Pour un usage solo ou une petite équipe."
-            features={PLAN_MARKETING_FEATURES.starter}
-            ctaHref="/signup"
-            ctaLabel="Commencer l'essai gratuit"
-          />
-          <PricingCard
-            name="Pro"
-            description="Modules avancés, IA et collaboration étendue."
-            features={PLAN_MARKETING_FEATURES.pro}
-            highlighted
-            ctaHref="/signup"
-            ctaLabel="Commencer l'essai gratuit"
-          />
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {PUBLIC_PLANS.map((plan) => (
+            <PricingCard
+              key={plan.id}
+              name={plan.name}
+              description={plan.description}
+              features={PLAN_MARKETING_FEATURES[plan.id]}
+              highlighted={plan.highlighted}
+              ctaHref="/signup"
+              ctaLabel={plan.id === "free" ? "Commencer gratuitement" : "Commencer l'essai gratuit"}
+            />
+          ))}
         </div>
 
         <p className="mt-8 text-center text-sm text-[color:var(--foreground)]/55">
-          Les prix exacts sont affichés lors du checkout Stripe. Facturation mensuelle, résiliation à tout
-          moment.
+          Les prix des plans payants sont affichés lors du checkout Stripe. Facturation mensuelle, résiliation à
+          tout moment. Le plan Gratuit reste accessible sans limite de durée pour 1 à 2 utilisateurs.
         </p>
       </main>
 

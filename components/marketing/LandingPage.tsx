@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { AppMark, AppWordmark } from "../AppBrand";
 import LegalFooter from "../legal/LegalFooter";
-import { PLAN_MARKETING_FEATURES, TRIAL_DAYS } from "../../lib/billing/plans";
+import { PLAN_MARKETING_FEATURES, TRIAL_DAYS, type PublicPlan } from "../../lib/billing/plans";
 
 const MODULE_HIGHLIGHTS = [
   { icon: LayoutGrid, title: "Pilotage", desc: "Kanban, tâches, planning et demandes entrantes." },
@@ -20,6 +20,25 @@ const MODULE_HIGHLIGHTS = [
   { icon: Package, title: "Stock & idées", desc: "Inventaire PLV, alertes et boîte à suggestions." },
   { icon: Target, title: "OKR & enquêtes", desc: "Objectifs stratégiques et questionnaires." },
   { icon: Sparkles, title: "IA intégrée", desc: "Reformulation et synthèses (plan Pro)." },
+];
+
+const PUBLIC_PLANS: { id: PublicPlan; name: string; description: string; highlighted?: boolean }[] = [
+  {
+    id: "free",
+    name: "Gratuit",
+    description: "1 à 2 utilisateurs, sans engagement.",
+  },
+  {
+    id: "starter",
+    name: "Starter",
+    description: "Petite équipe, modules essentiels.",
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    description: "Tous les modules, IA et intégrations.",
+    highlighted: true,
+  },
 ];
 
 export default function LandingPage() {
@@ -89,7 +108,7 @@ export default function LandingPage() {
               </Link>
             </div>
             <p className="mt-4 text-xs text-[color:var(--foreground)]/45">
-              Sans carte bancaire · Configuration en quelques minutes
+              Sans carte bancaire · Plan Gratuit pour 1 à 2 utilisateurs après l&apos;essai
             </p>
           </div>
         </section>
@@ -135,7 +154,7 @@ export default function LandingPage() {
                   "Isolation des données par espace client",
                   "Invitations collègues par e-mail",
                   "Rôles admin et utilisateur",
-                  "Facturation Stripe intégrée (Starter / Pro)",
+                  "Facturation Stripe intégrée (Gratuit / Starter / Pro)",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2.5 text-sm text-[color:var(--foreground)]/75">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
@@ -146,21 +165,37 @@ export default function LandingPage() {
             </div>
             <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-[var(--shadow-2)]">
               <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--foreground)]/45">
-                Offre Starter
+                Nos offres
               </p>
-              <ul className="mt-4 space-y-2">
-                {PLAN_MARKETING_FEATURES.starter.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-[color:var(--foreground)]/80">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
-                    {f}
-                  </li>
+              <div className="mt-4 space-y-4">
+                {PUBLIC_PLANS.map((plan) => (
+                  <div
+                    key={plan.id}
+                    className={[
+                      "rounded-xl border p-4",
+                      plan.highlighted
+                        ? "border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_5%,var(--surface))]"
+                        : "border-[var(--line)]",
+                    ].join(" ")}
+                  >
+                    <p className="font-semibold text-[var(--foreground)]">{plan.name}</p>
+                    <p className="mt-0.5 text-xs text-[color:var(--foreground)]/60">{plan.description}</p>
+                    <ul className="mt-2 space-y-1">
+                      {PLAN_MARKETING_FEATURES[plan.id].slice(0, 3).map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-xs text-[color:var(--foreground)]/75">
+                          <Check className="mt-0.5 h-3 w-3 shrink-0 text-[var(--brand-primary)]" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
               <Link
-                href="/signup"
-                className="ui-transition mt-6 flex w-full items-center justify-center rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                href="/pricing"
+                className="ui-transition mt-6 flex w-full items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] hover:bg-[var(--surface)]"
               >
-                Commencer l&apos;essai gratuit
+                Voir tous les tarifs
               </Link>
             </div>
           </div>

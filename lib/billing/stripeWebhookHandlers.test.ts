@@ -127,8 +127,8 @@ describe("stripeWebhookHandlers", () => {
     await handleStripeWebhookEvent(event, deps);
 
     expect(deps.updateOrganizationBilling).toHaveBeenLastCalledWith("org-1", {
-      plan: "trial",
-      billingStatus: "canceled",
+      plan: "free",
+      billingStatus: "active",
       stripeSubscriptionId: null,
     });
   });

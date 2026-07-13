@@ -382,7 +382,7 @@ export default function AdminSettingsPanel() {
         <Section
           icon={CreditCard}
           title="Facturation"
-          subtitle="Gérez votre essai gratuit et votre abonnement Stripe."
+          subtitle="Gérez votre plan (Gratuit, essai ou abonnement Stripe)."
         >
           <BillingCard />
         </Section>

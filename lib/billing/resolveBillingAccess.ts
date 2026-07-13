@@ -1,16 +1,20 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   daysLeftInTrial,
+  effectivePlanForOrg,
   isOrgAccessAllowed,
+  isTrialExpired,
   type BillingStatus,
   type OrgPlan,
 } from "./plans";
 import { LEGACY_ORG_ID } from "../tenantConstants";
+import { downgradeExpiredTrialToFree } from "../server/billingOrg";
 
 export type BillingBlockReason =
   | "legacy"
   | "active"
   | "trial"
+  | "free"
   | "trial_expired"
   | "subscription_inactive"
   | "unknown";
@@ -80,9 +84,18 @@ export async function resolveBillingAccess(
     };
   }
 
-  const plan = org.plan as OrgPlan;
-  const billingStatus = org.billing_status as BillingStatus;
-  const trialEndsAt = (org.trial_ends_at as string | null) ?? null;
+  let plan = org.plan as OrgPlan;
+  let billingStatus = org.billing_status as BillingStatus;
+  let trialEndsAt = (org.trial_ends_at as string | null) ?? null;
+
+  if (plan === "trial" && isTrialExpired(trialEndsAt)) {
+    plan = await downgradeExpiredTrialToFree(organizationId, plan, trialEndsAt);
+    if (plan === "free") {
+      billingStatus = "active";
+      trialEndsAt = null;
+    }
+  }
+
   const allowed = isOrgAccessAllowed({ plan, billingStatus, trialEndsAt });
 
   let reason: BillingBlockReason = "active";
@@ -90,6 +103,8 @@ export async function resolveBillingAccess(
     reason = plan === "trial" ? "trial_expired" : "subscription_inactive";
   } else if (plan === "trial") {
     reason = "trial";
+  } else if (plan === "free" || effectivePlanForOrg({ plan, trialEndsAt }) === "free") {
+    reason = "free";
   }
 
   return {

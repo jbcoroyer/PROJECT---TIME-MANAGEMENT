@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { BillingStatus, OrgPlan } from "../billing/plans";
+import { isTrialExpired } from "../billing/plans";
 import { createSupabaseAdmin } from "./supabaseAdmin";
 
 export type OrganizationBilling = {
@@ -117,4 +118,20 @@ export async function listTrialingOrganizations(): Promise<OrganizationBilling[]
 
   if (error || !data?.length) return [];
   return data.map((row) => rowToBilling(row as OrgBillingRow));
+}
+
+/** Passe une organisation dont l'essai est expiré sur le plan Gratuit. */
+export async function downgradeExpiredTrialToFree(
+  organizationId: string,
+  plan: OrgPlan,
+  trialEndsAt: string | null,
+): Promise<OrgPlan> {
+  if (plan !== "trial" || !isTrialExpired(trialEndsAt)) return plan;
+
+  await updateOrganizationBilling(organizationId, {
+    plan: "free",
+    billingStatus: "active",
+    trialEndsAt: null,
+  });
+  return "free";
 }

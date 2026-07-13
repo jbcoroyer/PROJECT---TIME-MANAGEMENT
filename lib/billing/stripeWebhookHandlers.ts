@@ -123,8 +123,8 @@ export async function handleStripeWebhookEvent(
 
       if (event.type === "customer.subscription.deleted" && organizationId) {
         await deps.updateOrganizationBilling(organizationId, {
-          plan: "trial",
-          billingStatus: "canceled",
+          plan: "free",
+          billingStatus: "active",
           stripeSubscriptionId: null,
         });
       }

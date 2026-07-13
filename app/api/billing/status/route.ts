@@ -7,7 +7,7 @@ import {
   type BillingStatus,
   type OrgPlan,
 } from "../../../../lib/billing/plans";
-import { getOrganizationBilling } from "../../../../lib/server/billingOrg";
+import { downgradeExpiredTrialToFree, getOrganizationBilling } from "../../../../lib/server/billingOrg";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
 import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { isStripeConfigured } from "../../../../lib/server/stripe";
@@ -27,8 +27,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Organisation introuvable." }, { status: 404 });
     }
 
-    const plan = org.plan as OrgPlan;
-    const billingStatus = org.billingStatus as BillingStatus;
+    let plan = org.plan as OrgPlan;
+    let billingStatus = org.billingStatus as BillingStatus;
+    let trialEndsAt = org.trialEndsAt;
+
+    plan = await downgradeExpiredTrialToFree(ctx.organizationId, plan, trialEndsAt);
+    if (plan === "free" && org.plan === "trial") {
+      billingStatus = "active";
+      trialEndsAt = null;
+    }
 
     return NextResponse.json({
       plan,

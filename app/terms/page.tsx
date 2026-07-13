@@ -32,8 +32,8 @@ export default function TermsPage() {
         <h2 className="text-lg font-semibold text-[var(--foreground)]">3. Description du Service</h2>
         <p className="mt-2">
           Le Service propose des outils de pilotage de projet, de communication et de collaboration au sein
-          d&apos;organisations. Les fonctionnalités disponibles dépendent du plan souscrit (Starter, Pro ou
-          essai gratuit de 14 jours).
+          d&apos;organisations. Les fonctionnalités disponibles dépendent du plan souscrit (Gratuit, Starter,
+          Pro ou essai gratuit de 14 jours).
         </p>
       </section>
 
@@ -49,9 +49,10 @@ export default function TermsPage() {
       <section>
         <h2 className="text-lg font-semibold text-[var(--foreground)]">5. Abonnements et facturation</h2>
         <p className="mt-2">
-          Les abonnements sont facturés mensuellement via Stripe. L&apos;essai gratuit de 14 jours donne accès
-          à l&apos;ensemble des fonctionnalités. À l&apos;issue de l&apos;essai, l&apos;accès est suspendu
-          sauf souscription d&apos;un plan payant. Les tarifs en vigueur sont consultables sur la page{" "}
+          Les abonnements payants sont facturés mensuellement via Stripe. L&apos;essai gratuit de 14 jours donne
+          accès à l&apos;ensemble des fonctionnalités. À l&apos;issue de l&apos;essai, l&apos;organisation
+          bascule automatiquement sur le plan Gratuit (1 à 2 utilisateurs) sans carte bancaire. Les tarifs en
+          vigueur sont consultables sur la page{" "}
           <a href="/pricing" className="text-[var(--brand-primary)] hover:underline">
             Tarifs
           </a>

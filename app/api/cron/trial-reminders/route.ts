@@ -15,7 +15,7 @@ function trialReminderHtml(orgName: string, daysLeft: number): string {
   return `
     <p>Bonjour,</p>
     <p>${urgency}</p>
-    <p>Pour continuer à utiliser l'espace <strong>${orgName}</strong> sans interruption, choisissez un plan sur la page Tarifs.</p>
+    <p>Pour l'espace <strong>${orgName}</strong> : choisissez un plan payant pour plus de fonctionnalités, ou continuez sur le plan Gratuit (1 à 2 utilisateurs) après l'essai.</p>
     <p><a href="${process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "http://localhost:3000"}/pricing">Voir les offres</a></p>
   `;
 }

@@ -32,7 +32,7 @@ Les modules sont **activables par organisation** à l'onboarding ou dans les par
 - **Multi-tenant** : table `organizations`, colonne `organization_id` sur les données métier, isolation via **RLS** Supabase.
 - **Inscription B2C** : `/signup` crée le compte, l'organisation et le profil administrateur (trigger `handle_new_user`).
 - **Onboarding** : `/setup` configure le branding, les modules et les préférences régionales.
-- **Facturation** (optionnelle) : essai gratuit de 14 jours, abonnements Starter / Pro via Stripe.
+- **Facturation** (optionnelle) : essai gratuit de 14 jours, plan Gratuit (1 à 2 utilisateurs), abonnements Starter / Pro via Stripe.
 
 ---
 
@@ -77,7 +77,7 @@ Variables **optionnelles** (voir `.env.example` pour la liste complète) :
 | `MS_*` | Synchronisation calendrier Outlook 365 |
 | `SLACK_WEBHOOK_URL` | Alertes stock |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*` | Facturation SaaS |
-| `BILLING_ENFORCEMENT` | `true` pour bloquer l'accès après essai expiré (redirige vers `/billing`) |
+| `BILLING_ENFORCEMENT` | `true` pour bloquer l'accès sans abonnement actif (redirige vers `/billing`) |
 
 ### 4. Migrations Supabase
 
@@ -154,9 +154,10 @@ NEXT_PUBLIC_APP_LOCALE=fr
 ## Facturation (Stripe)
 
 - Chaque organisation démarre en **essai gratuit** (14 jours).
+- Après l'essai : plan **Gratuit** (1 à 2 utilisateurs, modules essentiels).
 - Abonnements **Starter** et **Pro** via Stripe Checkout.
 - Webhook : `POST /api/webhooks/stripe`.
-- Page de blocage : `/billing` (si `BILLING_ENFORCEMENT=true` et essai expiré sans abonnement actif).
+- Page de blocage : `/billing` (si `BILLING_ENFORCEMENT=true` et abonnement payant inactif).
 - Gestion de l'abonnement : Paramètres → Facturation.
 
 ---
@@ -210,20 +211,26 @@ return <button>{t("common.save")}</button>;
 
 ## Déploiement sur Vercel
 
-1. Importez le dépôt GitHub sur [Vercel](https://vercel.com).
-2. Ajoutez toutes les variables d'environnement (voir `.env.example`).
-3. Déployez — Next.js est détecté automatiquement.
-4. Configurez le webhook Stripe vers `https://<votre-domaine>/api/webhooks/stripe`.
+**Production :** [https://project-time-management.vercel.app](https://project-time-management.vercel.app)
 
-`NEXT_PUBLIC_APP_URL` peut être dérivé de `VERCEL_URL` au build si non défini.
+Guide complet (variables, Google/Azure OAuth, Stripe, Outlook, cron) : **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
+
+Résumé :
+
+1. Importer le dépôt sur [Vercel](https://vercel.com) → projet `project-time-management`
+2. Copier les variables depuis `.env.example` / `.env.local` (voir checklist dans `docs/DEPLOYMENT.md`)
+3. **`NEXT_PUBLIC_APP_URL`** en production : `https://project-time-management.vercel.app`
+4. Configurer Supabase (URLs + providers Google/Azure)
+5. Webhook Stripe : `https://project-time-management.vercel.app/api/webhooks/stripe`
+6. Redéployer après chaque changement de variables
 
 ### Outlook 365
 
-Copiez les variables `MS_*` dans Vercel → Settings → Environment Variables. Dans Azure Portal, ajoutez l'URI de redirection :
+Variables `MS_*` sur Vercel. URI de redirection Azure :
 
-`https://<votre-domaine>/api/outlook/callback`
+`https://project-time-management.vercel.app/api/outlook/callback`
 
-Permission déléguée requise : `MailboxSettings.ReadWrite` (pour la catégorie colorée).
+Permission déléguée requise : `MailboxSettings.ReadWrite` (catégorie colorée dans Outlook).
 
 ---
 

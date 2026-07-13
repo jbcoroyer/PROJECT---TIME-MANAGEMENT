@@ -8,6 +8,7 @@ test.describe("Pages publiques", () => {
 
   test("affiche la page tarifs", async ({ page }) => {
     await page.goto("/pricing");
+    await expect(page.getByRole("heading", { name: "Gratuit" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Starter" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Pro" })).toBeVisible();
   });

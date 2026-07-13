@@ -95,6 +95,7 @@ export default function BillingCard() {
   if (!billing) return null;
 
   const onTrial = billing.plan === "trial";
+  const onFree = billing.plan === "free";
   const trialExpired = onTrial && billing.trialDaysLeft !== null && billing.trialDaysLeft <= 0;
 
   return (
@@ -110,8 +111,13 @@ export default function BillingCard() {
             {onTrial && billing.trialDaysLeft !== null && (
               <p className="mt-2 text-sm text-[color:var(--foreground)]/70">
                 {trialExpired
-                  ? "Votre essai gratuit est terminé."
+                  ? "Votre essai gratuit est terminé — vous êtes passé au plan Gratuit (1 à 2 utilisateurs)."
                   : `${billing.trialDaysLeft} jour(s) restant(s) dans l'essai.`}
+              </p>
+            )}
+            {onFree && (
+              <p className="mt-2 text-sm text-[color:var(--foreground)]/70">
+                Plan Gratuit — jusqu&apos;à 2 utilisateurs, modules essentiels.
               </p>
             )}
             {!billing.accessAllowed && (
@@ -140,7 +146,7 @@ export default function BillingCard() {
         </p>
       )}
 
-      {billing.isAdmin && billing.stripeConfigured && (onTrial || trialExpired || billing.plan !== "pro") && (
+      {billing.isAdmin && billing.stripeConfigured && (onTrial || onFree || trialExpired || billing.plan !== "pro") && (
         <div className="grid gap-3 sm:grid-cols-2">
           <PlanOffer
             name="Starter"

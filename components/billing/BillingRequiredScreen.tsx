@@ -17,7 +17,7 @@ function reasonCopy(reason: BillingBlockReason): { title: string; body: string }
   if (reason === "trial_expired") {
     return {
       title: "Votre essai gratuit est terminé",
-      body: "Choisissez un abonnement pour retrouver l'accès à votre espace, vos tâches et vos données.",
+      body: "Vous pouvez continuer sur le plan Gratuit (1 à 2 utilisateurs) ou choisir un abonnement pour débloquer plus de fonctionnalités.",
     };
   }
   if (reason === "subscription_inactive") {
