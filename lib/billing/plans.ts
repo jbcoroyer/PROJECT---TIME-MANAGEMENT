@@ -35,7 +35,45 @@ export const PLAN_FEATURE_LABELS: Record<PlanFeature, string> = {
   ai: "Assistant IA (reformulation, synthèses)",
   outlook_sync: "Synchronisation Outlook / Microsoft 365",
   slack_alerts: "Alertes stock Slack / Teams",
-  advanced_modules: "Modules avancés (événements, social, DAM, stock, OKR, questionnaires)",
+  advanced_modules:
+    "Modules avancés (événements, réseaux sociaux, fichiers & visuels, stock, objectifs, enquêtes)",
+};
+
+export type PublicPlanMarketing = {
+  name: string;
+  tagline: string;
+  description: string;
+  badge?: string;
+  highlighted?: boolean;
+  ctaLabel: string;
+};
+
+export const PUBLIC_PLAN_MARKETING: Record<PublicPlan, PublicPlanMarketing> = {
+  free: {
+    name: "Gratuit",
+    tagline: "Pour démarrer sans stress",
+    description:
+      "Idéal pour un solo ou un duo qui veut structurer ses projets — sans carte bancaire, sans limite de temps.",
+    badge: "0 €",
+    ctaLabel: "Commencer gratuitement",
+  },
+  starter: {
+    name: "Standard",
+    tagline: "Pour les petites équipes",
+    description:
+      "Quand le projet grandit et que vous avez besoin de vous coordonner à plusieurs, avec un espace à votre image.",
+    badge: "Équipe",
+    ctaLabel: "Essayer 14 jours gratuits",
+  },
+  pro: {
+    name: "Pro",
+    tagline: "Pour tout centraliser",
+    description:
+      "Tous les modules, l'IA et les intégrations — pour les équipes qui veulent un vrai QG projet sans outils éparpillés.",
+    badge: "Le plus complet",
+    highlighted: true,
+    ctaLabel: "Essayer 14 jours gratuits",
+  },
 };
 
 export const FREE_MAX_MEMBERS = 2;
@@ -44,27 +82,26 @@ export const STARTER_MAX_MEMBERS = 5;
 
 export const PLAN_MARKETING_FEATURES: Record<PublicPlan, string[]> = {
   free: [
-    "1 à 2 utilisateurs",
-    "Tableau de bord & kanban",
-    "Tâches & planning",
-    "Boîte à idées",
-    "Gratuit, sans limite de durée",
+    "1 à 2 personnes sur le même espace",
+    "Tableau de bord kanban & liste de tâches",
+    "Planning semaine & boîte à idées",
+    "Gratuit à vie — aucune carte bancaire",
+    "Parfait pour lancer un side project",
   ],
   starter: [
-    "Jusqu'à 5 membres",
-    "Tableau de bord & kanban",
-    "Tâches & planning",
-    "Boîte à idées",
-    "Support par e-mail",
+    "Jusqu'à 5 membres invités",
+    "Tout le pack pilotage : kanban, tâches, planning",
+    "Boîte à demandes & collecte d'idées",
+    "Logo et couleurs de votre espace",
+    "Support par e-mail sous 48 h",
   ],
   pro: [
-    "Membres illimités",
-    "Tous les modules Starter",
-    "Événements, social, DAM, stock",
-    "OKR & questionnaires",
-    "Assistant IA intégré",
-    "Sync Outlook & alertes Slack",
-    "Support prioritaire",
+    "Membres illimités — scalez sans friction",
+    "Événements, réseaux sociaux, stock & fichiers",
+    "Objectifs d'équipe & enquêtes de satisfaction",
+    "Assistant IA (reformulation & synthèses)",
+    "Sync Outlook & alertes Slack / Teams",
+    "Support prioritaire & onboarding dédié",
   ],
 };
 
@@ -115,16 +152,16 @@ export function effectiveModulesForPlan(plan: OrgPlan, enabledModules: AppModule
 export const PLAN_LABELS: Record<OrgPlan, string> = {
   trial: "Essai gratuit",
   free: "Gratuit",
-  starter: "Starter",
+  starter: "Standard",
   pro: "Pro",
 };
 
 export function memberLimitErrorForPlan(plan: OrgPlan): string {
   if (plan === "free") {
-    return "Limite de 2 utilisateurs atteinte sur le plan Gratuit. Passez au plan Starter ou Pro pour inviter plus de collègues.";
+    return "Limite de 2 utilisateurs atteinte sur le plan Gratuit. Passez au plan Standard ou Pro pour inviter plus de collègues.";
   }
   if (plan === "starter") {
-    return "Limite de 5 membres atteinte sur le plan Starter. Passez au plan Pro pour inviter plus de collègues.";
+    return "Limite de 5 membres atteinte sur le plan Standard. Passez au plan Pro pour inviter plus de collègues.";
   }
   return "Limite de membres atteinte pour votre plan.";
 }

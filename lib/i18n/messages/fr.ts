@@ -168,17 +168,17 @@ export const fr: MessageTree = {
   },
   nav: {
     dashboard: "Tableau de bord",
-    asks: "Faire une demande",
-    workspace: "Mon espace",
+    asks: "Boîte à demandes",
+    workspace: "Mon agenda",
     planning: "Planning",
-    triage: "Demandes (triage)",
+    triage: "Traiter les demandes",
     events: "Événements",
     social: "Réseaux sociaux",
-    dam: "Bibliothèque (DAM)",
+    dam: "Fichiers & visuels",
     stock: "Stock",
     ideas: "Boîte à idées",
-    okr: "Objectifs (OKR)",
-    surveys: "Questionnaire",
+    okr: "Objectifs d'équipe",
+    surveys: "Enquêtes",
     settings: "Paramètres",
   },
   modules: {
@@ -208,8 +208,8 @@ export const fr: MessageTree = {
       },
     },
     asks: {
-      name: "Demandes",
-      tagline: "Collecter et traiter les besoins",
+      name: "Boîte à demandes",
+      tagline: "Recevoir et traiter les demandes",
       description:
         "Permet à vos collaborateurs de soumettre des demandes structurées et à l'équipe de les trier, prioriser et convertir en tâches.",
       highlights: {
@@ -219,8 +219,8 @@ export const fr: MessageTree = {
       },
     },
     workspace: {
-      name: "Mon espace",
-      tagline: "Agenda personnel intelligent",
+      name: "Mon agenda",
+      tagline: "Vos tâches et priorités du jour",
       description:
         "Votre tableau de bord individuel : tâches du jour, suggestions IA et focus sur ce qui compte pour vous.",
       highlights: {
@@ -241,8 +241,8 @@ export const fr: MessageTree = {
       },
     },
     events: {
-      name: "Événementiel",
-      tagline: "Piloter vos événements de A à Z",
+      name: "Événements",
+      tagline: "Organiser vos événements de A à Z",
       description:
         "Module dédié à la production événementielle : fiches événement, planning de régie, besoins matériel, documents et RETEX.",
       highlights: {
@@ -263,10 +263,10 @@ export const fr: MessageTree = {
       },
     },
     dam: {
-      name: "Bibliothèque (DAM)",
-      tagline: "Centraliser vos assets",
+      name: "Fichiers & visuels",
+      tagline: "Logos, photos et templates partagés",
       description:
-        "Gérez logos, visuels et fichiers de marque dans une bibliothèque partagée, accessible depuis les autres modules.",
+        "Centralisez logos, visuels et fichiers de marque dans une bibliothèque partagée, accessible depuis les autres modules.",
       highlights: {
         h1: "Stockage et classement des assets par organisation",
         h2: "Recherche et réutilisation dans les workflows",
@@ -296,8 +296,8 @@ export const fr: MessageTree = {
       },
     },
     okr: {
-      name: "Objectifs (OKR)",
-      tagline: "Aligner la stratégie",
+      name: "Objectifs d'équipe",
+      tagline: "Fixer et suivre vos objectifs",
       description:
         "Définissez des objectifs ambitieux et des résultats clés mesurables pour suivre la progression de l'équipe.",
       highlights: {
@@ -307,8 +307,8 @@ export const fr: MessageTree = {
       },
     },
     surveys: {
-      name: "Questionnaires",
-      tagline: "Mesurer la satisfaction",
+      name: "Enquêtes",
+      tagline: "Sondages et retours d'expérience",
       description:
         "Créez des questionnaires internes ou publics, analysez les réponses et pilotez la qualité perçue.",
       highlights: {

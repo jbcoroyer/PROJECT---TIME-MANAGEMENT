@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CreditCard, ExternalLink, Loader2, Check } from "lucide-react";
-import { PLAN_MARKETING_FEATURES } from "../../lib/billing/plans";
+import { PLAN_MARKETING_FEATURES, PUBLIC_PLAN_MARKETING } from "../../lib/billing/plans";
 import { toastError, toastSuccess } from "../../lib/toast";
 
 type BillingStatusResponse = {
@@ -149,16 +149,16 @@ export default function BillingCard() {
       {billing.isAdmin && billing.stripeConfigured && (onTrial || onFree || trialExpired || billing.plan !== "pro") && (
         <div className="grid gap-3 sm:grid-cols-2">
           <PlanOffer
-            name="Starter"
-            description="Pour un usage solo ou une petite équipe."
+            name={PUBLIC_PLAN_MARKETING.starter.name}
+            description={PUBLIC_PLAN_MARKETING.starter.description}
             features={PLAN_MARKETING_FEATURES.starter}
             busy={busy === "starter"}
             disabled={busy !== null || billing.plan === "starter"}
             onSelect={() => void startCheckout("starter")}
           />
           <PlanOffer
-            name="Pro"
-            description="Modules avancés et collaboration étendue."
+            name={PUBLIC_PLAN_MARKETING.pro.name}
+            description={PUBLIC_PLAN_MARKETING.pro.description}
             features={PLAN_MARKETING_FEATURES.pro}
             highlighted
             busy={busy === "pro"}

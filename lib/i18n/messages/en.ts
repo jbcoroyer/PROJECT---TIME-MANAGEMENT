@@ -165,16 +165,16 @@ export const en: MessageTree = {
   },
   nav: {
     dashboard: "Dashboard",
-    asks: "Submit a request",
-    workspace: "My space",
+    asks: "Request inbox",
+    workspace: "My agenda",
     planning: "Planning",
-    triage: "Requests (triage)",
+    triage: "Process requests",
     events: "Events",
     social: "Social media",
-    dam: "Asset library (DAM)",
+    dam: "Files & visuals",
     stock: "Inventory",
     ideas: "Idea box",
-    okr: "Goals (OKR)",
+    okr: "Team goals",
     surveys: "Surveys",
     settings: "Settings",
   },
@@ -205,8 +205,8 @@ export const en: MessageTree = {
       },
     },
     asks: {
-      name: "Requests",
-      tagline: "Collect and process needs",
+      name: "Request inbox",
+      tagline: "Receive and process requests",
       description:
         "Let collaborators submit structured requests and help the team triage, prioritize, and convert them into tasks.",
       highlights: {
@@ -216,8 +216,8 @@ export const en: MessageTree = {
       },
     },
     workspace: {
-      name: "My space",
-      tagline: "Smart personal agenda",
+      name: "My agenda",
+      tagline: "Your tasks and daily priorities",
       description:
         "Your individual dashboard: today's tasks, AI suggestions, and focus on what matters to you.",
       highlights: {
@@ -260,10 +260,10 @@ export const en: MessageTree = {
       },
     },
     dam: {
-      name: "Asset library (DAM)",
-      tagline: "Centralize your assets",
+      name: "Files & visuals",
+      tagline: "Shared logos, photos, and templates",
       description:
-        "Manage logos, visuals, and brand files in a shared library accessible from other modules.",
+        "Centralize logos, visuals, and brand files in a shared library accessible from other modules.",
       highlights: {
         h1: "Asset storage and organization per workspace",
         h2: "Search and reuse across workflows",
@@ -293,8 +293,8 @@ export const en: MessageTree = {
       },
     },
     okr: {
-      name: "Goals (OKR)",
-      tagline: "Align strategy",
+      name: "Team goals",
+      tagline: "Set and track objectives",
       description:
         "Set ambitious objectives and measurable key results to track team progress.",
       highlights: {
@@ -305,7 +305,7 @@ export const en: MessageTree = {
     },
     surveys: {
       name: "Surveys",
-      tagline: "Measure satisfaction",
+      tagline: "Polls and feedback",
       description:
         "Create internal or public surveys, analyze responses, and steer perceived quality.",
       highlights: {

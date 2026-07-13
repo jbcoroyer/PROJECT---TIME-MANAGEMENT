@@ -40,7 +40,7 @@ export default function V2DamPage() {
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
             <FolderOpen className="h-3.5 w-3.5" /> Bibliothèque d&apos;assets
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">DAM léger multi-marques</h1>
+          <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Fichiers & visuels partagés</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
             Centralisez logos, visuels et templates par marque, avec recherche par tags.
           </p>
