@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppMark, AppWordmark } from "../AppBrand";
 import ModuleGlyph from "../modules/ModuleGlyph";
 import ScrollReveal from "./ScrollReveal";
+import LandingPricingSection from "./LandingPricingSection";
 import { TRIAL_DAYS } from "../../lib/billing/plans";
 import { LANDING_MODULE_ORDER } from "../../lib/modules/moduleGlyphs";
 import type { AppModuleId } from "../../lib/modules";
@@ -141,7 +142,7 @@ export default function LandingPage() {
               <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
                 <span className="mkt-stat-pill">11 modules à la carte</span>
                 <span className="mkt-stat-pill">{TRIAL_DAYS} jours d&apos;essai complet</span>
-                <span className="mkt-stat-pill">Gratuit pour 2 personnes</span>
+                <span className="mkt-stat-pill">5 modules gratuits</span>
               </div>
             </ScrollReveal>
           </div>
@@ -209,48 +210,7 @@ export default function LandingPage() {
             </ScrollReveal>
 
             <ScrollReveal direction="right" delay={120}>
-              <div id="tarifs" className="mkt-pricing-stack">
-                <div className="mkt-pricing-tier">
-                  <div className="flex items-baseline justify-between">
-                    <span className="ui-display text-base font-semibold">Gratuit</span>
-                    <span className="ui-display text-[26px] font-bold">0€</span>
-                  </div>
-                  <p className="mt-1.5 text-[13.5px] text-[var(--ink-muted)]">
-                    1 à 2 personnes, modules essentiels
-                  </p>
-                </div>
-                <div className="mkt-pricing-tier mkt-pricing-tier--featured">
-                  <span className="mkt-pricing-popular">POPULAIRE</span>
-                  <div className="flex items-baseline justify-between">
-                    <span className="ui-display text-base font-semibold text-white">Starter</span>
-                    <span className="ui-display text-[26px] font-bold text-white">
-                      19€
-                      <span className="text-[13px] font-medium text-white/50">/mois</span>
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-[13.5px]">
-                    Jusqu&apos;à 10 personnes, tous les modules
-                  </p>
-                </div>
-                <div className="mkt-pricing-tier">
-                  <div className="flex items-baseline justify-between">
-                    <span className="ui-display text-base font-semibold">Pro</span>
-                    <span className="ui-display text-[26px] font-bold">
-                      49€
-                      <span className="text-[13px] font-medium text-[var(--ink-muted)]">/mois</span>
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-[13.5px] text-[var(--ink-muted)]">
-                    Équipes illimitées + assistant IA
-                  </p>
-                </div>
-                <Link
-                  href="/pricing"
-                  className="mkt-cta-secondary mt-1 w-full py-3 text-center text-sm"
-                >
-                  Voir le détail des tarifs
-                </Link>
-              </div>
+              <LandingPricingSection />
             </ScrollReveal>
           </div>
         </section>

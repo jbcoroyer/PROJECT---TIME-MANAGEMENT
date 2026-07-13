@@ -388,4 +388,31 @@ export const en: MessageTree = {
       },
     },
   },
+  firstTaskTutorial: {
+    welcome: {
+      badge: "Starter quest",
+      title: "Create your first project!",
+      body: "Every task is a project to track on your Kanban. Complete this guided quest to unlock your first win — and a surprise reward.",
+      xpHint: "Reward: +100 XP · « First step » badge",
+      cta: "Start the quest",
+    },
+    quest: {
+      clickNewTask: "Click « New task »",
+      fillForm: "Fill in the required project fields",
+    },
+    spotlight: {
+      quest: "Quest {current} / {total}",
+      clickTitle: "Open the creation form",
+      clickBody: "Click the highlighted « New task » button to see how to structure a project.",
+      fillTitle: "Bring your project to life",
+      fillBody: "Enter the project name, domain, priority, and owner — then submit to see your card on the Kanban board.",
+    },
+    reward: {
+      badge: "Quest complete",
+      title: "Well done, explorer!",
+      body: "Your first project is live on the Kanban board. You've already mastered the basics — keep going!",
+      xp: "+100 XP earned",
+      cta: "Explore my board",
+    },
+  },
 };

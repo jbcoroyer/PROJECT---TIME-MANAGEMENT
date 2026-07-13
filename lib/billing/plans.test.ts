@@ -2,11 +2,13 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   canAddOrgMember,
   daysLeftInTrial,
+  effectiveModulesForPlan,
   hasPlanFeature,
   isModuleAllowedForPlan,
   isOrgAccessAllowed,
   mapStripeSubscriptionStatus,
   maxMembersForPlan,
+  maxModulesForPlan,
 } from "./plans";
 
 describe("billing plans", () => {
@@ -26,7 +28,6 @@ describe("billing plans", () => {
   });
 
   it("bloque l'accès après expiration de l'essai sans rétrogradation", () => {
-    // Avant rétrogradation en base, le plan effectif reste autorisé (Gratuit).
     expect(
       isOrgAccessAllowed({
         plan: "trial",
@@ -61,15 +62,32 @@ describe("billing plans", () => {
     ).toBe(false);
   });
 
-  it("limite les membres sur les plans Gratuit et Starter", () => {
+  it("limite les membres sur Gratuit, Starter et Pro", () => {
     expect(maxMembersForPlan("free")).toBe(2);
     expect(maxMembersForPlan("starter")).toBe(5);
-    expect(maxMembersForPlan("pro")).toBeNull();
+    expect(maxMembersForPlan("pro")).toBe(25);
     expect(canAddOrgMember("free", 1)).toBe(true);
     expect(canAddOrgMember("free", 2)).toBe(false);
     expect(canAddOrgMember("starter", 4)).toBe(true);
     expect(canAddOrgMember("starter", 5)).toBe(false);
-    expect(canAddOrgMember("pro", 100)).toBe(true);
+    expect(canAddOrgMember("pro", 24)).toBe(true);
+    expect(canAddOrgMember("pro", 25)).toBe(false);
+  });
+
+  it("limite les modules sur le plan Gratuit", () => {
+    expect(maxModulesForPlan("free")).toBe(5);
+    expect(maxModulesForPlan("starter")).toBeNull();
+    const enabled = [
+      "dashboard",
+      "workspace",
+      "planning",
+      "ideas",
+      "asks",
+      "events",
+      "social",
+    ] as const;
+    expect(effectiveModulesForPlan("free", [...enabled])).toHaveLength(5);
+    expect(effectiveModulesForPlan("starter", [...enabled])).toHaveLength(7);
   });
 
   it("mappe les statuts Stripe", () => {
@@ -77,11 +95,10 @@ describe("billing plans", () => {
     expect(mapStripeSubscriptionStatus("incomplete_expired")).toBe("canceled");
   });
 
-  it("restreint les modules et features sur Gratuit et Starter", () => {
+  it("autorise tous les modules par identifiant et restreint les features premium au Pro", () => {
     expect(isModuleAllowedForPlan("free", "dashboard")).toBe(true);
-    expect(isModuleAllowedForPlan("free", "social")).toBe(false);
-    expect(isModuleAllowedForPlan("starter", "dashboard")).toBe(true);
-    expect(isModuleAllowedForPlan("starter", "social")).toBe(false);
+    expect(isModuleAllowedForPlan("free", "social")).toBe(true);
+    expect(isModuleAllowedForPlan("starter", "social")).toBe(true);
     expect(hasPlanFeature("free", "ai")).toBe(false);
     expect(hasPlanFeature("starter", "ai")).toBe(false);
     expect(hasPlanFeature("pro", "ai")).toBe(true);

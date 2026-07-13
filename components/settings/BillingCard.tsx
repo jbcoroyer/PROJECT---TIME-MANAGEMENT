@@ -117,7 +117,7 @@ export default function BillingCard() {
             )}
             {onFree && (
               <p className="mt-2 text-sm text-[color:var(--foreground)]/70">
-                Plan Gratuit — jusqu&apos;à 2 utilisateurs, modules essentiels.
+                Plan Gratuit — jusqu&apos;à 2 utilisateurs, 5 modules au choix.
               </p>
             )}
             {!billing.accessAllowed && (

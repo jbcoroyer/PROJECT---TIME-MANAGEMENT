@@ -12,7 +12,7 @@ import {
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { isModuleEnabled } from "../../lib/modules";
-import { isModuleAllowedForPlan } from "../../lib/billing/plans";
+import { effectiveModulesForPlan } from "../../lib/billing/plans";
 import { useBillingPlan } from "../../lib/billing/useBillingPlan";
 import { isNavActive, NAV_ITEMS } from "../../lib/navigation";
 import { useCurrentUser } from "../../lib/useCurrentUser";
@@ -117,12 +117,13 @@ export default function V2AppShell({
   const isAdmin = Boolean(user?.isAdmin);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
+  const allowedModules = effectiveModulesForPlan(plan, branding.enabledModules);
+
   const items = [
     ...NAV_ITEMS.filter((item) => {
       if (item.adminOnly && !isAdmin) return false;
       if (!item.moduleId) return true;
-      if (!isModuleEnabled(branding.enabledModules, item.moduleId)) return false;
-      return isModuleAllowedForPlan(plan, item.moduleId);
+      return isModuleEnabled(allowedModules, item.moduleId);
     }),
     settingsNavItem,
   ];

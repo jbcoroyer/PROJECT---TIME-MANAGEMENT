@@ -60,6 +60,7 @@ import V2QuickAddTask from "./V2QuickAddTask";
 import V2Inbox from "./V2Inbox";
 import V2TriagePanel from "./V2TriagePanel";
 import IntakeTaskMappingModal from "./IntakeTaskMappingModal";
+import { useFirstTaskTutorialOptional } from "../../../lib/onboarding/firstTaskTutorialContext";
 import { buildTaskDraftFromRequest, type IntakeTaskDraft } from "../../../lib/v2/intakeMapping";
 
 const V2ListView = dynamic(() => import("../list/V2ListView"));
@@ -275,7 +276,15 @@ export default function V2DashboardHomePage() {
     [currentUser, admins],
   );
 
-  const handleOpenForm = useCallback(() => {
+  const tutorial = useFirstTaskTutorialOptional();
+  const tutorialHighlightButton = Boolean(tutorial?.active) && tutorial?.step === "clickNewTask";
+  const tutorialModalActive =
+    Boolean(tutorial?.active) && tutorial?.step === "fillForm" && isFormOpen;
+
+  const handleOpenForm = useCallback((options?: { fromTutorialButton?: boolean }) => {
+    if (tutorial?.active && tutorial.step === "clickNewTask" && !options?.fromTutorialButton) {
+      return;
+    }
     const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
     const firstDomain = domainRecords[0]?.name ?? initialFormState.domain;
     setEditingTaskId(null);
@@ -287,10 +296,15 @@ export default function V2DashboardHomePage() {
     });
     setNewTaskColumn((columns[0] as ColumnId) ?? "À faire");
     setIsFormOpen(true);
-  }, [defaultAdminName, columns, companyRecords, domainRecords]);
+    tutorial?.notifyNewTaskClicked();
+    tutorial?.notifyFormOpened();
+  }, [defaultAdminName, columns, companyRecords, domainRecords, tutorial]);
 
   const handleOpenFormForColumn = useCallback(
     (column: ColumnId) => {
+      if (tutorial?.active && (tutorial.step === "clickNewTask" || tutorial.step === "fillForm")) {
+        return;
+      }
       const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
       const firstDomain = domainRecords[0]?.name ?? initialFormState.domain;
       setEditingTaskId(null);
@@ -303,10 +317,11 @@ export default function V2DashboardHomePage() {
       setNewTaskColumn(column);
       setIsFormOpen(true);
     },
-    [defaultAdminName, companyRecords, domainRecords],
+    [defaultAdminName, companyRecords, domainRecords, tutorial],
   );
 
   const handleCloseForm = useCallback(() => {
+    if (tutorialModalActive) return;
     const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
     const firstDomain = domainRecords[0]?.name ?? initialFormState.domain;
     setIsFormOpen(false);
@@ -317,7 +332,23 @@ export default function V2DashboardHomePage() {
       admins: defaultAdminName ? [defaultAdminName] : [],
     });
     setNewTaskColumn((columns[0] as ColumnId) ?? "À faire");
-  }, [companyRecords, domainRecords, defaultAdminName, columns]);
+  }, [companyRecords, domainRecords, defaultAdminName, columns, tutorialModalActive]);
+
+  const handleTaskFormDone = useCallback(() => {
+    const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
+    const firstDomain = domainRecords[0]?.name ?? initialFormState.domain;
+    if (tutorial?.active && tutorial.step === "fillForm") {
+      tutorial.notifyTaskCreated();
+    }
+    setIsFormOpen(false);
+    setNewTask({
+      ...initialFormState,
+      company: firstCompany,
+      domain: firstDomain,
+      admins: defaultAdminName ? [defaultAdminName] : [],
+    });
+    setNewTaskColumn((columns[0] as ColumnId) ?? "À faire");
+  }, [companyRecords, domainRecords, defaultAdminName, columns, tutorial]);
 
   const openEditForTask = useCallback((task: Task) => {
     setEditingTaskId(task.id);
@@ -356,7 +387,7 @@ export default function V2DashboardHomePage() {
     columns,
     newTaskColumn,
     editingTaskId,
-    onTaskFormDone: handleCloseForm,
+    onTaskFormDone: handleTaskFormDone,
   });
 
   /** Création rapide « <3 s » : titre seul, valeurs par défaut, ajout optimiste + rollback. */
@@ -1059,9 +1090,13 @@ export default function V2DashboardHomePage() {
             <DashboardNotificationBell />
             <button
               type="button"
-              onClick={handleOpenForm}
+              data-tutorial="new-task-button"
+              onClick={() => handleOpenForm({ fromTutorialButton: true })}
               title="Nouvelle tâche (N)"
-              className="ui-transition inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-[var(--shadow-1)] hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]"
+              className={[
+                "ui-transition inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-[var(--shadow-1)] hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]",
+                tutorialHighlightButton ? "relative z-[150]" : "",
+              ].join(" ")}
             >
               <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white/25 text-white">
                 <Plus className="h-3.5 w-3.5" />
@@ -1306,6 +1341,7 @@ export default function V2DashboardHomePage() {
           domains={domainRecords}
           currentUserName={effectiveUser ?? currentUser?.teamMemberName ?? currentUser?.displayName ?? null}
           currentUser={currentUser}
+          tutorialMode={tutorialModalActive && !editingTaskId}
           onCancel={handleCloseForm}
           onSubmit={handleCreateTask}
         />

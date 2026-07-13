@@ -3,6 +3,9 @@
 .mkt-page {
   --mkt-ink: var(--ink);
   --mkt-ink-muted: var(--ink-muted);
+  --mkt-free: #5a8f6a;
+  --mkt-standard: var(--accent);
+  --mkt-pro: var(--ink);
 }
 
 .mkt-hero-glow {
@@ -196,6 +199,69 @@
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
+}
+
+.mkt-pricing-tier-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.mkt-pricing-tier-tab {
+  position: relative;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mkt-pricing-tier-tab:hover {
+  border-color: color-mix(in srgb, var(--ink) 18%, var(--line));
+  transform: translateY(-1px);
+}
+
+.mkt-pricing-tier-tab--active {
+  border-color: var(--mkt-tier-accent, var(--accent));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.mkt-pricing-tier-tab--featured {
+  background: var(--ink);
+  color: var(--background);
+  border-color: transparent;
+}
+
+.mkt-pricing-tier-tab--featured p {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.mkt-pricing-tier-tab--featured-active {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.mkt-pricing-detail {
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 1.5rem;
+}
+
+.mkt-enterprise-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  border-radius: 20px;
+  border: 1px dashed color-mix(in srgb, var(--ink) 22%, var(--line));
+  background: color-mix(in srgb, var(--surface-soft) 80%, var(--surface));
+  padding: 1.5rem 1.75rem;
 }
 
 .mkt-pricing-tier {

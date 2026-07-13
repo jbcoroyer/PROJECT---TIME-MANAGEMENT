@@ -4,10 +4,10 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useBranding } from "../../lib/brandingContext";
 import { useBillingPlan } from "../../lib/billing/useBillingPlan";
-import { isModuleAllowedForPlan } from "../../lib/billing/plans";
+import { effectiveModulesForPlan } from "../../lib/billing/plans";
 import { getDefaultModuleRoute, isPathAllowedForModules, resolveModuleForPath } from "../../lib/modules";
 
-/** Redirige si l'utilisateur accède à un module désactivé ou non inclus dans son plan. */
+/** Redirige si l'utilisateur accède à un module désactivé ou hors limite de son plan. */
 export default function ModuleRouteGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -17,14 +17,15 @@ export default function ModuleRouteGuard({ children }: { children: React.ReactNo
   useEffect(() => {
     if (brandingLoading || planLoading) return;
 
-    if (!isPathAllowedForModules(pathname, branding.enabledModules)) {
-      router.replace(getDefaultModuleRoute(branding.enabledModules));
-      return;
-    }
+    const allowedModules = effectiveModulesForPlan(plan, branding.enabledModules);
 
-    const moduleId = resolveModuleForPath(pathname);
-    if (moduleId && !isModuleAllowedForPlan(plan, moduleId)) {
-      router.replace("/settings?upgrade=pro");
+    if (!isPathAllowedForModules(pathname, allowedModules)) {
+      const moduleId = resolveModuleForPath(pathname);
+      const upgrade =
+        plan === "free" && moduleId && branding.enabledModules.includes(moduleId)
+          ? "starter"
+          : "pro";
+      router.replace(moduleId ? `/settings?upgrade=${upgrade}` : getDefaultModuleRoute(allowedModules));
     }
   }, [pathname, branding.enabledModules, brandingLoading, plan, planLoading, router]);
 

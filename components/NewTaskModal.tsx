@@ -29,6 +29,7 @@ import { taskFormSchema, type TaskFormValues, type TaskFormValuesWithSubtasks, t
 import { normalizeProjectName } from "../lib/normalize";
 import { resolveDefaultSubtaskAssignee } from "../lib/taskConcernsUser";
 import type { CurrentUser } from "../lib/useCurrentUser";
+import "./onboarding/first-task-tutorial.css";
 
 function RequiredStar() {
   return <span className="ml-1 text-[var(--danger)]">*</span>;
@@ -43,10 +44,11 @@ export default function NewTaskModal(props: {
   domains: ReferenceRecord[];
   currentUserName?: string | null;
   currentUser?: Pick<CurrentUser, "teamMemberName" | "displayName" | "email"> | null;
+  tutorialMode?: boolean;
   onCancel: () => void;
   onSubmit: (values: TaskFormValuesWithSubtasks) => Promise<void> | void;
 }) {
-  const { open, editingTaskId, initialValues, admins, domains, onCancel } = props;
+  const { open, editingTaskId, initialValues, admins, domains, onCancel, tutorialMode = false } = props;
 
   const onSubmit = (values: TaskFormValues) => {
     return props.onSubmit({
@@ -140,7 +142,19 @@ export default function NewTaskModal(props: {
   }, [open, prefix]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !tutorialMode) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, tutorialMode]);
+
+  useEffect(() => {
+    if (!open || tutorialMode) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -150,7 +164,7 @@ export default function NewTaskModal(props: {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onCancel]);
+  }, [open, onCancel, tutorialMode]);
 
   const adminsError = errors.admins?.message;
   const clientNameError = errors.clientName?.message;
@@ -165,12 +179,22 @@ export default function NewTaskModal(props: {
     if (valid) setStep((prev) => Math.min(prev + 1, 2) as 0 | 1 | 2);
   };
 
+  const handleTutorialCreate = async () => {
+    const valid = await trigger(stepFields[0]);
+    if (!valid) return;
+    await handleSubmit(onSubmit)();
+  };
+
   const handleStepKeyDown = (event: ReactKeyboardEvent<HTMLFormElement>) => {
     if (event.key !== "Enter" || step >= 2) return;
     const target = event.target as HTMLElement;
     const tagName = target.tagName.toLowerCase();
     if (tagName === "textarea") return;
     event.preventDefault();
+    if (tutorialMode && step === 0) {
+      void handleTutorialCreate();
+      return;
+    }
     void handleNextStep();
   };
 
@@ -182,13 +206,17 @@ export default function NewTaskModal(props: {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/30 px-4 py-8 backdrop-blur-md"
-          onClick={onCancel}
+          className={[
+            "fixed inset-0 flex items-center justify-center bg-slate-950/30 px-4 py-8 backdrop-blur-md",
+            tutorialMode ? "z-[150]" : "z-40",
+          ].join(" ")}
+          onClick={tutorialMode ? undefined : onCancel}
         >
           <motion.div
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
+            data-tutorial="new-task-modal"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
@@ -198,8 +226,13 @@ export default function NewTaskModal(props: {
           >
             <div className="mb-4 flex items-center justify-between">
               <h2 id={titleId} className="ui-heading text-2xl font-semibold text-[var(--foreground)]">
-                {editingTaskId ? "Modifier la tâche" : "Nouvelle tâche"}
+                {tutorialMode
+                  ? "Votre premier projet"
+                  : editingTaskId
+                    ? "Modifier la tâche"
+                    : "Nouvelle tâche"}
               </h2>
+              {!tutorialMode ? (
               <button
                 type="button"
                 onClick={onCancel}
@@ -208,6 +241,7 @@ export default function NewTaskModal(props: {
                 <span className="sr-only">Fermer</span>
                 <X className="h-4 w-4" />
               </button>
+              ) : null}
             </div>
 
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} onKeyDown={handleStepKeyDown}>
@@ -221,7 +255,11 @@ export default function NewTaskModal(props: {
                   <button
                     key={s.id}
                     type="button"
-                    onClick={() => setStep(s.id as 0 | 1 | 2)}
+                    onClick={() => {
+                      if (tutorialMode) return;
+                      setStep(s.id as 0 | 1 | 2);
+                    }}
+                    disabled={tutorialMode && s.id !== 0}
                     aria-current={step === s.id ? "step" : undefined}
                     className={[
                       "inline-flex items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-xs font-semibold transition",
@@ -237,7 +275,9 @@ export default function NewTaskModal(props: {
               </div>
 
               <p className="text-[11px] text-[color:var(--foreground)]/55">
-                Étape {step + 1} sur 3. Appuyez sur Entrée pour continuer.
+                {tutorialMode
+                  ? "Remplissez les champs obligatoires (*) pour créer votre premier projet."
+                  : `Étape ${step + 1} sur 3. Appuyez sur Entrée pour continuer.`}
               </p>
 
               {step === 0 && <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -251,7 +291,10 @@ export default function NewTaskModal(props: {
                     id={`${prefix}-project-name`}
                     type="text"
                     {...register("projectName")}
-                    className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] shadow-sm focus:outline-none"
+                    className={[
+                      "ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] shadow-sm focus:outline-none",
+                      tutorialMode ? "first-task-tutorial__highlight-field" : "",
+                    ].join(" ")}
                     placeholder="Ex : Lancement produit printemps"
                   />
                   {errors.projectName?.message && (
@@ -685,6 +728,7 @@ export default function NewTaskModal(props: {
               )}
 
               <div className="flex items-center justify-end gap-2 pt-2">
+                {!tutorialMode ? (
                 <button
                   type="button"
                   onClick={onCancel}
@@ -693,7 +737,8 @@ export default function NewTaskModal(props: {
                   <X className="h-3.5 w-3.5" />
                   Annuler
                 </button>
-                {step > 0 && (
+                ) : null}
+                {step > 0 && !tutorialMode && (
                   <button
                     type="button"
                     onClick={() => setStep((prev) => Math.max(prev - 1, 0) as 0 | 1 | 2)}
@@ -703,7 +748,17 @@ export default function NewTaskModal(props: {
                     Retour
                   </button>
                 )}
-                {step < 2 ? (
+                {tutorialMode && step === 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleTutorialCreate()}
+                    disabled={isSubmitting}
+                    className="ui-transition inline-flex items-center gap-1 rounded-xl bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)] disabled:opacity-70"
+                  >
+                    <Check className="h-4 w-4" />
+                    Créer mon premier projet ✨
+                  </button>
+                ) : step < 2 ? (
                   <button
                     type="button"
                     onClick={() => void handleNextStep()}

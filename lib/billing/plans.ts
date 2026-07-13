@@ -11,24 +11,6 @@ export type PaidPlan = "starter" | "pro";
 /** Plans affichés sur la page tarifs et le marketing. */
 export type PublicPlan = "free" | "starter" | "pro";
 
-/** Modules inclus dans le plan Starter (le reste nécessite Pro). */
-export const STARTER_MODULE_IDS: readonly AppModuleId[] = [
-  "dashboard",
-  "workspace",
-  "asks",
-  "planning",
-  "ideas",
-] as const;
-
-export const PRO_ONLY_MODULE_IDS: readonly AppModuleId[] = [
-  "events",
-  "social",
-  "dam",
-  "stock",
-  "okr",
-  "surveys",
-] as const;
-
 export type PlanFeature = "ai" | "outlook_sync" | "slack_alerts" | "advanced_modules";
 
 export const PLAN_FEATURE_LABELS: Record<PlanFeature, string> = {
@@ -43,6 +25,8 @@ export type PublicPlanMarketing = {
   name: string;
   tagline: string;
   description: string;
+  price: string;
+  priceSuffix?: string;
   badge?: string;
   highlighted?: boolean;
   ctaLabel: string;
@@ -51,59 +35,101 @@ export type PublicPlanMarketing = {
 export const PUBLIC_PLAN_MARKETING: Record<PublicPlan, PublicPlanMarketing> = {
   free: {
     name: "Gratuit",
-    tagline: "Pour démarrer sans stress",
+    tagline: "Pour tester sans engagement",
     description:
-      "Idéal pour un solo ou un duo qui veut structurer ses projets — sans carte bancaire, sans limite de temps.",
-    badge: "0 €",
+      "Choisissez jusqu'à 5 modules et travaillez à deux — idéal pour valider l'outil avant de faire grandir l'équipe.",
+    price: "0 €",
+    badge: "Sans CB",
     ctaLabel: "Commencer gratuitement",
   },
   starter: {
-    name: "Standard",
-    tagline: "Pour les petites équipes",
+    name: "Starter",
+    tagline: "L'équipe se structure",
     description:
-      "Quand le projet grandit et que vous avez besoin de vous coordonner à plusieurs, avec un espace à votre image.",
-    badge: "Équipe",
+      "Tous les modules débloqués pour une petite équipe qui veut centraliser pilotage, com' et opérations sans outils éparpillés.",
+    price: "19 €",
+    priceSuffix: "/mois",
+    badge: "Le plus populaire",
+    highlighted: true,
     ctaLabel: "Essayer 14 jours gratuits",
   },
   pro: {
     name: "Pro",
-    tagline: "Pour tout centraliser",
+    tagline: "Pour les équipes qui accélèrent",
     description:
-      "Tous les modules, l'IA et les intégrations — pour les équipes qui veulent un vrai QG projet sans outils éparpillés.",
+      "Jusqu'à 25 collaborateurs, l'assistant IA et les intégrations Outlook & Slack — votre QG projet complet.",
+    price: "49 €",
+    priceSuffix: "/mois",
     badge: "Le plus complet",
-    highlighted: true,
     ctaLabel: "Essayer 14 jours gratuits",
   },
 };
 
-export const FREE_MAX_MEMBERS = 2;
+export const ENTERPRISE_MARKETING = {
+  name: "Entreprise",
+  tagline: "Plus de 25 collaborateurs ?",
+  description:
+    "Volumes importants, besoins spécifiques ou déploiement multi-équipes : construisons une offre sur mesure ensemble.",
+  ctaLabel: "Nous contacter",
+  contactEmail: "contact@workspace-demo.fr",
+} as const;
 
+export const FREE_MAX_MEMBERS = 2;
+export const FREE_MAX_MODULES = 5;
+
+export const STARTER_MIN_MEMBERS = 2;
 export const STARTER_MAX_MEMBERS = 5;
+
+export const PRO_MIN_MEMBERS = 5;
+export const PRO_MAX_MEMBERS = 25;
 
 export const PLAN_MARKETING_FEATURES: Record<PublicPlan, string[]> = {
   free: [
     "1 à 2 personnes sur le même espace",
-    "Tableau de bord kanban & liste de tâches",
-    "Planning semaine & boîte à idées",
+    "5 modules au choix parmi les 11",
+    "Tableau de bord, planning, tâches…",
     "Gratuit à vie — aucune carte bancaire",
-    "Parfait pour lancer un side project",
+    "Passez au Starter quand l'équipe grandit",
   ],
   starter: [
-    "Jusqu'à 5 membres invités",
-    "Tout le pack pilotage : kanban, tâches, planning",
-    "Boîte à demandes & collecte d'idées",
+    "2 à 5 collaborateurs invités",
+    "Les 11 modules — sans restriction",
+    "Événements, réseaux sociaux, stock & fichiers",
     "Logo et couleurs de votre espace",
     "Support par e-mail sous 48 h",
   ],
   pro: [
-    "Membres illimités — scalez sans friction",
-    "Événements, réseaux sociaux, stock & fichiers",
-    "Objectifs d'équipe & enquêtes de satisfaction",
-    "Assistant IA (reformulation & synthèses)",
+    "5 à 25 collaborateurs",
+    "Tous les modules + assistant IA",
     "Sync Outlook & alertes Slack / Teams",
+    "Objectifs d'équipe & enquêtes avancées",
     "Support prioritaire & onboarding dédié",
   ],
 };
+
+export type ComparisonCellValue = boolean | string;
+
+export type PlanComparisonRow = {
+  label: string;
+  free: ComparisonCellValue;
+  starter: ComparisonCellValue;
+  pro: ComparisonCellValue;
+};
+
+export const PLAN_COMPARISON_ROWS: PlanComparisonRow[] = [
+  { label: "Utilisateurs", free: "1 à 2", starter: "2 à 5", pro: "5 à 25" },
+  { label: "Modules activables", free: "5 max", starter: "11 (tous)", pro: "11 (tous)" },
+  { label: "Tableau de bord & tâches", free: true, starter: true, pro: true },
+  { label: "Planning & boîte à idées", free: true, starter: true, pro: true },
+  { label: "Boîte à demandes", free: true, starter: true, pro: true },
+  { label: "Événements & réseaux sociaux", free: "Au choix*", starter: true, pro: true },
+  { label: "Fichiers, stock & objectifs", free: "Au choix*", starter: true, pro: true },
+  { label: "Enquêtes de satisfaction", free: "Au choix*", starter: true, pro: true },
+  { label: "Assistant IA", free: false, starter: false, pro: true },
+  { label: "Outlook & Slack / Teams", free: false, starter: false, pro: true },
+  { label: "Personnalisation (logo & couleurs)", free: false, starter: true, pro: true },
+  { label: "Support", free: "Communauté", starter: "E-mail 48 h", pro: "Prioritaire" },
+];
 
 export function isTrialExpired(trialEndsAt: string | null): boolean {
   if (!trialEndsAt) return false;
@@ -121,9 +147,16 @@ export function effectivePlanForOrg(input: {
   return input.plan;
 }
 
+export function maxModulesForPlan(plan: OrgPlan): number | null {
+  if (plan === "free") return FREE_MAX_MODULES;
+  return null;
+}
+
+/** Tous les modules sont autorisés par identifiant ; la limite Gratuit porte sur le nombre activé. */
 export function isModuleAllowedForPlan(plan: OrgPlan, moduleId: AppModuleId): boolean {
-  if (plan === "trial" || plan === "pro") return true;
-  return STARTER_MODULE_IDS.includes(moduleId);
+  void plan;
+  void moduleId;
+  return true;
 }
 
 export function hasPlanFeature(plan: OrgPlan, feature: PlanFeature): boolean {
@@ -132,10 +165,17 @@ export function hasPlanFeature(plan: OrgPlan, feature: PlanFeature): boolean {
   return false;
 }
 
-/** Nombre max de comptes par organisation (`null` = illimité). */
+/** Nombre max de comptes par organisation (`null` = illimité côté produit). */
 export function maxMembersForPlan(plan: OrgPlan): number | null {
   if (plan === "free") return FREE_MAX_MEMBERS;
   if (plan === "starter") return STARTER_MAX_MEMBERS;
+  if (plan === "pro") return PRO_MAX_MEMBERS;
+  return null;
+}
+
+export function minMembersForPlan(plan: OrgPlan): number | null {
+  if (plan === "starter") return STARTER_MIN_MEMBERS;
+  if (plan === "pro") return PRO_MIN_MEMBERS;
   return null;
 }
 
@@ -146,24 +186,36 @@ export function canAddOrgMember(plan: OrgPlan, currentMemberCount: number): bool
 }
 
 export function effectiveModulesForPlan(plan: OrgPlan, enabledModules: AppModuleId[]): AppModuleId[] {
-  return enabledModules.filter((id) => isModuleAllowedForPlan(plan, id));
+  const max = maxModulesForPlan(plan);
+  if (max === null) return enabledModules;
+  return enabledModules.slice(0, max);
 }
 
 export const PLAN_LABELS: Record<OrgPlan, string> = {
   trial: "Essai gratuit",
   free: "Gratuit",
-  starter: "Standard",
+  starter: "Starter",
   pro: "Pro",
 };
 
 export function memberLimitErrorForPlan(plan: OrgPlan): string {
   if (plan === "free") {
-    return "Limite de 2 utilisateurs atteinte sur le plan Gratuit. Passez au plan Standard ou Pro pour inviter plus de collègues.";
+    return "Limite de 2 utilisateurs atteinte sur le plan Gratuit. Passez au plan Starter ou Pro pour inviter plus de collègues.";
   }
   if (plan === "starter") {
-    return "Limite de 5 membres atteinte sur le plan Standard. Passez au plan Pro pour inviter plus de collègues.";
+    return "Limite de 5 membres atteinte sur le plan Starter. Passez au plan Pro (jusqu'à 25) ou contactez-nous au-delà.";
+  }
+  if (plan === "pro") {
+    return "Limite de 25 membres atteinte sur le plan Pro. Contactez-nous pour une offre Entreprise sur mesure.";
   }
   return "Limite de membres atteinte pour votre plan.";
+}
+
+export function moduleLimitErrorForPlan(plan: OrgPlan): string {
+  if (plan === "free") {
+    return `Le plan Gratuit permet ${FREE_MAX_MODULES} modules maximum. Passez au Starter pour débloquer les 11 modules.`;
+  }
+  return "Limite de modules atteinte pour votre plan.";
 }
 
 export const BILLING_STATUS_LABELS: Record<BillingStatus, string> = {

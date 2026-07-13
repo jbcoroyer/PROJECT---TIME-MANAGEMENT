@@ -6,25 +6,31 @@ import { useSearchParams } from "next/navigation";
 
 export default function UpgradeProBanner() {
   const searchParams = useSearchParams();
-  const show = searchParams.get("upgrade") === "pro";
+  const upgrade = searchParams.get("upgrade");
+  const show = upgrade === "pro" || upgrade === "starter";
 
   if (!show) return null;
+
+  const isStarter = upgrade === "starter";
 
   return (
     <div className="relative rounded-2xl border border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_8%,var(--surface))] px-4 py-4 sm:px-5">
       <div className="flex items-start gap-3 pr-8">
         <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
         <div>
-          <p className="font-semibold text-[var(--foreground)]">Ce module nécessite le plan Pro</p>
+          <p className="font-semibold text-[var(--foreground)]">
+            {isStarter ? "Passez au plan Starter" : "Ce module nécessite le plan Pro"}
+          </p>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/65">
-            Passez au plan Pro pour débloquer les modules avancés, l&apos;assistant IA, Outlook et les alertes
-            Slack.
+            {isStarter
+              ? "Le plan Gratuit permet 5 modules maximum. Débloquez les 11 modules avec le Starter (2 à 5 collaborateurs)."
+              : "Passez au plan Pro pour l'assistant IA, Outlook, les alertes Slack et jusqu'à 25 collaborateurs."}
           </p>
           <Link
             href="/pricing"
             className="mt-3 inline-flex text-sm font-semibold text-[var(--brand-primary)] hover:underline"
           >
-            Voir les offres Pro →
+            {isStarter ? "Voir l'offre Starter →" : "Voir les offres Pro →"}
           </Link>
         </div>
       </div>

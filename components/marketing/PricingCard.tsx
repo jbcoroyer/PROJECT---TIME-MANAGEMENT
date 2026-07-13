@@ -45,6 +45,14 @@ export default function PricingCard({ planId, features, ctaHref = "/signup", com
       <h2 className="text-xl font-bold text-[var(--foreground)]" style={{ color: accentVar }}>
         {plan.name}
       </h2>
+      <p className="mt-2 flex items-baseline gap-1">
+        <span className="ui-display text-3xl font-bold" style={{ color: accentVar }}>
+          {plan.price}
+        </span>
+        {plan.priceSuffix ? (
+          <span className="text-sm font-medium text-[color:var(--foreground)]/50">{plan.priceSuffix}</span>
+        ) : null}
+      </p>
       <p className="mt-1 text-sm font-medium text-[color:var(--foreground)]/75">{plan.tagline}</p>
       {!compact && <p className="mt-2 text-sm leading-relaxed text-[color:var(--foreground)]/60">{plan.description}</p>}
 
