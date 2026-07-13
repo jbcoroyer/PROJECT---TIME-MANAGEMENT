@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import AppShell from "../../components/v2/AppShell";
+import ModuleRouteGuard from "../../components/v2/ModuleRouteGuard";
 import { useConfirm } from "../../components/ui/ConfirmDialog";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { useBranding } from "../../lib/brandingContext";
@@ -283,14 +284,16 @@ export default function IdeasPage() {
 
   if (currentUser) {
     return (
-      <AppShell
-        currentUserName={currentUser.teamMemberName ?? currentUser.displayName ?? undefined}
-        currentUserEmail={currentUser.email}
-        currentUserAvatarUrl={currentUser.avatarUrl ?? null}
-        currentUserJobTitle={currentUser.jobTitle ?? null}
-      >
-        {content}
-      </AppShell>
+      <ModuleRouteGuard>
+        <AppShell
+          currentUserName={currentUser.teamMemberName ?? currentUser.displayName ?? undefined}
+          currentUserEmail={currentUser.email}
+          currentUserAvatarUrl={currentUser.avatarUrl ?? null}
+          currentUserJobTitle={currentUser.jobTitle ?? null}
+        >
+          {content}
+        </AppShell>
+      </ModuleRouteGuard>
     );
   }
 

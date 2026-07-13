@@ -25,12 +25,13 @@ type BrandingContextValue = {
   branding: AppBranding;
   loading: boolean;
   reload: () => Promise<void>;
+  patchBranding: (patch: Partial<AppBranding>) => void;
 };
 
 const BrandingContext = createContext<BrandingContextValue | null>(null);
 
 const APP_SETTINGS_SELECT =
-  "id, organization_id, idena_mark_url, app_name, app_short_name, tagline, logo_url, icon_url, mark_url, primary_color, locale, timezone, sector, outlook_category_name, default_public_survey_id, is_configured, social_thematics, print_species, updated_at";
+  "id, organization_id, idena_mark_url, app_name, app_short_name, tagline, logo_url, icon_url, mark_url, primary_color, locale, timezone, sector, outlook_category_name, default_public_survey_id, is_configured, social_thematics, print_species, enabled_modules, updated_at";
 
 function applyBrandingToDocument(branding: AppBranding) {
   if (typeof document === "undefined") return;
@@ -44,13 +45,26 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    setLoading(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
+    let organizationId: string | null = null;
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("organization_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      organizationId = (profile?.organization_id as string | null) ?? null;
+    }
+
     let query = supabase.from("app_settings").select(APP_SETTINGS_SELECT);
 
-    if (!user) {
+    if (organizationId) {
+      query = query.eq("organization_id", organizationId);
+    } else if (!user) {
       query = query.eq("organization_id", LEGACY_ORG_ID);
     }
 
@@ -73,6 +87,14 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, [supabase]);
 
+  const patchBranding = useCallback((patch: Partial<AppBranding>) => {
+    setBranding((prev) => {
+      const next = { ...prev, ...patch };
+      applyBrandingToDocument(next);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void load();
@@ -93,8 +115,9 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
       branding,
       loading,
       reload: load,
+      patchBranding,
     }),
-    [branding, loading, load],
+    [branding, loading, load, patchBranding],
   );
 
   return <BrandingContext.Provider value={value}>{children}</BrandingContext.Provider>;
@@ -107,6 +130,7 @@ export function useBranding(): BrandingContextValue {
       branding: DEFAULT_BRANDING,
       loading: false,
       reload: async () => {},
+      patchBranding: () => {},
     };
   }
   return ctx;

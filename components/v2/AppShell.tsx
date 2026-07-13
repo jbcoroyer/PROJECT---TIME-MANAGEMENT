@@ -5,25 +5,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  CalendarDays,
-  CalendarRange,
-  ClipboardList,
-  FolderOpen,
-  Inbox,
-  LayoutGrid,
-  Lightbulb,
-  ListTodo,
   LogOut,
-  Megaphone,
   Menu,
-  Package,
-  Send,
   Settings2,
-  Target,
   UserCircle2,
   X,
 } from "lucide-react";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
+import { useBranding } from "../../lib/brandingContext";
+import { useTranslation } from "../../lib/i18n/useTranslation";
+import { isModuleEnabled } from "../../lib/modules";
+import { isNavActive, NAV_ITEMS } from "../../lib/navigation";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { BrandHeading } from "../AppBrand";
 
@@ -37,36 +29,12 @@ type V2AppShellProps = {
   currentUserJobTitle?: string | null;
 };
 
-const navItems = [
-  { href: "/dashboard/kanban", label: "Tableau de bord", icon: LayoutGrid },
-  { href: "/asks", label: "Faire une demande", icon: Send },
-  { href: "/todo", label: "Mon espace", icon: ListTodo },
-  { href: "/planning", label: "Planning", icon: CalendarDays },
-  { href: "/dashboard/triage", label: "Demandes (triage)", icon: Inbox },
-  { href: "/events/dashboard", label: "Événements", icon: CalendarRange },
-  { href: "/social", label: "Réseaux sociaux", icon: Megaphone },
-  { href: "/dam", label: "Bibliothèque (DAM)", icon: FolderOpen },
-  { href: "/stock", label: "Stock", icon: Package },
-  { href: "/ideas", label: "Boîte à idées", icon: Lightbulb },
-  { href: "/okr", label: "Objectifs (OKR)", icon: Target },
-  { href: "/settings", label: "Paramètres", icon: Settings2 },
-] as const;
-
-function isNavActive(href: string, pathname: string): boolean {
-  if (href === "/events/dashboard") return pathname.startsWith("/events");
-  if (href === "/dashboard/triage") return pathname === "/dashboard/triage";
-  if (href === "/asks") return pathname === "/asks";
-  if (href === "/dashboard/kanban") {
-    return (
-      pathname === "/dashboard/kanban" ||
-      (pathname.startsWith("/dashboard") && pathname !== "/dashboard/triage")
-    );
-  }
-  if (href === "/stock") return pathname.startsWith("/stock");
-  if (href === "/ideas") return pathname.startsWith("/ideas");
-  if (href === "/questionnaire/reponses") return pathname.startsWith("/questionnaire/reponses");
-  return pathname === href;
-}
+const settingsNavItem = {
+  href: "/settings",
+  labelKey: "nav.settings",
+  icon: Settings2,
+  moduleId: null,
+} as const;
 
 function UserCard({
   name,
@@ -114,6 +82,8 @@ export default function V2AppShell({
 }: V2AppShellProps) {
   const pathname = usePathname();
   const supabase = getSupabaseBrowser();
+  const { branding } = useBranding();
+  const { t } = useTranslation();
   const { user, loading: userLoading } = useCurrentUser();
   const displayName =
     currentUserName ?? user?.teamMemberName ?? user?.displayName ?? undefined;
@@ -123,16 +93,14 @@ export default function V2AppShell({
   const isAdmin = Boolean(user?.isAdmin);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const items = isAdmin
-    ? [
-        ...navItems,
-        {
-          href: "/questionnaire/reponses",
-          label: "Questionnaire",
-          icon: ClipboardList,
-        } as const,
-      ]
-    : navItems;
+  const items = [
+    ...NAV_ITEMS.filter((item) => {
+      if (item.adminOnly && !isAdmin) return false;
+      if (!item.moduleId) return true;
+      return isModuleEnabled(branding.enabledModules, item.moduleId);
+    }),
+    settingsNavItem,
+  ];
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -184,7 +152,7 @@ export default function V2AppShell({
               className={navLinkClass(active)}
             >
               <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </Link>
           );
         })}

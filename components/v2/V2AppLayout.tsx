@@ -2,14 +2,17 @@
 
 import type { ReactNode } from "react";
 import V2AppShell from "./AppShell";
+import ModuleRouteGuard from "./ModuleRouteGuard";
 import { V2ShellSlotsProvider, useV2ShellSlots } from "../../lib/v2/shellSlotsContext";
 
 function V2AppShellWithSlots({ children }: { children: ReactNode }) {
   const { toolbarRight, searchSlot } = useV2ShellSlots();
   return (
-    <V2AppShell toolbarRight={toolbarRight ?? undefined} searchSlot={searchSlot ?? undefined}>
-      {children}
-    </V2AppShell>
+    <ModuleRouteGuard>
+      <V2AppShell toolbarRight={toolbarRight ?? undefined} searchSlot={searchSlot ?? undefined}>
+        {children}
+      </V2AppShell>
+    </ModuleRouteGuard>
   );
 }
 

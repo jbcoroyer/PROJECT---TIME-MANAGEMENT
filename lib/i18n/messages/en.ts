@@ -25,14 +25,18 @@ export const en: MessageTree = {
     pendingBody:
       "The application is not configured yet. Only an administrator can complete setup. Contact your manager or sign in with an admin account.",
     backHome: "Back to home",
-    stepOf: "Step {step} of 3",
+    stepOf: "Step {step} of 4",
     step1Title: "Your organization",
     step2Title: "Appearance",
-    step3Title: "Final settings",
+    step3Title: "Your modules",
+    step4Title: "Final settings",
     step1Intro:
       "Name your workspace. This name appears in the menu, on the sign-in page, and in the browser tab.",
     step2Intro: "Choose a primary color and optionally upload your own mark.",
-    step3Intro: "You can change these settings later in Settings.",
+    step3Intro:
+      "Build your workspace à la carte. Enable only the modules you need — you can change them later.",
+    step3HeroTitle: "Pick the building blocks of your workspace",
+    step4Intro: "You can change these settings later in Settings.",
     appName: "Application name",
     appNamePlaceholder: "e.g. My team, Acme Agency…",
     tagline: "Tagline (optional)",
@@ -74,6 +78,7 @@ export const en: MessageTree = {
       "Your workspace {name} will be configured and you will become an administrator if none exists yet.",
     finish: "Complete setup",
     nameRequired: "Enter your workspace name.",
+    modulesRequired: "Select at least one module to continue.",
     markAdded: "Mark uploaded.",
     markInvalidFormat: "Use PNG, WebP, JPG, GIF, or SVG.",
     uploadFailed: "Upload failed: {message}",
@@ -134,8 +139,176 @@ export const en: MessageTree = {
     appUrlMissing: "Application URL is unknown. Set NEXT_PUBLIC_APP_URL.",
   },
   settings: {
+    pageKicker: "Configuration",
+    pageTitle: "Settings",
+    pageSubtitle: "Customize your workspace, modules, and advanced team settings.",
+    tabsLabel: "Settings sections",
+    tabs: {
+      modules: "Modules",
+      automations: "Automations",
+      admin: "Administration",
+    },
+    automationsIntro: "Define automatic rules for triage, notifications, and archiving.",
+    adminIntro: "Manage team, reference data, visual identity, and external connections.",
     locale: "Language",
     localeHint: "Interface language (French or English).",
     localeSaved: "Language saved.",
+    modulesTitle: "Enabled modules",
+    modulesSubtitle: "Turn parts of the tool on or off based on your needs.",
+    modulesSaved: "Modules updated.",
+    modulesMinOne: "At least one module must stay active.",
+    modulesUnsaved: "Unsaved changes",
+  },
+  nav: {
+    dashboard: "Dashboard",
+    asks: "Submit a request",
+    workspace: "My space",
+    planning: "Planning",
+    triage: "Requests (triage)",
+    events: "Events",
+    social: "Social media",
+    dam: "Asset library (DAM)",
+    stock: "Inventory",
+    ideas: "Idea box",
+    okr: "Goals (OKR)",
+    surveys: "Surveys",
+    settings: "Settings",
+  },
+  modules: {
+    recommended: "Recommended",
+    activate: "Enable {name}",
+    deactivate: "Disable {name}",
+    learnMore: "What you can do",
+    selectedCount: "{count} module(s) enabled",
+    categoryActive: "{active}/{total} active",
+    resetRecommended: "Recommended selection",
+    moduleDisabled: "This module is not enabled for your workspace.",
+    categories: {
+      pilotage: "Operations & productivity",
+      communication: "Communication & content",
+      operations: "Logistics & operations",
+      strategy: "Strategy & feedback",
+    },
+    dashboard: {
+      name: "Dashboard",
+      tagline: "Activity overview",
+      description:
+        "Centralize tasks, requests, and team follow-up in Kanban, list, calendar, and analytics views.",
+      highlights: {
+        h1: "Kanban, list, calendar, workload, and archives",
+        h2: "Custom workflow columns by domain",
+        h3: "Metrics and analytics to steer activity",
+      },
+    },
+    asks: {
+      name: "Requests",
+      tagline: "Collect and process needs",
+      description:
+        "Let collaborators submit structured requests and help the team triage, prioritize, and convert them into tasks.",
+      highlights: {
+        h1: "Request form with extended fields",
+        h2: "Dedicated triage queue to approve or reject",
+        h3: "Automation rules to speed up processing",
+      },
+    },
+    workspace: {
+      name: "My space",
+      tagline: "Smart personal agenda",
+      description:
+        "Your individual dashboard: today's tasks, AI suggestions, and focus on what matters to you.",
+      highlights: {
+        h1: "Daily agenda with priorities",
+        h2: "AI assistance to organize your day",
+        h3: "Personal view separate from team management",
+      },
+    },
+    planning: {
+      name: "Planning",
+      tagline: "Anticipate workload",
+      description:
+        "Visualize projected work over time to balance resources and anticipate activity peaks.",
+      highlights: {
+        h1: "Timeline of planned tasks",
+        h2: "Cross-view by member or project",
+        h3: "Ideal complement to the dashboard",
+      },
+    },
+    events: {
+      name: "Events",
+      tagline: "Run events end to end",
+      description:
+        "Dedicated event production module: event sheets, run-of-show, material needs, documents, and RETEX.",
+      highlights: {
+        h1: "Event hub with statuses and detailed sheets",
+        h2: "Run slots, material needs, and expense notes",
+        h3: "RETEX debrief to learn after each event",
+      },
+    },
+    social: {
+      name: "Social media",
+      tagline: "Plan and approve posts",
+      description:
+        "Organize your editorial calendar, prepare visuals, and track monthly goals by theme.",
+      highlights: {
+        h1: "Creation studio and approval queue",
+        h2: "Monthly targets and performance insights",
+        h3: "Content recycling from existing assets",
+      },
+    },
+    dam: {
+      name: "Asset library (DAM)",
+      tagline: "Centralize your assets",
+      description:
+        "Manage logos, visuals, and brand files in a shared library accessible from other modules.",
+      highlights: {
+        h1: "Asset storage and organization per workspace",
+        h2: "Search and reuse across workflows",
+        h3: "Secure isolation per organization",
+      },
+    },
+    stock: {
+      name: "Inventory",
+      tagline: "Stock and movements",
+      description:
+        "Track POS material, print, and equipment: ins, outs, history, and alerts.",
+      highlights: {
+        h1: "Multi-project inventory with visuals",
+        h2: "Movement history and stock dashboard",
+        h3: "Alerts and configurable print categories",
+      },
+    },
+    ideas: {
+      name: "Idea box",
+      tagline: "Collect suggestions",
+      description:
+        "Open a channel to gather ideas (internal or public), vote on them, and turn them into actions.",
+      highlights: {
+        h1: "Idea submission form",
+        h2: "Collaborative voting and prioritization",
+        h3: "Optional public link for your audiences",
+      },
+    },
+    okr: {
+      name: "Goals (OKR)",
+      tagline: "Align strategy",
+      description:
+        "Set ambitious objectives and measurable key results to track team progress.",
+      highlights: {
+        h1: "Hierarchical objectives and key results",
+        h2: "Progress tracking by period",
+        h3: "Strategic view complementing daily operations",
+      },
+    },
+    surveys: {
+      name: "Surveys",
+      tagline: "Measure satisfaction",
+      description:
+        "Create internal or public surveys, analyze responses, and steer perceived quality.",
+      highlights: {
+        h1: "Multi-step survey editor",
+        h2: "Public links secured by UUID",
+        h3: "Admin area reserved for administrators",
+      },
+    },
   },
 };

@@ -1,0 +1,396 @@
+/* ── Onboarding premium shell ── */
+
+.setup-ambient {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--background);
+}
+
+.setup-ambient::before,
+.setup-ambient::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+  opacity: 0.55;
+  z-index: 0;
+}
+
+.setup-ambient::before {
+  width: min(55vw, 520px);
+  height: min(55vw, 520px);
+  top: -12%;
+  right: -8%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand-primary) 28%, transparent), transparent 68%);
+  animation: setup-orb-drift-a 18s ease-in-out infinite;
+}
+
+.setup-ambient::after {
+  width: min(45vw, 420px);
+  height: min(45vw, 420px);
+  bottom: -8%;
+  left: -10%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%);
+  animation: setup-orb-drift-b 22s ease-in-out infinite;
+}
+
+@keyframes setup-orb-drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-24px, 18px) scale(1.06); }
+}
+
+@keyframes setup-orb-drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -14px) scale(1.04); }
+}
+
+.setup-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.setup-glass {
+  border: 1px solid color-mix(in srgb, var(--foreground) 8%, var(--line));
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 40%, transparent) inset,
+    0 24px 64px -12px color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+/* Step progress */
+.setup-steps {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.setup-step-dot {
+  position: relative;
+  height: 0.35rem;
+  flex: 1;
+  max-width: 4.5rem;
+  border-radius: 9999px;
+  background: var(--line);
+  overflow: hidden;
+  transition: max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.setup-step-dot--current {
+  max-width: 5.5rem;
+}
+
+.setup-step-dot__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--brand-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.setup-step-dot--done .setup-step-dot__fill,
+.setup-step-dot--current .setup-step-dot__fill {
+  transform: scaleX(1);
+}
+
+.setup-step-dot--current .setup-step-dot__fill {
+  animation: setup-step-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes setup-step-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+/* Step content transitions */
+.setup-step-panel {
+  animation: setup-step-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes setup-step-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Module showcase */
+.ob-showcase {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .ob-showcase {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+}
+
+.ob-spotlight {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, var(--line));
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 110%, color-mix(in srgb, var(--brand-primary) 16%, transparent), transparent 55%),
+    linear-gradient(165deg, color-mix(in srgb, var(--brand-primary) 8%, var(--surface)) 0%, var(--surface-soft) 100%);
+  min-height: 16rem;
+}
+
+@media (min-width: 900px) {
+  .ob-spotlight {
+    position: sticky;
+    top: 1rem;
+    min-height: 22rem;
+  }
+}
+
+.ob-spotlight__scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem 5.5rem;
+}
+
+.ob-spotlight__meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(to top, color-mix(in srgb, var(--surface) 95%, transparent) 40%, transparent);
+}
+
+.ob-spotlight__title {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.ob-spotlight__tagline {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--foreground) 58%, transparent);
+}
+
+.ob-spotlight__desc {
+  margin-top: 0.65rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--foreground) 68%, transparent);
+}
+
+.ob-spotlight-enter {
+  animation: ob-spotlight-enter 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ob-spotlight-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Category tabs */
+.ob-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+}
+
+.ob-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.ob-tab {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.ob-tab:hover {
+  border-color: var(--line-strong);
+  color: var(--foreground);
+}
+
+.ob-tab--active {
+  border-color: color-mix(in srgb, var(--brand-primary) 35%, var(--line));
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface));
+  color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 10%, transparent);
+}
+
+/* Module tiles */
+.ob-tiles {
+  display: grid;
+  gap: 0.65rem;
+}
+
+@media (min-width: 520px) {
+  .ob-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ob-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.75rem 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ob-tile:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+
+.ob-tile--focused {
+  border-color: color-mix(in srgb, var(--brand-primary) 40%, var(--line));
+  background: color-mix(in srgb, var(--brand-primary) 5%, var(--surface));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--brand-primary) 8%, transparent),
+    0 12px 32px -12px color-mix(in srgb, var(--brand-primary) 25%, transparent);
+}
+
+.ob-tile--active {
+  border-color: color-mix(in srgb, var(--brand-primary) 50%, var(--line));
+}
+
+.ob-tile__icon {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  overflow: hidden;
+}
+
+.ob-tile__icon .module-illus-stage {
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+}
+
+.ob-tile__icon .module-illus-stage--sm {
+  padding: 0.2rem;
+}
+
+.ob-tile--active .ob-tile__icon {
+  border-color: color-mix(in srgb, var(--brand-primary) 25%, var(--line));
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface));
+}
+
+.ob-tile__name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.ob-tile__badge {
+  margin-top: 0.15rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-primary);
+}
+
+.ob-counter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-soft) 80%, var(--surface));
+  padding: 0.85rem 1rem;
+}
+
+.ob-counter__ring {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+}
+
+.ob-counter__ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ob-counter__ring-bg {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 3;
+}
+
+.ob-counter__ring-fg {
+  fill: none;
+  stroke: var(--brand-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ob-counter__value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .setup-ambient::before,
+  .setup-ambient::after,
+  .setup-step-panel,
+  .ob-spotlight-enter,
+  .setup-step-dot--current .setup-step-dot__fill {
+    animation: none !important;
+  }
+}

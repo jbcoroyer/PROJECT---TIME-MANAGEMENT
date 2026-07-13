@@ -6,6 +6,11 @@ import {
   parseSocialThematics,
   type PrintSpeciesOption,
 } from "./taxonomies";
+import {
+  parseEnabledModules,
+  resolveEnabledModules,
+  type AppModuleId,
+} from "./modules";
 
 /** @deprecated Utiliser organization_id ; conservé pour rétro-compat des lignes historiques. */
 export const APP_SETTINGS_ID = "default" as const;
@@ -27,6 +32,7 @@ export type AppBranding = {
   isConfigured: boolean;
   socialThematics: string[];
   printSpecies: PrintSpeciesOption[];
+  enabledModules: AppModuleId[];
 };
 
 export type AppSettingsRow = {
@@ -48,6 +54,7 @@ export type AppSettingsRow = {
   organization_id?: string | null;
   social_thematics?: unknown;
   print_species?: unknown;
+  enabled_modules?: unknown;
   updated_at?: string | null;
 };
 
@@ -67,6 +74,7 @@ export type AppBrandingPatch = Partial<{
   isConfigured: boolean;
   socialThematics: string[];
   printSpecies: PrintSpeciesOption[];
+  enabledModules: AppModuleId[];
 }>;
 
 const NEUTRAL_PRIMARY = "#2563eb";
@@ -107,6 +115,7 @@ function envBrandingDefaults(): AppBranding {
     isConfigured: false,
     socialThematics: [...DEFAULT_SOCIAL_THEMATICS],
     printSpecies: [...DEFAULT_PRINT_SPECIES],
+    enabledModules: resolveEnabledModules(null),
   };
 }
 
@@ -157,6 +166,7 @@ export function mapAppSettingsRow(row: unknown): AppSettingsRow {
     organization_id: typeof r.organization_id === "string" ? r.organization_id : null,
     social_thematics: r.social_thematics,
     print_species: r.print_species,
+    enabled_modules: r.enabled_modules,
     updated_at: typeof r.updated_at === "string" ? r.updated_at : null,
   };
 }
@@ -190,6 +200,7 @@ export function mergeBranding(row: AppSettingsRow | null | undefined): AppBrandi
     isConfigured: row?.is_configured === true,
     socialThematics: parseSocialThematics(row?.social_thematics),
     printSpecies: parsePrintSpecies(row?.print_species),
+    enabledModules: resolveEnabledModules(parseEnabledModules(row?.enabled_modules)),
   };
 }
 
@@ -241,6 +252,7 @@ export function brandingToDbPatch(
   if (patch.isConfigured !== undefined) row.is_configured = patch.isConfigured;
   if (patch.socialThematics !== undefined) row.social_thematics = patch.socialThematics;
   if (patch.printSpecies !== undefined) row.print_species = patch.printSpecies;
+  if (patch.enabledModules !== undefined) row.enabled_modules = patch.enabledModules;
   return row;
 }
 

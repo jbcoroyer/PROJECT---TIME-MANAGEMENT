@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AuthScreen, { AuthLoadingShell } from "../components/auth/AuthScreen";
 import { useCurrentUser } from "../lib/useCurrentUser";
 import { useBranding } from "../lib/brandingContext";
+import { getDefaultModuleRoute } from "../lib/modules";
 import { SETUP_PATH } from "../lib/setupPaths";
 
 export default function Home() {
@@ -18,8 +19,8 @@ export default function Home() {
       router.replace(SETUP_PATH);
       return;
     }
-    router.replace("/dashboard/kanban");
-  }, [loading, brandingLoading, user, branding.isConfigured, router]);
+    router.replace(getDefaultModuleRoute(branding.enabledModules));
+  }, [loading, brandingLoading, user, branding.isConfigured, branding.enabledModules, router]);
 
   if (loading || brandingLoading || user) {
     return <AuthLoadingShell />;

@@ -1,0 +1,418 @@
+/* Illustrations animées — stables (transforms ancrés sur groupes SVG) */
+
+.module-illus {
+  --illus-accent: color-mix(in srgb, var(--brand-primary) 92%, white);
+  --illus-accent-deep: color-mix(in srgb, var(--brand-primary) 75%, var(--foreground));
+  --illus-muted: color-mix(in srgb, var(--foreground) 22%, transparent);
+  --illus-surface: color-mix(in srgb, var(--brand-primary) 10%, var(--surface));
+  --illus-glow: color-mix(in srgb, var(--brand-primary) 32%, transparent);
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.module-illus svg {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  filter: drop-shadow(0 6px 16px color-mix(in srgb, var(--brand-primary) 12%, transparent));
+}
+
+.module-illus--active {
+  --illus-muted: color-mix(in srgb, var(--brand-primary) 48%, transparent);
+  --illus-glow: color-mix(in srgb, var(--brand-primary) 45%, transparent);
+}
+
+.module-illus--hero svg {
+  filter: drop-shadow(0 12px 28px color-mix(in srgb, var(--brand-primary) 18%, transparent));
+}
+
+.module-illus--hero.module-illus--active {
+  animation: mi-hero-float 5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Scène */
+.module-illus-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.module-illus-stage--sm {
+  height: 2.75rem;
+  width: 2.75rem;
+  padding: 0.3rem;
+}
+
+.module-illus-stage--lg {
+  height: 9.5rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.module-illus-stage--hero {
+  height: 100%;
+  width: 100%;
+  min-height: 11rem;
+  padding: 1.5rem;
+}
+
+.module-illus-stage--hero .module-illus {
+  height: 7.5rem;
+  width: 7.5rem;
+}
+
+.module-illus-stage--lg .module-illus {
+  height: 5.5rem;
+  width: 5.5rem;
+}
+
+.module-illus-stage__bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 100%, var(--illus-glow), transparent 62%),
+    linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--brand-primary) 5%, var(--surface)) 0%,
+      var(--surface-soft) 48%,
+      color-mix(in srgb, var(--brand-primary) 4%, var(--surface)) 100%
+    );
+  transition: opacity 0.5s ease;
+}
+
+.module-illus-stage--active .module-illus-stage__bg {
+  background:
+    radial-gradient(ellipse 100% 75% at 50% 95%, var(--illus-glow), transparent 58%),
+    linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--brand-primary) 16%, var(--surface)) 0%,
+      color-mix(in srgb, var(--brand-primary) 6%, var(--surface-soft)) 45%,
+      color-mix(in srgb, var(--brand-primary) 12%, var(--surface)) 100%
+    );
+}
+
+.module-illus-stage__glow {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  height: 6rem;
+  width: 6rem;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--illus-glow) 0%, transparent 68%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+
+.module-illus-stage--hero .module-illus-stage__glow {
+  height: 10rem;
+  width: 10rem;
+}
+
+.module-illus-stage--active .module-illus-stage__glow {
+  opacity: 1;
+  animation: mi-glow-breathe 4.5s ease-in-out infinite;
+}
+
+.module-illus-stage__particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.module-illus-particle {
+  position: absolute;
+  border-radius: 9999px;
+  background: var(--illus-accent);
+  opacity: 0;
+}
+
+.module-illus-stage--active .module-illus-particle {
+  opacity: 0.3;
+}
+
+.module-illus-particle--1 {
+  width: 4px;
+  height: 4px;
+  top: 18%;
+  left: 22%;
+  animation: mi-particle-a 6s ease-in-out infinite;
+}
+
+.module-illus-particle--2 {
+  width: 3px;
+  height: 3px;
+  top: 28%;
+  right: 20%;
+  animation: mi-particle-b 7s ease-in-out 1s infinite;
+}
+
+.module-illus-particle--3 {
+  width: 5px;
+  height: 5px;
+  bottom: 22%;
+  left: 35%;
+  animation: mi-particle-c 5.5s ease-in-out 0.5s infinite;
+}
+
+@keyframes mi-hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes mi-glow-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.75; }
+  50% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+}
+
+@keyframes mi-particle-a {
+  0%, 100% { transform: translate(0, 0); opacity: 0.15; }
+  50% { transform: translate(6px, -8px); opacity: 0.45; }
+}
+
+@keyframes mi-particle-b {
+  0%, 100% { transform: translate(0, 0); opacity: 0.1; }
+  50% { transform: translate(-6px, 6px); opacity: 0.4; }
+}
+
+@keyframes mi-particle-c {
+  0%, 100% { transform: translate(0, 0); opacity: 0.2; }
+  50% { transform: translate(4px, -6px); opacity: 0.38; }
+}
+
+/* Animations uniquement quand le module est actif */
+.module-illus--active .mi-dashboard-c1 { animation: mi-dash-c1 3.2s ease-out infinite; }
+.module-illus--active .mi-dashboard-c2 { animation: mi-dash-c2 3.2s ease-out infinite; }
+.module-illus--active .mi-dashboard-c3 { animation: mi-dash-c3 3.2s ease-out infinite; }
+.module-illus--active .mi-asks-send { animation: mi-asks-send 3s ease-in-out infinite; }
+.module-illus--active .mi-asks-inbox { animation: mi-asks-inbox 3s ease-in-out infinite; }
+.module-illus--active .mi-workspace-check-1 { animation: mi-check-pop 2.6s ease-out infinite; }
+.module-illus--active .mi-workspace-check-2 { animation: mi-check-pop 2.6s ease-out 0.45s infinite; }
+.module-illus--active .mi-workspace-check-3 { animation: mi-check-pop 2.6s ease-out 0.9s infinite; }
+.module-illus--active .mi-planning-cursor { animation: mi-planning-cursor 3.2s ease-in-out infinite; }
+.module-illus--active .mi-planning-bar { animation: mi-planning-bar 3.2s ease-in-out infinite; }
+.module-illus--active .mi-events-beam { animation: mi-events-beam 3s ease-in-out infinite; }
+.module-illus--active .mi-events-flag { animation: mi-events-flag 3s ease-in-out infinite; }
+.module-illus--active .mi-events-sparkle { animation: mi-events-sparkle 3s ease-out infinite; }
+.module-illus--active .mi-social-wave-1 { animation: mi-social-wave 2.6s ease-out infinite; }
+.module-illus--active .mi-social-wave-2 { animation: mi-social-wave 2.6s ease-out 0.55s infinite; }
+.module-illus--active .mi-social-wave-3 { animation: mi-social-wave 2.6s ease-out 1.1s infinite; }
+.module-illus--active .mi-dam-file-1 { animation: mi-dam-float 2.8s ease-in-out infinite; }
+.module-illus--active .mi-dam-file-2 { animation: mi-dam-float 2.8s ease-in-out 0.35s infinite; }
+.module-illus--active .mi-dam-file-3 { animation: mi-dam-float 2.8s ease-in-out 0.7s infinite; }
+.module-illus--active .mi-stock-box { animation: mi-stock-drop 3s ease-out infinite; }
+.module-illus--active .mi-stock-badge { animation: mi-stock-badge 3s ease-out infinite; }
+.module-illus--active .mi-ideas-glow { animation: mi-idea-glow 2.6s ease-in-out infinite; }
+.module-illus--active .mi-ideas-spark-1 { animation: mi-idea-spark 2.6s ease-out infinite; }
+.module-illus--active .mi-ideas-spark-2 { animation: mi-idea-spark 2.6s ease-out 0.5s infinite; }
+.module-illus--active .mi-ideas-spark-3 { animation: mi-idea-spark 2.6s ease-out 1s infinite; }
+.module-illus--active .mi-okr-arrow { animation: mi-okr-arrow 3s ease-in-out infinite; }
+.module-illus--active .mi-okr-ring { animation: mi-okr-ring 3s ease-in-out infinite; }
+.module-illus--active .mi-survey-bar-1 { animation: mi-survey-fill 2.8s ease-out infinite; }
+.module-illus--active .mi-survey-bar-2 { animation: mi-survey-fill 2.8s ease-out 0.4s infinite; }
+.module-illus--active .mi-survey-bar-3 { animation: mi-survey-fill 2.8s ease-out 0.8s infinite; }
+.module-illus--active .mi-survey-pen { animation: mi-survey-pen 2.8s ease-in-out infinite; }
+
+/* État repos : cartes visibles sans glitch */
+.mi-dashboard-c2,
+.mi-dashboard-c3 {
+  opacity: 0.55;
+}
+
+.module-illus--active .mi-dashboard-c2,
+.module-illus--active .mi-dashboard-c3 {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-illus--active,
+  .module-illus--active *,
+  .module-illus-stage__glow,
+  .module-illus-particle {
+    animation: none !important;
+  }
+
+  .mi-dashboard-c2,
+  .mi-dashboard-c3 {
+    opacity: 1;
+  }
+}
+
+/* ── Dashboard : apparition colonne par colonne ── */
+@keyframes mi-dash-c1 {
+  0%, 8% { transform: translateY(-5px); opacity: 0; }
+  22%, 100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes mi-dash-c2 {
+  0%, 28% { transform: translateY(-4px); opacity: 0; }
+  42%, 100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes mi-dash-c3 {
+  0%, 48% { transform: translateY(-4px); opacity: 0; }
+  62%, 100% { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Demandes ── */
+@keyframes mi-asks-send {
+  0%, 12% { transform: translateY(0); opacity: 1; }
+  40% { transform: translateY(-9px); opacity: 0.4; }
+  55%, 100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes mi-asks-inbox {
+  0%, 100% { transform: scale(1); }
+  40%, 55% { transform: scale(1.04); }
+}
+
+/* ── Workspace ── */
+@keyframes mi-check-pop {
+  0%, 20% { opacity: 0; transform: scale(0.5); }
+  35% { opacity: 1; transform: scale(1.08); }
+  45%, 100% { opacity: 1; transform: scale(1); }
+}
+
+.mi-workspace-check-1,
+.mi-workspace-check-2,
+.mi-workspace-check-3 {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ── Planning ── */
+@keyframes mi-planning-cursor {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(12px); }
+}
+
+@keyframes mi-planning-bar {
+  0%, 100% { transform: scaleX(0.35); opacity: 0.55; }
+  50% { transform: scaleX(1); opacity: 1; }
+}
+
+.mi-planning-bar {
+  transform-origin: 0 0;
+}
+
+/* ── Events ── */
+@keyframes mi-events-beam {
+  0%, 100% { transform: rotate(-8deg); opacity: 0.25; }
+  50% { transform: rotate(8deg); opacity: 0.65; }
+}
+
+@keyframes mi-events-flag {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+
+@keyframes mi-events-sparkle {
+  0%, 70%, 100% { opacity: 0; transform: scale(0.4); }
+  80% { opacity: 1; transform: scale(1.1); }
+}
+
+.mi-events-beam,
+.mi-events-flag,
+.mi-events-sparkle {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ── Social ── */
+@keyframes mi-social-wave {
+  0% { opacity: 0.45; transform: scale(0.85); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+.mi-social-wave-1,
+.mi-social-wave-2,
+.mi-social-wave-3 {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ── DAM ── */
+@keyframes mi-dam-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ── Stock ── */
+@keyframes mi-stock-drop {
+  0%, 10% { transform: translateY(-10px); opacity: 0; }
+  30% { transform: translateY(2px); opacity: 1; }
+  38%, 100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes mi-stock-badge {
+  0%, 32% { opacity: 0; transform: scale(0.5); }
+  42%, 100% { opacity: 1; transform: scale(1); }
+}
+
+.mi-stock-box,
+.mi-stock-badge {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ── Ideas ── */
+@keyframes mi-idea-glow {
+  0%, 100% { opacity: 0.1; transform: scale(0.92); }
+  50% { opacity: 0.55; transform: scale(1.06); }
+}
+
+@keyframes mi-idea-spark {
+  0%, 35% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1); }
+  70%, 100% { opacity: 0; transform: scale(0.3); }
+}
+
+.mi-ideas-glow,
+.mi-ideas-spark-1,
+.mi-ideas-spark-2,
+.mi-ideas-spark-3 {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ── OKR ── */
+@keyframes mi-okr-arrow {
+  0%, 18% { opacity: 0; transform: translateX(-7px); }
+  38% { opacity: 1; transform: translateX(0); }
+  55%, 100% { opacity: 0.35; transform: translateX(0); }
+}
+
+@keyframes mi-okr-ring {
+  0%, 100% { opacity: 0.35; stroke-width: 1.5; }
+  50% { opacity: 1; stroke-width: 2.2; }
+}
+
+.mi-okr-arrow {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ── Surveys ── */
+@keyframes mi-survey-fill {
+  0%, 15% { transform: scaleX(0); opacity: 0.5; }
+  55%, 100% { transform: scaleX(1); opacity: 1; }
+}
+
+.mi-survey-bar-1,
+.mi-survey-bar-2,
+.mi-survey-bar-3 {
+  transform-origin: 0 0;
+}
+
+@keyframes mi-survey-pen {
+  0%, 100% { transform: translateX(0); opacity: 0.55; }
+  50% { transform: translateX(4px); opacity: 1; }
+}

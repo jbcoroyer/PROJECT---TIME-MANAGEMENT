@@ -27,14 +27,18 @@ export const fr: MessageTree = {
     pendingBody:
       "L'application n'est pas encore configurée. Seul un administrateur peut terminer l'installation. Contactez votre responsable ou connectez-vous avec un compte admin.",
     backHome: "Retour à l'accueil",
-    stepOf: "Étape {step} sur 3",
+    stepOf: "Étape {step} sur 4",
     step1Title: "Votre organisation",
     step2Title: "Apparence",
-    step3Title: "Derniers réglages",
+    step3Title: "Vos modules",
+    step4Title: "Derniers réglages",
     step1Intro:
       "Donnez un nom à votre espace. Ce nom apparaîtra dans le menu, sur la page de connexion et dans l'onglet du navigateur.",
     step2Intro: "Choisissez une couleur principale et, si vous le souhaitez, votre propre pictogramme.",
-    step3Intro: "Ces réglages peuvent être modifiés plus tard dans les paramètres.",
+    step3Intro:
+      "Composez votre espace à la carte. Activez uniquement les modules dont vous avez besoin — vous pourrez les modifier plus tard.",
+    step3HeroTitle: "Choisissez les briques de votre espace",
+    step4Intro: "Ces réglages peuvent être modifiés plus tard dans les paramètres.",
     appName: "Nom de l'application",
     appNamePlaceholder: "Ex. Mon équipe, Agence Dupont…",
     tagline: "Slogan (facultatif)",
@@ -76,6 +80,7 @@ export const fr: MessageTree = {
       "Votre espace {name} sera configuré et vous serez administrateur si aucun admin n'existe encore.",
     finish: "Terminer l'installation",
     nameRequired: "Indiquez le nom de votre espace de travail.",
+    modulesRequired: "Sélectionnez au moins un module pour continuer.",
     markAdded: "Pictogramme ajouté.",
     markInvalidFormat: "Utilisez PNG, WebP, JPG, GIF ou SVG.",
     uploadFailed: "Envoi impossible : {message}",
@@ -137,8 +142,176 @@ export const fr: MessageTree = {
     appUrlMissing: "URL de l'application inconnue. Définissez NEXT_PUBLIC_APP_URL.",
   },
   settings: {
+    pageKicker: "Configuration",
+    pageTitle: "Paramètres",
+    pageSubtitle: "Personnalisez votre espace, vos modules et les réglages avancés de l'équipe.",
+    tabsLabel: "Sections des paramètres",
+    tabs: {
+      modules: "Modules",
+      automations: "Automatisations",
+      admin: "Administration",
+    },
+    automationsIntro: "Définissez des règles automatiques pour le triage, les notifications et l'archivage.",
+    adminIntro: "Gérez l'équipe, les référentiels, l'identité visuelle et les connexions externes.",
     locale: "Langue",
     localeHint: "Langue affichée dans l'interface (français ou anglais).",
     localeSaved: "Langue enregistrée.",
+    modulesTitle: "Modules activés",
+    modulesSubtitle: "Activez ou désactivez les parties de l'outil selon vos besoins.",
+    modulesSaved: "Modules mis à jour.",
+    modulesMinOne: "Au moins un module doit rester actif.",
+    modulesUnsaved: "Modifications non enregistrées",
+  },
+  nav: {
+    dashboard: "Tableau de bord",
+    asks: "Faire une demande",
+    workspace: "Mon espace",
+    planning: "Planning",
+    triage: "Demandes (triage)",
+    events: "Événements",
+    social: "Réseaux sociaux",
+    dam: "Bibliothèque (DAM)",
+    stock: "Stock",
+    ideas: "Boîte à idées",
+    okr: "Objectifs (OKR)",
+    surveys: "Questionnaire",
+    settings: "Paramètres",
+  },
+  modules: {
+    recommended: "Recommandé",
+    activate: "Activer {name}",
+    deactivate: "Désactiver {name}",
+    learnMore: "Ce que vous pouvez faire",
+    selectedCount: "{count} module(s) activé(s)",
+    categoryActive: "{active}/{total} actifs",
+    resetRecommended: "Sélection recommandée",
+    moduleDisabled: "Ce module n'est pas activé pour votre espace.",
+    categories: {
+      pilotage: "Pilotage & productivité",
+      communication: "Communication & contenus",
+      operations: "Opérations & logistique",
+      strategy: "Stratégie & feedback",
+    },
+    dashboard: {
+      name: "Tableau de bord",
+      tagline: "Vue d'ensemble de l'activité",
+      description:
+        "Centralisez tâches, demandes et suivi d'équipe dans un tableau Kanban, une liste, un calendrier et des vues analytiques.",
+      highlights: {
+        h1: "Kanban, liste, calendrier, charge de travail et archives",
+        h2: "Colonnes de workflow personnalisables par domaine",
+        h3: "Indicateurs et analytics pour piloter l'activité",
+      },
+    },
+    asks: {
+      name: "Demandes",
+      tagline: "Collecter et traiter les besoins",
+      description:
+        "Permet à vos collaborateurs de soumettre des demandes structurées et à l'équipe de les trier, prioriser et convertir en tâches.",
+      highlights: {
+        h1: "Formulaire de demande avec champs enrichis",
+        h2: "File de triage dédiée pour valider ou rejeter",
+        h3: "Règles d'automatisation pour accélérer le traitement",
+      },
+    },
+    workspace: {
+      name: "Mon espace",
+      tagline: "Agenda personnel intelligent",
+      description:
+        "Votre tableau de bord individuel : tâches du jour, suggestions IA et focus sur ce qui compte pour vous.",
+      highlights: {
+        h1: "Agenda quotidien avec priorités",
+        h2: "Assistance IA pour organiser la journée",
+        h3: "Vue personnelle distincte du pilotage d'équipe",
+      },
+    },
+    planning: {
+      name: "Planning",
+      tagline: "Anticiper la charge",
+      description:
+        "Visualisez le travail projeté dans le temps pour équilibrer les ressources et anticiper les pics d'activité.",
+      highlights: {
+        h1: "Timeline des tâches planifiées",
+        h2: "Lecture transverse par membre ou projet",
+        h3: "Complément idéal du tableau de bord",
+      },
+    },
+    events: {
+      name: "Événementiel",
+      tagline: "Piloter vos événements de A à Z",
+      description:
+        "Module dédié à la production événementielle : fiches événement, planning de régie, besoins matériel, documents et RETEX.",
+      highlights: {
+        h1: "Hub événementiel avec statuts et fiches détaillées",
+        h2: "Créneaux de régie, besoins matériel et notes de frais",
+        h3: "Bilan RETEX pour capitaliser après chaque événement",
+      },
+    },
+    social: {
+      name: "Réseaux sociaux",
+      tagline: "Planifier et valider vos publications",
+      description:
+        "Organisez votre calendrier éditorial, préparez vos visuels et suivez les objectifs mensuels par thématique.",
+      highlights: {
+        h1: "Studio de création et file de validation",
+        h2: "Objectifs mensuels et insights de performance",
+        h3: "Recyclage de contenus existants",
+      },
+    },
+    dam: {
+      name: "Bibliothèque (DAM)",
+      tagline: "Centraliser vos assets",
+      description:
+        "Gérez logos, visuels et fichiers de marque dans une bibliothèque partagée, accessible depuis les autres modules.",
+      highlights: {
+        h1: "Stockage et classement des assets par organisation",
+        h2: "Recherche et réutilisation dans les workflows",
+        h3: "Isolation sécurisée par espace de travail",
+      },
+    },
+    stock: {
+      name: "Stock",
+      tagline: "Inventaire et mouvements",
+      description:
+        "Suivez votre matériel PLV, impressions et équipements : entrées, sorties, historique et alertes.",
+      highlights: {
+        h1: "Inventaire multi-projets avec visuels",
+        h2: "Historique des mouvements et tableau de bord stock",
+        h3: "Alertes et catégories d'impression configurables",
+      },
+    },
+    ideas: {
+      name: "Boîte à idées",
+      tagline: "Collecter les suggestions",
+      description:
+        "Ouvrez un canal pour recueillir des idées (internes ou publiques), les voter et les transformer en actions.",
+      highlights: {
+        h1: "Formulaire de soumission d'idées",
+        h2: "Votes et priorisation collaborative",
+        h3: "Lien public possible pour solliciter vos audiences",
+      },
+    },
+    okr: {
+      name: "Objectifs (OKR)",
+      tagline: "Aligner la stratégie",
+      description:
+        "Définissez des objectifs ambitieux et des résultats clés mesurables pour suivre la progression de l'équipe.",
+      highlights: {
+        h1: "Objectifs et key results hiérarchisés",
+        h2: "Suivi d'avancement par période",
+        h3: "Vision stratégique complémentaire au quotidien opérationnel",
+      },
+    },
+    surveys: {
+      name: "Questionnaires",
+      tagline: "Mesurer la satisfaction",
+      description:
+        "Créez des questionnaires internes ou publics, analysez les réponses et pilotez la qualité perçue.",
+      highlights: {
+        h1: "Éditeur de questionnaires multi-étapes",
+        h2: "Liens publics sécurisés par UUID",
+        h3: "Espace admin réservé aux administrateurs",
+      },
+    },
   },
 };

@@ -8,7 +8,7 @@ import { createServerSupabase } from "./supabaseServer";
 import { createServerSignedStorageUrl } from "./storageSignedUrl";
 
 const APP_SETTINGS_SELECT =
-  "id, organization_id, idena_mark_url, app_name, app_short_name, tagline, logo_url, icon_url, mark_url, primary_color, locale, timezone, sector, outlook_category_name, default_public_survey_id, is_configured, social_thematics, print_species, updated_at";
+  "id, organization_id, idena_mark_url, app_name, app_short_name, tagline, logo_url, icon_url, mark_url, primary_color, locale, timezone, sector, outlook_category_name, default_public_survey_id, is_configured, social_thematics, print_species, enabled_modules, updated_at";
 
 /** Lecture serveur (pages, metadata, actions) — filtrée par RLS / organisation courante. */
 export async function getBrandingServer(): Promise<AppBranding> {

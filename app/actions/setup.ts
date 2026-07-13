@@ -88,6 +88,10 @@ export async function completeInitialSetup(
   const appName = patch.appName?.trim();
   if (!appName) return { ok: false, error: "Le nom de l'application est obligatoire." };
 
+  if (patch.enabledModules !== undefined && patch.enabledModules.length === 0) {
+    return { ok: false, error: "Sélectionnez au moins un module pour votre espace." };
+  }
+
   const row = brandingToDbPatch(
     {
       ...patch,
