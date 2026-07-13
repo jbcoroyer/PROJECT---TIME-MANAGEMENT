@@ -236,6 +236,7 @@ function CardBody(props: {
       ) : props.variant === "dense" ? (
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex min-w-0 flex-wrap items-center gap-1 text-[9px] text-[color:var(--foreground)]/60">
+            {task.company ? (
             <span className="inline-flex max-w-[5.5rem] items-center gap-0.5 truncate rounded border border-[var(--line)] bg-[var(--surface-soft)]/90 px-1 py-px">
               <CompanyAvatar
                 name={task.company}
@@ -246,6 +247,7 @@ function CardBody(props: {
               />
               <span className="truncate">{task.company}</span>
             </span>
+            ) : null}
             {task.deadline && (
               <span
                 className={[
@@ -285,6 +287,7 @@ function CardBody(props: {
         <>
           {/* ── Ligne 3 : Métadonnées ── */}
           <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[color:var(--foreground)]/65">
+            {task.company ? (
             <span className="inline-flex items-center gap-1 rounded-md border border-[var(--line)] bg-[var(--surface-soft)]/80 px-1.5 py-0.5">
               <CompanyAvatar
                 name={task.company}
@@ -295,6 +298,7 @@ function CardBody(props: {
               />
               <span className="max-w-[100px] truncate">{task.company}</span>
             </span>
+            ) : null}
             {task.deadline && (
               <span
                 className={[

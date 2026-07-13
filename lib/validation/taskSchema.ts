@@ -71,7 +71,7 @@ export type PendingSubtask = {
 export const taskFormSchema = z
   .object({
     projectName: z.string().trim().min(1, "Nom du projet requis"),
-    company: z.string().trim().min(1, "Société requise"),
+    company: z.string().trim(),
     domain: z.string().trim().min(1, "Domaine requis"),
     admins: z.array(z.string().trim().min(1)).min(1, "Sélectionnez au moins un admin"),
     isClientRequest: z.boolean(),

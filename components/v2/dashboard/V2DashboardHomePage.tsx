@@ -14,7 +14,6 @@ import {
   KanbanSquare,
   LayoutTemplate,
   ListFilter,
-  PartyPopper,
   Plus,
   Search,
   Table2,
@@ -40,7 +39,6 @@ import { useBranding } from "../../../lib/brandingContext";
 import { teamAdminNameForUser } from "../../../lib/taskConcernsUser";
 import { getSupabaseBrowser } from "../../../lib/supabaseBrowser";
 import { useTaskManager } from "../../../lib/useTaskManager";
-import { celebrateTaskManually } from "../../../lib/celebrateTaskDone";
 import { DONE_COLUMN_NAME } from "../../../lib/workflowConstants";
 import { syncAdminColorAssignments } from "../../../lib/adminColorAssignments";
 import { getAdminColorPaletteSize } from "../../../lib/kanbanStyles";
@@ -164,6 +162,8 @@ export default function V2DashboardHomePage() {
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const quickAddRef = useRef<HTMLInputElement | null>(null);
+  const [quickAddPrefill, setQuickAddPrefill] = useState<string | undefined>();
+  const onboardingTaskHandledRef = useRef<string | null>(null);
 
   const activeTab = useMemo<MainTab>(() => {
     const match = pathname.match(/^\/v2\/dashboard\/([^/?#]+)/);
@@ -435,6 +435,59 @@ export default function V2DashboardHomePage() {
     },
     [columns, companyRecords, domainRecords, defaultAdminName, setTasks, supabase],
   );
+
+  const clearOnboardingTaskParams = useCallback(() => {
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("taskDraft");
+    next.delete("createTask");
+    next.delete("quickAdd");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    const draft = searchParams.get("taskDraft")?.trim() ?? "";
+    const shouldCreate = searchParams.get("createTask") === "1";
+    const quickAdd = searchParams.get("quickAdd") === "1";
+    if (!quickAdd) return;
+
+    const signature = `${shouldCreate ? "create" : "prefill"}:${draft}`;
+    if (onboardingTaskHandledRef.current === signature) return;
+    onboardingTaskHandledRef.current = signature;
+
+    const applyQuickAdd = () => {
+      if (draft) {
+        setQuickAddPrefill(draft);
+      } else {
+        window.setTimeout(() => quickAddRef.current?.focus(), 250);
+      }
+      clearOnboardingTaskParams();
+    };
+
+    if (shouldCreate && draft) {
+      if (activeTab !== "kanban") navigateToTab("kanban");
+      window.setTimeout(() => {
+        void handleQuickCreate(draft).finally(() => {
+          clearOnboardingTaskParams();
+        });
+      }, activeTab === "kanban" ? 0 : 280);
+      return;
+    }
+
+    if (activeTab !== "kanban") {
+      navigateToTab("kanban");
+      window.setTimeout(applyQuickAdd, 280);
+      return;
+    }
+
+    applyQuickAdd();
+  }, [
+    activeTab,
+    clearOnboardingTaskParams,
+    handleQuickCreate,
+    navigateToTab,
+    searchParams,
+  ]);
 
   const handleQuickCreateForColumn = useCallback(
     async (rawTitle: string, targetColumn: ColumnId) => {
@@ -897,13 +950,6 @@ export default function V2DashboardHomePage() {
         keywords: ["filtrer", "chercher"],
         perform: () => searchInputRef.current?.focus(),
       },
-      {
-        id: "confetti",
-        group: "Actions rapides",
-        label: "Lancer les confettis",
-        keywords: ["fun", "célébrer"],
-        perform: () => celebrateTaskManually(),
-      },
       { id: "nav-inbox", group: "Navigation", label: "Inbox", hint: "G I", perform: () => navigateToTab("inbox") },
       { id: "nav-kanban", group: "Navigation", label: "Tableau Kanban", hint: "G K", perform: () => navigateToTab("kanban") },
       { id: "nav-list", group: "Navigation", label: "Vue liste", hint: "G L", perform: () => navigateToTab("list") },
@@ -1010,15 +1056,6 @@ export default function V2DashboardHomePage() {
         toolbarRight={
           <div className="flex shrink-0 items-center gap-2">
             <PresenceBar members={presenceMembers} />
-            <button
-              type="button"
-              onClick={() => celebrateTaskManually()}
-              title="Lancer les confettis"
-              aria-label="Lancer l’animation de confettis"
-              className="ui-transition flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/70 shadow-sm hover:border-[var(--line-strong)] hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]"
-            >
-              <PartyPopper className="h-5 w-5" strokeWidth={2} aria-hidden />
-            </button>
             <DashboardNotificationBell />
             <button
               type="button"
@@ -1144,7 +1181,12 @@ export default function V2DashboardHomePage() {
 
           {activeTab === "kanban" && (
             <>
-              <V2QuickAddTask inputRef={quickAddRef} onQuickAdd={handleQuickCreate} />
+              <V2QuickAddTask
+                inputRef={quickAddRef}
+                onQuickAdd={handleQuickCreate}
+                prefill={quickAddPrefill}
+                onPrefillApplied={() => setQuickAddPrefill(undefined)}
+              />
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50">
                   <LayoutTemplate className="h-3.5 w-3.5" /> Modèles :

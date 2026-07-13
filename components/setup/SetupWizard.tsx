@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -15,6 +15,7 @@ import { AppMark } from "../AppBrand";
 import BrandColorPicker from "./BrandColorPicker";
 import { detectAccentFromFile } from "../../lib/detectLogoAccentColor";
 import ModuleCatalog from "./ModuleCatalog";
+import { brandingStyleVars } from "../../lib/branding";
 import { useBranding } from "../../lib/brandingContext";
 import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
 import { useTranslation } from "../../lib/i18n/useTranslation";
@@ -51,7 +52,11 @@ function initialAppName(brandingName: string): string {
   return name;
 }
 
-export default function SetupWizard() {
+type SetupWizardProps = {
+  onAccentChange?: (hex: string) => void;
+};
+
+export default function SetupWizard({ onAccentChange }: SetupWizardProps) {
   const router = useRouter();
   const { branding, reload, patchBranding } = useBranding();
   const { user } = useCurrentUser();
@@ -87,6 +92,10 @@ export default function SetupWizard() {
       setHydratedFromBranding(true);
     });
   }, [appName, branding, hydratedFromBranding, tagline]);
+
+  useEffect(() => {
+    onAccentChange?.(normalizeHexColor(primaryColor) || primaryColor);
+  }, [onAccentChange, primaryColor]);
 
   const previewName = appName.trim() || branding.appName || "Workspace";
   const organizationId = user?.organizationId ?? branding.organizationId;
@@ -188,7 +197,7 @@ export default function SetupWizard() {
           : t("setup.step4Title");
 
   return (
-    <div style={{ ["--brand-primary" as string]: primaryColor }}>
+    <div style={brandingStyleVars(primaryColor) as CSSProperties}>
       <div className="setup-glass rounded-[var(--radius-xl)] p-5 sm:p-6">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -281,8 +290,8 @@ export default function SetupWizard() {
                 <p className="mt-2 text-xs text-[var(--ink-muted)]">{t("setup.markHint")}</p>
               </div>
 
-              <div className="flex flex-col gap-4 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface-soft)] p-5 sm:flex-row sm:items-center">
-                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)]">
+              <div className="setup-brand-preview flex flex-col gap-4 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface-soft)] p-5 sm:flex-row sm:items-center">
+                <div className="setup-brand-preview__mark relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)]">
                   {markPreviewUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={markPreviewUrl} alt="" className="h-12 w-12 object-contain" />
@@ -304,6 +313,7 @@ export default function SetupWizard() {
                   value={primaryColor}
                   onChange={(hex) => setPrimaryColor(normalizeHexColor(hex) || hex)}
                 />
+                <AccentLivePreview />
               </div>
             </div>
           )}
@@ -426,6 +436,32 @@ export default function SetupWizard() {
               <Check className="h-4 w-4" />
             </button>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AccentLivePreview() {
+  const { t } = useTranslation({ preferBrowser: true });
+
+  return (
+    <div className="setup-accent-live" aria-live="polite">
+      <p className="setup-accent-live__label">{t("setup.accentPreview")}</p>
+      <div className="setup-accent-live__demo">
+        <div className="setup-accent-live__header">
+          <span className="setup-accent-live__kicker">{t("setup.accentPreviewModule")}</span>
+        </div>
+        <div className="setup-accent-live__row">
+          <span className="setup-accent-live__pill">{t("setup.accentPreviewPill")}</span>
+          <span className="setup-accent-live__steps" aria-hidden>
+            <span />
+            <span className="setup-accent-live__steps-active" />
+            <span />
+          </span>
+        </div>
+        <div className="setup-accent-live__progress" aria-hidden>
+          <span className="setup-accent-live__progress-fill" />
         </div>
       </div>
     </div>

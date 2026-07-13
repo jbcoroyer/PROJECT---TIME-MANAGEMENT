@@ -3,7 +3,8 @@ import LandingPage from "../components/marketing/LandingPage";
 import { getDefaultModuleRoute } from "../lib/modules";
 import { getBrandingServer } from "../lib/server/getBrandingServer";
 import { createServerSupabase } from "../lib/server/supabaseServer";
-import { SETUP_PATH } from "../lib/setupPaths";
+import { SETUP_PATH, INVITE_ACCEPT_PATH } from "../lib/setupPaths";
+import { needsInviteProfileCompletion } from "../lib/inviteOnboarding";
 
 export default async function Home() {
   const supabase = await createServerSupabase();
@@ -13,6 +14,10 @@ export default async function Home() {
 
   if (!user) {
     return <LandingPage />;
+  }
+
+  if (needsInviteProfileCompletion(user)) {
+    redirect(INVITE_ACCEPT_PATH);
   }
 
   const branding = await getBrandingServer();

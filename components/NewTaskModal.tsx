@@ -46,7 +46,7 @@ export default function NewTaskModal(props: {
   onCancel: () => void;
   onSubmit: (values: TaskFormValuesWithSubtasks) => Promise<void> | void;
 }) {
-  const { open, editingTaskId, initialValues, admins, companies, domains, onCancel } = props;
+  const { open, editingTaskId, initialValues, admins, domains, onCancel } = props;
 
   const onSubmit = (values: TaskFormValues) => {
     return props.onSubmit({
@@ -155,7 +155,7 @@ export default function NewTaskModal(props: {
   const adminsError = errors.admins?.message;
   const clientNameError = errors.clientName?.message;
   const stepFields: Record<0 | 1 | 2, Array<keyof TaskFormValues>> = {
-    0: ["projectName", "company", "domain", "priority", "admins"],
+    0: ["projectName", "domain", "priority", "admins"],
     1: ["deadline", "estimatedHours", "estimatedDays"],
     2: [],
   };
@@ -211,6 +211,7 @@ export default function NewTaskModal(props: {
             </div>
 
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} onKeyDown={handleStepKeyDown}>
+              <input type="hidden" {...register("company")} />
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { id: 0, label: "Infos", icon: Info },
@@ -255,28 +256,6 @@ export default function NewTaskModal(props: {
                   />
                   {errors.projectName?.message && (
                     <p className="text-[11px] text-[var(--danger)]">{errors.projectName.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor={`${prefix}-company`} className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--foreground)]/75">
-                    <Building2 className="h-3.5 w-3.5 text-[color:var(--foreground)]/50" />
-                    Société concernée
-                    <RequiredStar />
-                  </label>
-                  <select
-                    id={`${prefix}-company`}
-                    {...register("company")}
-                    className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] shadow-sm focus:outline-none"
-                  >
-                    {companies.map((company) => (
-                      <option key={company.id} value={company.name}>
-                        {company.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.company?.message && (
-                    <p className="text-[11px] text-[var(--danger)]">{errors.company.message}</p>
                   )}
                 </div>
 

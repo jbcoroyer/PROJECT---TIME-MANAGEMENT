@@ -272,6 +272,7 @@ export function brandingStyleVars(primaryColor: string): Record<string, string> 
     "--accent": safe,
     "--accent-strong": `color-mix(in srgb, ${safe} 78%, var(--foreground))`,
     "--accent-soft": `color-mix(in srgb, ${safe} 10%, var(--surface))`,
+    "--accent-soft-bg": `color-mix(in srgb, ${safe} 10%, var(--surface))`,
     "--ring": `color-mix(in srgb, ${safe} 20%, transparent)`,
   };
 }

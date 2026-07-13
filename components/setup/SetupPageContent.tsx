@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, type CSSProperties } from "react";
 import { AppMark } from "../AppBrand";
 import SetupWizard from "./SetupWizard";
+import { brandingStyleVars } from "../../lib/branding";
 import { useBranding } from "../../lib/brandingContext";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { useTranslation } from "../../lib/i18n/useTranslation";
@@ -12,6 +14,7 @@ export default function SetupPageContent() {
   const { branding, loading: brandingLoading } = useBranding();
   const { user, loading: userLoading } = useCurrentUser();
   const primary = branding.primaryColor || "oklch(0.6 0.19 45)";
+  const [previewAccent, setPreviewAccent] = useState(primary);
 
   const ready = !brandingLoading && !userLoading && Boolean(user?.organizationId ?? branding.organizationId);
 
@@ -31,7 +34,7 @@ export default function SetupPageContent() {
   return (
     <div
       className="setup-ambient min-h-screen px-4 py-8 sm:px-6 sm:py-10"
-      style={{ ["--brand-primary" as string]: primary }}
+      style={brandingStyleVars(previewAccent) as CSSProperties}
     >
       <div className="setup-shell relative z-[1] mx-auto w-full max-w-[620px]">
         <header className="setup-header mb-8 sm:mb-10">
@@ -62,7 +65,7 @@ export default function SetupPageContent() {
           </ol>
         </header>
 
-        <SetupWizard />
+        <SetupWizard onAccentChange={setPreviewAccent} />
       </div>
     </div>
   );

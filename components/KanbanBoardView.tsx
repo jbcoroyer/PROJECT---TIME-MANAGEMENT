@@ -378,7 +378,8 @@ export default function KanbanBoardView(props: {
           })}
         </div>
 
-        {/* Séparateur */}
+        {props.companies.length > 0 ? (
+        <>
         <div className="h-5 w-px bg-[var(--line)] hidden sm:block" />
 
         {/* Filtre société */}
@@ -399,6 +400,8 @@ export default function KanbanBoardView(props: {
             ))}
           </select>
         </div>
+        </>
+        ) : null}
 
         {/* Reset */}
         {hasActiveFilters && (

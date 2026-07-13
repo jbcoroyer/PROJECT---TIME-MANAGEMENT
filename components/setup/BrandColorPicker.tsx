@@ -36,7 +36,7 @@ function ColorSwatch({
       className={[
         "group relative flex flex-col items-center gap-1.5 rounded-xl p-1.5 transition",
         selected
-          ? "bg-[var(--surface-soft)] ring-2 ring-[var(--ink)] ring-offset-2 ring-offset-[var(--surface)]"
+          ? "bg-[var(--surface-soft)] ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--surface)]"
           : "hover:bg-[var(--surface-soft)]",
       ].join(" ")}
     >

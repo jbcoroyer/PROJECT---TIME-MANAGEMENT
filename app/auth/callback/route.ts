@@ -28,7 +28,7 @@ async function sendWelcomeIfNeeded(
   await sendTransactionalEmail({
     to: user.email,
     subject: "Bienvenue dans votre espace Workspace",
-    html: `<p>Votre compte est prêt. <a href="${baseUrl}/setup">Accéder à l'espace</a></p>`,
+    html: `<p>Votre compte est prêt. <a href="${baseUrl}/invite/accept">Compléter votre profil</a></p>`,
   });
 }
 
@@ -41,7 +41,9 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
-  const nextRaw = searchParams.get("next") ?? "/login/reset-password";
+  const nextRaw =
+    searchParams.get("next") ??
+    (type === "invite" ? "/invite/accept" : "/login/reset-password");
 
   const nextPath = nextRaw.startsWith("/") ? nextRaw : `/${nextRaw}`;
   const loginWithError = (errorCode: string, description: string) => {

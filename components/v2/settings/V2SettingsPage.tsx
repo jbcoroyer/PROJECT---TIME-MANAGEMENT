@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Bot, Layers, SlidersHorizontal } from "lucide-react";
 import AutomationsManager from "./AutomationsManager";
 import AdminSettingsPanel from "../../settings/AdminSettingsPanel";
@@ -9,6 +10,7 @@ import TeamInviteSection from "../../settings/TeamInviteSection";
 import UpgradeProBanner from "../../settings/UpgradeProBanner";
 import GdprDataSection from "../../settings/GdprDataSection";
 import PlatformAdminShortcut from "../../platform/PlatformAdminShortcut";
+import SignOutSection from "../../settings/SignOutSection";
 import { useReferenceData } from "../../../lib/useReferenceData";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { useCurrentUser } from "../../../lib/useCurrentUser";
@@ -21,12 +23,26 @@ const ALL_TABS: { id: SettingsTab; icon: typeof Layers; labelKey: string; adminO
   { id: "admin", icon: SlidersHorizontal, labelKey: "settings.tabs.admin", adminOnly: true },
 ];
 
-export default function V2SettingsPage() {
+const SECTION_ANCHORS: Record<string, string> = {
+  team: "settings-team-invite",
+  modules: "settings-modules",
+  outlook: "settings-outlook",
+};
+
+function tabForSection(section: string | null): SettingsTab {
+  if (section === "outlook") return "admin";
+  if (section === "modules") return "modules";
+  return "modules";
+}
+
+function V2SettingsPageContent() {
+  const searchParams = useSearchParams();
+  const section = searchParams.get("section");
   const { admins, columns, domains } = useReferenceData();
   const { t } = useTranslation();
   const { user } = useCurrentUser();
   const isAdmin = Boolean(user?.isAdmin);
-  const [tab, setTab] = useState<SettingsTab>("modules");
+  const [tab, setTab] = useState<SettingsTab>(() => tabForSection(section));
 
   const tabs = useMemo(
     () => ALL_TABS.filter((item) => !item.adminOnly || isAdmin),
@@ -34,6 +50,20 @@ export default function V2SettingsPage() {
   );
 
   const activeTab = tabs.some((item) => item.id === tab) ? tab : "modules";
+
+  useEffect(() => {
+    if (!section) return;
+    setTab(tabForSection(section));
+    const anchorId = SECTION_ANCHORS[section];
+    if (!anchorId) return;
+
+    const scrollToAnchor = () => {
+      document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    const timer = window.setTimeout(scrollToAnchor, section === "outlook" || section === "modules" ? 120 : 0);
+    return () => window.clearTimeout(timer);
+  }, [section, activeTab]);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -54,8 +84,6 @@ export default function V2SettingsPage() {
       </Suspense>
 
       {isAdmin ? <TeamInviteSection /> : null}
-
-      <GdprDataSection />
 
       <PlatformAdminShortcut />
 
@@ -107,6 +135,24 @@ export default function V2SettingsPage() {
           <AdminSettingsPanel />
         </section>
       ) : null}
+
+      <GdprDataSection />
+
+      <SignOutSection />
     </div>
+  );
+}
+
+export default function V2SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-5xl py-12 text-center text-sm text-[color:var(--foreground)]/50">
+          …
+        </div>
+      }
+    >
+      <V2SettingsPageContent />
+    </Suspense>
   );
 }

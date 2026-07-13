@@ -5,12 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LogOut,
   Menu,
   Settings2,
   X,
 } from "lucide-react";
-import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { isModuleEnabled } from "../../lib/modules";
@@ -107,7 +105,6 @@ export default function V2AppShell({
   currentUserJobTitle,
 }: V2AppShellProps) {
   const pathname = usePathname();
-  const supabase = getSupabaseBrowser();
   const { branding } = useBranding();
   const { t } = useTranslation();
   const { plan } = useBillingPlan();
@@ -152,11 +149,6 @@ export default function V2AppShell({
 
   const isGuest = !userLoading && !displayName && !displayEmail;
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  };
-
   const navLinkClass = (active: boolean) =>
     [
       "ui-nav-link ui-transition rounded-[10px] py-2.5 text-[13.5px]",
@@ -168,7 +160,7 @@ export default function V2AppShell({
   const sidebarContent = (onNavClick?: () => void) => (
     <>
       <BrandHeading />
-      <nav className="mt-[26px] flex-1 space-y-0.5">
+      <nav className="mt-[26px] min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain">
         {items.map((item) => {
           const active = isNavActive(item.href, pathname);
           return (
@@ -192,22 +184,12 @@ export default function V2AppShell({
             Se connecter
           </Link>
         ) : (
-          <>
-            <UserCard
-              name={displayName}
-              email={displayEmail}
-              avatarUrl={displayAvatar}
-              jobTitle={displayJob}
-            />
-            <button
-              type="button"
-              onClick={() => void handleSignOut()}
-              className="ui-btn ui-btn-ghost w-full justify-start text-xs"
-            >
-              <LogOut className="h-3.5 w-3.5" aria-hidden />
-              Se déconnecter
-            </button>
-          </>
+          <UserCard
+            name={displayName}
+            email={displayEmail}
+            avatarUrl={displayAvatar}
+            jobTitle={displayJob}
+          />
         )}
       </div>
     </>

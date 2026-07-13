@@ -5,7 +5,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { completedAtPatchForColumnChange, completedAtIsoForNewTaskInColumn } from "./completedAt";
 import { mapTaskRow } from "./taskMappers";
 import { normalizeProjectName } from "./normalize";
-import { celebrateTaskDone } from "./celebrateTaskDone";
 import { markTaskMutatedLocally, markTasksMutatedLocally } from "./taskMutatedLocally";
 import { toastError, toastSuccess } from "./toast";
 import { DONE_COLUMN_NAME } from "./workflowConstants";
@@ -252,8 +251,6 @@ export function useTaskManager({
       if (!current) return;
       markTaskMutatedLocally(taskId);
       const next = { ...current, ...patch };
-      const movingToDone =
-        patch.column === DONE_COLUMN_NAME && current.column !== DONE_COLUMN_NAME;
       setTasks((prev) => prev.map((t) => (t.id === taskId ? next : t)));
       const { error } = await supabase.from("tasks").update(dbPatch).eq("id", taskId);
       if (error) {
@@ -261,7 +258,6 @@ export function useTaskManager({
         toastError("Impossible de sauvegarder les modifications.");
         return;
       }
-      if (movingToDone) celebrateTaskDone();
       const calendarKeys = ["projected_work", "project_name", "description", "company", "domain"];
       if (calendarKeys.some((k) => k in dbPatch)) {
         requestOutlookSync(taskId);
@@ -310,16 +306,11 @@ export function useTaskManager({
             ? undefined
             : colMerge.completed_at
           : task.completedAt;
-      const completedNow = newColumn === DONE_COLUMN_NAME && task.column !== DONE_COLUMN_NAME;
       void optimisticUpdate(
         taskId,
         { ...task, column: newColumn, completedAt: nextCompletedAt },
         dbPatch,
-      )
-        .then(() => {
-          if (completedNow) celebrateTaskDone();
-        })
-        .catch(() => toastError("Impossible de déplacer la tâche. Veuillez réessayer."));
+      ).catch(() => toastError("Impossible de déplacer la tâche. Veuillez réessayer."));
     },
     [optimisticUpdate, tasks],
   );

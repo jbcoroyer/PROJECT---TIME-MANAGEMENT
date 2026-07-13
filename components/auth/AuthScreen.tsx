@@ -7,6 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { AppMark, AppWordmark } from "../AppBrand";
 import OAuthButtons from "./OAuthButtons";
 import { getPublicAppOrigin } from "../../lib/publicAppUrl";
+import { needsInviteProfileCompletion } from "../../lib/inviteOnboarding";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
@@ -72,12 +73,16 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
     setError(null);
     setLoading(true);
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
       if (signInError) throw signInError;
-      router.push("/");
+      if (needsInviteProfileCompletion(signInData.user)) {
+        router.push("/invite/accept");
+      } else {
+        router.push("/");
+      }
       router.refresh();
     } catch (err: unknown) {
       setError(translateAuthError(err instanceof Error ? err.message : String(err)));

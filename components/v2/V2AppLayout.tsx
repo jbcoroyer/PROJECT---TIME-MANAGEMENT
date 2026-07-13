@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import V2AppShell from "./AppShell";
 import ModuleRouteGuard from "./ModuleRouteGuard";
 import ProductTour from "../onboarding/ProductTour";
@@ -21,7 +21,9 @@ export default function V2AppLayout({ children }: { children: ReactNode }) {
   return (
     <V2ShellSlotsProvider>
       <V2AppShellWithSlots>{children}</V2AppShellWithSlots>
-      <ProductTour />
+      <Suspense fallback={null}>
+        <ProductTour />
+      </Suspense>
     </V2ShellSlotsProvider>
   );
 }

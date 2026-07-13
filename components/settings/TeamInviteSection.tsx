@@ -26,7 +26,7 @@ export default function TeamInviteSection() {
   }
 
   return (
-    <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
+    <section id="settings-team-invite" className="scroll-mt-24 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
       <div className="flex items-center gap-2">
         <UserPlus className="h-5 w-5 text-[color:var(--foreground)]/50" />
         <h2 className="text-lg font-semibold text-[var(--foreground)]">Inviter un collègue</h2>

@@ -7,7 +7,8 @@ import { resolveBillingAccess } from "../../lib/billing/resolveBillingAccess";
 import { getBrandingServer } from "../../lib/server/getBrandingServer";
 import { isPlatformAdminEmail } from "../../lib/server/platformAdmin";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
-import { SETUP_PATH } from "../../lib/setupPaths";
+import { SETUP_PATH, INVITE_ACCEPT_PATH } from "../../lib/setupPaths";
+import { needsInviteProfileCompletion } from "../../lib/inviteOnboarding";
 
 export default async function WorkspaceLayout({ children }: { children: ReactNode }) {
   const supabase = await createServerSupabase();
@@ -16,6 +17,10 @@ export default async function WorkspaceLayout({ children }: { children: ReactNod
   } = await supabase.auth.getUser();
 
   if (user) {
+    if (needsInviteProfileCompletion(user)) {
+      redirect(INVITE_ACCEPT_PATH);
+    }
+
     const branding = await getBrandingServer();
     if (!branding.isConfigured) {
       redirect(SETUP_PATH);

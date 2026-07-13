@@ -9,6 +9,7 @@ import { TasksProvider } from "../lib/tasksContext";
 import { ConfirmDialogProvider } from "./ui/ConfirmDialog";
 import CookieBanner from "./legal/CookieBanner";
 import SetupRedirect from "./SetupRedirect";
+import AuthHashHandler from "./auth/AuthHashHandler";
 
 export default function AppProviders({ children }: { children: ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function AppProviders({ children }: { children: ReactNode }) {
           <TasksProvider>
             <ConfirmDialogProvider>
               <InAppNotificationProvider>
+                <AuthHashHandler />
                 <SetupRedirect />
                 {children}
                 <CookieBanner />

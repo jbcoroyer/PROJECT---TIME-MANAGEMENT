@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Archive,
-  Building2,
   Check,
   Focus,
   Layers,
@@ -297,11 +296,6 @@ export default function TaskDetailPanel(props: {
           {!isEditing ? (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <InfoChip
-                icon={<Building2 className="h-3 w-3" />}
-                label="Société"
-                value={task.company}
-              />
-              <InfoChip
                 icon={<Layers className="h-3 w-3" />}
                 label="Domaine"
               >
@@ -351,16 +345,6 @@ export default function TaskDetailPanel(props: {
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/50">Édition en cours</p>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/55">Société</label>
-                  <select
-                    value={editCompany}
-                    onChange={(e) => setEditCompany(e.target.value)}
-                    className="ui-focus-ring mt-1 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm"
-                  >
-                    {props.companyRecords.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
-                  </select>
-                </div>
                 <div>
                   <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/55">Domaine</label>
                   <select

@@ -14,7 +14,6 @@ import {
 } from "@dnd-kit/core";
 import type { ColumnId, Task } from "../../lib/types";
 import { defaultColumns } from "../../lib/types";
-import { celebrateTaskDone } from "../../lib/celebrateTaskDone";
 
 type Props = {
   tasks: Task[];
@@ -110,9 +109,7 @@ export default function EventDetailKanban(props: Props) {
     if (!col || !activeId) return;
     const task = tasks.find((t) => t.id === activeId);
     if (!task || task.column === col) return;
-    const wasDone = task.column === "Terminé";
     onMoveTask(activeId, col as ColumnId);
-    if (col === "Terminé" && !wasDone) celebrateTaskDone();
   };
 
   if (tasks.length === 0) {

@@ -64,36 +64,20 @@ export default function IntakeTaskMappingModal({
             />
           </label>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Entité</span>
-              <select
-                value={form.company}
-                onChange={(e) => set("company", e.target.value)}
-                className="ui-focus-ring mt-1 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
-              >
-                {companies.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Domaine</span>
-              <select
-                value={form.domain}
-                onChange={(e) => set("domain", e.target.value)}
-                className="ui-focus-ring mt-1 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
-              >
-                {domains.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <label className="block">
+            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Domaine</span>
+            <select
+              value={form.domain}
+              onChange={(e) => set("domain", e.target.value)}
+              className="ui-focus-ring mt-1 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
+            >
+              {domains.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">

@@ -1,18 +1,29 @@
 "use client";
 
-import { useState, type RefObject } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import { CornerDownLeft, Loader2, Plus } from "lucide-react";
 
 export default function V2QuickAddTask({
   inputRef,
   onQuickAdd,
   disabled,
+  prefill,
+  onPrefillApplied,
 }: {
   inputRef?: RefObject<HTMLInputElement | null>;
   onQuickAdd: (title: string) => Promise<void> | void;
   disabled?: boolean;
+  prefill?: string;
+  onPrefillApplied?: () => void;
 }) {
   const [title, setTitle] = useState("");
+
+  useEffect(() => {
+    if (!prefill?.trim()) return;
+    setTitle(prefill);
+    window.setTimeout(() => inputRef?.current?.focus(), 50);
+    onPrefillApplied?.();
+  }, [prefill, inputRef, onPrefillApplied]);
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {

@@ -104,6 +104,7 @@ function ConfirmDeleteModal(props: {
 
 /* ─────────────────────────── Section wrapper ─────────────────────────── */
 function Section(props: {
+  id?: string;
   icon: typeof Users;
   title: string;
   subtitle: string;
@@ -112,7 +113,8 @@ function Section(props: {
 }) {
   const Icon = props.icon;
   return (
-    <div className="ui-surface overflow-hidden rounded-2xl">
+    <div id={props.id} className={props.id ? "scroll-mt-24" : undefined}>
+      <div className="ui-surface overflow-hidden rounded-2xl">
       <div className="flex items-center gap-3 border-b border-[var(--line)] px-5 py-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface-soft)]">
           <Icon className="h-5 w-5 text-[color:var(--foreground)]/50" />
@@ -128,6 +130,7 @@ function Section(props: {
         )}
       </div>
       <div className="p-5">{props.children}</div>
+      </div>
     </div>
   );
 }
@@ -389,6 +392,7 @@ export default function AdminSettingsPanel() {
 
         {/* ─── Agenda Outlook 365 ─── */}
         <Section
+          id="settings-outlook"
           icon={CalendarClock}
           title="Agenda Outlook 365"
           subtitle="Synchronisez vos tâches planifiées vers votre agenda Microsoft Outlook."

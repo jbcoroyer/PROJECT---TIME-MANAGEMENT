@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, PartyPopper, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Send } from "lucide-react";
 import { fetchSurveyDefinition, submitSurveyResponse } from "../../app/actions/survey";
 import { NO_OPINION } from "../../lib/survey/surveyConstants";
 import { isQuestionVisible } from "../../lib/survey/surveyDefinitionUtils";
@@ -311,7 +311,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
               transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.1 }}
               className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--accent)] text-white"
             >
-              <PartyPopper className="h-10 w-10" strokeWidth={1.75} />
+              <CheckCircle2 className="h-10 w-10" strokeWidth={1.75} />
             </motion.div>
             <h1 className="ui-display text-3xl font-semibold text-[var(--foreground)]">
               {firstName ? `Merci ${firstName} !` : "Merci beaucoup !"}

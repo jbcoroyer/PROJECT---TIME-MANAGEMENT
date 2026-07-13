@@ -40,7 +40,7 @@ export default function ModulesSettingsSection() {
   }
 
   return (
-    <section id="settings-modules" className="scroll-mt-6">
+    <section id="settings-modules" className="scroll-mt-24">
       <div className="ui-surface overflow-hidden rounded-2xl">
         <div className="border-b border-[var(--line)] px-5 py-4">
           <div className="flex items-start gap-3">
