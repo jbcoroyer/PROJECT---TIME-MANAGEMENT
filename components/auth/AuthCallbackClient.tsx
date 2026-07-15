@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { completeAuthSession } from "../../app/actions/completeAuthSession";
+import { completeAuthSession, resolvePostAuthRedirect } from "../../app/actions/completeAuthSession";
 import { clearOAuthNextPath, readOAuthNextPath } from "../../lib/auth/oauthNextCookie";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 
@@ -29,7 +29,7 @@ function resolveNextPath(type: string | null): string {
   if (fromQuery?.startsWith("/")) return fromQuery;
   if (type === "invite") return "/invite/accept";
   if (type === "recovery") return "/login/reset-password";
-  return readOAuthNextPath("/dashboard");
+  return readOAuthNextPath("/setup");
 }
 
 export default function AuthCallbackClient() {
@@ -56,7 +56,7 @@ export default function AuthCallbackClient() {
         return;
       }
 
-      const nextPath = resolveNextPath(type);
+      const cookieNext = resolveNextPath(type);
 
       const hash = window.location.hash.replace(/^#/, "");
       if (hash) {
@@ -77,9 +77,14 @@ export default function AuthCallbackClient() {
             return;
           }
           window.history.replaceState(null, "", window.location.pathname);
+          const redirectTarget = cookieNext;
           clearOAuthNextPath();
           await completeAuthSession(hashType);
-          router.replace(resolveNextPath(hashType));
+          const redirectPath =
+            hashType === "recovery"
+              ? "/login/reset-password"
+              : await resolvePostAuthRedirect(redirectTarget);
+          router.replace(redirectPath);
           router.refresh();
           return;
         }
@@ -104,7 +109,11 @@ export default function AuthCallbackClient() {
         }
         clearOAuthNextPath();
         await completeAuthSession(type);
-        router.replace(nextPath);
+        const redirectPath =
+          type === "recovery"
+            ? "/login/reset-password"
+            : await resolvePostAuthRedirect(cookieNext);
+        router.replace(redirectPath);
         router.refresh();
         return;
       }
@@ -131,7 +140,11 @@ export default function AuthCallbackClient() {
         }
         clearOAuthNextPath();
         await completeAuthSession(type);
-        router.replace(nextPath);
+        const redirectPath =
+          type === "recovery"
+            ? "/login/reset-password"
+            : await resolvePostAuthRedirect(cookieNext);
+        router.replace(redirectPath);
         router.refresh();
         return;
       }

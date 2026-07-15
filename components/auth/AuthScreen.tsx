@@ -175,10 +175,15 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
         />
       </form>
 
-      <OAuthButtons nextPath="/dashboard" />
+      <OAuthButtons nextPath="/setup" />
 
-      <p className="mt-7 text-center text-[13.5px] text-[var(--ink-muted)]">
-        Pas encore de compte ?{" "}
+      <p className="mt-3 text-center text-[12px] leading-relaxed text-[var(--ink-muted)]">
+        Pas encore de compte ? Google créera automatiquement votre espace et vous mènera à
+        l&apos;installation.
+      </p>
+
+      <p className="mt-5 text-center text-[13.5px] text-[var(--ink-muted)]">
+        Préférez le formulaire ?{" "}
         <Link href="/signup" className="font-semibold text-[var(--ink)] border-b border-[var(--accent)] hover:text-[var(--accent)]">
           Essai gratuit {TRIAL_DAYS} jours
         </Link>
