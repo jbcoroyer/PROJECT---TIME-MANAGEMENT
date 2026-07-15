@@ -8,7 +8,6 @@ import type { IntakeTaskDraft } from "../../../lib/v2/intakeMapping";
 export default function IntakeTaskMappingModal({
   open,
   draft,
-  companies,
   domains,
   admins,
   busy,
@@ -17,7 +16,6 @@ export default function IntakeTaskMappingModal({
 }: {
   open: boolean;
   draft: IntakeTaskDraft | null;
-  companies: string[];
   domains: string[];
   admins: string[];
   busy?: boolean;

@@ -45,7 +45,7 @@ export default function PricingCard({
           <span className="mkt-pricing-card__price-suffix">{plan.priceSuffix}</span>
         ) : null}
       </p>
-      <p className="mkt-pricing-card__name">{plan.name}</p>
+      <h2 className="mkt-pricing-card__name">{plan.name}</h2>
       {!compact ? <p className="mkt-pricing-card__desc">{plan.description}</p> : null}
 
       <ul className="mkt-pricing-card__features">

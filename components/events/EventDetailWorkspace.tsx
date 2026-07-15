@@ -404,7 +404,6 @@ export default function EventDetailWorkspace({
 
   const handleUploadDocuments = async (files: FileList | null) => {
     if (!id || !files || files.length === 0 || !currentUser?.organizationId) return;
-    const organizationId = currentUser.organizationId;
     const supabase = getSupabaseBrowser();
     setUploadingDocuments(true);
     try {

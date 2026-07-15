@@ -3,11 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowser } from "../supabaseBrowser";
 import {
-  AUTOMATION_PROCESSED_SESSION_KEY,
-  readSessionItem,
-  writeSessionItem,
+  readAutomationProcessedSession,
+  writeAutomationProcessedSession,
 } from "../storageKeys";
-import type { Priority, Task } from "../types";
+import type { Task } from "../types";
 
 export type AutomationTriggerType =
   | "task_created"
@@ -36,10 +35,7 @@ export type AutomationRule = {
 function loadProcessedAutomationKeys(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
-    const raw = readSessionItem(
-      AUTOMATION_PROCESSED_SESSION_KEY,
-      "idena-automation-processed",
-    );
+    const raw = readAutomationProcessedSession();
     if (!raw) return new Set();
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return new Set();
@@ -51,11 +47,7 @@ function loadProcessedAutomationKeys(): Set<string> {
 
 function saveProcessedAutomationKeys(keys: Set<string>) {
   try {
-    writeSessionItem(
-      AUTOMATION_PROCESSED_SESSION_KEY,
-      JSON.stringify([...keys].slice(-500)),
-      "idena-automation-processed",
-    );
+    writeAutomationProcessedSession(JSON.stringify([...keys].slice(-500)));
   } catch {
     /* quota / private mode */
   }

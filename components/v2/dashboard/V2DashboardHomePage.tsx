@@ -124,7 +124,7 @@ export default function V2DashboardHomePage() {
   const searchParams = useSearchParams();
   const { user: currentUser } = useCurrentUser();
   const { branding } = useBranding();
-  const { tasks, setTasks, optimisticUpdate, loadTasks } = useTasks();
+  const { tasks, setTasks, optimisticUpdate } = useTasks();
   const { events: salonEvents } = useEvents();
   const {
     admins: adminRecords,
@@ -259,7 +259,6 @@ export default function V2DashboardHomePage() {
     if (lastHandledTaskFromUrlRef.current === taskFromUrl) return;
     if (!tasks.some((t) => t.id === taskFromUrl)) return;
     lastHandledTaskFromUrlRef.current = taskFromUrl;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedTaskId(taskFromUrl);
     const next = new URLSearchParams();
     const q = searchParams.get("q");
@@ -1355,7 +1354,6 @@ export default function V2DashboardHomePage() {
         <IntakeTaskMappingModal
           open={mappingRequest !== null}
           draft={mappingDraft}
-          companies={companies}
           domains={domainNames}
           admins={admins}
           busy={mappingBusy}

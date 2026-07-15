@@ -47,7 +47,6 @@ import {
 import { getInventoryErrorMessage, useInventory } from "../../../lib/useInventory";
 import { useStockProjects } from "../../../lib/useStockProjects";
 import { formatCurrency, formatNumber } from "../../../lib/stockUtils";
-import { getSupabaseBrowser } from "../../../lib/supabaseBrowser";
 import { uploadStockVisual } from "../../../lib/stockVisualUpload";
 import { isPdfFile, isPdfUrl, STOCK_VISUAL_ACCEPT, stockVisualFileError } from "../../../lib/stockVisualUtils";
 import { useBranding } from "../../../lib/brandingContext";
@@ -152,7 +151,6 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
   } = useInventory();
   const { projects } = useStockProjects();
   const confirm = useConfirm();
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   const [searchQuery, setSearchQuery] = useState("");

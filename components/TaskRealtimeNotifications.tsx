@@ -197,7 +197,7 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
       realtimeWarnedRef.current = false;
       void supabase.removeChannel(channel);
     };
-  }, [loading, supabase, user?.id]);
+  }, [loading, supabase, user]);
 
   useEffect(() => {
     if (loading || !user) return;
@@ -257,7 +257,7 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
 
     const id = window.setInterval(() => void runDeadlineScan(true), 30 * 60 * 1000);
     return () => window.clearInterval(id);
-  }, [loading, supabase, user?.id]);
+  }, [loading, supabase, user]);
 
   return null;
 }

@@ -49,8 +49,12 @@ export function readAppVersionPreference(): string | null {
   return readStorageItem(APP_VERSION_STORAGE_KEY, LEGACY_APP_VERSION_STORAGE_KEY);
 }
 
-export function writeAppVersionPreference(value: string) {
-  writeStorageItem(APP_VERSION_STORAGE_KEY, value, LEGACY_APP_VERSION_STORAGE_KEY);
+export function readAutomationProcessedSession(): string | null {
+  return readSessionItem(AUTOMATION_PROCESSED_SESSION_KEY, LEGACY_AUTOMATION_PROCESSED_SESSION_KEY);
+}
+
+export function writeAutomationProcessedSession(value: string) {
+  writeSessionItem(AUTOMATION_PROCESSED_SESSION_KEY, value, LEGACY_AUTOMATION_PROCESSED_SESSION_KEY);
 }
 
 export function inAppNotificationStorageKey(parts: string[]): string {

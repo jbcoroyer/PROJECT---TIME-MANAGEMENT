@@ -2,13 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { Plus, Target, Trash2 } from "lucide-react";
-import { useCurrentUser } from "../../../lib/useCurrentUser";
 import { useReferenceData } from "../../../lib/useReferenceData";
 import { useTasks } from "../../../lib/useTasks";
 import { keyResultProgress, objectiveProgress, useObjectives } from "../../../lib/v2/okr";
 
 export default function V2OkrPage() {
-  const { user } = useCurrentUser();
   const { companies, domains } = useReferenceData();
   const { tasks } = useTasks();
   const { objectives, addObjective, removeObjective, addKeyResult, updateKeyResult, removeKeyResult } = useObjectives();
