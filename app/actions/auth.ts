@@ -13,6 +13,8 @@ export type SignUpWithOrganizationInput = {
   email: string;
   password: string;
   displayName: string;
+  firstName?: string;
+  lastName?: string;
   jobTitle?: string | null;
   organizationName: string;
 };
@@ -48,6 +50,8 @@ export async function signUpWithOrganization(
     options: {
       data: {
         display_name: displayName,
+        first_name: input.firstName?.trim() || null,
+        last_name: input.lastName?.trim() || null,
         job_title: input.jobTitle?.trim() || null,
         organization_name: organizationName,
       },

@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Check, Circle, Rocket, Sparkles, Target } from "lucide-react";
+import { Check, Circle, Rocket, Sparkles, Target, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { completeFirstTaskTutorial } from "../../app/actions/onboarding";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { useGamification } from "../../lib/gamification/gamificationContext";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import {
   useFirstTaskTutorial,
@@ -26,12 +26,29 @@ function stepProgress(step: FirstTaskTutorialStep): number {
   return 100;
 }
 
+function mapSavedStep(step?: string): FirstTaskTutorialStep {
+  if (step === "welcome") return "welcome";
+  if (step === "clickNewTask") return "clickNewTask";
+  if (step === "fillForm") return "fillForm";
+  if (step === "celebrate") return "celebrate";
+  return "clickNewTask";
+}
+
 export default function FirstTaskTutorial() {
   const { t } = useTranslation({ preferBrowser: true });
   const { user, loading, reload } = useCurrentUser();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
+  const {
+    profile: gamification,
+    loading: gamificationLoading,
+    setTutorialRuntime,
+    completeTutorial,
+    requestTutorialResume,
+    clearTutorialResume,
+  } = useGamification();
+
   const {
     active,
     step,
@@ -41,46 +58,79 @@ export default function FirstTaskTutorial() {
     dismissTutorial,
   } = useFirstTaskTutorial();
 
-  const startedRef = useRef(false);
+  const initializedRef = useRef(false);
 
   const needsTutorial = useMemo(() => {
-    if (loading || !user) return false;
-    return !user.firstTaskTutorialCompleted;
-  }, [loading, user]);
+    if (loading || gamificationLoading || !user || !gamification) return false;
+    if (user.firstTaskTutorialCompleted || gamification.firstTaskTutorialCompleted) return false;
+    const status = gamification.tutorials.first_task?.status;
+    return status !== "completed" && status !== "skipped";
+  }, [loading, gamificationLoading, user, gamification]);
 
   const onDashboard = pathname.startsWith("/dashboard");
 
-  useEffect(() => {
-    if (!needsTutorial || !onDashboard) return;
+  const stripTourParam = useCallback(() => {
     if (searchParams.get("tour") !== "1") return;
-    if (startedRef.current) return;
-    startedRef.current = true;
-    startTutorial();
-  }, [needsTutorial, onDashboard, searchParams, startTutorial]);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("tour");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
-  const handleCelebrationComplete = useCallback(async () => {
-    const result = await completeFirstTaskTutorial();
-    if (result.ok) {
-      reload();
-      markProductTourPending();
+  useEffect(() => {
+    if (!needsTutorial || !onDashboard || !gamification) return;
+
+    const saved = gamification.tutorials.first_task;
+
+    if (requestTutorialResume) {
+      clearTutorialResume();
+      initializedRef.current = true;
+      return;
     }
-    finishCelebration();
-    dismissTutorial();
+
+    if (initializedRef.current) return;
+
+    if (saved?.status === "in_progress" && saved.step && saved.step !== "welcome") {
+      initializedRef.current = true;
+      const restored = mapSavedStep(saved.step);
+      setTutorialRuntime(true, restored === "celebrate" ? "clickNewTask" : restored);
+      stripTourParam();
+      return;
+    }
 
     if (searchParams.get("tour") === "1") {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("tour");
-      const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname);
+      initializedRef.current = true;
+      if (!saved || saved.status === "pending" || !saved.status) {
+        startTutorial();
+      } else if (saved.status === "in_progress") {
+        setTutorialRuntime(true, mapSavedStep(saved.step));
+      }
+      stripTourParam();
     }
   }, [
-    dismissTutorial,
-    finishCelebration,
-    pathname,
-    reload,
-    router,
+    needsTutorial,
+    onDashboard,
+    gamification,
     searchParams,
+    startTutorial,
+    setTutorialRuntime,
+    stripTourParam,
+    requestTutorialResume,
+    clearTutorialResume,
   ]);
+
+  const handleCelebrationComplete = useCallback(async () => {
+    await completeTutorial("first_task");
+    reload();
+    markProductTourPending();
+    finishCelebration();
+    stripTourParam();
+  }, [completeTutorial, finishCelebration, reload, stripTourParam]);
+
+  const handlePause = useCallback(() => {
+    dismissTutorial();
+    stripTourParam();
+  }, [dismissTutorial, stripTourParam]);
 
   if (!needsTutorial || !onDashboard) return null;
 
@@ -96,6 +146,17 @@ export default function FirstTaskTutorial() {
     const current = step === questStep;
     return { questStep, done, current };
   });
+
+  const pauseButton = (
+    <button
+      type="button"
+      onClick={handlePause}
+      className="mt-3 flex w-full items-center justify-center gap-1.5 text-xs font-medium text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
+    >
+      <X className="h-3.5 w-3.5" aria-hidden />
+      {t("gamification.tutorials.pause")}
+    </button>
+  );
 
   if (step === "welcome") {
     return createPortal(
@@ -133,6 +194,7 @@ export default function FirstTaskTutorial() {
             <Rocket className="h-4 w-4" aria-hidden />
             {t("firstTaskTutorial.welcome.cta")}
           </button>
+          {pauseButton}
         </div>
       </div>,
       document.body,
@@ -181,6 +243,7 @@ export default function FirstTaskTutorial() {
           <div className="first-task-tutorial__xp-bar">
             <div className="first-task-tutorial__xp-fill" style={{ width: `${progress}%` }} />
           </div>
+          {pauseButton}
         </TutorialSpotlight>
       ) : null}
 
@@ -223,6 +286,7 @@ export default function FirstTaskTutorial() {
           <div className="first-task-tutorial__xp-bar">
             <div className="first-task-tutorial__xp-fill" style={{ width: `${progress}%` }} />
           </div>
+          {pauseButton}
         </TutorialSpotlight>
       ) : null}
     </>

@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { sendTransactionalEmail } from "../../../lib/server/email";
+import { syncUserDisplayName } from "../../../lib/syncUserDisplayName";
 
 const EMAIL_OTP_TYPES: EmailOtpType[] = [
   "recovery",
@@ -90,6 +91,7 @@ export async function GET(request: NextRequest) {
       );
     }
     await sendWelcomeIfNeeded(supabase, type);
+    await syncUserDisplayName(supabase);
     return response;
   }
 
@@ -111,6 +113,7 @@ export async function GET(request: NextRequest) {
       );
     }
     await sendWelcomeIfNeeded(supabase, type);
+    await syncUserDisplayName(supabase);
     return response;
   }
 

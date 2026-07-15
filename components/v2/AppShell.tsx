@@ -16,7 +16,9 @@ import { effectiveModulesForPlan } from "../../lib/billing/plans";
 import { useBillingPlan } from "../../lib/billing/useBillingPlan";
 import { isNavActive, NAV_ITEMS } from "../../lib/navigation";
 import { useCurrentUser } from "../../lib/useCurrentUser";
+import { useGamificationOptional } from "../../lib/gamification/gamificationContext";
 import { AppMark, AppWordmark, BrandHeading } from "../AppBrand";
+import GamificationHub from "../gamification/GamificationHub";
 
 type V2AppShellProps = {
   children: ReactNode;
@@ -40,15 +42,22 @@ function UserCard({
   email,
   avatarUrl,
   jobTitle,
+  onOpenGamification,
+  gamificationLinkLabel,
 }: {
   name?: string;
   email?: string;
   avatarUrl?: string | null;
   jobTitle?: string | null;
+  onOpenGamification?: () => void;
+  gamificationLinkLabel?: string;
 }) {
-  if (!name && !email) return null;
+  const label = name?.trim();
+  if (!label && !email) return null;
+
+  const initialsSource = label || email || "?";
   const initials =
-    (name ?? email ?? "?")
+    initialsSource
       .split(/\s+/)
       .map((p) => p[0])
       .join("")
@@ -60,7 +69,7 @@ function UserCard({
       <div className="flex items-center gap-2.5">
         <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[var(--accent)]">
           {avatarUrl ? (
-            <Image src={avatarUrl} alt={name ?? ""} fill sizes="32px" className="object-cover" />
+            <Image src={avatarUrl} alt={label ?? ""} fill sizes="32px" className="object-cover" />
           ) : (
             <span className="flex h-full w-full items-center justify-center font-[family-name:var(--font-display)] text-[13px] font-bold text-white">
               {initials}
@@ -68,11 +77,22 @@ function UserCard({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-semibold leading-tight text-[var(--foreground)]">
-            {name ?? email}
-          </p>
+          {label ? (
+            <p className="truncate text-[13px] font-semibold leading-tight text-[var(--foreground)]">
+              {label}
+            </p>
+          ) : null}
           {jobTitle ? (
             <p className="truncate text-[11.5px] leading-tight text-[var(--ink-muted)]">{jobTitle}</p>
+          ) : null}
+          {onOpenGamification ? (
+            <button
+              type="button"
+              onClick={onOpenGamification}
+              className="mt-1 text-[10px] font-semibold text-[var(--accent)] hover:underline"
+            >
+              {gamificationLinkLabel ?? "Parcours & badges"}
+            </button>
           ) : null}
         </div>
       </div>
@@ -94,8 +114,12 @@ export default function V2AppShell({
   const { t } = useTranslation();
   const { plan } = useBillingPlan();
   const { user, loading: userLoading } = useCurrentUser();
+  const gamification = useGamificationOptional();
   const displayName =
-    currentUserName ?? user?.teamMemberName ?? user?.displayName ?? undefined;
+    currentUserName?.trim() ||
+    user?.teamMemberName?.trim() ||
+    user?.displayName?.trim() ||
+    undefined;
   const displayEmail = currentUserEmail ?? user?.email;
   const displayAvatar = currentUserAvatarUrl ?? user?.avatarUrl;
   const displayJob = currentUserJobTitle ?? user?.jobTitle;
@@ -189,6 +213,8 @@ export default function V2AppShell({
             email={displayEmail}
             avatarUrl={displayAvatar}
             jobTitle={displayJob}
+            onOpenGamification={gamification?.openPanel}
+            gamificationLinkLabel={t("gamification.panel.shortTitle") + " & " + t("gamification.panel.badges").toLowerCase()}
           />
         )}
       </div>
@@ -268,6 +294,7 @@ export default function V2AppShell({
               )}
             </div>
             <div className="ml-auto flex shrink-0 items-center gap-2.5">
+              <GamificationHub />
               {toolbarRight}
             </div>
           </header>

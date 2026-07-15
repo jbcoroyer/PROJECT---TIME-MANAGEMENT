@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useGamification, useGamificationOptional } from "../gamification/gamificationContext";
 
 export type FirstTaskTutorialStep =
   | "welcome"
@@ -16,96 +9,96 @@ export type FirstTaskTutorialStep =
   | "celebrate"
   | "done";
 
-type FirstTaskTutorialContextValue = {
-  active: boolean;
-  step: FirstTaskTutorialStep;
-  startTutorial: () => void;
-  beginQuest: () => void;
-  notifyNewTaskClicked: () => void;
-  notifyFormOpened: () => void;
-  notifyTaskCreated: () => void;
-  finishCelebration: () => void;
-  dismissTutorial: () => void;
-};
+function useFirstTaskTutorialAdapter() {
+  const g = useGamification();
 
-const FirstTaskTutorialContext = createContext<FirstTaskTutorialContextValue | null>(null);
-
-export function FirstTaskTutorialProvider({ children }: { children: ReactNode }) {
-  const [active, setActive] = useState(false);
-  const [step, setStep] = useState<FirstTaskTutorialStep>("welcome");
-
-  const startTutorial = useCallback(() => {
-    setActive(true);
-    setStep("welcome");
-  }, []);
-
-  const beginQuest = useCallback(() => {
-    setActive(true);
-    setStep("clickNewTask");
-  }, []);
-
-  const notifyNewTaskClicked = useCallback(() => {
-    setStep((current) => (current === "clickNewTask" ? "fillForm" : current));
-  }, []);
-
-  const notifyFormOpened = useCallback(() => {
-    setStep((current) =>
-      current === "clickNewTask" || current === "welcome" ? "fillForm" : current,
-    );
-  }, []);
-
-  const notifyTaskCreated = useCallback(() => {
-    setStep("celebrate");
-  }, []);
-
-  const finishCelebration = useCallback(() => {
-    setStep("done");
-    setActive(false);
-  }, []);
-
-  const dismissTutorial = useCallback(() => {
-    setActive(false);
-    setStep("done");
-  }, []);
-
-  const value = useMemo(
-    () => ({
-      active,
-      step,
-      startTutorial,
-      beginQuest,
-      notifyNewTaskClicked,
-      notifyFormOpened,
-      notifyTaskCreated,
-      finishCelebration,
-      dismissTutorial,
-    }),
-    [
-      active,
-      step,
-      startTutorial,
-      beginQuest,
-      notifyNewTaskClicked,
-      notifyFormOpened,
-      notifyTaskCreated,
-      finishCelebration,
-      dismissTutorial,
-    ],
-  );
-
-  return (
-    <FirstTaskTutorialContext.Provider value={value}>{children}</FirstTaskTutorialContext.Provider>
-  );
+  return {
+    active: g.tutorialActive,
+    step: g.tutorialStep,
+    startTutorial: () => {
+      g.setTutorialRuntime(true, "welcome");
+      void g.persistTutorial("first_task", { status: "in_progress", step: "welcome" });
+    },
+    beginQuest: () => {
+      g.setTutorialRuntime(true, "clickNewTask");
+      void g.persistTutorial("first_task", { status: "in_progress", step: "clickNewTask" });
+    },
+    notifyNewTaskClicked: () => {
+      if (g.tutorialStep === "clickNewTask") {
+        g.setTutorialRuntime(true, "fillForm");
+        void g.persistTutorial("first_task", { status: "in_progress", step: "fillForm" });
+      }
+    },
+    notifyFormOpened: () => {
+      if (g.tutorialStep === "clickNewTask" || g.tutorialStep === "welcome") {
+        g.setTutorialRuntime(true, "fillForm");
+        void g.persistTutorial("first_task", { status: "in_progress", step: "fillForm" });
+      }
+    },
+    notifyTaskCreated: () => {
+      g.setTutorialRuntime(true, "celebrate");
+      void g.persistTutorial("first_task", { status: "in_progress", step: "celebrate" });
+    },
+    finishCelebration: () => {
+      g.setTutorialRuntime(false, "done");
+    },
+    dismissTutorial: () => {
+      g.setTutorialRuntime(false, "done");
+      void g.persistTutorial("first_task", {
+        status: "in_progress",
+        step: g.tutorialStep === "welcome" ? "clickNewTask" : g.tutorialStep,
+      });
+    },
+  };
 }
 
-export function useFirstTaskTutorial(): FirstTaskTutorialContextValue {
-  const ctx = useContext(FirstTaskTutorialContext);
-  if (!ctx) {
-    throw new Error("useFirstTaskTutorial doit être utilisé sous FirstTaskTutorialProvider.");
-  }
-  return ctx;
+export function FirstTaskTutorialProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
 
-export function useFirstTaskTutorialOptional(): FirstTaskTutorialContextValue | null {
-  return useContext(FirstTaskTutorialContext);
+export function useFirstTaskTutorial() {
+  return useFirstTaskTutorialAdapter();
+}
+
+export function useFirstTaskTutorialOptional() {
+  const g = useGamificationOptional();
+  if (!g) return null;
+  return {
+    active: g.tutorialActive,
+    step: g.tutorialStep,
+    startTutorial: () => {
+      g.setTutorialRuntime(true, "welcome");
+      void g.persistTutorial("first_task", { status: "in_progress", step: "welcome" });
+    },
+    beginQuest: () => {
+      g.setTutorialRuntime(true, "clickNewTask");
+      void g.persistTutorial("first_task", { status: "in_progress", step: "clickNewTask" });
+    },
+    notifyNewTaskClicked: () => {
+      if (g.tutorialStep === "clickNewTask") {
+        g.setTutorialRuntime(true, "fillForm");
+        void g.persistTutorial("first_task", { status: "in_progress", step: "fillForm" });
+      }
+    },
+    notifyFormOpened: () => {
+      if (g.tutorialStep === "clickNewTask" || g.tutorialStep === "welcome") {
+        g.setTutorialRuntime(true, "fillForm");
+        void g.persistTutorial("first_task", { status: "in_progress", step: "fillForm" });
+      }
+    },
+    notifyTaskCreated: () => {
+      g.setTutorialRuntime(true, "celebrate");
+      void g.persistTutorial("first_task", { status: "in_progress", step: "celebrate" });
+    },
+    finishCelebration: () => {
+      g.setTutorialRuntime(false, "done");
+    },
+    dismissTutorial: () => {
+      g.setTutorialRuntime(false, "done");
+      void g.persistTutorial("first_task", {
+        status: "in_progress",
+        step: g.tutorialStep === "welcome" ? "clickNewTask" : g.tutorialStep,
+      });
+    },
+  };
 }

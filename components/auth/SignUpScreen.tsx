@@ -101,6 +101,8 @@ export default function SignUpScreen() {
         email: email.trim(),
         password,
         displayName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         jobTitle: jobTitle.trim() || null,
         organizationName: organizationName.trim(),
       });
@@ -335,7 +337,16 @@ export default function SignUpScreen() {
                 loadingLabel={t("common.saving")}
                 label={t("auth.createAccount")}
               />
-              <OAuthButtons nextPath="/setup" />
+              <OAuthButtons
+                nextPath="/setup"
+                signUpMetadata={{
+                  display_name: `${firstName.trim()} ${lastName.trim()}`,
+                  first_name: firstName.trim(),
+                  last_name: lastName.trim(),
+                  job_title: jobTitle.trim() || undefined,
+                  organization_name: organizationName.trim(),
+                }}
+              />
             </form>
           )}
         </div>

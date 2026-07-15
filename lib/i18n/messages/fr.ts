@@ -419,4 +419,72 @@ export const fr: MessageTree = {
       cta: "Explorer mon tableau",
     },
   },
+  gamification: {
+    panel: {
+      kicker: "N°00 — Progression",
+      title: "Parcours & succès",
+      shortTitle: "Parcours",
+      open: "Ouvrir le panneau de progression",
+      close: "Fermer",
+      level: "Niveau",
+      xpToNext: "{current} / {max} XP vers le niveau suivant",
+      quests: "Quêtes & tutoriels",
+      badges: "Badges",
+    },
+    status: {
+      pending: "À faire",
+      inProgress: "En cours",
+      completed: "Terminé",
+      skipped: "Reporté",
+    },
+    actions: {
+      start: "Commencer",
+      continue: "Continuer",
+      resume: "Reprendre",
+      skip: "Plus tard",
+      done: "Accompli",
+      markDone: "Marquer terminé",
+    },
+    tutorials: {
+      pause: "Mettre en pause — reprendre depuis le panneau Parcours",
+      firstTask: {
+        title: "Première tâche Kanban",
+        description: "Créez votre premier projet guidé sur le tableau.",
+      },
+      productTour: {
+        title: "Découverte de l'espace",
+        description: "Visitez les zones clés : tâches, équipe, modules, Outlook.",
+      },
+      teamSetup: {
+        title: "Inviter l'équipe",
+        description: "Ajoutez un collègue et partagez votre espace de travail.",
+      },
+      modulesTour: {
+        title: "Activer les modules",
+        description: "Choisissez les modules adaptés à votre organisation.",
+      },
+    },
+    badges: {
+      firstStep: {
+        title: "Premier pas",
+        description: "Première tâche créée sur le Kanban.",
+      },
+      explorer: {
+        title: "Explorateur",
+        description: "Visite guidée de l'application terminée.",
+      },
+      teamBuilder: {
+        title: "Bâtisseur d'équipe",
+        description: "Au moins un membre invité dans l'espace.",
+      },
+      moduleMaster: {
+        title: "Architecte modules",
+        description: "Modules configurés selon vos besoins.",
+      },
+      centurion: {
+        title: "Centurion",
+        description: "1000 XP cumulés — maîtrise confirmée.",
+      },
+    },
+  },
 };

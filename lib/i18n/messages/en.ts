@@ -415,4 +415,72 @@ export const en: MessageTree = {
       cta: "Explore my board",
     },
   },
+  gamification: {
+    panel: {
+      kicker: "N°00 — Progress",
+      title: "Quests & achievements",
+      shortTitle: "Quests",
+      open: "Open progress panel",
+      close: "Close",
+      level: "Level",
+      xpToNext: "{current} / {max} XP to next level",
+      quests: "Quests & tutorials",
+      badges: "Badges",
+    },
+    status: {
+      pending: "To do",
+      inProgress: "In progress",
+      completed: "Done",
+      skipped: "Later",
+    },
+    actions: {
+      start: "Start",
+      continue: "Continue",
+      resume: "Resume",
+      skip: "Later",
+      done: "Complete",
+      markDone: "Mark done",
+    },
+    tutorials: {
+      pause: "Pause — resume from the Quests panel",
+      firstTask: {
+        title: "First Kanban task",
+        description: "Create your first guided project on the board.",
+      },
+      productTour: {
+        title: "Workspace tour",
+        description: "Visit key areas: tasks, team, modules, Outlook.",
+      },
+      teamSetup: {
+        title: "Invite your team",
+        description: "Add a teammate and share your workspace.",
+      },
+      modulesTour: {
+        title: "Enable modules",
+        description: "Pick the modules that fit your organization.",
+      },
+    },
+    badges: {
+      firstStep: {
+        title: "First step",
+        description: "First task created on the Kanban board.",
+      },
+      explorer: {
+        title: "Explorer",
+        description: "Completed the guided product tour.",
+      },
+      teamBuilder: {
+        title: "Team builder",
+        description: "Invited at least one teammate.",
+      },
+      moduleMaster: {
+        title: "Module architect",
+        description: "Configured modules for your needs.",
+      },
+      centurion: {
+        title: "Centurion",
+        description: "1000 XP earned — mastery unlocked.",
+      },
+    },
+  },
 };

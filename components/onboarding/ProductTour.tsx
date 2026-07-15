@@ -10,6 +10,7 @@ import {
   buildFirstTaskHref,
 } from "../../lib/onboarding/tourConfig";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { useGamificationOptional } from "../../lib/gamification/gamificationContext";
 import "./product-tour.css";
 
 const TOUR_STORAGE_KEY = "workspace_product_tour_done";
@@ -19,6 +20,7 @@ export default function ProductTour() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t } = useTranslation({ preferBrowser: true });
+  const gamification = useGamificationOptional();
   const fromSetup = searchParams.get("tour") === "1";
   const [tourDone, setTourDone] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -29,10 +31,13 @@ export default function ProductTour() {
   const [step, setStep] = useState(0);
   const [taskDraft, setTaskDraft] = useState("");
 
-  function closeTour() {
+  function closeTour(options?: { completed?: boolean }) {
     window.localStorage.setItem(TOUR_STORAGE_KEY, "1");
     setTourDone(true);
     setDismissed(true);
+    if (options?.completed && gamification) {
+      void gamification.completeTutorial("product_tour");
+    }
     if (searchParams.get("tour") === "1") {
       const params = new URLSearchParams(searchParams.toString());
       params.delete("tour");
@@ -61,7 +66,7 @@ export default function ProductTour() {
     >
       <button
         type="button"
-        onClick={closeTour}
+        onClick={() => closeTour()}
         className="absolute right-3 top-3 rounded-lg p-1 text-[color:var(--foreground)]/40 hover:bg-[var(--surface-soft)]"
         aria-label={t("tour.close")}
       >
@@ -120,7 +125,7 @@ export default function ProductTour() {
       <div className="mt-4 flex items-center justify-between gap-2">
         <button
           type="button"
-          onClick={closeTour}
+          onClick={() => closeTour()}
           className="text-sm font-medium text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
         >
           {t("tour.skip")}
@@ -138,7 +143,7 @@ export default function ProductTour() {
           {isFirstTaskStep && trimmedDraft ? (
             <Link
               href={buildFirstTaskHref({ taskDraft: trimmedDraft, createTask: true })}
-              onClick={closeTour}
+              onClick={() => closeTour()}
               className="ui-btn ui-btn-primary px-3 py-2 text-sm"
             >
               {t("tour.createTask")}
@@ -146,13 +151,13 @@ export default function ProductTour() {
           ) : null}
           <Link
             href={goHref}
-            onClick={closeTour}
+            onClick={() => closeTour()}
             className="ui-btn ui-btn-secondary px-3 py-2 text-sm"
           >
             {t("tour.goThere")}
           </Link>
           {isLast ? (
-            <button type="button" onClick={closeTour} className="ui-btn ui-btn-primary px-3 py-2 text-sm">
+            <button type="button" onClick={() => closeTour({ completed: true })} className="ui-btn ui-btn-primary px-3 py-2 text-sm">
               {t("tour.finish")}
             </button>
           ) : (

@@ -16,6 +16,11 @@ import {
   isInvalidRefreshTokenError,
 } from "./supabaseAuthRecovery";
 import { resolveStorageAssetUrl } from "./storageClient";
+import { syncUserDisplayName } from "./syncUserDisplayName";
+import {
+  isPlaceholderDisplayName,
+  resolveUserDisplayName,
+} from "./userDisplayName";
 
 export type CurrentUser = {
   id: string;
@@ -41,8 +46,10 @@ const CurrentUserContext = createContext<CurrentUserContextValue | null>(null);
 
 async function fetchProfile(
   supabase: ReturnType<typeof getSupabaseBrowser>,
-  authUser: { id: string; email?: string | null },
+  authUser: { id: string; email?: string | null; user_metadata?: Record<string, unknown> },
 ): Promise<CurrentUser> {
+  await syncUserDisplayName(supabase);
+
   const { data: profile } = await supabase
     .from("profiles")
     .select(
@@ -63,13 +70,32 @@ async function fetchProfile(
     ? await resolveStorageAssetUrl(supabase, "member-avatars", rawAvatar)
     : null;
 
+  const teamMemberName = member?.display_name ?? null;
+  const profileDisplayName = (profile?.display_name as string | null) ?? null;
+  const email = authUser.email ?? "";
+  const resolvedDisplayName = resolveUserDisplayName({
+    teamMemberName,
+    displayName: profileDisplayName,
+    email,
+    authMetadata: authUser.user_metadata ?? null,
+  });
+
+  const safeTeamMemberName =
+    resolvedDisplayName ||
+    (teamMemberName && !isPlaceholderDisplayName(teamMemberName, email) ? teamMemberName : null);
+  const safeDisplayName =
+    resolvedDisplayName ||
+    (profileDisplayName && !isPlaceholderDisplayName(profileDisplayName, email)
+      ? profileDisplayName
+      : null);
+
   return {
     id: authUser.id,
-    email: authUser.email ?? "",
+    email,
     organizationId: (profile?.organization_id as string | null) ?? null,
-    displayName: (profile?.display_name as string | null) ?? null,
+    displayName: safeDisplayName,
     teamMemberId: (profile?.team_member_id as string | null) ?? null,
-    teamMemberName: member?.display_name ?? null,
+    teamMemberName: safeTeamMemberName,
     jobTitle: member?.job_title ?? null,
     avatarUrl,
     role,
@@ -117,7 +143,15 @@ export function CurrentUserProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const nextUser = await fetchProfile(supabase, sessionUser);
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser();
+        if (!authUser) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        const nextUser = await fetchProfile(supabase, authUser);
         setUser(nextUser);
       } catch {
         if (!userRef.current) setUser(null);

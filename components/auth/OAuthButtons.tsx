@@ -6,6 +6,14 @@ import { getOAuthCallbackOrigin } from "../../lib/publicAppUrl";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError } from "../../lib/toast";
 
+export type OAuthSignUpMetadata = {
+  display_name?: string;
+  first_name?: string;
+  last_name?: string;
+  job_title?: string;
+  organization_name?: string;
+};
+
 function GoogleIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden xmlns="http://www.w3.org/2000/svg">
@@ -29,7 +37,13 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
-export default function OAuthButtons({ nextPath = "/setup" }: { nextPath?: string }) {
+export default function OAuthButtons({
+  nextPath = "/setup",
+  signUpMetadata,
+}: {
+  nextPath?: string;
+  signUpMetadata?: OAuthSignUpMetadata;
+}) {
   const [busy, setBusy] = useState(false);
 
   async function handleGoogle() {
@@ -38,9 +52,18 @@ export default function OAuthButtons({ nextPath = "/setup" }: { nextPath?: strin
       const supabase = getSupabaseBrowser();
       const redirectTo = `${getOAuthCallbackOrigin()}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
+      const data = signUpMetadata
+        ? Object.fromEntries(
+            Object.entries(signUpMetadata).filter(([, value]) => value != null && String(value).trim() !== ""),
+          )
+        : undefined;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo },
+        options: {
+          redirectTo,
+          ...(data ? { data } : {}),
+        },
       });
 
       if (error) throw error;
