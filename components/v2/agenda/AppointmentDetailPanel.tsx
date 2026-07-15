@@ -46,16 +46,25 @@ export default function AppointmentDetailPanel({
   const [savingNote, setSavingNote] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  const appointmentId = appointment?.id ?? null;
+
   useEffect(() => {
-    if (!appointment) {
-      setNotes([]);
-      return;
-    }
-    setNotesLoading(true);
-    void listAppointmentNotes(appointment.id)
-      .then(setNotes)
-      .finally(() => setNotesLoading(false));
-  }, [appointment]);
+    if (!appointmentId) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setNotesLoading(true);
+    });
+    void listAppointmentNotes(appointmentId)
+      .then((data) => {
+        if (!cancelled) setNotes(data);
+      })
+      .finally(() => {
+        if (!cancelled) setNotesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [appointmentId]);
 
   if (!appointment) return null;
 

@@ -133,7 +133,7 @@ export const fr: MessageTree = {
     userExists: "Un compte avec cet email existe déjà. Connectez-vous.",
     passwordTooShort: "Le mot de passe doit contenir au moins 6 caractères.",
     linkExpired:
-      "Ce lien a expiré ou a déjà été utilisé. Utilisez « Mot de passe oublié » pour recevoir un nouvel email.",
+      "Ce lien a expiré ou a déjà été utilisé. Relancez la connexion Google ou demandez un nouvel email.",
     linkInvalid: "Impossible de valider le lien de connexion ou de réinitialisation.",
     appUrlMissing: "URL de l'application inconnue. Définissez NEXT_PUBLIC_APP_URL.",
   },

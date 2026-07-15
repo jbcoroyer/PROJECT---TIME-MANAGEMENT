@@ -27,10 +27,11 @@ export default function KanbanColumnHeader(props: {
   const [menuOpen, setMenuOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
+  const [prevColumnLabel, setPrevColumnLabel] = useState(column.label);
+  if (column.label !== prevColumnLabel) {
+    setPrevColumnLabel(column.label);
     setDraftLabel(column.label);
-  }, [column.label]);
+  }
 
   useEffect(() => {
     if (!menuOpen && !paletteOpen) return;

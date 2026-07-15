@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -107,6 +106,34 @@ export function ExplorationTutorialProvider({ children }: { children: ReactNode 
   const boardSavedStep = gamification?.profile.tutorials.board_exploration?.step as
     | BoardExplorationStep
     | undefined;
+
+  const [boardRestored, setBoardRestored] = useState(false);
+  if (
+    !boardRestored &&
+    !boardActive &&
+    boardStep === "idle" &&
+    boardStatus === "in_progress" &&
+    boardSavedStep &&
+    boardSavedStep !== "done"
+  ) {
+    setBoardRestored(true);
+    setBoardActive(true);
+    if (boardSavedStep === "celebrate" || BOARD_STEP_ORDER.includes(boardSavedStep)) {
+      setBoardStep(boardSavedStep);
+    }
+  }
+
+  const [moduleHubAutoOpened, setModuleHubAutoOpened] = useState(false);
+  if (
+    !moduleHubAutoOpened &&
+    moduleStatus === "in_progress" &&
+    !moduleHubOpen &&
+    !activeModuleTour &&
+    pathname.startsWith("/dashboard")
+  ) {
+    setModuleHubAutoOpened(true);
+    setModuleHubOpen(true);
+  }
 
   const persistBoardStep = useCallback(
     (step: BoardExplorationStep) => {
@@ -257,30 +284,6 @@ export function ExplorationTutorialProvider({ children }: { children: ReactNode 
     setModuleTourStep(0);
     setModuleHubOpen(true);
   }, []);
-
-  useEffect(() => {
-    if (boardActive || boardStep !== "idle") return;
-    if (boardStatus === "in_progress" && boardSavedStep && boardSavedStep !== "done") {
-      if (boardSavedStep === "celebrate") {
-        setBoardActive(true);
-        setBoardStep("celebrate");
-      } else if (BOARD_STEP_ORDER.includes(boardSavedStep)) {
-        setBoardActive(true);
-        setBoardStep(boardSavedStep);
-      }
-    }
-  }, [boardActive, boardSavedStep, boardStatus, boardStep]);
-
-  useEffect(() => {
-    if (
-      moduleStatus === "in_progress" &&
-      !moduleHubOpen &&
-      !activeModuleTour &&
-      pathname.startsWith("/dashboard")
-    ) {
-      setModuleHubOpen(true);
-    }
-  }, [activeModuleTour, moduleHubOpen, moduleStatus, pathname]);
 
   const value = useMemo(
     () => ({

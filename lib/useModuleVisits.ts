@@ -15,22 +15,21 @@ export function useModuleVisits(userId: string | undefined) {
   const [visited, setVisited] = useState<Set<AppModuleId>>(() =>
     userId ? readVisitedModules(userId) : new Set(),
   );
-
-  useEffect(() => {
-    if (!userId) {
-      setVisited(new Set());
-      return;
-    }
-    setVisited(readVisitedModules(userId));
-  }, [userId]);
+  const [trackedUserId, setTrackedUserId] = useState(userId);
+  if (userId !== trackedUserId) {
+    setTrackedUserId(userId);
+    setVisited(userId ? readVisitedModules(userId) : new Set());
+  }
 
   useEffect(() => {
     if (!userId) return;
     const moduleId = resolveModuleForPath(pathname);
     if (!moduleId) return;
-    setVisited((prev) => {
-      if (prev.has(moduleId)) return prev;
-      return markModuleVisited(userId, moduleId);
+    queueMicrotask(() => {
+      setVisited((prev) => {
+        if (prev.has(moduleId)) return prev;
+        return markModuleVisited(userId, moduleId);
+      });
     });
   }, [userId, pathname]);
 

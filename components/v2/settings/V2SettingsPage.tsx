@@ -46,23 +46,12 @@ function V2SettingsPageContent() {
   const { user } = useCurrentUser();
   const isAdmin = Boolean(user?.isAdmin);
   const sectionTab = section ? tabForSection(section, isAdmin) : null;
-  const [manualTab, setManualTab] = useState<SettingsTab>("modules");
-  const [hasPickedTab, setHasPickedTab] = useState(false);
-  const tab = sectionTab ?? manualTab;
+  const defaultTab: SettingsTab = isAdmin ? "team" : "modules";
+  const [manualTab, setManualTab] = useState<SettingsTab | null>(null);
+  const tab = sectionTab ?? manualTab ?? defaultTab;
 
   const tabs = useMemo(() => ALL_TABS.filter((item) => !item.adminOnly || isAdmin), [isAdmin]);
-  const activeTab = tabs.some((item) => item.id === tab) ? tab : isAdmin ? "team" : "modules";
-
-  useEffect(() => {
-    if (section || hasPickedTab) return;
-    setManualTab(isAdmin ? "team" : "modules");
-  }, [isAdmin, hasPickedTab, section]);
-
-  useEffect(() => {
-    if (!isAdmin && manualTab === "team") {
-      setManualTab("modules");
-    }
-  }, [isAdmin, manualTab]);
+  const activeTab = tabs.some((item) => item.id === tab) ? tab : defaultTab;
 
   useEffect(() => {
     if (!section) return;
@@ -105,7 +94,6 @@ function V2SettingsPageContent() {
               key={id}
               type="button"
               onClick={() => {
-                setHasPickedTab(true);
                 setManualTab(id);
               }}
               className={[

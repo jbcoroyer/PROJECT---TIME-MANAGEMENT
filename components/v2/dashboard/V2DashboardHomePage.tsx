@@ -187,7 +187,7 @@ export default function V2DashboardHomePage() {
   }, [params.tab, pathname, navigateToTab]);
 
   const taskCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const lastFocusedTaskIdRef = useRef<string | null>(null);
+  const [lastFocusedTaskId, setLastFocusedTaskId] = useState<string | null>(null);
 
   const admins = useMemo(() => adminRecords.map((item) => item.name), [adminRecords]);
 
@@ -268,7 +268,7 @@ export default function V2DashboardHomePage() {
     if (lastHandledTaskFromUrlRef.current === taskFromUrl) return;
     if (!tasks.some((t) => t.id === taskFromUrl)) return;
     lastHandledTaskFromUrlRef.current = taskFromUrl;
-    setSelectedTaskId(taskFromUrl);
+    queueMicrotask(() => setSelectedTaskId(taskFromUrl));
     const next = new URLSearchParams();
     const q = searchParams.get("q");
     if (q) next.set("q", q);
@@ -336,7 +336,7 @@ export default function V2DashboardHomePage() {
     if (tutorial.step === "celebrate" || tutorial.step === "done") return;
     if (activeTab === "kanban") return;
     tutorial.dismissTutorial();
-    if (isFormOpen) setIsFormOpen(false);
+    if (isFormOpen) queueMicrotask(() => setIsFormOpen(false));
   }, [activeTab, tutorial, isFormOpen, exploration?.boardActive]);
 
   const handleOpenForm = useCallback((options?: { fromTutorialButton?: boolean }) => {
@@ -659,7 +659,7 @@ export default function V2DashboardHomePage() {
       });
       toastSuccess("Tâche créée");
     },
-    [companyRecords, domainRecords, defaultAdminName, setTasks, supabase],
+    [columnRecords, companyRecords, domainRecords, defaultAdminName, setTasks, supabase],
   );
 
   const domainNames = useMemo(() => domainRecords.map((d) => d.name), [domainRecords]);
@@ -807,13 +807,13 @@ export default function V2DashboardHomePage() {
   );
 
   const closeTaskDetailPanel = useCallback((restoreFocus = true) => {
-    const targetTaskId = lastFocusedTaskIdRef.current;
+    const targetTaskId = lastFocusedTaskId;
     setSelectedTaskId(null);
     if (!restoreFocus || !targetTaskId) return;
     window.setTimeout(() => {
       taskCardRefs.current[targetTaskId]?.focus();
     }, 0);
-  }, []);
+  }, [lastFocusedTaskId]);
 
   useEffect(() => {
     if (!selectedTaskId) return;
@@ -839,8 +839,12 @@ export default function V2DashboardHomePage() {
     }
   }, [activeTab, handleOpenForm, navigateToTab]);
 
+  const focusSearch = useCallback(() => {
+    searchInputRef.current?.focus();
+  }, []);
+
   const cycleActiveTaskStatus = useCallback(() => {
-    const id = selectedTaskId ?? lastFocusedTaskIdRef.current;
+    const id = selectedTaskId ?? lastFocusedTaskId;
     if (!id || columns.length === 0) return;
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
@@ -849,10 +853,10 @@ export default function V2DashboardHomePage() {
     if (nextColumn && nextColumn !== task.column) {
       handleMoveTask(id, nextColumn);
     }
-  }, [columns, handleMoveTask, selectedTaskId, tasks]);
+  }, [columns, handleMoveTask, lastFocusedTaskId, selectedTaskId, tasks]);
 
   const cycleActiveTaskPriority = useCallback(() => {
-    const id = selectedTaskId ?? lastFocusedTaskIdRef.current;
+    const id = selectedTaskId ?? lastFocusedTaskId;
     if (!id) return;
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
@@ -861,7 +865,7 @@ export default function V2DashboardHomePage() {
     if (nextPriority && nextPriority !== task.priority) {
       void handleInlineSave(id, { priority: nextPriority }, { priority: nextPriority });
     }
-  }, [handleInlineSave, selectedTaskId, tasks]);
+  }, [handleInlineSave, lastFocusedTaskId, selectedTaskId, tasks]);
 
   useAppShortcuts({
     "$mod+k": (event) => {
@@ -904,8 +908,8 @@ export default function V2DashboardHomePage() {
     },
   });
 
-  const paletteActions = useMemo<PaletteAction[]>(() => {
-    const list: PaletteAction[] = [
+  const basePaletteActions = useMemo<PaletteAction[]>(
+    () => [
       {
         id: "quick-add",
         group: "Actions rapides",
@@ -928,7 +932,7 @@ export default function V2DashboardHomePage() {
         label: "Rechercher une tâche",
         hint: "/",
         keywords: ["filtrer", "chercher"],
-        perform: () => searchInputRef.current?.focus(),
+        perform: focusSearch,
       },
       { id: "nav-todo", group: "Navigation", label: "Mes tâches", hint: "G T · G I", perform: () => navigateToTab("todo") },
       { id: "nav-kanban", group: "Navigation", label: "Tableau Kanban", hint: "G K", perform: () => navigateToTab("kanban") },
@@ -956,75 +960,73 @@ export default function V2DashboardHomePage() {
         keywords: ["template", "bundle", tpl.domain],
         perform: () => void handleApplyTemplate(tpl.id),
       })),
-    ];
+    ],
+    [focusQuickAdd, focusSearch, handleApplyTemplate, handleOpenForm, navigateToTab, router, showTeamWorkload],
+  );
 
-    const activeId = selectedTaskId ?? lastFocusedTaskIdRef.current;
+  const taskPaletteActions = useMemo<PaletteAction[]>(() => {
+    const activeId = selectedTaskId ?? lastFocusedTaskId;
     const activeTask = activeId ? tasks.find((t) => t.id === activeId) : null;
-    if (activeTask) {
-      const group = `Tâche : ${activeTask.projectName}`;
-      for (const col of columns) {
-        if (col === activeTask.column) continue;
-        list.push({
-          id: `status-${col}`,
-          group,
-          label: `Statut → ${col}`,
-          keywords: ["colonne", "déplacer", "statut"],
-          perform: () => handleMoveTask(activeTask.id, col as ColumnId),
-        });
-      }
-      for (const prio of priorities) {
-        if (prio === activeTask.priority) continue;
-        list.push({
-          id: `prio-${prio}`,
-          group,
-          label: `Priorité → ${prio}`,
-          keywords: ["priorité"],
-          perform: () => void handleInlineSave(activeTask.id, { priority: prio }, { priority: prio }),
-        });
-      }
-      list.push({
-        id: "open-active",
+    if (!activeTask) return [];
+
+    const group = `Tâche : ${activeTask.projectName}`;
+    const actions: PaletteAction[] = [];
+
+    for (const col of columns) {
+      if (col === activeTask.column) continue;
+      actions.push({
+        id: `status-${col}`,
         group,
-        label: "Ouvrir le détail",
-        perform: () => setSelectedTaskId(activeTask.id),
-      });
-      list.push({
-        id: "archive-active",
-        group,
-        label: "Archiver la tâche",
-        perform: () => void handleArchiveTask(activeTask.id),
+        label: `Statut → ${col}`,
+        keywords: ["colonne", "déplacer", "statut"],
+        perform: () => handleMoveTask(activeTask.id, col as ColumnId),
       });
     }
+    for (const prio of priorities) {
+      if (prio === activeTask.priority) continue;
+      actions.push({
+        id: `prio-${prio}`,
+        group,
+        label: `Priorité → ${prio}`,
+        keywords: ["priorité"],
+        perform: () => void handleInlineSave(activeTask.id, { priority: prio }, { priority: prio }),
+      });
+    }
+    actions.push({
+      id: "open-active",
+      group,
+      label: "Ouvrir le détail",
+      perform: () => setSelectedTaskId(activeTask.id),
+    });
+    actions.push({
+      id: "archive-active",
+      group,
+      label: "Archiver la tâche",
+      perform: () => void handleArchiveTask(activeTask.id),
+    });
 
+    return actions;
+  }, [columns, handleArchiveTask, handleInlineSave, handleMoveTask, lastFocusedTaskId, selectedTaskId, tasks]);
+
+  const clientPaletteActions = useMemo<PaletteAction[]>(() => {
     const clients = Array.from(
       new Set(
         tasks.map((task) => task.clientName?.trim()).filter((name): name is string => Boolean(name)),
       ),
     ).slice(0, 8);
-    for (const client of clients) {
-      list.push({
-        id: `client-${client}`,
-        group: "Recherche",
-        label: `Client : ${client}`,
-        perform: () => setSearchQuery(client),
-      });
-    }
 
-    return list;
-  }, [
-    columns,
-    focusQuickAdd,
-    handleApplyTemplate,
-    handleArchiveTask,
-    handleInlineSave,
-    handleMoveTask,
-    handleOpenForm,
-    navigateToTab,
-    router,
-    showTeamWorkload,
-    selectedTaskId,
-    tasks,
-  ]);
+    return clients.map((client) => ({
+      id: `client-${client}`,
+      group: "Recherche",
+      label: `Client : ${client}`,
+      perform: () => setSearchQuery(client),
+    }));
+  }, [tasks]);
+
+  const paletteActions = useMemo(
+    () => [...basePaletteActions, ...taskPaletteActions, ...clientPaletteActions],
+    [basePaletteActions, clientPaletteActions, taskPaletteActions],
+  );
 
   return (
     <AdminAvatarContext.Provider value={adminAvatarMap}>
@@ -1191,7 +1193,7 @@ export default function V2DashboardHomePage() {
                 onAddTaskForColumn={handleOpenFormForColumn}
                 onColumnCreated={() => exploration?.notifyColumnAdded()}
                 taskCardRefs={taskCardRefs}
-                lastFocusedTaskIdRef={lastFocusedTaskIdRef}
+                onTaskFocus={setLastFocusedTaskId}
               />
             </>
           )}
@@ -1221,7 +1223,7 @@ export default function V2DashboardHomePage() {
               currentUserName={currentUser?.teamMemberName ?? null}
               calendarEvents={calendarEvents}
               onSelectTask={(taskId) => {
-                lastFocusedTaskIdRef.current = null;
+                setLastFocusedTaskId(null);
                 setSelectedTaskId(taskId);
               }}
             />

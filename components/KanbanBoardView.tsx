@@ -100,26 +100,45 @@ function colSortId(columnId: string) {
 
 const KANBAN_EDIT_HINTS_KEY = "kanban-edit-hints-dismissed";
 
-function DroppableColumn(props: {
+function KanbanColumn(props: {
   column: BoardColumn;
   children: React.ReactNode;
   count: number;
   editable?: boolean;
+  sortable?: boolean;
   onAddTask?: () => void;
   tightList?: boolean;
   onRename: (label: string) => Promise<void>;
   onColorChange: (color: string) => Promise<void>;
   onDeleteRequest: () => void;
-  dragHandleProps?: Record<string, unknown>;
-  sortableStyle?: React.CSSProperties;
-  sortableRef?: (node: HTMLElement | null) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: colDropId(props.column.id) });
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: colDropId(props.column.id) });
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setSortRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: colSortId(props.column.id),
+    disabled: !props.sortable,
+  });
+  const sortableStyle = props.sortable
+    ? {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.55 : 1,
+      }
+    : undefined;
+  const dragHandleProps = props.sortable
+    ? ({ ...attributes, ...listeners } as Record<string, unknown>)
+    : undefined;
 
   return (
     <div
-      ref={props.sortableRef}
-      style={props.sortableStyle}
+      ref={props.sortable ? setSortRef : undefined}
+      style={sortableStyle}
       className="flex min-w-0 flex-1 basis-0 flex-col border-r border-[rgba(26,22,17,0.1)] px-1.5 last:border-r-0 sm:px-2"
     >
       <div className="flex items-start gap-1">
@@ -128,7 +147,7 @@ function DroppableColumn(props: {
             column={props.column}
             count={props.count}
             editable={props.editable}
-            dragHandleProps={props.dragHandleProps}
+            dragHandleProps={dragHandleProps}
             onRename={props.onRename}
             onColorChange={props.onColorChange}
             onDeleteRequest={props.onDeleteRequest}
@@ -147,7 +166,7 @@ function DroppableColumn(props: {
       </div>
 
       <div
-        ref={setNodeRef}
+        ref={setDropRef}
         className={[
           "flex flex-1 flex-col transition-all duration-150 gap-2.5",
           isOver ? "rounded-2xl bg-[rgba(255,255,255,0.4)]" : "",
@@ -157,46 +176,6 @@ function DroppableColumn(props: {
         {props.children}
       </div>
     </div>
-  );
-}
-
-function SortableKanbanColumn(props: {
-  column: BoardColumn;
-  children: React.ReactNode;
-  count: number;
-  editable?: boolean;
-  onAddTask?: () => void;
-  tightList?: boolean;
-  onRename: (label: string) => Promise<void>;
-  onColorChange: (color: string) => Promise<void>;
-  onDeleteRequest: () => void;
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: colSortId(props.column.id),
-  });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.55 : 1,
-  };
-  const handleProps = { ...attributes, ...listeners } as Record<string, unknown>;
-
-  return (
-    <DroppableColumn
-      column={props.column}
-      count={props.count}
-      editable={props.editable}
-      tightList={props.tightList}
-      onAddTask={props.onAddTask}
-      onRename={props.onRename}
-      onColorChange={props.onColorChange}
-      onDeleteRequest={props.onDeleteRequest}
-      dragHandleProps={handleProps}
-      sortableStyle={style}
-      sortableRef={setNodeRef}
-    >
-      {props.children}
-    </DroppableColumn>
   );
 }
 
@@ -289,7 +268,7 @@ export default function KanbanBoardView(props: {
   onAddTaskForColumn?: (column: ColumnId) => void;
   onColumnCreated?: () => void;
   taskCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
-  lastFocusedTaskIdRef: React.MutableRefObject<string | null>;
+  onTaskFocus?: (taskId: string) => void;
   currentUserName?: string | null;
 }) {
   const companyLogoMap = useMemo(() => {
@@ -737,7 +716,7 @@ export default function KanbanBoardView(props: {
                       onEdit={() => props.onEditTask(task)}
                       onDelete={() => props.onDeleteTask(task.id)}
                       onOpen={() => {
-                        props.lastFocusedTaskIdRef.current = task.id;
+                        props.onTaskFocus?.(task.id);
                         props.onOpenTask(task.id);
                       }}
                       cardRef={(el) => {
@@ -803,7 +782,7 @@ export default function KanbanBoardView(props: {
                                   onEdit={() => props.onEditTask(task)}
                                   onDelete={() => props.onDeleteTask(task.id)}
                                   onOpen={() => {
-                                    props.lastFocusedTaskIdRef.current = task.id;
+                                    props.onTaskFocus?.(task.id);
                                     props.onOpenTask(task.id);
                                   }}
                                   cardRef={(el) => {
@@ -832,11 +811,12 @@ export default function KanbanBoardView(props: {
 
               if (canEditColumns) {
                 return (
-                  <SortableKanbanColumn
+                  <KanbanColumn
                     key={col.id}
                     column={col}
                     count={colTasks.length}
                     editable
+                    sortable
                     tightList={tightColumn}
                     onAddTask={
                       props.onAddTaskForColumn
@@ -862,16 +842,17 @@ export default function KanbanBoardView(props: {
                     onDeleteRequest={() => void handleDeleteColumn(col)}
                   >
                     {columnChildren}
-                  </SortableKanbanColumn>
+                  </KanbanColumn>
                 );
               }
 
               return (
-                <DroppableColumn
+                <KanbanColumn
                   key={col.id}
                   column={col}
                   count={colTasks.length}
                   editable={false}
+                  sortable={false}
                   tightList={tightColumn}
                   onAddTask={
                     props.onAddTaskForColumn
@@ -883,7 +864,7 @@ export default function KanbanBoardView(props: {
                   onDeleteRequest={() => {}}
                 >
                   {columnChildren}
-                </DroppableColumn>
+                </KanbanColumn>
               );
             })}
             {canEditColumns ? (

@@ -34,8 +34,13 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
   );
 
   useEffect(() => {
-    setSlotsLoading(true);
-    setSelectedSlot(null);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setSlotsLoading(true);
+        setSelectedSlot(null);
+      }
+    });
     void getPublicAvailableSlots(meta.settingsId, selectedDate.toISOString())
       .then((result) => {
         if (result.ok) setSlots(result.slots);
@@ -45,6 +50,9 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
         }
       })
       .finally(() => setSlotsLoading(false));
+    return () => {
+      cancelled = true;
+    };
   }, [meta.settingsId, selectedDate]);
 
   const shiftDate = (days: number) => {

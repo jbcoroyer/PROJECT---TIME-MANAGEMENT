@@ -27,7 +27,9 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
     if (message.includes("Invalid login credentials")) return t("auth.invalidCredentials");
     if (message.includes("Email not confirmed")) return t("auth.emailNotConfirmed");
     if (message.includes("User already registered")) return t("auth.userExists");
-    if (message.includes("Password should be at least")) return t("auth.passwordTooShort");
+    if (message.includes("Database error saving new user")) {
+      return "Impossible de créer le compte (erreur base de données). Réessayez ou contactez le support si le problème persiste.";
+    }
     if (message.includes("PKCE code verifier not found")) {
       return "La connexion a expiré ou a été lancée sur un autre onglet ou port. Réessayez depuis la même fenêtre (ex. localhost:3000).";
     }
