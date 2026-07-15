@@ -14,7 +14,15 @@ const APP_SETTINGS_SELECT =
 export async function getBrandingServer(): Promise<AppBranding> {
   try {
     const supabase = await createServerSupabase();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const ctx = await getServerOrgContext();
+
+    // Profil pas encore visible : ne pas lire le branding « legacy » (évite redirects incohérents).
+    if (user && !ctx) {
+      return mergeBranding(null);
+    }
 
     let query = supabase.from("app_settings").select(APP_SETTINGS_SELECT);
 

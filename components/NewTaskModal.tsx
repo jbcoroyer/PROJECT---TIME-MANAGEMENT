@@ -30,7 +30,7 @@ import { normalizeProjectName } from "../lib/normalize";
 import { resolveDefaultSubtaskAssignee } from "../lib/taskConcernsUser";
 import type { CurrentUser } from "../lib/useCurrentUser";
 import CustomFieldInputs from "./CustomFieldInputs";
-import { getDefaultBoardId } from "../lib/v2/boardColumns";
+import { ensureDefaultBoard } from "../lib/v2/boardColumns";
 import { useBoardFields } from "../lib/v2/boardFields";
 import {
   attachCustomFieldsAfterCreate,
@@ -148,7 +148,7 @@ export default function NewTaskModal(props: {
 
   useEffect(() => {
     if (!open) return;
-    void getDefaultBoardId()
+    void ensureDefaultBoard()
       .then((id) => setBoardId(id))
       .catch(() => setBoardId(null));
   }, [open]);

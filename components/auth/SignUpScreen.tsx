@@ -17,11 +17,11 @@ import {
   User,
   UserRound,
 } from "lucide-react";
-import { signInAfterSignUp, signUpWithOrganization } from "../../app/actions/auth";
 import { uploadOrgAsset } from "../../app/actions/storage";
 import AuthAtelierShell, { AuthMobileBrand, AuthTabLink } from "./AuthAtelierShell";
 import OAuthButtons from "./OAuthButtons";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { getOAuthCallbackOrigin } from "../../lib/publicAppUrl";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 
 type SignupStep = 1 | 2;
@@ -55,6 +55,9 @@ export default function SignUpScreen() {
       return t("auth.userExists");
     }
     if (message.includes("Password should be at least")) return t("auth.passwordTooShort");
+    if (message.includes("PKCE code verifier not found")) {
+      return "La connexion a expiré ou a été lancée sur un autre onglet ou port. Réessayez depuis la même fenêtre (ex. localhost:3000).";
+    }
     return message;
   }
 
@@ -97,29 +100,36 @@ export default function SignUpScreen() {
     const displayName = `${firstName.trim()} ${lastName.trim()}`;
 
     try {
-      const result = await signUpWithOrganization({
+      const callbackOrigin = getOAuthCallbackOrigin();
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        displayName,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        jobTitle: jobTitle.trim() || null,
-        organizationName: organizationName.trim(),
+        options: {
+          data: {
+            display_name: displayName,
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+            job_title: jobTitle.trim() || null,
+            organization_name: organizationName.trim(),
+          },
+          emailRedirectTo: `${callbackOrigin}/auth/callback?next=${encodeURIComponent("/setup")}`,
+        },
       });
 
-      if (!result.ok) {
-        throw new Error(result.error);
+      if (signUpError) {
+        throw new Error(signUpError.message);
       }
 
-      if (result.needsEmailConfirmation) {
+      if (!data.user) {
+        throw new Error("Création du compte impossible.");
+      }
+
+      const needsEmailConfirmation = !data.session;
+
+      if (needsEmailConfirmation) {
         router.push("/login?signup=confirm");
         router.refresh();
         return;
-      }
-
-      const signIn = await signInAfterSignUp(email.trim(), password);
-      if (!signIn.ok) {
-        throw new Error(signIn.error);
       }
 
       if (photoFile) {

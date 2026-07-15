@@ -25,7 +25,7 @@ import { computeSlotHours, HALF_HOUR_OPTIONS } from "../lib/projectedWorkUtils";
 import CustomFieldInputs from "./CustomFieldInputs";
 import { useBoardFields } from "../lib/v2/boardFields";
 import { loadBoardIdForTask, useTaskCustomFields } from "../lib/v2/customFieldValues";
-import { getDefaultBoardId } from "../lib/v2/boardColumns";
+import { ensureDefaultBoard } from "../lib/v2/boardColumns";
 
 /* ─── Chip d'info (affichage) ─── */
 function InfoChip(props: {
@@ -123,7 +123,7 @@ export default function TaskDetailPanel(props: {
         setBoardId(fromTask);
         return;
       }
-      const fallback = await getDefaultBoardId();
+      const fallback = await ensureDefaultBoard();
       if (!cancelled) setBoardId(fallback);
     })();
     return () => {

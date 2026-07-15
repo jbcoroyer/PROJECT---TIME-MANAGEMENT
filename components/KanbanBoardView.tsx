@@ -48,7 +48,7 @@ import { partitionTasksByEvent, sortTasksByDeadline } from "../lib/eventTaskGrou
 import KanbanColumnHeader from "./KanbanColumnHeader";
 import BoardFieldsEditorPanel from "./BoardFieldsEditorPanel";
 import {
-  getDefaultBoardId,
+  ensureDefaultBoard,
   useBoardColumns,
   type BoardColumn,
 } from "../lib/v2/boardColumns";
@@ -334,7 +334,7 @@ export default function KanbanBoardView(props: {
   } = useBoardColumns(boardId);
 
   useEffect(() => {
-    void getDefaultBoardId()
+    void ensureDefaultBoard()
       .then((id) => setBoardId(id))
       .catch(() => setBoardId(null));
   }, []);
@@ -613,7 +613,8 @@ export default function KanbanBoardView(props: {
           <button
             type="button"
             onClick={() => setFieldsEditorOpen(true)}
-            className="ui-transition ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-[11px] font-semibold text-[color:var(--foreground)]/70 hover:bg-[var(--surface)]"
+            title="Champs personnalisés, relations, listes déroulantes…"
+            className="ui-transition ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-[11px] font-semibold text-[color:var(--foreground)]/70 hover:border-[var(--accent)] hover:text-[var(--accent)]"
           >
             <Settings2 className="h-3.5 w-3.5" />
             Personnaliser le board

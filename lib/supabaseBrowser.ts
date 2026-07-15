@@ -18,8 +18,7 @@ export function getSupabaseBrowser() {
     requireEnv(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, "NEXT_PUBLIC_SUPABASE_ANON_KEY"),
     {
       auth: {
-        flowType: "pkce",
-        // L'échange PKCE est fait dans app/auth/callback/route.ts
+        // L'échange PKCE est fait dans app/auth/callback/route.ts (cookies partagés via @supabase/ssr).
         detectSessionInUrl: false,
       },
     },

@@ -167,7 +167,7 @@ export default function V2DashboardHomePage() {
   const onboardingTaskHandledRef = useRef<string | null>(null);
 
   const activeTab = useMemo<MainTab>(() => {
-    const match = pathname.match(/^\/v2\/dashboard\/([^/?#]+)/);
+    const match = pathname.match(/^\/dashboard\/([^/?#]+)/);
     const candidate = match?.[1];
     if (candidate && MAIN_TAB_SET.has(candidate as MainTab)) {
       return candidate as MainTab;

@@ -1,22 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 
 const CONSENT_KEY = "cookie-consent";
 
-function readConsentVisible(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return !localStorage.getItem(CONSENT_KEY);
-  } catch {
-    return true;
-  }
-}
-
 export default function CookieBanner() {
-  const [visible, setVisible] = useState(readConsentVisible);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    try {
+      setVisible(!localStorage.getItem(CONSENT_KEY));
+    } catch {
+      setVisible(true);
+    }
+  }, []);
 
   function accept() {
     try {

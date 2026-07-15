@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import OAuthButtons from "./OAuthButtons";
 import AuthAtelierShell, { AuthMobileBrand, AuthTabLink } from "./AuthAtelierShell";
-import { getPublicAppOrigin } from "../../lib/publicAppUrl";
+import { getOAuthCallbackOrigin } from "../../lib/publicAppUrl";
 import { needsInviteProfileCompletion } from "../../lib/inviteOnboarding";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useBranding } from "../../lib/brandingContext";
@@ -28,6 +28,9 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
     if (message.includes("Email not confirmed")) return t("auth.emailNotConfirmed");
     if (message.includes("User already registered")) return t("auth.userExists");
     if (message.includes("Password should be at least")) return t("auth.passwordTooShort");
+    if (message.includes("PKCE code verifier not found")) {
+      return "La connexion a expiré ou a été lancée sur un autre onglet ou port. Réessayez depuis la même fenêtre (ex. localhost:3000).";
+    }
     return message;
   }
 
@@ -101,7 +104,7 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
     setSuccess(null);
     setSendingReset(true);
     try {
-      const configuredBaseUrl = getPublicAppOrigin();
+      const configuredBaseUrl = getOAuthCallbackOrigin();
       if (!configuredBaseUrl) {
         setError(t("auth.appUrlMissing"));
         return;

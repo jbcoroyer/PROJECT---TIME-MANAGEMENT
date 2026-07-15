@@ -74,6 +74,46 @@ export async function getDefaultBoardId(): Promise<string | null> {
   return data?.id ?? null;
 }
 
+const DEFAULT_BOARD_COLUMNS = [
+  { label: "À faire", position: 0, is_done: false },
+  { label: "En cours", position: 1, is_done: false },
+  { label: "En validation", position: 2, is_done: false },
+  { label: "Terminé", position: 3, is_done: true },
+] as const;
+
+/** Crée le board « Espace principal » + colonnes par défaut si absent (nouvelle org). */
+export async function ensureDefaultBoard(): Promise<string | null> {
+  const existing = await getDefaultBoardId();
+  if (existing) return existing;
+
+  const supabase = getSupabaseBrowser();
+  const { data: board, error } = await supabase
+    .from("boards")
+    .insert({ name: "Espace principal", position: 0 })
+    .select("id")
+    .single();
+
+  if (error) {
+    const retry = await getDefaultBoardId();
+    if (retry) return retry;
+    throw error;
+  }
+
+  const boardId = String((board as { id: string }).id);
+  const { error: colsError } = await supabase.from("board_columns").insert(
+    DEFAULT_BOARD_COLUMNS.map((col) => ({
+      board_id: boardId,
+      label: col.label,
+      color: BOARD_COLUMN_PALETTE[0],
+      position: col.position,
+      is_done: col.is_done,
+    })),
+  );
+  if (colsError) throw colsError;
+
+  return boardId;
+}
+
 export async function listByBoard(boardId: string): Promise<BoardColumn[]> {
   const supabase = getSupabaseBrowser();
   const { data, error } = await supabase

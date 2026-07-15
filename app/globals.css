@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @import "tailwindcss";
 
 @keyframes ui-float-blob {
@@ -138,7 +139,7 @@
 }
 
 :root {
-  /* Atelier — papier chaud, encre, orange terre cuite */
+  /* Atelier - papier chaud, encre, orange terre cuite */
   --background: #f6f1e7;
   --foreground: #1a1611;
   --surface: #fdfaf3;
@@ -372,7 +373,7 @@ select.ui-input {
   }
 }
 
-/* Navigation — style Height : indicateur gauche, fond discret */
+/* Navigation - style Height : indicateur gauche, fond discret */
 .ui-nav-link {
   display: flex;
   align-items: center;
@@ -408,7 +409,7 @@ select.ui-input {
   color: var(--ink);
 }
 
-/* Pills & statuts sémantiques — pas de couleurs arc-en-ciel */
+/* Pills & statuts semantiques - pas de couleurs arc-en-ciel */
 .ui-pill {
   display: inline-flex;
   align-items: center;
@@ -482,7 +483,7 @@ select.ui-input {
   color: color-mix(in srgb, var(--brand-primary) 75%, var(--foreground));
 }
 
-/* Boutons — convention studio */
+/* Boutons - convention studio */
 .ui-btn {
   display: inline-flex;
   align-items: center;
