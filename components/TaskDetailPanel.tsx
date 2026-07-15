@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Archive,
@@ -22,6 +22,10 @@ import { priorities } from "../lib/types";
 import { completedAtPatchForColumnChange } from "../lib/completedAt";
 import type { ReferenceRecord } from "../lib/referenceData";
 import { computeSlotHours, HALF_HOUR_OPTIONS } from "../lib/projectedWorkUtils";
+import CustomFieldInputs from "./CustomFieldInputs";
+import { useBoardFields } from "../lib/v2/boardFields";
+import { loadBoardIdForTask, useTaskCustomFields } from "../lib/v2/customFieldValues";
+import { getDefaultBoardId } from "../lib/v2/boardColumns";
 
 /* ─── Chip d'info (affichage) ─── */
 function InfoChip(props: {
@@ -105,6 +109,27 @@ export default function TaskDetailPanel(props: {
     task.estimatedDays > 0 ? String(task.estimatedDays) : "",
   );
   const [planningSaving, setPlanningSaving] = useState(false);
+
+  const [boardId, setBoardId] = useState<string | null>(null);
+  const { fields: boardFields } = useBoardFields(boardId);
+  const { values: customFieldValues, updateValue: updateCustomField } = useTaskCustomFields(task.id);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const fromTask = await loadBoardIdForTask(task.id);
+      if (cancelled) return;
+      if (fromTask) {
+        setBoardId(fromTask);
+        return;
+      }
+      const fallback = await getDefaultBoardId();
+      if (!cancelled) setBoardId(fallback);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [task.id]);
 
   const startEdit = () => {
     setEditTitle(task.projectName);
@@ -415,6 +440,17 @@ export default function TaskDetailPanel(props: {
               </div>
             </div>
           )}
+
+          {boardFields.length > 0 ? (
+            <CustomFieldInputs
+              fields={boardFields}
+              values={customFieldValues}
+              readOnly={!isEditing}
+              onChange={(field, value) => {
+                void updateCustomField(field, value);
+              }}
+            />
+          ) : null}
 
           {/* ── Tâches et planning ── */}
           <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3">

@@ -29,6 +29,14 @@ import { taskFormSchema, type TaskFormValues, type TaskFormValuesWithSubtasks, t
 import { normalizeProjectName } from "../lib/normalize";
 import { resolveDefaultSubtaskAssignee } from "../lib/taskConcernsUser";
 import type { CurrentUser } from "../lib/useCurrentUser";
+import CustomFieldInputs from "./CustomFieldInputs";
+import { getDefaultBoardId } from "../lib/v2/boardColumns";
+import { useBoardFields } from "../lib/v2/boardFields";
+import {
+  attachCustomFieldsAfterCreate,
+  type CustomFieldsMap,
+  useTaskCustomFields,
+} from "../lib/v2/customFieldValues";
 import "./onboarding/first-task-tutorial.css";
 
 function RequiredStar() {
@@ -50,12 +58,20 @@ export default function NewTaskModal(props: {
 }) {
   const { open, editingTaskId, initialValues, admins, domains, onCancel, tutorialMode = false } = props;
 
-  const onSubmit = (values: TaskFormValues) => {
-    return props.onSubmit({
+  const onSubmit = async (values: TaskFormValues) => {
+    await props.onSubmit({
       ...values,
       projectName: normalizeProjectName(values.projectName),
       subtasks: pendingSubtasks,
     } as TaskFormValuesWithSubtasks);
+
+    if (!editingTaskId && Object.keys(customFieldsDraft).length > 0) {
+      await attachCustomFieldsAfterCreate({
+        projectName: normalizeProjectName(values.projectName),
+        company: values.company,
+        fields: customFieldsDraft,
+      });
+    }
   };
   const titleId = useId();
   const prefix = useId();
@@ -65,6 +81,12 @@ export default function NewTaskModal(props: {
   const [newSubName, setNewSubName] = useState("");
   const [newSubDeadline, setNewSubDeadline] = useState("");
   const [newSubAdmin, setNewSubAdmin] = useState("");
+  const [boardId, setBoardId] = useState<string | null>(null);
+  const [customFieldsDraft, setCustomFieldsDraft] = useState<CustomFieldsMap>({});
+
+  const { fields: boardFields } = useBoardFields(boardId);
+  const { values: editingCustomFields, updateValue: updateEditingCustomField } =
+    useTaskCustomFields(editingTaskId);
 
   const defaultValues = useMemo(
     () => initialValues as unknown as TaskFormValues,
@@ -119,9 +141,17 @@ export default function NewTaskModal(props: {
       setNewSubName("");
       setNewSubDeadline("");
       setNewSubAdmin("");
+      setCustomFieldsDraft({});
     }, 0);
     return () => window.clearTimeout(timeoutId);
   }, [open, reset, defaultValues]);
+
+  useEffect(() => {
+    if (!open) return;
+    void getDefaultBoardId()
+      .then((id) => setBoardId(id))
+      .catch(() => setBoardId(null));
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -594,6 +624,20 @@ export default function NewTaskModal(props: {
                   </div>
                 </div>
               </div>}
+
+              {step === 2 && boardFields.length > 0 ? (
+                <CustomFieldInputs
+                  fields={boardFields}
+                  values={editingTaskId ? editingCustomFields : customFieldsDraft}
+                  onChange={(field, value) => {
+                    if (editingTaskId) {
+                      void updateEditingCustomField(field, value);
+                      return;
+                    }
+                    setCustomFieldsDraft((prev) => ({ ...prev, [field.key]: value }));
+                  }}
+                />
+              ) : null}
 
               {step === 2 && <div className="space-y-2 rounded-lg bg-[var(--surface-soft)] p-3">
                 <label className="flex items-center gap-2 text-xs font-medium text-[color:var(--foreground)]/75">

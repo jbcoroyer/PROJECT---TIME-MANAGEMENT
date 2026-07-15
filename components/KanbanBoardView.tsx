@@ -15,12 +15,20 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   CalendarRange,
   ChevronDown,
   ChevronRight,
   LayoutGrid,
   ListTodo,
   Plus,
+  Settings2,
   X,
 } from "lucide-react";
 import { KanbanCardUI } from "./KanbanCard";
@@ -37,6 +45,17 @@ import {
   toggleCollapsedEventGroup,
 } from "../lib/eventGroupCollapse";
 import { partitionTasksByEvent, sortTasksByDeadline } from "../lib/eventTaskGroups";
+import KanbanColumnHeader from "./KanbanColumnHeader";
+import BoardFieldsEditorPanel from "./BoardFieldsEditorPanel";
+import {
+  getDefaultBoardId,
+  useBoardColumns,
+  type BoardColumn,
+} from "../lib/v2/boardColumns";
+import { defaultColumns } from "../lib/types";
+import { getSupabaseBrowser } from "../lib/supabaseBrowser";
+import { toastError, toastSuccess } from "../lib/toast";
+import { useConfirm } from "./ui/ConfirmDialog";
 
 /** Au-dessus de ce seuil, les cartes passent en mode compact (même en « vue détaillée »). */
 const KANBAN_AUTO_COMPACT_MIN = 8;
@@ -67,39 +86,54 @@ const COLUMN_STYLE: Record<string, { italic?: boolean; muted?: boolean }> = {
   Terminé: { muted: true },
 };
 
+const COL_DROP_PREFIX = "col-drop:";
+const COL_SORT_PREFIX = "col-sort:";
+
+function colDropId(columnId: string) {
+  return `${COL_DROP_PREFIX}${columnId}`;
+}
+
+function colSortId(columnId: string) {
+  return `${COL_SORT_PREFIX}${columnId}`;
+}
+
 function DroppableColumn(props: {
-  id: string;
+  column: BoardColumn;
   children: React.ReactNode;
   count: number;
   onAddTask?: () => void;
   tightList?: boolean;
+  onRename: (label: string) => Promise<void>;
+  onColorChange: (color: string) => Promise<void>;
+  onDeleteRequest: () => void;
+  dragHandleProps?: Record<string, unknown>;
+  sortableStyle?: React.CSSProperties;
+  sortableRef?: (node: HTMLElement | null) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: props.id });
-  const colStyle = COLUMN_STYLE[props.id] ?? {};
-  const countLabel = String(props.count).padStart(2, "0");
+  const { setNodeRef, isOver } = useDroppable({ id: colDropId(props.column.id) });
 
   return (
-    <div className="flex min-w-[270px] flex-1 flex-col border-r border-[rgba(26,22,17,0.1)] pr-4 mr-4 last:border-r-0 last:mr-0">
-      <div className="mb-4 flex items-baseline gap-2.5">
-        <span
-          className={[
-            "ui-display text-[21px] text-[var(--ink)]",
-            colStyle.italic ? "italic text-[var(--accent)]" : "",
-            colStyle.muted ? "text-[rgba(26,22,17,0.45)] italic" : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          {props.id}
-        </span>
-        <span className="font-[family-name:var(--font-mono)] text-[11px] text-[var(--accent)]">
-          {countLabel}
-        </span>
+    <div
+      ref={props.sortableRef}
+      style={props.sortableStyle}
+      className="flex min-w-[270px] flex-1 flex-col border-r border-[rgba(26,22,17,0.1)] pr-4 mr-4 last:border-r-0 last:mr-0"
+    >
+      <div className="flex items-start gap-1">
+        <div className="min-w-0 flex-1">
+          <KanbanColumnHeader
+            column={props.column}
+            count={props.count}
+            dragHandleProps={props.dragHandleProps}
+            onRename={props.onRename}
+            onColorChange={props.onColorChange}
+            onDeleteRequest={props.onDeleteRequest}
+          />
+        </div>
         {props.onAddTask ? (
           <button
             type="button"
             onClick={props.onAddTask}
-            className="ui-transition ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-[rgba(26,22,17,0.3)] text-[rgba(26,22,17,0.4)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            className="ui-transition mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-dashed border-[rgba(26,22,17,0.3)] text-[rgba(26,22,17,0.4)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
             title="Ajouter une tâche dans cette colonne"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -110,8 +144,7 @@ function DroppableColumn(props: {
       <div
         ref={setNodeRef}
         className={[
-          "flex flex-1 flex-col transition-all duration-150",
-          props.tightList ? "gap-2.5" : "gap-2.5",
+          "flex flex-1 flex-col transition-all duration-150 gap-2.5",
           isOver ? "rounded-2xl bg-[rgba(255,255,255,0.4)]" : "",
         ].join(" ")}
         style={{ minHeight: 140 }}
@@ -119,6 +152,44 @@ function DroppableColumn(props: {
         {props.children}
       </div>
     </div>
+  );
+}
+
+function SortableKanbanColumn(props: {
+  column: BoardColumn;
+  children: React.ReactNode;
+  count: number;
+  onAddTask?: () => void;
+  tightList?: boolean;
+  onRename: (label: string) => Promise<void>;
+  onColorChange: (color: string) => Promise<void>;
+  onDeleteRequest: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: colSortId(props.column.id),
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.55 : 1,
+  };
+  const handleProps = { ...attributes, ...listeners } as Record<string, unknown>;
+
+  return (
+    <DroppableColumn
+      column={props.column}
+      count={props.count}
+      tightList={props.tightList}
+      onAddTask={props.onAddTask}
+      onRename={props.onRename}
+      onColorChange={props.onColorChange}
+      onDeleteRequest={props.onDeleteRequest}
+      dragHandleProps={handleProps}
+      sortableStyle={style}
+      sortableRef={setNodeRef}
+    >
+      {props.children}
+    </DroppableColumn>
   );
 }
 
@@ -244,6 +315,63 @@ export default function KanbanBoardView(props: {
   const [collapsedEventIds, setCollapsedEventIds] = useState<Set<string>>(() =>
     loadCollapsedEventGroupIds(),
   );
+  const [boardId, setBoardId] = useState<string | null>(null);
+  const [fieldsEditorOpen, setFieldsEditorOpen] = useState(false);
+  const [addingColumn, setAddingColumn] = useState(false);
+  const [newColumnName, setNewColumnName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<BoardColumn | null>(null);
+  const [reassignTargetId, setReassignTargetId] = useState("");
+  const confirm = useConfirm();
+
+  const {
+    columns: boardColumns,
+    createColumn,
+    renameColumn,
+    setColumnColor,
+    reorderColumns,
+    removeColumn,
+    countTasksInColumn,
+  } = useBoardColumns(boardId);
+
+  useEffect(() => {
+    void getDefaultBoardId()
+      .then((id) => setBoardId(id))
+      .catch(() => setBoardId(null));
+  }, []);
+
+  const displayColumns = useMemo((): BoardColumn[] => {
+    if (boardColumns.length > 0) return boardColumns;
+    const labels =
+      props.columns.length > 0 ? props.columns : [...defaultColumns];
+    return labels.map((label, index) => ({
+      id: `fallback-${index}`,
+      boardId: boardId ?? "",
+      organizationId: "",
+      label,
+      color: "#94a3b8",
+      position: index,
+      wipLimit: null,
+      isDone: label === "Terminé",
+    }));
+  }, [boardColumns, props.columns, boardId]);
+
+  const canEditColumns = boardColumns.length > 0 && Boolean(boardId);
+
+  const columnByDropId = useMemo(() => {
+    const map = new Map<string, BoardColumn>();
+    for (const col of displayColumns) map.set(colDropId(col.id), col);
+    return map;
+  }, [displayColumns]);
+
+  const moveTaskToColumn = (taskId: string, column: BoardColumn) => {
+    props.onMoveTask(taskId, column.label);
+    if (boardId && !column.id.startsWith("fallback-")) {
+      void getSupabaseBrowser()
+        .from("tasks")
+        .update({ board_id: boardId, board_column_id: column.id })
+        .eq("id", taskId);
+    }
+  };
 
   const toggleEventGroupCollapse = (eventId: string) => {
     setCollapsedEventIds((prev) => {
@@ -283,21 +411,22 @@ export default function KanbanBoardView(props: {
   const isGroupDrag = activeId?.startsWith("event:") ?? false;
 
   const groupedDragMap = useMemo(() => {
-    const map: Record<string, { eventName: string; sourceColumn: ColumnId; taskIds: string[] }> = {};
-    for (const col of props.columns) {
-      const colTasks = filteredTasks.filter((t) => t.column === col);
+    const map: Record<string, { eventName: string; sourceColumn: ColumnId; taskIds: string[]; targetColumn: BoardColumn }> = {};
+    for (const col of displayColumns) {
+      const colTasks = filteredTasks.filter((t) => t.column === col.label);
       const { groups } = partitionTasksByEvent(colTasks);
       for (const [eventId, evTasks] of groups) {
-        const dragId = `event:${col}:${eventId}`;
+        const dragId = `event:${col.label}:${eventId}`;
         map[dragId] = {
           eventName: evTasks[0]?.eventName ?? "Événement",
-          sourceColumn: col as ColumnId,
+          sourceColumn: col.label as ColumnId,
           taskIds: evTasks.map((t) => t.id),
+          targetColumn: col,
         };
       }
     }
     return map;
-  }, [filteredTasks, props.columns]);
+  }, [filteredTasks, displayColumns]);
 
   const activeGroup = activeId ? groupedDragMap[activeId] : undefined;
 
@@ -316,16 +445,69 @@ export default function KanbanBoardView(props: {
     const { active, over } = event;
     setActiveId(null);
     if (!over) return;
-    const newColumn = over.id as ColumnId;
-    const grouped = groupedDragMap[active.id as string];
-    if (grouped) {
-      if (grouped.sourceColumn === newColumn) return;
-      grouped.taskIds.forEach((taskId) => props.onMoveTask(taskId, newColumn));
+
+    const activeKey = String(active.id);
+    if (activeKey.startsWith(COL_SORT_PREFIX) && canEditColumns) {
+      const overKey = String(over.id);
+      if (!overKey.startsWith(COL_SORT_PREFIX)) return;
+      const oldIndex = displayColumns.findIndex((c) => colSortId(c.id) === activeKey);
+      const newIndex = displayColumns.findIndex((c) => colSortId(c.id) === overKey);
+      if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return;
+      const reordered = arrayMove(displayColumns, oldIndex, newIndex);
+      void reorderColumns(reordered.map((c) => c.id)).catch(() =>
+        toastError("Impossible de réordonner les colonnes."),
+      );
       return;
     }
+
+    const targetColumn = columnByDropId.get(String(over.id));
+    if (!targetColumn) return;
+
+    const grouped = groupedDragMap[activeKey];
+    if (grouped) {
+      if (grouped.sourceColumn === targetColumn.label) return;
+      grouped.taskIds.forEach((taskId) => moveTaskToColumn(taskId, targetColumn));
+      return;
+    }
+
     const task = props.tasks.find((t) => t.id === active.id);
-    if (!task || task.column === newColumn) return;
-    props.onMoveTask(active.id as string, newColumn);
+    if (!task || task.column === targetColumn.label) return;
+    moveTaskToColumn(active.id as string, targetColumn);
+  };
+
+  const handleDeleteColumn = async (column: BoardColumn) => {
+    if (!canEditColumns) return;
+    try {
+      const count = await countTasksInColumn(column);
+      if (count > 0) {
+        setDeleteTarget(column);
+        setReassignTargetId("");
+        return;
+      }
+      const ok = await confirm({
+        title: "Supprimer la colonne",
+        description: `Supprimer « ${column.label} » ?`,
+        confirmLabel: "Supprimer",
+        variant: "destructive",
+      });
+      if (!ok) return;
+      await removeColumn(column.id);
+      toastSuccess("Colonne supprimée.");
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : "Suppression impossible.");
+    }
+  };
+
+  const confirmDeleteWithReassign = async () => {
+    if (!deleteTarget || !reassignTargetId) return;
+    try {
+      await removeColumn(deleteTarget.id, reassignTargetId);
+      toastSuccess("Colonne supprimée et tâches réaffectées.");
+      setDeleteTarget(null);
+      setReassignTargetId("");
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : "Suppression impossible.");
+    }
   };
 
   const hasActiveFilters = filterAdmin !== "Tous" || filterCompany !== "Toutes";
@@ -427,7 +609,19 @@ export default function KanbanBoardView(props: {
           </button>
         )}
 
-        <span className="ml-auto rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-[11px] font-semibold text-[color:var(--foreground)]/65">
+        {boardId ? (
+          <button
+            type="button"
+            onClick={() => setFieldsEditorOpen(true)}
+            className="ui-transition ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-[11px] font-semibold text-[color:var(--foreground)]/70 hover:bg-[var(--surface)]"
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+            Personnaliser le board
+          </button>
+        ) : (
+          <span className="ml-auto" />
+        )}
+        <span className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-[11px] font-semibold text-[color:var(--foreground)]/65">
           {filteredTasks.length} tâche{filteredTasks.length !== 1 ? "s" : ""}
         </span>
         <button
@@ -452,26 +646,20 @@ export default function KanbanBoardView(props: {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
+          <SortableContext
+            items={canEditColumns ? displayColumns.map((c) => colSortId(c.id)) : []}
+            strategy={horizontalListSortingStrategy}
+          >
           <div className="flex gap-0 overflow-x-auto border-t border-[rgba(26,22,17,0.16)] pb-2 pt-5">
-            {props.columns.map((col) => {
+            {displayColumns.map((col) => {
               const colTasks = filteredTasks
-                .filter((t) => t.column === col)
+                .filter((t) => t.column === col.label)
                 .sort(sortTasksByDeadline);
               const { standalone, groups } = partitionTasksByEvent(colTasks);
               const columnDisplayMode = resolveKanbanCardDisplayMode(cardDensity, colTasks.length);
               const tightColumn = colTasks.length >= KANBAN_AUTO_COMPACT_MIN;
-              return (
-                <DroppableColumn
-                  key={col}
-                  id={col}
-                  count={colTasks.length}
-                  tightList={tightColumn}
-                  onAddTask={
-                    props.onAddTaskForColumn
-                      ? () => props.onAddTaskForColumn!(col as ColumnId)
-                      : undefined
-                  }
-                >
+              const columnChildren = (
+                <>
                   {standalone.map((task) => (
                     <DraggableCard
                       key={task.id}
@@ -498,7 +686,7 @@ export default function KanbanBoardView(props: {
                   ))}
                   {groups.map(([eventId, evTasks]) => {
                     const collapsed = collapsedEventIds.has(eventId);
-                    const eventDragId = `event:${col}:${eventId}`;
+                    const eventDragId = `event:${col.label}:${eventId}`;
                     return (
                       <DraggableEventGroup key={eventId} dragId={eventDragId}>
                         <div
@@ -577,10 +765,125 @@ export default function KanbanBoardView(props: {
                       </p>
                     </div>
                   )}
+                </>
+              );
+
+              if (canEditColumns) {
+                return (
+                  <SortableKanbanColumn
+                    key={col.id}
+                    column={col}
+                    count={colTasks.length}
+                    tightList={tightColumn}
+                    onAddTask={
+                      props.onAddTaskForColumn
+                        ? () => props.onAddTaskForColumn!(col.label as ColumnId)
+                        : undefined
+                    }
+                    onRename={async (label) => {
+                      try {
+                        await renameColumn(col.id, label);
+                        toastSuccess("Colonne renommée.");
+                      } catch (e) {
+                        toastError(e instanceof Error ? e.message : "Renommage impossible.");
+                        throw e;
+                      }
+                    }}
+                    onColorChange={async (color) => {
+                      try {
+                        await setColumnColor(col.id, color);
+                      } catch {
+                        toastError("Impossible de changer la couleur.");
+                      }
+                    }}
+                    onDeleteRequest={() => void handleDeleteColumn(col)}
+                  >
+                    {columnChildren}
+                  </SortableKanbanColumn>
+                );
+              }
+
+              return (
+                <DroppableColumn
+                  key={col.id}
+                  column={col}
+                  count={colTasks.length}
+                  tightList={tightColumn}
+                  onAddTask={
+                    props.onAddTaskForColumn
+                      ? () => props.onAddTaskForColumn!(col.label as ColumnId)
+                      : undefined
+                  }
+                  onRename={async () => {}}
+                  onColorChange={async () => {}}
+                  onDeleteRequest={() => {}}
+                >
+                  {columnChildren}
                 </DroppableColumn>
               );
             })}
+            {canEditColumns ? (
+              <div className="flex min-w-[220px] flex-col justify-start pr-4">
+                {addingColumn ? (
+                  <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] p-3">
+                    <input
+                      value={newColumnName}
+                      onChange={(e) => setNewColumnName(e.target.value)}
+                      placeholder="Nom de la colonne"
+                      className="ui-focus-ring mb-2 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          setAddingColumn(false);
+                          setNewColumnName("");
+                        }
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="ui-transition rounded-lg bg-[var(--foreground)] px-3 py-1.5 text-xs font-semibold text-[var(--background)]"
+                        onClick={() => {
+                          const name = newColumnName.trim();
+                          if (!name) return;
+                          void createColumn(name)
+                            .then(() => {
+                              toastSuccess("Colonne ajoutée.");
+                              setAddingColumn(false);
+                              setNewColumnName("");
+                            })
+                            .catch((e) =>
+                              toastError(e instanceof Error ? e.message : "Ajout impossible."),
+                            );
+                        }}
+                      >
+                        Ajouter
+                      </button>
+                      <button
+                        type="button"
+                        className="ui-transition rounded-lg border border-[var(--line)] px-3 py-1.5 text-xs"
+                        onClick={() => {
+                          setAddingColumn(false);
+                          setNewColumnName("");
+                        }}
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setAddingColumn(true)}
+                    className="ui-transition inline-flex items-center gap-2 rounded-2xl border border-dashed border-[var(--line)] px-4 py-3 text-sm font-semibold text-[color:var(--foreground)]/60 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Ajouter une colonne
+                  </button>
+                )}
+              </div>
+            ) : null}
           </div>
+          </SortableContext>
 
           {typeof document !== "undefined" &&
             createPortal(
@@ -614,6 +917,55 @@ export default function KanbanBoardView(props: {
             )}
         </DndContext>
       </section>
+
+      {deleteTarget ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-xl">
+            <h3 className="text-lg font-semibold text-[var(--foreground)]">Supprimer la colonne</h3>
+            <p className="mt-2 text-sm text-[color:var(--foreground)]/70">
+              « {deleteTarget.label} » contient des tâches. Choisissez une colonne de réaffectation.
+            </p>
+            <select
+              value={reassignTargetId}
+              onChange={(e) => setReassignTargetId(e.target.value)}
+              className="ui-focus-ring mt-4 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm"
+            >
+              <option value="">— Choisir une colonne —</option>
+              {displayColumns
+                .filter((c) => c.id !== deleteTarget.id)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+            </select>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="ui-transition rounded-lg border border-[var(--line)] px-4 py-2 text-sm"
+                onClick={() => {
+                  setDeleteTarget(null);
+                  setReassignTargetId("");
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={!reassignTargetId}
+                className="ui-transition rounded-lg bg-[var(--danger)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+                onClick={() => void confirmDeleteWithReassign()}
+              >
+                Supprimer et réaffecter
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {fieldsEditorOpen && boardId ? (
+        <BoardFieldsEditorPanel boardId={boardId} onClose={() => setFieldsEditorOpen(false)} />
+      ) : null}
     </div>
   );
 }

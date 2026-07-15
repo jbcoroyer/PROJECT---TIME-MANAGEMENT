@@ -1019,141 +1019,16 @@ export default function AdminSettingsPanel() {
           </div>
         </Section>
 
-        {/* ─── Colonnes ─── */}
+        {/* ─── Colonnes (désactivé : gérées depuis le Kanban) ─── */}
         <Section
           icon={PenLine}
           title="Colonnes / Statuts"
-          subtitle="Ordre d'affichage de gauche à droite dans le Kanban."
+          subtitle="Les colonnes se gèrent désormais depuis le tableau Kanban."
           badge={`${stats.columns} actives`}
         >
-          <div className="mb-4 flex gap-2">
-            <input
-              value={newColumnName}
-              onChange={(e) => setNewColumnName(e.target.value)}
-              placeholder="Nom de la nouvelle colonne"
-              className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
-            />
-            <button
-              type="button"
-              onClick={async () => {
-                const name = newColumnName.trim();
-                if (!name) return;
-                const { error } = await supabase.from("workflow_columns").insert({ name, is_active: true });
-                if (error) { toastError(`Ajout impossible: ${error.message}`); return; }
-                setNewColumnName("");
-                await loadAll();
-                toastSuccess("Colonne ajoutée.");
-              }}
-              className="ui-transition flex items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
-            >
-              <Plus className="h-4 w-4" />
-              Ajouter
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            {columns.map((row, index) => (
-              <div
-                key={row.id}
-                className={[
-                  "flex items-center gap-2 rounded-xl border p-2.5",
-                  row.is_active
-                    ? "border-[var(--line)] bg-[var(--surface)]"
-                    : "border-dashed border-[var(--line)] bg-[var(--surface-soft)] opacity-60",
-                ].join(" ")}
-              >
-                {/* Badge numéro */}
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[var(--surface-soft)] text-[11px] font-bold text-[color:var(--foreground)]/50">
-                  {index + 1}
-                </span>
-
-                <input
-                  value={draftColumnNames[row.id] ?? row.name}
-                  onChange={(e) => setDraftColumnNames((p) => ({ ...p, [row.id]: e.target.value }))}
-                  onKeyDown={(e) => {
-                    if (e.key !== "Enter") return;
-                    const nextName = (draftColumnNames[row.id] ?? "").trim();
-                    if (!nextName) return;
-                    void (async () => {
-                      const { error } = await supabase.from("workflow_columns").update({ name: nextName }).eq("id", row.id);
-                      if (error) { toastError("Renommage impossible."); return; }
-                      await loadAll();
-                      toastSuccess("Colonne renommée.");
-                    })();
-                  }}
-                  className="ui-focus-ring min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1.5 text-sm text-[var(--foreground)] focus:border-[var(--line)] focus:bg-[var(--surface-soft)]"
-                />
-
-                {/* Sauvegarder */}
-                <button type="button" title="Enregistrer"
-                  onClick={async () => {
-                    const nextName = (draftColumnNames[row.id] ?? "").trim();
-                    if (!nextName) return;
-                    const { error } = await supabase.from("workflow_columns").update({ name: nextName }).eq("id", row.id);
-                    if (error) { toastError("Renommage impossible."); return; }
-                    await loadAll();
-                    toastSuccess("Colonne renommée.");
-                  }}
-                  className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-[var(--success)] hover:bg-[color-mix(in_srgb,var(--success)_10%,var(--surface))]"
-                >
-                  <Check className="h-3.5 w-3.5" />
-                </button>
-
-                {/* Monter */}
-                <button type="button" title="Monter" disabled={index === 0}
-                  onClick={async () => {
-                    const reordered = [...columns];
-                    [reordered[index - 1], reordered[index]] = [reordered[index], reordered[index - 1]];
-                    const ok = await updateSortOrder("workflow_columns", reordered);
-                    if (ok) { await loadAll(); toastSuccess("Ordre mis à jour."); }
-                  }}
-                  className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] hover:bg-[var(--surface)] disabled:opacity-30"
-                >
-                  <ChevronUp className="h-3.5 w-3.5" />
-                </button>
-
-                {/* Descendre */}
-                <button type="button" title="Descendre" disabled={index === columns.length - 1}
-                  onClick={async () => {
-                    const reordered = [...columns];
-                    [reordered[index + 1], reordered[index]] = [reordered[index], reordered[index + 1]];
-                    const ok = await updateSortOrder("workflow_columns", reordered);
-                    if (ok) { await loadAll(); toastSuccess("Ordre mis à jour."); }
-                  }}
-                  className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] hover:bg-[var(--surface)] disabled:opacity-30"
-                >
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </button>
-
-                {/* Activer/Désactiver */}
-                <button type="button" title={row.is_active ? "Désactiver" : "Activer"}
-                  onClick={async () => {
-                    const { error } = await supabase.from("workflow_columns").update({ is_active: !row.is_active }).eq("id", row.id);
-                    if (error) { toastError("Mise à jour impossible."); return; }
-                    await loadAll();
-                    toastSuccess(row.is_active ? "Désactivée." : "Activée.");
-                  }}
-                  className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/60 hover:bg-[var(--surface)]"
-                >
-                  {row.is_active ? <X className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5 text-[var(--success)]" />}
-                </button>
-
-                {/* Supprimer */}
-                <button type="button" title="Supprimer"
-                  onClick={() =>
-                    askDelete(row.name, async () => {
-                      const { error } = await supabase.from("workflow_columns").delete().eq("id", row.id);
-                      if (error) { toastError(`Suppression impossible: ${error.message}`); return; }
-                      await loadAll();
-                      toastSuccess("Colonne supprimée.");
-                    })
-                  }
-                  className="ui-transition ui-btn ui-btn-outline-danger flex h-8 w-8 shrink-0 items-center justify-center rounded-lg !p-0"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ))}
+          <div className="ui-alert rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-[color:var(--foreground)]/70">
+            Les colonnes se gèrent désormais depuis le tableau Kanban (renommage, couleurs, ordre et suppression).
+            Cette section Paramètres est conservée à titre informatif uniquement.
           </div>
         </Section>
 
