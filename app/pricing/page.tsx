@@ -56,7 +56,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="mt-16 grid items-stretch gap-6 md:grid-cols-3">
+        <div className="mt-16 grid items-stretch gap-6 pt-3 md:grid-cols-3">
           {PUBLIC_PLAN_ORDER.map((planId, index) => (
             <ScrollReveal key={planId} delay={index * 100} className="h-full">
               <PricingCard planId={planId} features={PLAN_MARKETING_FEATURES[planId]} />

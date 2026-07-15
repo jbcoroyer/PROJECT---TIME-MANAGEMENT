@@ -13,7 +13,8 @@ export function resolveLocale(value: string | null | undefined): AppLocale {
 
 /** Détecte la langue du navigateur (côté client uniquement). */
 export function detectBrowserLocale(): AppLocale {
-  if (typeof navigator === "undefined") return "fr";
+  // Node 22+ expose navigator sans window — ne pas s’y fier hors navigateur.
+  if (typeof window === "undefined") return "fr";
   return resolveLocale(navigator.language);
 }
 

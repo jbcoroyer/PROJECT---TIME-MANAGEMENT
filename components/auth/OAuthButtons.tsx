@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { getPublicAppOrigin } from "../../lib/publicAppUrl";
+import { getOAuthCallbackOrigin } from "../../lib/publicAppUrl";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError } from "../../lib/toast";
 
@@ -36,8 +36,7 @@ export default function OAuthButtons({ nextPath = "/setup" }: { nextPath?: strin
     setBusy(true);
     try {
       const supabase = getSupabaseBrowser();
-      const origin = getPublicAppOrigin() || window.location.origin;
-      const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+      const redirectTo = `${getOAuthCallbackOrigin()}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

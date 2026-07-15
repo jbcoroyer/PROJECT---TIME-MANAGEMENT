@@ -32,7 +32,24 @@ describe("t", () => {
 });
 
 describe("detectBrowserLocale", () => {
-  it("retourne fr sans navigateur", () => {
+  it("retourne fr hors navigateur (SSR, tests, CI)", () => {
     expect(detectBrowserLocale()).toBe("fr");
+  });
+
+  it("lit navigator.language dans le navigateur", () => {
+    const originalWindow = globalThis.window;
+    Object.defineProperty(globalThis, "window", { value: {}, configurable: true });
+    Object.defineProperty(globalThis.navigator, "language", {
+      value: "en-US",
+      configurable: true,
+    });
+    try {
+      expect(detectBrowserLocale()).toBe("en");
+    } finally {
+      Object.defineProperty(globalThis, "window", {
+        value: originalWindow,
+        configurable: true,
+      });
+    }
   });
 });

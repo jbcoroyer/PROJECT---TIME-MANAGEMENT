@@ -19,7 +19,8 @@ export function getSupabaseBrowser() {
     {
       auth: {
         flowType: "pkce",
-        detectSessionInUrl: true,
+        // L'échange PKCE est fait dans app/auth/callback/route.ts
+        detectSessionInUrl: false,
       },
     },
   );
