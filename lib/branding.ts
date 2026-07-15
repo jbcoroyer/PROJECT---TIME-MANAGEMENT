@@ -89,6 +89,9 @@ function envString(...keys: string[]): string | null {
   return null;
 }
 
+/** Pictogramme SVG neutre livré avec l'app (remplacé visuellement par la marque Atelier). */
+export const DEFAULT_APP_MARK_SRC = "/app-mark.svg";
+
 /** Pictogramme : nouvelle variable env, alias rétro-compatible IDENA. */
 export function getAppMarkSrcFromEnv(): string | null {
   return envString("NEXT_PUBLIC_APP_MARK_SRC", "NEXT_PUBLIC_IDENA_MARK_SRC");
@@ -96,6 +99,17 @@ export function getAppMarkSrcFromEnv(): string | null {
 
 export function isExternalImageSrc(src: string): boolean {
   return /^https?:\/\//i.test(src);
+}
+
+/** Marque par défaut — même rendu SSR et client (évite l'hydratation). */
+export function isDefaultAppMarkSrc(src: string | null | undefined): boolean {
+  if (!src?.trim()) return true;
+  const normalized = src.trim();
+  return (
+    normalized === DEFAULT_APP_MARK_SRC ||
+    normalized.endsWith("/app-mark.svg") ||
+    normalized.endsWith("app-mark.svg")
+  );
 }
 
 function envBrandingDefaults(): AppBranding {

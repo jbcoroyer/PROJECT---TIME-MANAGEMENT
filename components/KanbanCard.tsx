@@ -11,8 +11,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { adminBadgeClassFor, adminSolidColorFor, domainTagStyles } from "../lib/kanbanStyles";
-import AdminAvatar from "./AdminAvatar";
+import { adminSolidColorFor, domainTagStyles } from "../lib/kanbanStyles";
 import CompanyAvatar from "./CompanyAvatar";
 
 function SubtaskBadge(props: { subtasks: Task[]; minimal?: boolean }) {
@@ -45,19 +44,19 @@ function SubtaskBadge(props: { subtasks: Task[]; minimal?: boolean }) {
 }
 
 function PriorityBadge({ priority, dense }: { priority: Task["priority"]; dense?: boolean }) {
-  const cls = {
-    Haute: "ui-pill ui-pill-danger",
-    Moyenne: "ui-pill ui-pill-warning",
-    Basse: "ui-pill ui-pill-success",
-  }[priority] ?? "ui-pill ui-pill-neutral";
+  const styles = {
+    Haute: { border: "rgba(180,69,63,0.4)", color: "var(--danger)" },
+    Moyenne: { border: "rgba(176,115,32,0.4)", color: "var(--warning)" },
+    Basse: { border: "rgba(62,125,82,0.4)", color: "var(--success)" },
+  }[priority] ?? { border: "rgba(26,22,17,0.2)", color: "var(--ink-muted)" };
 
   return (
     <span
       className={[
-        "inline-flex items-center rounded-full border font-bold",
-        dense ? "px-1 py-px text-[8px] leading-none" : "px-2 py-0.5 text-[10px]",
-        cls,
+        "inline-flex items-center rounded-[100px] border font-[family-name:var(--font-mono)] uppercase",
+        dense ? "px-1.5 py-px text-[8px] tracking-[0.06em]" : "px-2 py-0.5 text-[9px] tracking-[0.08em]",
       ].join(" ")}
+      style={{ borderColor: styles.border, color: styles.color }}
     >
       {dense ? priority.slice(0, 1) : priority}
     </span>
@@ -107,19 +106,18 @@ function CardBody(props: {
             <span
               key={admin}
               className={[
-                "inline-flex shrink-0 items-center rounded-full border font-semibold",
+                "inline-flex shrink-0 items-center font-[family-name:var(--font-mono)] font-medium uppercase tracking-[0.06em]",
                 props.variant === "dense"
-                  ? "gap-0.5 px-1 py-px text-[8px]"
-                  : "gap-1 px-2 py-0.5 text-[10px]",
-                adminBadgeClassFor(admin),
-                isMyTask && task.admins[0] === admin
-                  ? props.variant === "dense"
-                    ? "ring-1 ring-[var(--line-strong)]"
-                    : "ring-1 ring-offset-1 ring-[var(--line-strong)]"
-                  : "",
+                  ? "gap-1 text-[9px]"
+                  : "gap-1.5 text-[10px]",
               ].join(" ")}
+              style={{ color: adminSolidColorFor(admin) }}
             >
-              <AdminAvatar admin={admin} />
+              <span
+                className="h-[7px] w-[7px] shrink-0 rounded-full"
+                style={{ background: adminSolidColorFor(admin) }}
+                aria-hidden
+              />
               {props.variant === "dense"
                 ? admin.split(" ")[0]?.slice(0, 10) ?? admin
                 : admin.split(" ")[0]}
@@ -130,19 +128,21 @@ function CardBody(props: {
           {isOverdue && (
             <span
               className={[
-                "shrink-0 ui-pill ui-pill-danger rounded-full font-bold uppercase",
-                props.variant === "dense" ? "px-1 py-px text-[7px]" : "px-1.5 py-0.5 text-[9px] tracking-wide",
+                "shrink-0 rounded font-[family-name:var(--font-mono)] font-medium uppercase tracking-[0.08em]",
+                props.variant === "dense" ? "px-1.5 py-px text-[9px]" : "px-[7px] py-0.5 text-[9px]",
               ].join(" ")}
+              style={{ background: "rgba(180,69,63,0.12)", color: "var(--danger)" }}
             >
-              {props.variant === "dense" ? "ret." : "retard"}
+              {props.variant === "dense" ? "ret." : "Retard"}
             </span>
           )}
           {isUrgent48h && !isOverdue && (
             <span
               className={[
-                "shrink-0 ui-pill ui-pill-warning rounded-full font-bold uppercase",
-                props.variant === "dense" ? "px-1 py-px text-[7px]" : "px-1.5 py-0.5 text-[9px] tracking-wide",
+                "shrink-0 rounded font-[family-name:var(--font-mono)] font-medium uppercase tracking-[0.08em]",
+                props.variant === "dense" ? "px-1.5 py-px text-[9px]" : "px-[7px] py-0.5 text-[9px]",
               ].join(" ")}
+              style={{ background: "rgba(176,115,32,0.12)", color: "var(--warning)" }}
             >
               48h
             </span>
@@ -206,13 +206,13 @@ function CardBody(props: {
       {/* ── Ligne 2 : Nom du projet ── */}
       <p
         className={[
-          "line-clamp-2 pl-0.5 font-semibold leading-tight tracking-tight text-[var(--foreground)]",
-          isDone ? "text-[color-mix(in_srgb,var(--ink)_45%,transparent)] line-through" : "",
+          "line-clamp-2 font-semibold leading-[1.3] tracking-[-0.01em] text-[var(--ink)]",
+          isDone ? "text-[rgba(26,22,17,0.45)] line-through" : "",
           props.variant === "dense"
             ? "text-[13px] leading-snug"
             : props.variant === "compact"
               ? "text-[15px]"
-              : "text-[17px]",
+              : "text-[15.5px]",
         ].join(" ")}
       >
         {task.projectName || "Projet sans titre"}
@@ -360,34 +360,22 @@ function KanbanCardUIComponent(props: {
   const isOverlay = props.isOverlay ?? false;
   const isDone = task.column === "Terminé";
 
-  const primaryAdmin = task.admins[0] ?? "";
-  const adminColor = adminSolidColorFor(primaryAdmin);
-
-  const borderLeft = variant === "dense" ? 3 : 4;
-
   return (
     <motion.article
-      style={{
-        ...props.style,
-        borderLeftColor: adminColor,
-        borderLeftWidth: borderLeft,
-      }}
+      style={props.style}
       layout={!isOverlay}
       initial={isOverlay ? false : { opacity: 0, y: 4 }}
       animate={isOverlay ? undefined : { opacity: 1, y: 0 }}
       transition={isOverlay ? undefined : { duration: 0.2 }}
       className={[
-        "group relative flex flex-col border border-[var(--line)] text-xs text-[var(--foreground)] ui-transition",
-        variant === "dense" ? "gap-1 rounded-[14px] p-3.5" : variant === "compact" ? "gap-2 rounded-[14px] p-3.5" : "gap-2.5 rounded-[14px] p-3.5",
-        isDone ? "opacity-60" : "",
-        isMyTask && !isDone ? "bg-[var(--surface)] shadow-[0_2px_10px_rgba(23,20,15,0.05)]" : "bg-[var(--surface)]",
+        "group relative flex flex-col border border-[rgba(26,22,17,0.14)] bg-[var(--surface)] text-xs text-[var(--foreground)] ui-transition",
+        variant === "dense" ? "gap-1 rounded-2xl p-4" : variant === "compact" ? "gap-2 rounded-2xl p-4" : "gap-2.5 rounded-2xl p-4",
+        isDone ? "opacity-55" : "",
         isOverlay
           ? "pointer-events-none rotate-2 shadow-2xl ring-1 ring-[var(--line)]/40"
-          : !isDone && variant !== "dense"
-            ? "hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:shadow-[0_16px_30px_rgba(23,20,15,0.08)]"
-            : !isDone
-              ? "hover:border-[var(--line-strong)] hover:shadow-[0_8px_20px_rgba(23,20,15,0.06)]"
-              : "",
+          : !isDone
+            ? "hover:-translate-y-0.5 hover:-rotate-[0.4deg] hover:border-[rgba(26,22,17,0.3)] hover:shadow-[0_18px_36px_rgba(26,22,17,0.12)]"
+            : "",
       ].join(" ")}
     >
       <CardBody

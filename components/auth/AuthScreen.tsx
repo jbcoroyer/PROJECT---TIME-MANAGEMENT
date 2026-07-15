@@ -4,16 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { AppMark, AppWordmark } from "../AppBrand";
 import OAuthButtons from "./OAuthButtons";
+import AuthAtelierShell, { AuthMobileBrand, AuthTabLink } from "./AuthAtelierShell";
 import { getPublicAppOrigin } from "../../lib/publicAppUrl";
 import { needsInviteProfileCompletion } from "../../lib/inviteOnboarding";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { TRIAL_DAYS } from "../../lib/billing/plans";
 
 type AuthScreenProps = {
-  /** Chemin nettoyé après erreur OAuth dans l'URL (ex. `/` ou `/login`). */
   cleanPath?: string;
 };
 
@@ -119,98 +119,68 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--background)] px-5 py-12">
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="ui-hero-halo ui-hero-halo--orange left-1/2 top-[-10rem] h-[32.5rem] w-[40rem] -translate-x-1/2" />
-        <div className="ui-hero-dots" />
-      </div>
+    <AuthAtelierShell
+      heading={
+        <>
+          Bon retour<em className="text-[var(--accent)] italic">.</em>
+        </>
+      }
+      subtitle={t("auth.signInToWorkspace", { app: branding.appName })}
+    >
+      <AuthMobileBrand />
 
-      <div className="relative z-10 w-full max-w-[392px]">
-        <header className="mb-8 text-center">
-          <div className="mb-5 flex justify-center">
-            <AppMark className="h-11 w-11 rounded-xl" />
-          </div>
-          <AppWordmark size="compact" />
-          {branding.tagline.trim() ? (
-            <p className="mt-2 text-[13.5px] text-[var(--ink-muted)]">{branding.tagline}</p>
-          ) : null}
-          <p className="mt-4 text-[13.5px] text-[var(--ink-muted)]">
-            {t("auth.signInToWorkspace", { app: branding.appName })}
-          </p>
-        </header>
-
-        <div className="rounded-[20px] border border-[var(--line)] bg-[var(--surface)] p-[26px] shadow-[0_12px_32px_rgba(23,20,15,0.06)]">
-          {urlAuthError ? (
-            <div className="ui-alert ui-alert-warning mb-4 rounded-xl px-3 py-2.5 text-sm">
-              {urlAuthError}
-            </div>
-          ) : null}
-
-          <div className="mb-[22px] flex rounded-xl bg-[var(--surface-soft)] p-1">
-            <button
-              type="button"
-              className="flex-1 rounded-[9px] bg-[var(--surface)] py-2.5 text-[13.5px] font-semibold text-[var(--ink)] shadow-[0_1px_3px_rgba(23,20,15,0.08)]"
-            >
-              {t("auth.signInTab")}
-            </button>
-            <Link
-              href="/signup"
-              className="flex flex-1 items-center justify-center rounded-[9px] py-2.5 text-[13.5px] font-medium text-[var(--ink-muted)] transition hover:text-[var(--ink)]"
-            >
-              {t("auth.signUpTab")}
-            </Link>
-          </div>
-
-          <form onSubmit={(e) => void handleSignIn(e)} className="space-y-3.5">
-            <Field
-              id="email"
-              label={t("auth.email")}
-              type="email"
-              value={email}
-              onChange={setEmail}
-              autoComplete="email"
-              placeholder="vous@example.com"
-            />
-            <PasswordField
-              id="signin-password"
-              label={t("auth.password")}
-              value={password}
-              onChange={setPassword}
-              show={showPassword}
-              onToggleShow={() => setShowPassword((v) => !v)}
-              autoComplete="current-password"
-            />
-            <div className="-mt-1 flex justify-end">
-              <button
-                type="button"
-                onClick={() => void handleForgotPassword()}
-                disabled={sendingReset || loading}
-                className="text-xs font-medium text-[var(--ink-muted)] transition hover:text-[var(--ink)] disabled:opacity-50"
-              >
-                {sendingReset ? t("auth.sendingReset") : t("auth.forgotPassword")}
-              </button>
-            </div>
-            <AlertBox error={error} success={success} />
-            <SubmitBtn
-              loading={loading}
-              loadingLabel={t("auth.signingIn")}
-              label={t("auth.signInButton")}
-            />
-          </form>
-          <OAuthButtons nextPath="/dashboard" />
+      {urlAuthError ? (
+        <div className="ui-alert ui-alert-warning mt-6 rounded-xl px-3 py-2.5 text-sm">
+          {urlAuthError}
         </div>
+      ) : null}
 
-        <p className="mt-6 text-center text-[12.5px] text-[var(--ink-muted)]">
-          <Link href="/signup" className="font-semibold text-[var(--ink)] hover:underline">
-            {t("auth.signUp")}
-          </Link>
-          <span className="mx-2">·</span>
-          <Link href="/pricing" className="font-semibold text-[var(--ink)] hover:underline">
-            Tarifs
-          </Link>
-        </p>
+      <div className="auth-atelier__tabs mt-8">
+        <AuthTabLink href="/login" active>
+          {t("auth.signInTab")}
+        </AuthTabLink>
+        <AuthTabLink href="/signup">{t("auth.signUpTab")}</AuthTabLink>
       </div>
-    </div>
+
+      <form onSubmit={(e) => void handleSignIn(e)} className="mt-7 flex flex-col gap-5">
+        <Field
+          id="email"
+          label={t("auth.email")}
+          type="email"
+          value={email}
+          onChange={setEmail}
+          autoComplete="email"
+          placeholder="vous@example.com"
+        />
+        <PasswordField
+          id="signin-password"
+          label={t("auth.password")}
+          value={password}
+          onChange={setPassword}
+          show={showPassword}
+          onToggleShow={() => setShowPassword((v) => !v)}
+          autoComplete="current-password"
+          onForgot={() => void handleForgotPassword()}
+          forgotLabel={sendingReset ? t("auth.sendingReset") : t("auth.forgotPassword")}
+          forgotDisabled={sendingReset || loading}
+        />
+        <AlertBox error={error} success={success} />
+        <SubmitBtn
+          loading={loading}
+          loadingLabel={t("auth.signingIn")}
+          label={t("auth.signInButton")}
+        />
+      </form>
+
+      <OAuthButtons nextPath="/dashboard" />
+
+      <p className="mt-7 text-center text-[13.5px] text-[var(--ink-muted)]">
+        Pas encore de compte ?{" "}
+        <Link href="/signup" className="font-semibold text-[var(--ink)] border-b border-[var(--accent)] hover:text-[var(--accent)]">
+          Essai gratuit {TRIAL_DAYS} jours
+        </Link>
+      </p>
+    </AuthAtelierShell>
   );
 }
 
@@ -233,7 +203,7 @@ function Field(props: {
 }) {
   return (
     <div>
-      <label htmlFor={props.id} className="mb-1.5 block text-[13px] font-semibold text-[var(--ink)]">
+      <label htmlFor={props.id} className="auth-atelier__field-label">
         {props.label}
       </label>
       <input
@@ -243,7 +213,7 @@ function Field(props: {
         onChange={(e) => props.onChange(e.target.value)}
         autoComplete={props.autoComplete}
         placeholder={props.placeholder}
-        className="ui-focus-ring w-full rounded-[11px] border border-[var(--line)] bg-[#faf8f4] px-3 py-2.5 text-[13.5px] text-[var(--ink)] placeholder:text-[color-mix(in_srgb,var(--ink)_32%,transparent)] focus:border-[var(--line-strong)] focus:outline-none"
+        className="auth-atelier__input"
       />
     </div>
   );
@@ -257,10 +227,13 @@ function PasswordField(props: {
   show: boolean;
   onToggleShow: () => void;
   autoComplete?: string;
+  onForgot: () => void;
+  forgotLabel: string;
+  forgotDisabled?: boolean;
 }) {
   return (
     <div>
-      <label htmlFor={props.id} className="mb-1.5 block text-[13px] font-semibold text-[var(--ink)]">
+      <label htmlFor={props.id} className="auth-atelier__field-label">
         {props.label}
       </label>
       <div className="relative">
@@ -271,15 +244,25 @@ function PasswordField(props: {
           onChange={(e) => props.onChange(e.target.value)}
           autoComplete={props.autoComplete}
           placeholder="••••••••"
-          className="ui-focus-ring w-full rounded-[11px] border border-[var(--line)] bg-[#faf8f4] px-3 py-2.5 pr-10 text-[13.5px] text-[var(--ink)] placeholder:text-[color-mix(in_srgb,var(--ink)_32%,transparent)] focus:border-[var(--line-strong)] focus:outline-none"
+          className="auth-atelier__input pr-11"
         />
         <button
           type="button"
           onClick={props.onToggleShow}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--foreground)]/35 hover:text-[color:var(--foreground)]/60"
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[rgba(26,22,17,0.35)] hover:text-[rgba(26,22,17,0.6)]"
           aria-label={props.show ? "Masquer" : "Afficher"}
         >
           {props.show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+      <div className="mt-2 flex justify-end">
+        <button
+          type="button"
+          onClick={props.onForgot}
+          disabled={props.forgotDisabled}
+          className="text-[13px] font-medium text-[var(--ink-muted)] border-b border-[rgba(26,22,17,0.2)] hover:text-[var(--accent)] hover:border-[var(--accent)] disabled:opacity-50"
+        >
+          {props.forgotLabel}
         </button>
       </div>
     </div>
@@ -288,18 +271,10 @@ function PasswordField(props: {
 
 function AlertBox(props: { error?: string | null; success?: string | null }) {
   if (props.error) {
-    return (
-      <div className="ui-alert ui-alert-danger rounded-xl px-3 py-2 text-sm">
-        {props.error}
-      </div>
-    );
+    return <div className="ui-alert ui-alert-danger rounded-xl px-3 py-2 text-sm">{props.error}</div>;
   }
   if (props.success) {
-    return (
-      <div className="ui-alert ui-alert-success rounded-xl px-3 py-2 text-sm">
-        {props.success}
-      </div>
-    );
+    return <div className="ui-alert ui-alert-success rounded-xl px-3 py-2 text-sm">{props.success}</div>;
   }
   return null;
 }
@@ -309,9 +284,10 @@ function SubmitBtn(props: { loading: boolean; label: string; loadingLabel: strin
     <button
       type="submit"
       disabled={props.loading}
-      className="ui-transition mt-0.5 w-full rounded-[11px] bg-[var(--ink)] py-3 text-sm font-semibold text-[var(--background)] hover:bg-[color-mix(in_srgb,var(--ink)_88%,var(--accent))] disabled:opacity-60"
+      className="mkt-cta-primary w-full py-[15px] text-[15.5px] disabled:opacity-60"
     >
-      {props.loading ? props.loadingLabel : props.label}
+      {props.loading ? props.loadingLabel : props.label}{" "}
+      {!props.loading ? <span className="font-[family-name:var(--font-mono)]">→</span> : null}
     </button>
   );
 }

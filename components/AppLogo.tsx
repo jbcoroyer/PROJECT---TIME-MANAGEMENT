@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useBranding } from "../lib/brandingContext";
-import { isExternalImageSrc } from "../lib/branding";
+import { DEFAULT_APP_MARK_SRC, isDefaultAppMarkSrc } from "../lib/branding";
+import { AtelierMark } from "./AtelierMark";
 
-export const DEFAULT_APP_MARK_SRC = "/app-mark.svg";
+export { DEFAULT_APP_MARK_SRC };
 
 type AppLogoProps = {
   /** icon = pictogramme ; wordmark = pictogramme + nom ; full = alias wordmark */
@@ -58,12 +59,12 @@ export default function AppLogo({
   const { branding } = useBranding();
   const isIcon = variant === "icon";
   const alt = props["aria-hidden"] ? "" : props["aria-label"] ?? branding.appName;
-  const markSrc =
-    branding.markUrl ||
-    branding.iconUrl ||
-    (isExternalImageSrc(DEFAULT_APP_MARK_SRC) ? DEFAULT_APP_MARK_SRC : DEFAULT_APP_MARK_SRC);
+  const markSrc = branding.markUrl || branding.iconUrl;
 
   if (isIcon) {
+    if (!markSrc || isDefaultAppMarkSrc(markSrc)) {
+      return <AtelierMark className={className} />;
+    }
     return <MarkImage src={markSrc} alt={alt} className={className} ariaHidden={props["aria-hidden"]} />;
   }
 
@@ -80,7 +81,11 @@ export default function AppLogo({
 
   return (
     <div className={["flex items-center gap-3", className].filter(Boolean).join(" ")}>
-      <MarkImage src={markSrc} alt={alt} className="h-11 w-11 shrink-0" ariaHidden={props["aria-hidden"]} />
+      {!markSrc || isDefaultAppMarkSrc(markSrc) ? (
+        <AtelierMark className="h-11 w-11 shrink-0" />
+      ) : (
+        <MarkImage src={markSrc} alt={alt} className="h-11 w-11 shrink-0" ariaHidden={props["aria-hidden"]} />
+      )}
       <span className="ui-display text-xl font-semibold tracking-tight text-[var(--foreground)]">
         {branding.appName}
       </span>

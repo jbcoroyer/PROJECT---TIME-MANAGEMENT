@@ -19,10 +19,8 @@ import {
 } from "lucide-react";
 import { signInAfterSignUp, signUpWithOrganization } from "../../app/actions/auth";
 import { uploadOrgAsset } from "../../app/actions/storage";
-import { AppMark, AppWordmark } from "../AppBrand";
-import LegalFooter from "../legal/LegalFooter";
+import AuthAtelierShell, { AuthMobileBrand, AuthTabLink } from "./AuthAtelierShell";
 import OAuthButtons from "./OAuthButtons";
-import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 
@@ -31,7 +29,6 @@ type SignupStep = 1 | 2;
 export default function SignUpScreen() {
   const router = useRouter();
   const supabase = getSupabaseBrowser();
-  const { branding } = useBranding();
   const { t } = useTranslation();
 
   const [step, setStep] = useState<SignupStep>(1);
@@ -160,25 +157,24 @@ export default function SignUpScreen() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--background)] px-5 py-12">
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="ui-hero-halo ui-hero-halo--orange left-1/2 top-[-10rem] h-[32.5rem] w-[40rem] -translate-x-1/2" />
-        <div className="ui-hero-dots" />
+    <AuthAtelierShell
+      heading={
+        <>
+          Créer un espace<em className="text-[var(--accent)] italic">.</em>
+        </>
+      }
+      subtitle={subtitle}
+    >
+      <AuthMobileBrand />
+
+      <div className="auth-atelier__tabs mt-8">
+        <AuthTabLink href="/login">{t("auth.signInTab")}</AuthTabLink>
+        <AuthTabLink href="/signup" active>
+          {t("auth.signUpTab")}
+        </AuthTabLink>
       </div>
 
-      <div className="relative z-10 w-full max-w-[392px]">
-        <header className="mb-8 text-center">
-          <div className="mb-5 flex justify-center">
-            <AppMark className="h-11 w-11 rounded-xl" />
-          </div>
-          <AppWordmark size="compact" />
-          {branding.tagline.trim() ? (
-            <p className="mt-2 text-[13.5px] text-[var(--ink-muted)]">{branding.tagline}</p>
-          ) : null}
-          <p className="mt-4 text-[13.5px] text-[var(--ink-muted)]">{subtitle}</p>
-        </header>
-
-        <div className="rounded-[20px] border border-[var(--line)] bg-[var(--surface)] p-[26px] shadow-[0_12px_32px_rgba(23,20,15,0.06)]">
+        <div className="mt-7">
           {step === 1 && (
             <div className="space-y-4">
               <Field
@@ -344,15 +340,13 @@ export default function SignUpScreen() {
           )}
         </div>
 
-        <p className="mt-6 text-center text-sm text-[color:var(--foreground)]/50">
+        <p className="mt-6 text-center text-sm text-[var(--ink-muted)]">
           {t("auth.signInTab")} ?{" "}
-          <Link href="/login" className="font-medium text-[var(--brand-primary)] hover:underline">
+          <Link href="/login" className="font-semibold text-[var(--ink)] border-b border-[var(--accent)] hover:text-[var(--accent)]">
             {t("auth.signInButton")}
           </Link>
         </p>
-        <LegalFooter />
-      </div>
-    </div>
+    </AuthAtelierShell>
   );
 }
 

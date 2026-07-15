@@ -52,17 +52,19 @@ export default function OAuthButtons({ nextPath = "/setup" }: { nextPath?: strin
   }
 
   return (
-    <div className="space-y-3">
-      <div className="relative flex items-center gap-2.5 py-1">
-        <div className="flex-1 border-t border-[var(--line)]" />
-        <span className="text-[11.5px] text-[color-mix(in_srgb,var(--ink)_40%,transparent)]">ou</span>
-        <div className="flex-1 border-t border-[var(--line)]" />
+    <div className="mt-6">
+      <div className="flex items-center gap-3.5">
+        <div className="h-px flex-1 bg-[rgba(26,22,17,0.15)]" />
+        <span className="font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.16em] text-[rgba(26,22,17,0.45)]">
+          ou
+        </span>
+        <div className="h-px flex-1 bg-[rgba(26,22,17,0.15)]" />
       </div>
       <button
         type="button"
         disabled={busy}
         onClick={() => void handleGoogle()}
-        className="ui-transition flex w-full items-center justify-center gap-2.5 rounded-[11px] border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-[13.5px] font-semibold text-[var(--ink)] hover:bg-[var(--surface-soft)] disabled:opacity-60"
+        className="mt-5 flex w-full items-center justify-center gap-2.5 rounded-[100px] border border-[rgba(26,22,17,0.25)] bg-[var(--surface)] px-3 py-[13px] text-[14.5px] font-semibold text-[var(--ink)] transition hover:border-[var(--ink)] hover:-translate-y-px disabled:opacity-60"
       >
         {busy ? (
           <Loader2 className="h-4 w-4 animate-spin" />

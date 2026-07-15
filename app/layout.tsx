@@ -1,30 +1,32 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
-import { IBM_Plex_Mono, IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
+import { Instrument_Sans, Instrument_Serif, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
 import AppProviders from "../components/AppProviders";
+import GrainOverlay from "../components/GrainOverlay";
 import SonnerToaster from "../components/SonnerToaster";
 import { brandingToMetadata, brandingStyleVars, htmlLangFromBranding } from "../lib/branding";
 import { getBrandingServer } from "../lib/server/getBrandingServer";
 
-const spaceGrotesk = Space_Grotesk({
+const instrumentSerif = Instrument_Serif({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
-const ibmPlexSans = IBM_Plex_Sans({
+const instrumentSans = Instrument_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
+const splineSansMono = Spline_Sans_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
-  weight: ["500"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
@@ -43,9 +45,10 @@ export default async function RootLayout({
   return (
     <html lang={htmlLangFromBranding(branding.locale)}>
       <body
-        className={`${ibmPlexSans.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} antialiased`}
+        className={`${instrumentSans.variable} ${instrumentSerif.variable} ${splineSansMono.variable} antialiased`}
         style={brandingStyleVars(branding.primaryColor)}
       >
+        <GrainOverlay />
         <AppProviders>
           <SonnerToaster />
           {children}

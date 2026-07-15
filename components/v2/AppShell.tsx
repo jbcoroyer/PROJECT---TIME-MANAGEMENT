@@ -16,9 +16,7 @@ import { effectiveModulesForPlan } from "../../lib/billing/plans";
 import { useBillingPlan } from "../../lib/billing/useBillingPlan";
 import { isNavActive, NAV_ITEMS } from "../../lib/navigation";
 import { useCurrentUser } from "../../lib/useCurrentUser";
-import { BrandHeading } from "../AppBrand";
-import ModuleGlyph from "../modules/ModuleGlyph";
-import type { AppModuleId } from "../../lib/modules";
+import { AppMark, AppWordmark, BrandHeading } from "../AppBrand";
 
 type V2AppShellProps = {
   children: ReactNode;
@@ -82,19 +80,6 @@ function UserCard({
   );
 }
 
-function NavModuleIcon({
-  moduleId,
-  active,
-}: {
-  moduleId: AppModuleId | null;
-  active: boolean;
-}) {
-  if (!moduleId) {
-    return <Settings2 className="h-4 w-4 shrink-0 opacity-80" aria-hidden />;
-  }
-  return <ModuleGlyph moduleId={moduleId} size="nav" onDark={active} />;
-}
-
 export default function V2AppShell({
   children,
   toolbarRight,
@@ -152,18 +137,22 @@ export default function V2AppShell({
 
   const navLinkClass = (active: boolean) =>
     [
-      "ui-nav-link ui-transition rounded-[10px] py-2.5 text-[13.5px]",
-      active ? "ui-nav-link--active" : "",
+      "ui-nav-link ui-transition flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm",
+      active ? "ui-nav-link--active font-semibold" : "font-medium text-[rgba(26,22,17,0.6)]",
     ]
       .filter(Boolean)
       .join(" ");
 
   const sidebarContent = (onNavClick?: () => void) => (
     <>
-      <BrandHeading />
-      <nav className="mt-[26px] min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain">
-        {items.map((item) => {
+      <div className="flex items-center gap-3">
+        <AppMark className="h-9 w-9" />
+        <AppWordmark size="sidebar" />
+      </div>
+      <nav className="mt-[34px] min-h-0 flex-1 space-y-px overflow-y-auto overscroll-contain">
+        {items.map((item, index) => {
           const active = isNavActive(item.href, pathname);
+          const num = String(index + 1).padStart(2, "0");
           return (
             <Link
               key={item.href}
@@ -171,8 +160,18 @@ export default function V2AppShell({
               onClick={onNavClick}
               className={navLinkClass(active)}
             >
-              <NavModuleIcon moduleId={item.moduleId} active={active} />
+              <span
+                className={[
+                  "w-[18px] font-[family-name:var(--font-mono)] text-[10.5px] tracking-[0.05em]",
+                  active ? "text-[var(--accent)]" : "text-[rgba(26,22,17,0.35)]",
+                ].join(" ")}
+              >
+                {num}
+              </span>
               <span>{t(item.labelKey)}</span>
+              {active ? (
+                <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" aria-hidden />
+              ) : null}
             </Link>
           );
         })}
@@ -200,7 +199,7 @@ export default function V2AppShell({
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <div className="mx-auto w-full max-w-[1680px] px-4 py-5 lg:px-8">
         <aside
-          className="fixed bottom-5 left-4 top-5 hidden w-[252px] flex-col border-r border-[var(--line)] bg-[var(--background)] px-3.5 py-[22px] lg:flex"
+          className="fixed bottom-5 left-4 top-5 hidden w-64 flex-col border-r border-[var(--line)] bg-[var(--background)] py-7 pr-[18px] lg:flex"
           style={{ zIndex: "var(--z-sidebar)" }}
         >
           {sidebarContent()}
@@ -252,16 +251,19 @@ export default function V2AppShell({
 
             <div className="min-w-[180px] flex-1 max-w-[420px]">
               {searchSlot ?? (
-                <div className="flex items-center gap-2 rounded-[11px] border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5">
-                  <span className="text-sm text-[var(--ink-muted)]" aria-hidden>
+                <div className="flex min-w-[240px] items-center gap-2 rounded-[100px] border border-[rgba(26,22,17,0.18)] bg-[var(--surface)] px-4 py-2.5">
+                  <span className="text-sm text-[rgba(26,22,17,0.45)]" aria-hidden>
                     ⌕
                   </span>
                   <input
                     type="text"
-                    placeholder="Rechercher un projet, une tâche…"
+                    placeholder="Rechercher…"
                     aria-label="Recherche globale"
-                    className="ui-focus-ring w-full bg-transparent text-[13.5px] text-[var(--foreground)] placeholder:text-[color-mix(in_srgb,var(--ink)_35%,transparent)] focus:outline-none"
+                    className="ui-focus-ring w-full bg-transparent text-[13.5px] text-[var(--foreground)] placeholder:text-[rgba(26,22,17,0.4)] focus:outline-none"
                   />
+                  <kbd className="ml-auto font-[family-name:var(--font-mono)] text-[10px] rounded border border-[rgba(26,22,17,0.2)] px-1.5 py-px text-[rgba(26,22,17,0.45)]">
+                    ⌘K
+                  </kbd>
                 </div>
               )}
             </div>

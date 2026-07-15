@@ -55,196 +55,273 @@ const MODULE_COPY: Record<AppModuleId, { title: string; desc: string }> = {
   },
 };
 
+const HERO_STATS = [
+  { value: "11", label: "Modules à la carte" },
+  { value: `${TRIAL_DAYS} j`, label: "Essai complet, sans CB" },
+  { value: "0€", label: "Pour 2 personnes, à vie" },
+];
+
+const MARQUEE_WORDS = [
+  "Kanban",
+  "Planning",
+  "Événements",
+  "Réseaux sociaux",
+  "Stock",
+  "Boîte à idées",
+  "Demandes",
+  "Fichiers",
+  "Objectifs",
+  "Enquêtes",
+  "Mon agenda",
+  "Assistant IA",
+];
+
 const WHY_POINTS = [
-  "Activez uniquement les modules dont vous avez besoin",
-  "Invitez vos collègues en quelques clics par e-mail",
-  "Personnalisez logo et couleurs de votre espace",
-  "Essai complet de 14 jours, sans carte bancaire",
+  { num: "01", text: "Activez uniquement les modules dont vous avez besoin" },
+  { num: "02", text: "Invitez vos collègues en quelques clics par e-mail" },
+  { num: "03", text: "Personnalisez logo et couleurs de votre espace" },
+  { num: "04", text: `Essai complet de ${TRIAL_DAYS} jours, sans carte bancaire` },
 ];
 
 export default function LandingPage() {
   return (
-    <div className="mkt-page min-h-screen bg-[var(--background)]">
-      <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--background)_85%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-4 py-[18px] sm:px-8">
-          <Link href="/" className="flex items-center gap-2.5">
-            <AppMark className="h-8 w-8" />
+    <div className="mkt-page relative min-h-screen overflow-hidden bg-[var(--background)]">
+      <header className="relative z-10 border-b border-[var(--line)]">
+        <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-5 sm:grid-cols-[1fr_auto_1fr] sm:px-10">
+          <Link href="/" className="flex items-center gap-3">
+            <AppMark className="h-[34px] w-[34px]" />
             <AppWordmark size="compact" />
           </Link>
-          <nav className="hidden items-center gap-8 sm:flex">
-            <a
-              href="#modules"
-              className="text-sm font-medium text-[var(--ink-muted)] hover:text-[var(--ink)]"
-            >
+          <nav className="hidden items-center justify-center gap-9 sm:flex">
+            <a href="#modules" className="mkt-nav-link">
               Modules
             </a>
-            <a
-              href="#tarifs"
-              className="text-sm font-medium text-[var(--ink-muted)] hover:text-[var(--ink)]"
-            >
+            <a href="#tarifs" className="mkt-nav-link">
               Tarifs
             </a>
-            <Link
-              href="/pricing"
-              className="text-sm font-medium text-[var(--ink-muted)] hover:text-[var(--ink)]"
-            >
-              Ressources
+            <Link href="/pricing" className="mkt-nav-link">
+              Manifeste
             </Link>
           </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-semibold text-[var(--ink)]">
+          <div className="flex items-center justify-end gap-5">
+            <Link href="/login" className="mkt-link-underline text-sm font-semibold">
               Connexion
             </Link>
-            <Link href="/signup" className="mkt-cta-primary px-5 py-2.5 text-[13.5px]">
-              Essai gratuit
+            <Link href="/signup" className="mkt-cta-primary px-[22px] py-[11px] text-sm">
+              Essai gratuit <span className="font-[family-name:var(--font-mono)]">→</span>
             </Link>
           </div>
         </div>
       </header>
 
-      <main>
-        <section className="relative overflow-hidden px-4 pb-[4.5rem] pt-24 sm:px-8">
-          <div className="mkt-hero-glow mkt-hero-glow--1" aria-hidden />
-          <div className="mkt-hero-glow mkt-hero-glow--2" aria-hidden />
-          <div className="mkt-hero-dots" aria-hidden />
-
-          <div className="relative mx-auto max-w-[840px] text-center">
-            <ScrollReveal>
-              <div className="mkt-hero-badge">
-                <span className="mkt-hero-badge__dot" aria-hidden />
-                GESTION D&apos;ÉQUIPE TOUT-EN-UN
-              </div>
-            </ScrollReveal>
-            <ScrollReveal delay={80}>
-              <h1 className="ui-display mt-[22px] text-[clamp(2.5rem,6vw,4.25rem)] font-bold leading-[1.03] text-[var(--ink)]">
-                Arrêtez de jongler
-                <br />
-                entre dix outils
-              </h1>
-            </ScrollReveal>
-            <ScrollReveal delay={160}>
-              <p className="mx-auto mt-[22px] max-w-[560px] text-lg leading-relaxed text-[var(--ink-muted)]">
-                Kanban, planning, événements, réseaux sociaux, stock — un espace de travail unique où
-                chaque équipe n&apos;active que ce dont elle a besoin.
+      <main className="relative z-[5]">
+        <section className="relative px-6 pb-[90px] pt-[110px] sm:px-10">
+          <div className="ui-hero-halo ui-hero-halo--orange absolute -right-[120px] -top-[180px] h-[700px] w-[700px]" aria-hidden />
+          <div className="relative mx-auto max-w-[1280px]">
+            <div className="mkt-hero-kicker flex items-center gap-3.5">
+              <span className="ui-kicker text-[12px] tracking-[0.18em]">
+                N°01 — L&apos;espace de travail des équipes com&apos;
+              </span>
+              <span className="mkt-hero-line h-px max-w-[220px] flex-1 bg-[rgba(26,22,17,0.25)]" aria-hidden />
+            </div>
+            <h1 className="ui-display mt-9 max-w-[1100px] text-[clamp(3.5rem,8.5vw,7.5rem)] leading-[0.98] tracking-[-0.02em] text-[var(--ink)]">
+              <span className="mkt-hero-line-reveal block overflow-hidden">
+                <span className="mkt-hero-line-inner block">Dix outils en moins.</span>
+              </span>
+              <span className="mkt-hero-line-reveal block overflow-hidden">
+                <span className="mkt-hero-line-inner mkt-hero-line-inner--2 block">
+                  <em className="italic text-[var(--accent)]">Une équipe</em> en plus.
+                </span>
+              </span>
+            </h1>
+            <div className="mt-11 flex flex-wrap items-end justify-between gap-10">
+              <p className="mkt-hero-sub max-w-[440px] text-lg leading-relaxed text-[var(--ink-muted)]">
+                Kanban, planning, événements, réseaux sociaux, stock — chaque équipe compose son espace,
+                module par module. Rien de plus.
               </p>
-            </ScrollReveal>
-            <ScrollReveal delay={240}>
-              <div className="mt-[34px] flex flex-wrap items-center justify-center gap-3">
-                <Link href="/signup" className="mkt-cta-primary">
-                  Lancer mon espace
+              <div className="mkt-hero-cta flex flex-wrap items-center gap-[18px]">
+                <Link href="/signup" className="mkt-cta-primary px-8 py-[17px] text-base">
+                  Lancer mon espace <span className="font-[family-name:var(--font-mono)]">→</span>
                 </Link>
-                <a href="#modules" className="mkt-cta-secondary">
+                <a href="#modules" className="mkt-link-accent text-[15px] font-semibold">
                   Voir les modules
                 </a>
               </div>
-            </ScrollReveal>
-            <ScrollReveal delay={320}>
-              <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
-                <span className="mkt-stat-pill">11 modules à la carte</span>
-                <span className="mkt-stat-pill">{TRIAL_DAYS} jours d&apos;essai complet</span>
-                <span className="mkt-stat-pill">5 modules gratuits</span>
-              </div>
-            </ScrollReveal>
+            </div>
+            <div className="mkt-hero-stats mt-[70px] grid grid-cols-1 border-t border-[var(--line)] sm:grid-cols-3">
+              {HERO_STATS.map((stat, i) => (
+                <div
+                  key={stat.label}
+                  className={[
+                    "pt-[26px] pr-6",
+                    i < 2 ? "sm:border-r sm:border-[rgba(26,22,17,0.1)]" : "",
+                  ].join(" ")}
+                >
+                  <p className="ui-display text-[40px] leading-none text-[var(--ink)]">{stat.value}</p>
+                  <p className="mt-2 font-[family-name:var(--font-mono)] text-[11.5px] uppercase tracking-[0.12em] text-[rgba(26,22,17,0.55)]">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section
-          id="modules"
-          className="border-y border-[var(--line)] bg-[var(--surface)] px-4 py-[5.5rem] sm:px-8"
-        >
-          <div className="mx-auto max-w-[1180px]">
-            <ScrollReveal className="max-w-[520px]">
-              <span className="ui-kicker">{"// MODULES"}</span>
-              <h2 className="ui-display mt-3 text-[clamp(1.75rem,3.4vw,2.375rem)] font-bold text-[var(--ink)]">
-                Chaque brique a un nom clair
-              </h2>
-              <p className="mt-3.5 text-base leading-relaxed text-[var(--ink-muted)]">
-                Pas de jargon. Vous voyez tout de suite à quoi sert chaque module — activez ce dont
-                vous avez besoin, ignorez le reste.
-              </p>
-            </ScrollReveal>
+        <div className="relative z-[5] overflow-hidden border-y border-[var(--line)] bg-[var(--surface-deep)] py-4">
+          <div className="mkt-marquee flex w-max">
+            {[...MARQUEE_WORDS, ...MARQUEE_WORDS].map((word, i) => (
+              <span
+                key={`${word}-${i}`}
+                className="inline-flex items-center gap-[22px] pr-[22px] font-[family-name:var(--font-mono)] text-[13px] uppercase tracking-[0.16em] text-[rgba(26,22,17,0.6)] whitespace-nowrap"
+              >
+                {word} <span className="text-[var(--accent)]">✦</span>
+              </span>
+            ))}
+          </div>
+        </div>
 
-            <div className="mkt-module-grid mt-11">
-              {LANDING_MODULE_ORDER.map((moduleId) => {
+        <section id="modules" className="relative z-[5] px-6 py-[100px] sm:px-10">
+          <div className="mx-auto max-w-[1280px]">
+            <div className="flex flex-wrap items-baseline justify-between gap-6">
+              <h2 className="ui-display text-[clamp(2.4rem,4.5vw,3.6rem)] tracking-[-0.02em] text-[var(--ink)]">
+                Onze modules.
+                <br />
+                <em className="text-[var(--accent)] italic">Zéro jargon.</em>
+              </h2>
+              <p className="max-w-[380px] text-base leading-relaxed text-[var(--ink-muted)]">
+                Activez ce dont vous avez besoin, ignorez le reste. Chaque brique porte un nom que toute
+                l&apos;équipe comprend.
+              </p>
+            </div>
+
+            <div className="mt-14 border-t border-[rgba(26,22,17,0.18)]">
+              {LANDING_MODULE_ORDER.map((moduleId, index) => {
                 const copy = MODULE_COPY[moduleId];
+                const num = String(index + 1).padStart(2, "0");
                 return (
-                  <ScrollReveal key={moduleId} className="mkt-module-cell">
-                    <ModuleGlyph moduleId={moduleId} size="md" />
-                    <h3>{copy.title}</h3>
-                    <p>{copy.desc}</p>
+                  <ScrollReveal key={moduleId}>
+                    <div className="mkt-module-row group grid grid-cols-[56px_1fr] items-center gap-6 border-b border-[var(--line)] py-[26px] sm:grid-cols-[80px_1fr_1.2fr_auto] sm:px-2">
+                      <span className="font-[family-name:var(--font-mono)] text-[13px] text-[rgba(26,22,17,0.4)]">
+                        {num}
+                      </span>
+                      <h3 className="ui-display text-[27px] tracking-[-0.01em] text-[var(--ink)]">
+                        {copy.title}
+                      </h3>
+                      <p className="col-span-2 text-[15px] leading-[1.55] text-[rgba(26,22,17,0.6)] sm:col-span-1">
+                        {copy.desc}
+                      </p>
+                      <div className="hidden sm:block">
+                        <ModuleGlyph moduleId={moduleId} size="md" />
+                      </div>
+                    </div>
                   </ScrollReveal>
                 );
               })}
-              <ScrollReveal className="mkt-module-cell mkt-module-cell--inverted">
-                <ModuleGlyph moduleId="ai" size="md" />
-                <h3>Assistant IA</h3>
-                <p>Reformulez, résumez, gagnez du temps sur le rédactionnel.</p>
-                <span className="mkt-plan-badge-pro">PLAN PRO</span>
+              <ScrollReveal>
+                <div className="grid grid-cols-[56px_1fr] items-center gap-6 rounded-b-[18px] bg-[var(--ink)] px-5 py-[26px] sm:grid-cols-[80px_1fr_1.2fr_auto]">
+                  <span className="font-[family-name:var(--font-mono)] text-[13px] text-[rgba(246,241,231,0.45)]">
+                    12
+                  </span>
+                  <h3 className="ui-display text-[27px] tracking-[-0.01em] text-[var(--background)]">
+                    Assistant IA <em className="text-[var(--accent-on-dark)] italic">— plan Pro</em>
+                  </h3>
+                  <p className="col-span-2 text-[15px] leading-[1.55] text-[rgba(246,241,231,0.6)] sm:col-span-1">
+                    Reformulez, résumez, gagnez du temps sur le rédactionnel.
+                  </p>
+                  <span className="hidden h-[42px] w-[42px] items-center justify-center rounded-full bg-[var(--accent)] sm:inline-flex">
+                    <span className="atelier-star atelier-star--spin h-3.5 w-3.5 bg-[var(--background)]" aria-hidden />
+                  </span>
+                </div>
               </ScrollReveal>
             </div>
           </div>
         </section>
 
-        <section className="px-4 py-24 sm:px-8">
-          <div className="mx-auto grid max-w-[1180px] gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <section className="relative z-[5] px-6 pb-[100px] pt-10 sm:px-10">
+          <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-20 lg:grid-cols-[1.1fr_0.9fr]">
             <ScrollReveal direction="left">
-              <span className="ui-kicker">{"// POURQUOI RECUEIL"}</span>
-              <h2 className="ui-display mt-3 text-[clamp(1.75rem,3.4vw,2.375rem)] font-bold text-[var(--ink)]">
-                Un outil qui grandit avec vous
-              </h2>
-              <p className="mt-3.5 max-w-[460px] text-base leading-relaxed text-[var(--ink-muted)]">
-                Asso, agence ou side project à deux : commencez léger, ajoutez des modules quand le
-                besoin arrive.
+              <span className="ui-kicker text-[12px] tracking-[0.18em]">N°02 — Pourquoi WorkSpace</span>
+              <p className="ui-display mt-7 text-[clamp(1.8rem,3.2vw,2.6rem)] leading-[1.2] tracking-[-0.01em] text-[var(--ink)]">
+                « Commencez léger à deux, ajoutez des modules quand le besoin arrive.{" "}
+                <em className="text-[var(--accent)] italic">L&apos;outil grandit avec vous</em>, jamais
+                l&apos;inverse. »
               </p>
-              <ul className="mt-7 flex flex-col gap-4">
-                {WHY_POINTS.map((item) => (
+              <ul className="mt-9 flex flex-col">
+                {WHY_POINTS.map((pt) => (
                   <li
-                    key={item}
-                    className="flex items-start gap-3 text-[15px] text-[color-mix(in_srgb,var(--ink)_78%,transparent)]"
+                    key={pt.num}
+                    className="flex items-center gap-4 border-b border-[rgba(26,22,17,0.12)] py-[15px] text-base text-[rgba(26,22,17,0.8)]"
                   >
-                    <span className="mkt-check" aria-hidden />
-                    {item}
+                    <span className="font-[family-name:var(--font-mono)] text-xs text-[var(--accent)]">
+                      {pt.num}
+                    </span>
+                    {pt.text}
                   </li>
                 ))}
               </ul>
             </ScrollReveal>
-
             <ScrollReveal direction="right" delay={120}>
               <LandingPricingSection />
             </ScrollReveal>
           </div>
         </section>
 
-        <section className="mkt-cta-band">
+        <section className="relative z-[5] mx-6 mb-10 overflow-hidden rounded-[28px] bg-[var(--ink)] px-6 py-[100px] text-center sm:mx-10">
+          <GrainBand aria-hidden />
           <ScrollReveal>
-            <h2>Prêt à arrêter de courir partout ?</h2>
-            <p>
+            <span className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.18em] text-[var(--accent-on-dark)]">
+              N°03 — C&apos;est parti
+            </span>
+            <h2 className="ui-display mx-auto mt-6 max-w-[760px] text-[clamp(2.6rem,5vw,4.2rem)] leading-[1.05] tracking-[-0.02em] text-[var(--background)]">
+              Prêt à arrêter de <em className="text-[var(--accent-on-dark)] italic">courir partout</em> ?
+            </h2>
+            <p className="mx-auto mt-[22px] max-w-[460px] text-[17px] text-[rgba(246,241,231,0.6)]">
               Créez votre espace en moins de 5 minutes. Choisissez vos modules, invitez un collègue,
               c&apos;est parti.
             </p>
-            <Link href="/signup" className="mkt-cta-accent mt-[26px]">
-              Créer mon espace gratuitement
+            <Link
+              href="/signup"
+              className="mkt-cta-band mt-9 inline-flex items-center gap-2.5 rounded-[100px] bg-[var(--background)] px-9 py-[18px] text-base font-semibold text-[var(--ink)]"
+            >
+              Créer mon espace gratuitement{" "}
+              <span className="font-[family-name:var(--font-mono)]">→</span>
             </Link>
           </ScrollReveal>
         </section>
       </main>
 
-      <footer className="border-t border-[var(--line)] bg-[var(--background)] px-4 py-10 sm:px-8">
-        <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-3">
+      <footer className="relative z-[5] border-t border-[var(--line)] px-6 py-9 sm:px-10">
+        <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-4">
           <AppWordmark size="compact" />
-          <nav className="flex flex-wrap gap-5 text-[13px] text-[var(--ink-muted)]">
-            <Link href="/privacy" className="hover:text-[var(--ink)]">
+          <span className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.14em] text-[rgba(26,22,17,0.45)]">
+            © 2026 — Fait avec soin
+          </span>
+          <nav className="flex flex-wrap gap-6 text-[13.5px] text-[rgba(26,22,17,0.6)]">
+            <Link href="/privacy" className="hover:text-[var(--accent)]">
               Confidentialité
             </Link>
-            <Link href="/terms" className="hover:text-[var(--ink)]">
+            <Link href="/terms" className="hover:text-[var(--accent)]">
               CGU
             </Link>
-            <Link href="/legal" className="hover:text-[var(--ink)]">
+            <Link href="/legal" className="hover:text-[var(--accent)]">
               Mentions légales
             </Link>
           </nav>
         </div>
       </footer>
     </div>
+  );
+}
+
+function GrainBand({ "aria-hidden": ariaHidden }: { "aria-hidden"?: boolean }) {
+  return (
+    <div
+      aria-hidden={ariaHidden}
+      className="pointer-events-none absolute inset-0 opacity-40"
+      style={{
+        backgroundImage:
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.95 0 0 0 0 0.85 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E\")",
+      }}
+    />
   );
 }

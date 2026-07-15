@@ -2,11 +2,17 @@
 
 import type { ReactNode } from "react";
 import AppLogo from "./AppLogo";
+import { AtelierMark } from "./AtelierMark";
 import { useBranding } from "../lib/brandingContext";
-import { isExternalImageSrc } from "../lib/branding";
-import { DEFAULT_APP_MARK_SRC } from "./AppLogo";
+import { isDefaultAppMarkSrc, isExternalImageSrc } from "../lib/branding";
 
-export function AppMark({ className = "h-9 w-9" }: { className?: string }) {
+export function AppMark({
+  className = "h-9 w-9",
+  starOnDark = false,
+}: {
+  className?: string;
+  starOnDark?: boolean;
+}) {
   const { branding } = useBranding();
   const src = branding.markUrl || branding.iconUrl;
 
@@ -30,18 +36,11 @@ export function AppMark({ className = "h-9 w-9" }: { className?: string }) {
     );
   }
 
-  if (src) {
+  if (src && !isDefaultAppMarkSrc(src)) {
     return <AppLogo variant="icon" className={className} aria-label={branding.appName} />;
   }
 
-  return (
-    // eslint-disable-next-line @next/next/no-img-element -- pictogramme SVG neutre par défaut
-    <img
-      src={DEFAULT_APP_MARK_SRC}
-      alt={branding.appName}
-      className={["object-contain", className].filter(Boolean).join(" ")}
-    />
-  );
+  return <AtelierMark className={className} starOnDark={starOnDark} />;
 }
 
 type WordmarkSize = "sidebar" | "login" | "compact";

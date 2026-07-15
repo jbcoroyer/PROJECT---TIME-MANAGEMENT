@@ -60,11 +60,11 @@ function resolveKanbanCardDisplayMode(
   return "compact";
 }
 
-const COLUMN_DOT: Record<string, string> = {
-  "À faire": "bg-[color-mix(in_srgb,var(--ink)_30%,transparent)]",
-  "En cours": "bg-[var(--accent)]",
-  "En validation": "bg-[var(--accent-violet)]",
-  Terminé: "bg-[color-mix(in_srgb,var(--success)_70%,var(--ink))]",
+const COLUMN_STYLE: Record<string, { italic?: boolean; muted?: boolean }> = {
+  "À faire": {},
+  "En cours": { italic: true },
+  "En validation": {},
+  Terminé: { muted: true },
 };
 
 function DroppableColumn(props: {
@@ -75,22 +75,31 @@ function DroppableColumn(props: {
   tightList?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: props.id });
-  const dotClass = COLUMN_DOT[props.id] ?? COLUMN_DOT["À faire"];
+  const colStyle = COLUMN_STYLE[props.id] ?? {};
   const countLabel = String(props.count).padStart(2, "0");
 
   return (
-    <div className="flex min-w-[260px] flex-1 flex-col">
-      <div className="mb-3 flex items-center gap-2">
-        <span className={["h-2 w-2 shrink-0 rounded-full", dotClass].join(" ")} aria-hidden />
-        <span className="ui-display text-[13.5px] font-semibold text-[var(--ink)]">{props.id}</span>
-        <span className="font-[family-name:var(--font-mono)] text-[11px] text-[color-mix(in_srgb,var(--ink)_40%,transparent)]">
+    <div className="flex min-w-[270px] flex-1 flex-col border-r border-[rgba(26,22,17,0.1)] pr-4 mr-4 last:border-r-0 last:mr-0">
+      <div className="mb-4 flex items-baseline gap-2.5">
+        <span
+          className={[
+            "ui-display text-[21px] text-[var(--ink)]",
+            colStyle.italic ? "italic text-[var(--accent)]" : "",
+            colStyle.muted ? "text-[rgba(26,22,17,0.45)] italic" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {props.id}
+        </span>
+        <span className="font-[family-name:var(--font-mono)] text-[11px] text-[var(--accent)]">
           {countLabel}
         </span>
         {props.onAddTask ? (
           <button
             type="button"
             onClick={props.onAddTask}
-            className="ui-transition ml-auto inline-flex h-6 w-6 items-center justify-center rounded-[10px] border border-dashed border-[var(--line-strong)] text-[color-mix(in_srgb,var(--ink)_35%,transparent)] hover:border-[var(--line)] hover:text-[var(--ink-muted)]"
+            className="ui-transition ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-[rgba(26,22,17,0.3)] text-[rgba(26,22,17,0.4)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
             title="Ajouter une tâche dans cette colonne"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -103,7 +112,7 @@ function DroppableColumn(props: {
         className={[
           "flex flex-1 flex-col transition-all duration-150",
           props.tightList ? "gap-2.5" : "gap-2.5",
-          isOver ? "rounded-[14px] bg-[var(--surface-soft)]/60" : "",
+          isOver ? "rounded-2xl bg-[rgba(255,255,255,0.4)]" : "",
         ].join(" ")}
         style={{ minHeight: 140 }}
       >
@@ -443,7 +452,7 @@ export default function KanbanBoardView(props: {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 overflow-x-auto pb-2">
+          <div className="flex gap-0 overflow-x-auto border-t border-[rgba(26,22,17,0.16)] pb-2 pt-5">
             {props.columns.map((col) => {
               const colTasks = filteredTasks
                 .filter((t) => t.column === col)
