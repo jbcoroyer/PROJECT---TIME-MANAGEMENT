@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 type ScrollRevealProps = {
   children: ReactNode;
@@ -9,6 +9,10 @@ type ScrollRevealProps = {
   direction?: "up" | "left" | "right" | "scale";
 };
 
+function revealElement(el: HTMLElement) {
+  el.classList.add("mkt-reveal--visible");
+}
+
 export default function ScrollReveal({
   children,
   className = "",
@@ -16,21 +20,21 @@ export default function ScrollReveal({
   direction = "up",
 }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    // prefers-reduced-motion : visible sans animation (CSS + classe immédiate)
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setVisible(true);
+      revealElement(el);
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
-          setVisible(true);
+          revealElement(el);
           observer.disconnect();
         }
       },
@@ -44,14 +48,7 @@ export default function ScrollReveal({
   return (
     <div
       ref={ref}
-      className={[
-        "mkt-reveal",
-        `mkt-reveal--${direction}`,
-        visible && "mkt-reveal--visible",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      className={["mkt-reveal", `mkt-reveal--${direction}`, className].filter(Boolean).join(" ")}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}

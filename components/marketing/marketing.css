@@ -497,6 +497,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mkt-reveal {
+    opacity: 1;
+    transform: none;
+  }
+
   .mkt-card-hover,
   .mkt-card-hover:hover,
   .mkt-marquee {
