@@ -40,7 +40,7 @@ export type ModuleGlyphMeta = {
  */
 export const MODULE_GLYPH_META: Record<AppModuleId, ModuleGlyphMeta> = {
   dashboard: { color: "orange", shape: "kanban-grid", label: "Tableau de bord" },
-  workspace: { color: "teal", shape: "check-circle", label: "Mon agenda" },
+  workspace: { color: "teal", shape: "calendar", label: "Agenda" },
   planning: { color: "violet", shape: "calendar", label: "Planning" },
   ideas: { color: "yellow", shape: "bulb", label: "Boîte à idées" },
   asks: { color: "teal", shape: "plane", label: "Boîte à demandes" },

@@ -17,9 +17,14 @@ import {
   toggleCollapsedEventGroup,
 } from "../lib/eventGroupCollapse";
 import { partitionTasksByEvent } from "../lib/eventTaskGroups";
+import ColumnStatusBadge from "./ColumnStatusBadge";
+import InboxActivityPanel from "./v2/dashboard/InboxActivityPanel";
 
-/** Colonnes qui apparaissent dans la To-Do List */
-const TODO_COLUMNS = new Set(["En cours", "À faire", "En validation", "Backlog"]);
+/** Colonnes ouvertes affichées dans la To-Do List (toutes sauf « terminé »). */
+function buildOpenColumnSet(openColumns?: string[]): Set<string> {
+  if (openColumns && openColumns.length > 0) return new Set(openColumns);
+  return new Set(["En cours", "À faire", "En validation", "Backlog"]);
+}
 
 /** Catégories deadline (ordre d'affichage) */
 type DeadlineCategory = "overdue" | "today" | "week" | "month" | "later";
@@ -126,9 +131,7 @@ function TodoTaskRow(props: {
         </div>
       </div>
 
-      <span className="hidden items-center rounded-md border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-[11px] text-[color:var(--foreground)]/65 sm:inline-flex">
-        {task.column}
-      </span>
+      <ColumnStatusBadge label={task.column} className="hidden sm:inline-flex" />
 
       <span className="hidden items-center gap-1 rounded-md border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-[11px] text-[color:var(--foreground)]/65 md:inline-flex">
         <Building2 className="h-3 w-3 shrink-0" />
@@ -163,9 +166,12 @@ export default function ToDoListView(props: {
   tasks: Task[];
   now: number;
   admins: string[];
+  openColumns?: string[];
   currentUserName?: string | null;
   onTaskClick?: (task: Task) => void;
+  showActivityPanel?: boolean;
 }) {
+  const showActivityPanel = props.showActivityPanel ?? true;
   const [manualSelectedAdmin, setManualSelectedAdmin] = useState<AdminId>("");
   const [collapsedEventIds, setCollapsedEventIds] = useState<Set<string>>(() => loadCollapsedEventGroupIds());
 
@@ -191,16 +197,18 @@ export default function ToDoListView(props: {
     return preferredAdmin;
   }, [isAutoDetected, manualSelectedAdmin, preferredAdmin, props.admins]);
 
+  const openColumnSet = useMemo(() => buildOpenColumnSet(props.openColumns), [props.openColumns]);
+
   const visibleTasks = useMemo(() => {
     return props.tasks.filter(
       (task) =>
         !task.isArchived &&
         !task.parentTaskId &&
         task.admins.includes(selectedAdmin) &&
-        TODO_COLUMNS.has(task.column) &&
+        openColumnSet.has(task.column) &&
         task.column !== "Terminé",
     );
-  }, [props.tasks, selectedAdmin]);
+  }, [props.tasks, selectedAdmin, openColumnSet]);
 
   // Groupement par catégorie deadline puis tri par deadline dans chaque catégorie
   const grouped = useMemo<Record<DeadlineCategory, Task[]>>(() => {
@@ -231,8 +239,69 @@ export default function ToDoListView(props: {
     (cat) => grouped[cat].length > 0,
   );
 
-  return (
+  const validationCount = useMemo(
+    () => visibleTasks.filter((task) => task.column === "En validation").length,
+    [visibleTasks],
+  );
+
+  const mainContent = (
     <div className="space-y-6">
+      <div className="rounded-2xl border border-[color-mix(in_srgb,var(--accent)_22%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] p-4">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
+          Vue personnelle
+        </p>
+        <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">Mes tâches</h2>
+        <p className="mt-1 text-sm leading-relaxed text-[color:var(--foreground)]/65">
+          Uniquement les tâches qui vous sont assignées, triées par échéance — de la plus urgente à la plus lointaine.
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)]/80 px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--foreground)]/45">
+              Kanban / Liste
+            </p>
+            <p className="mt-0.5 text-xs text-[color:var(--foreground)]/70">
+              Vue équipe — toutes les tâches du board, par colonne ou filtre.
+            </p>
+          </div>
+          <div className="rounded-xl border border-[var(--accent)]/30 bg-[var(--surface)]/90 px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
+              Mes tâches (ici)
+            </p>
+            <p className="mt-0.5 text-xs text-[color:var(--foreground)]/70">
+              Vue perso — ce que vous devez faire, par urgence d&apos;échéance.
+            </p>
+          </div>
+          <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)]/80 px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--foreground)]/45">
+              Calendrier
+            </p>
+            <p className="mt-0.5 text-xs text-[color:var(--foreground)]/70">
+              Vue dates — échéances et charge sur une timeline.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {(grouped.overdue.length > 0 || grouped.today.length > 0 || validationCount > 0) && (
+        <div className="flex flex-wrap gap-2">
+          {grouped.overdue.length > 0 ? (
+            <span className="ui-pill ui-pill-danger px-2.5 py-1 text-[11px] font-semibold">
+              {grouped.overdue.length} en retard
+            </span>
+          ) : null}
+          {grouped.today.length > 0 ? (
+            <span className="ui-pill ui-pill-warning px-2.5 py-1 text-[11px] font-semibold">
+              {grouped.today.length} aujourd&apos;hui
+            </span>
+          ) : null}
+          {validationCount > 0 ? (
+            <span className="rounded-full border border-[color-mix(in_srgb,var(--accent)_30%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_10%,var(--surface))] px-2.5 py-1 text-[11px] font-semibold text-[var(--accent)]">
+              {validationCount} en validation
+            </span>
+          ) : null}
+        </div>
+      )}
+
       {/* En-tête : identité + sélecteur */}
       <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
         <div className="flex items-center gap-2">
@@ -313,7 +382,7 @@ export default function ToDoListView(props: {
                               type="button"
                               onClick={() => toggleEventGroupCollapse(eventId)}
                               className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/55 hover:bg-[var(--surface-soft)] hover:text-[color:var(--foreground)]/75"
-                              title={collapsed ? "Afficher les tâches du salon" : "Masquer les tâches (nom du salon seulement)"}
+                              title={collapsed ? "Afficher les tâches de l'événement" : "Masquer les tâches (nom de l'événement seulement)"}
                               aria-expanded={!collapsed}
                             >
                               {collapsed ? (
@@ -360,6 +429,17 @@ export default function ToDoListView(props: {
           </p>
         </div>
       )}
+    </div>
+  );
+
+  if (!showActivityPanel) {
+    return mainContent;
+  }
+
+  return (
+    <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+      {mainContent}
+      <InboxActivityPanel />
     </div>
   );
 }

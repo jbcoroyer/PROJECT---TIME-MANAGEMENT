@@ -4,6 +4,24 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowser } from "../supabaseBrowser";
 import { toastError } from "../toast";
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isBoardColumnId(id: string): boolean {
+  return UUID_RE.test(id);
+}
+
+export function resolveColumnRefs(
+  columnLabel: string,
+  columnRecords: Array<{ id: string; name: string }>,
+): { column_id: string; board_column_id?: string } {
+  const match = columnRecords.find((col) => col.name === columnLabel);
+  if (match && isBoardColumnId(match.id)) {
+    return { column_id: columnLabel, board_column_id: match.id };
+  }
+  return { column_id: columnLabel };
+}
+
 export type BoardColumn = {
   id: string;
   boardId: string;

@@ -1,5 +1,5 @@
-import V2TodoPage from "../../../components/v2/todo/V2TodoPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <V2TodoPage />;
+  redirect("/agenda?tab=today");
 }

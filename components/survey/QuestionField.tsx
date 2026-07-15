@@ -9,7 +9,7 @@ type QuestionFieldProps = {
   question: Question;
   value: SurveyAnswers[string];
   onChange: (value: SurveyAnswers[string]) => void;
-  /** Options dynamiques (ex. entités depuis useReferenceData) qui remplacent celles de la config. */
+  /** Options dynamiques (ex. sociétés depuis useReferenceData) qui remplacent celles de la config. */
   optionsOverride?: readonly string[];
 };
 
@@ -128,10 +128,12 @@ export default function QuestionField({
 
       {question.type === "text" ? (
         <input
+          type={question.inputVariant ?? "text"}
           value={typeof value === "string" ? value : ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder={question.placeholder}
-          maxLength={200}
+          maxLength={question.inputVariant === "email" ? 320 : 200}
+          autoComplete={question.inputVariant === "email" ? "email" : undefined}
           className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--foreground)] placeholder:text-[color:var(--foreground)]/40"
         />
       ) : null}

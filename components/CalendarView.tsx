@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Calendar, dateFnsLocalizer, type View } from "react-big-calendar";
 import {
   format,
@@ -31,6 +32,10 @@ import {
   defaultDomainColor,
   domainCalendarColors,
 } from "../lib/kanbanStyles";
+import { useColumnVisuals } from "../lib/useColumnVisuals";
+import { useReferenceData } from "../lib/useReferenceData";
+import { BOARD_COLUMN_PALETTE, setColor as setBoardColumnColor } from "../lib/v2/boardColumns";
+import { useIsClient } from "../lib/useIsClient";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const locales = { fr };
@@ -43,7 +48,7 @@ const localizer = dateFnsLocalizer({
 });
 
 const CALENDAR_EXTRA_COLOR = domainCalendarColors["🌎 General"] ?? defaultDomainColor;
-const CALENDAR_SALON_COLOR = domainCalendarColors["🎟️ Event"] ?? defaultDomainColor;
+const CALENDAR_EVENT_COLOR = domainCalendarColors["🎟️ Event"] ?? defaultDomainColor;
 const CALENDAR_DEADLINE_COLOR = "var(--danger)";
 
 const CALENDAR_VIEWS: View[] = ["month", "week", "day", "agenda"];
@@ -51,11 +56,12 @@ type CalendarEventResource = {
   task?: Task;
   domain?: string;
   isDeadline?: boolean;
-  kind: "planning" | "deadline" | "extra" | "salon";
+  kind: "planning" | "deadline" | "extra" | "event";
   owner: AdminId;
   ownerColor: string;
+  columnColor?: string;
   extra?: CalendarExtraEvent;
-  salonEvent?: EventRow;
+  linkedEvent?: EventRow;
 };
 
 type CalendarEvent = {
@@ -67,13 +73,23 @@ type CalendarEvent = {
   resource: CalendarEventResource;
 };
 
-function EventCard(props: { event: CalendarEvent }) {
-  const { event } = props;
+function EventCard(props: {
+  event: CalendarEvent;
+  onTaskContextMenu?: (e: React.MouseEvent, task: Task) => void;
+}) {
+  const { event, onTaskContextMenu } = props;
   const { task, isDeadline, owner, ownerColor } = event.resource;
   if (!task) return null;
 
   return (
-    <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-md px-2 py-1">
+    <div
+      className="group relative flex h-full w-full flex-col overflow-hidden rounded-md px-2 py-1"
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onTaskContextMenu?.(e, task);
+      }}
+    >
       <div className="mb-0.5 flex items-center gap-1">
         <AdminAvatar admin={owner} size="sm" />
         <span className="text-[10px] font-bold uppercase tracking-wide opacity-90">
@@ -92,8 +108,8 @@ function EventCard(props: { event: CalendarEvent }) {
         <p className="truncate text-[9px] opacity-80">{task.clientName}</p>
       )}
       <div
-        className="absolute bottom-0 left-0 right-0 h-[2px] opacity-50"
-        style={{ backgroundColor: ownerColor }}
+        className="absolute bottom-0 left-0 right-0 h-[2px] opacity-80"
+        style={{ backgroundColor: event.resource.columnColor ?? ownerColor }}
       />
     </div>
   );
@@ -109,10 +125,10 @@ function ExtraEventCard(props: { event: CalendarEvent }) {
         </span>
       </div>
       <p className="truncate text-[11px] font-semibold leading-tight">{props.event.title}</p>
-      {ex?.salon && (
+      {ex?.location && (
         <p className="flex items-center gap-0.5 truncate text-[9px] opacity-90">
           <MapPin className="h-2.5 w-2.5 shrink-0" />
-          {ex.salon}
+          {ex.location}
         </p>
       )}
       <div
@@ -123,14 +139,14 @@ function ExtraEventCard(props: { event: CalendarEvent }) {
   );
 }
 
-function SalonEventCard(props: { event: CalendarEvent }) {
-  const se = props.event.resource.salonEvent;
+function LinkedEventCard(props: { event: CalendarEvent }) {
+  const se = props.event.resource.linkedEvent;
   if (!se) return null;
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden rounded-md px-2 py-1">
       <div className="mb-0.5 flex items-center gap-1">
         <span className="rounded bg-white/25 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider">
-          Salon
+          Événement
         </span>
       </div>
       <p className="truncate text-[11px] font-semibold leading-tight">{se.name || props.event.title}</p>
@@ -142,20 +158,103 @@ function SalonEventCard(props: { event: CalendarEvent }) {
       ) : null}
       <div
         className="absolute bottom-0 left-0 right-0 h-[2px]"
-        style={{ backgroundColor: `color-mix(in srgb, ${CALENDAR_SALON_COLOR} 55%, transparent)` }}
+        style={{ backgroundColor: `color-mix(in srgb, ${CALENDAR_EVENT_COLOR} 55%, transparent)` }}
       />
     </div>
   );
 }
 
-function CalendarEventWrapper(props: { event: CalendarEvent }) {
+function CalendarEventWrapper(props: {
+  event: CalendarEvent;
+  onTaskContextMenu?: (e: React.MouseEvent, task: Task) => void;
+}) {
   if (props.event.resource.kind === "extra") {
     return <ExtraEventCard event={props.event} />;
   }
-  if (props.event.resource.kind === "salon") {
-    return <SalonEventCard event={props.event} />;
+  if (props.event.resource.kind === "event") {
+    return <LinkedEventCard event={props.event} />;
   }
-  return <EventCard event={props.event} />;
+  return <EventCard event={props.event} onTaskContextMenu={props.onTaskContextMenu} />;
+}
+
+type TaskColorMenuState = {
+  x: number;
+  y: number;
+  task: Task;
+  columnId: string;
+  columnLabel: string;
+  currentColor: string;
+};
+
+function TaskColorContextMenu(props: {
+  state: TaskColorMenuState;
+  onClose: () => void;
+  onPickColor: (color: string) => void;
+}) {
+  const mounted = useIsClient();
+  const { state, onClose, onPickColor } = props;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    const onScroll = () => onClose();
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
+    };
+  }, [onClose]);
+
+  if (!mounted) return null;
+
+  const menuWidth = 220;
+  const left = Math.min(state.x, window.innerWidth - menuWidth - 12);
+  const top = Math.min(state.y, window.innerHeight - 280);
+
+  return createPortal(
+    <>
+      <button
+        type="button"
+        aria-label="Fermer le menu"
+        className="fixed inset-0 z-[120]"
+        onClick={onClose}
+      />
+      <div
+        role="menu"
+        className="ui-surface fixed z-[121] w-[220px] rounded-xl border border-[var(--line-strong)] p-3 shadow-[0_18px_48px_rgba(20,17,13,0.18)]"
+        style={{ left, top }}
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/45">
+          Couleur
+        </p>
+        <p className="mt-0.5 truncate text-sm font-semibold text-[var(--foreground)]">
+          {state.task.projectName || "Sans titre"}
+        </p>
+        <p className="mt-0.5 text-[11px] text-[color:var(--foreground)]/55">
+          Colonne « {state.columnLabel} » — synchronisée avec le Kanban
+        </p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {BOARD_COLUMN_PALETTE.map((color) => (
+            <button
+              key={color}
+              type="button"
+              role="menuitem"
+              title={color}
+              onClick={() => onPickColor(color)}
+              className={[
+                "h-7 w-7 rounded-full border-2 transition hover:scale-105",
+                state.currentColor === color ? "border-[var(--foreground)]" : "border-transparent",
+              ].join(" ")}
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+      </div>
+    </>,
+    document.body,
+  );
 }
 
 function Toolbar(props: {
@@ -239,7 +338,7 @@ type EventModalProps = {
 
 function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProps) {
   const [title, setTitle] = useState("");
-  const [salon, setSalon] = useState("");
+  const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [allDay, setAllDay] = useState(false);
   const [startVal, setStartVal] = useState("");
@@ -250,7 +349,7 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
     const timeoutId = window.setTimeout(() => {
       if (initial && initial.start && initial.end) {
         setTitle(initial.title ?? "");
-        setSalon(initial.salon ?? "");
+        setLocation(initial.location ?? initial.salon ?? "");
         setNotes(initial.notes ?? "");
         setAllDay(!!initial.allDay);
         setStartVal(toLocalDatetimeValue(new Date(initial.start)));
@@ -260,7 +359,7 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
         s.setMinutes(0, 0, 0);
         const e = new Date(s.getTime() + 60 * 60 * 1000);
         setTitle("");
-        setSalon("");
+        setLocation("");
         setNotes("");
         setAllDay(false);
         setStartVal(toLocalDatetimeValue(s));
@@ -294,7 +393,7 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
       start: start.toISOString(),
       end: end.toISOString(),
       allDay,
-      salon: salon.trim() || undefined,
+      location: location.trim() || undefined,
       notes: notes.trim() || undefined,
     });
     if (ok) onClose();
@@ -345,11 +444,11 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
           <div>
             <label className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-[color:var(--foreground)]/65">
               <Building2 className="h-3.5 w-3.5" />
-              Lieu / salon
+              Lieu
             </label>
             <input
-              value={salon}
-              onChange={(e) => setSalon(e.target.value)}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
               className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
               placeholder="Salle A, visio, Slack…"
             />
@@ -459,10 +558,12 @@ export default function CalendarView(props: {
   tasks: Task[];
   admins: string[];
   currentUserName?: string | null;
-  salonEvents?: EventRow[];
+  calendarEvents?: EventRow[];
   onSelectTask: (taskId: string) => void;
 }) {
   const router = useRouter();
+  const { colorFor } = useColumnVisuals();
+  const { columns: columnRecords } = useReferenceData();
   const [view, setView] = useState<View>("week");
   const [date, setDate] = useState(new Date());
   const [filterAdmin, setFilterAdmin] = useState<AdminId | "Tous">("Tous");
@@ -470,6 +571,8 @@ export default function CalendarView(props: {
   const [extraEventsLoaded, setExtraEventsLoaded] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingExtra, setEditingExtra] = useState<CalendarExtraEvent | null>(null);
+  const [colorMenu, setColorMenu] = useState<TaskColorMenuState | null>(null);
+  const [colorSaving, setColorSaving] = useState(false);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -531,7 +634,7 @@ export default function CalendarView(props: {
     const endDate = format(new Date(ev.end), "yyyy-MM-dd");
     const result = await createEventWithTasks({
       name: ev.title.trim(),
-      location: ev.salon?.trim() ?? "",
+      location: ev.location?.trim() ?? ev.salon?.trim() ?? "",
       startDate,
       endDate,
       status: "En préparation",
@@ -551,6 +654,49 @@ export default function CalendarView(props: {
     setExtraEvents((prev) => prev.filter((x) => x.id !== id));
   }, []);
 
+  const handleTaskContextMenu = useCallback(
+    (e: React.MouseEvent, task: Task) => {
+      const column = columnRecords.find((col) => col.name === task.column);
+      if (!column?.id || column.id.startsWith("temp-")) {
+        toastError("Colonne introuvable pour cette tâche.");
+        return;
+      }
+      setColorMenu({
+        x: e.clientX,
+        y: e.clientY,
+        task,
+        columnId: column.id,
+        columnLabel: column.name,
+        currentColor: column.color?.trim() || colorFor(task.column),
+      });
+    },
+    [columnRecords, colorFor],
+  );
+
+  const handlePickColumnColor = useCallback(
+    async (color: string) => {
+      if (!colorMenu || colorSaving) return;
+      setColorSaving(true);
+      try {
+        await setBoardColumnColor(colorMenu.columnId, color);
+        toastSuccess(`Couleur de « ${colorMenu.columnLabel} » mise à jour`);
+        setColorMenu(null);
+      } catch {
+        toastError("Impossible de changer la couleur.");
+      } finally {
+        setColorSaving(false);
+      }
+    },
+    [colorMenu, colorSaving],
+  );
+
+  const TaskEventComponent = useCallback(
+    (eventProps: { event: CalendarEvent }) => (
+      <CalendarEventWrapper event={eventProps.event} onTaskContextMenu={handleTaskContextMenu} />
+    ),
+    [handleTaskContextMenu],
+  );
+
   const visibleTasks = useMemo(
     () =>
       filterAdmin === "Tous"
@@ -564,6 +710,7 @@ export default function CalendarView(props: {
     for (const task of visibleTasks) {
       const owner = (task.admins[0] ?? props.admins[0] ?? "") as AdminId;
       const ownerColor = adminAvatarMetaFor(owner).calendarColor;
+      const columnColor = colorFor(task.column);
 
       for (const item of task.projectedWork || []) {
         if (!item.date || item.hours <= 0) continue;
@@ -594,6 +741,7 @@ export default function CalendarView(props: {
             kind: "planning",
             owner,
             ownerColor,
+            columnColor,
           },
         });
       }
@@ -613,6 +761,7 @@ export default function CalendarView(props: {
             kind: "deadline",
             owner,
             ownerColor,
+            columnColor,
           },
         });
       }
@@ -636,8 +785,8 @@ export default function CalendarView(props: {
       });
     }
 
-    const salons = props.salonEvents ?? [];
-    for (const ev of salons) {
+    const linked = props.calendarEvents ?? [];
+    for (const ev of linked) {
       if (!ev.startDate || !ev.endDate) continue;
       const startD = parse(ev.startDate, "yyyy-MM-dd", new Date());
       const endD = parse(ev.endDate, "yyyy-MM-dd", new Date());
@@ -646,22 +795,22 @@ export default function CalendarView(props: {
       const endExclusive = addDays(startOfDay(endD), 1);
       if (endExclusive <= start) continue;
       result.push({
-        id: `salon-${ev.id}`,
-        title: ev.name || "Salon",
+        id: `event-${ev.id}`,
+        title: ev.name || "Événement",
         start,
         end: endExclusive,
         allDay: true,
         resource: {
-          kind: "salon",
+          kind: "event",
           owner: defaultOwner,
-          ownerColor: CALENDAR_SALON_COLOR,
-          salonEvent: ev,
+          ownerColor: CALENDAR_EVENT_COLOR,
+          linkedEvent: ev,
         },
       });
     }
 
     return result;
-  }, [visibleTasks, props.admins, extraEvents, defaultOwner, props.salonEvents]);
+  }, [visibleTasks, props.admins, extraEvents, defaultOwner, props.calendarEvents, colorFor]);
 
   const CustomToolbar = useCallback(
     (tbProps: {
@@ -768,9 +917,12 @@ export default function CalendarView(props: {
           <span className="inline-flex items-center gap-1.5 text-[11px] text-[color:var(--foreground)]/55">
             <span
               className="inline-block h-3 w-3 rounded-full"
-              style={{ backgroundColor: CALENDAR_SALON_COLOR }}
+              style={{ backgroundColor: CALENDAR_EVENT_COLOR }}
             />
-            Salon
+            Événement
+          </span>
+          <span className="text-[11px] text-[color:var(--foreground)]/45">
+            Clic droit sur une tâche → couleur de colonne
           </span>
         </div>
       </div>
@@ -800,7 +952,7 @@ export default function CalendarView(props: {
             timeslots={2}
             components={{
               toolbar: CustomToolbar,
-              event: CalendarEventWrapper,
+              event: TaskEventComponent,
             }}
             onSelectEvent={(event: CalendarEvent) => {
               if (event.resource.kind === "extra" && event.resource.extra) {
@@ -808,8 +960,8 @@ export default function CalendarView(props: {
                 setModalOpen(true);
                 return;
               }
-              if (event.resource.kind === "salon" && event.resource.salonEvent) {
-                router.push(`/events/${event.resource.salonEvent.id}`);
+              if (event.resource.kind === "event" && event.resource.linkedEvent) {
+                router.push(`/events/${event.resource.linkedEvent.id}`);
                 return;
               }
               if (event.resource.task) {
@@ -830,11 +982,11 @@ export default function CalendarView(props: {
                   },
                 };
               }
-              if (kind === "salon") {
+              if (kind === "event") {
                 return {
                   style: {
-                    backgroundColor: CALENDAR_SALON_COLOR,
-                    borderColor: `${CALENDAR_SALON_COLOR}cc`,
+                    backgroundColor: CALENDAR_EVENT_COLOR,
+                    borderColor: `${CALENDAR_EVENT_COLOR}cc`,
                     color: "#fff",
                     borderRadius: "8px",
                     padding: "2px 4px",
@@ -843,6 +995,7 @@ export default function CalendarView(props: {
                 };
               }
               const color =
+                event.resource.columnColor ||
                 ownerColor ||
                 adminAvatarMetaFor(owner).calendarColor ||
                 domainCalendarColors[event.resource.domain ?? ""] ||
@@ -856,6 +1009,7 @@ export default function CalendarView(props: {
                     borderRadius: "8px",
                     padding: "2px 4px",
                     fontSize: "11px",
+                    borderLeft: `4px solid ${event.resource.columnColor ?? CALENDAR_DEADLINE_COLOR}`,
                   },
                 };
               }
@@ -865,7 +1019,7 @@ export default function CalendarView(props: {
                   borderColor: `${color}cc`,
                   color: "#fff",
                   borderRadius: "8px",
-                  borderLeft: `4px solid ${color}`,
+                  borderLeft: `4px solid ${event.resource.columnColor ?? color}`,
                   padding: "2px 4px",
                 },
               };
@@ -888,6 +1042,14 @@ export default function CalendarView(props: {
             : undefined
         }
       />
+
+      {colorMenu ? (
+        <TaskColorContextMenu
+          state={colorMenu}
+          onClose={() => setColorMenu(null)}
+          onPickColor={(color) => void handlePickColumnColor(color)}
+        />
+      ) : null}
     </section>
   );
 }

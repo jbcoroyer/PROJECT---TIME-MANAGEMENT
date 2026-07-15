@@ -33,7 +33,6 @@ import {
   Save,
   Trash2,
 } from "lucide-react";
-import { saveSurveyDefinition } from "../../../app/actions/survey";
 import {
   buildEditorSections,
   createBlankQuestion,
@@ -45,6 +44,19 @@ import {
 import type { Question, QuestionType, SurveyDefinition } from "../../../lib/survey/surveyTypes";
 import { toastError, toastSuccess } from "../../../lib/toast";
 import { useConfirm } from "../../ui/ConfirmDialog";
+
+type SaveDefinitionResult = { ok: true } | { ok: false; error: string };
+
+type SurveyEditorWorkspaceProps = {
+  formId: string;
+  title: string;
+  initialDefinition: SurveyDefinition;
+  onSave: (definition: SurveyDefinition) => Promise<SaveDefinitionResult>;
+  backHref: string;
+  backLabel?: string;
+  successMessage?: string;
+  showPrestationRules?: boolean;
+};
 
 const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
   { value: "single", label: "Choix unique" },
@@ -62,12 +74,6 @@ const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
   nps: "NPS",
   open: "Texte libre",
   text: "Champ court",
-};
-
-type SurveyEditorWorkspaceProps = {
-  surveyId: string;
-  title: string;
-  initialDefinition: SurveyDefinition;
 };
 
 const inputClass =
@@ -144,9 +150,14 @@ function SectionDropZone({ id, children }: { id: string; children: ReactNode }) 
 }
 
 export default function SurveyEditorWorkspace({
-  surveyId,
+  formId,
   title,
   initialDefinition,
+  onSave,
+  backHref,
+  backLabel = "Retour",
+  successMessage = "Formulaire enregistré.",
+  showPrestationRules = true,
 }: SurveyEditorWorkspaceProps) {
   const confirm = useConfirm();
   const [intro, setIntro] = useState(() => ({ ...initialDefinition.intro }));
@@ -435,13 +446,13 @@ export default function SurveyEditorWorkspace({
     }
     setSaving(true);
     const definition = sectionsToDefinition({ ...initialDefinition, intro }, sections);
-    const result = await saveSurveyDefinition(surveyId, definition);
+    const result = await onSave(definition);
     setSaving(false);
     if (!result.ok) {
       toastError(result.error);
       return;
     }
-    toastSuccess("Questionnaire enregistré.");
+    toastSuccess(successMessage);
   };
 
   const totalQuestions = sections.reduce((sum, s) => sum + s.questions.length, 0);
@@ -451,11 +462,11 @@ export default function SurveyEditorWorkspace({
       <header className="ui-surface sticky top-2 z-20 flex flex-wrap items-center justify-between gap-4 rounded-2xl p-5">
         <div>
           <Link
-            href={`/questionnaire/reponses/${surveyId}`}
+            href={backHref}
             className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Retour au questionnaire
+            {backLabel}
           </Link>
           <h1 className="ui-display text-2xl text-[var(--foreground)]">Éditeur de formulaire</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/60">
@@ -783,7 +794,7 @@ export default function SurveyEditorWorkspace({
                             Obligatoire
                           </label>
 
-                          {prestationOptions.length > 0 && question.id !== "q4" ? (
+                          {showPrestationRules && prestationOptions.length > 0 && question.id !== "q4" ? (
                             <label className="inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--foreground)]/55">
                               Afficher si prestation
                               <select

@@ -110,6 +110,42 @@ type SurveyDefinitionRow = {
   definition?: unknown;
 };
 
+const SURVEY_META_COLUMNS =
+  "id, title, description, version, status, audience, created_at, public_path";
+
+/** Charge une ligne questionnaire : RLS org si connecté, service role si anonyme (lien public). */
+async function loadSurveyRowById(
+  surveyId: string,
+  columns: string,
+): Promise<SurveyDefinitionRow | null> {
+  if (!surveyId) return null;
+
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data } = await supabase
+      .from("survey_definitions")
+      .select(columns)
+      .eq("id", surveyId)
+      .maybeSingle();
+    if (data) return data as unknown as SurveyDefinitionRow;
+    return null;
+  }
+
+  const admin = createSupabaseAdmin();
+  const { data } = await admin
+    .from("survey_definitions")
+    .select(columns)
+    .eq("id", surveyId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  return (data as unknown as SurveyDefinitionRow | null) ?? null;
+}
+
 function parseAudience(raw: string | null): SurveyAudience {
   if (raw === "externe" || raw === "interne") return raw;
   return "general";
@@ -155,20 +191,17 @@ function extractIndexedFields(exports: SurveyExports | undefined, answers: Surve
 
 /** Métadonnées d'un questionnaire depuis la base. */
 export async function getSurveyMeta(surveyId: string): Promise<SurveyMeta | null> {
-  const supabase = await createServerSupabase();
-  const { data } = await supabase
-    .from("survey_definitions")
-    .select("id, title, description, version, status, audience, created_at, public_path")
-    .eq("id", surveyId)
-    .maybeSingle();
-
+  const data = await loadSurveyRowById(surveyId, SURVEY_META_COLUMNS);
   if (!data) return null;
-  return rowToSurveyMeta(data as SurveyDefinitionRow);
+  return rowToSurveyMeta(data);
 }
 
 /** Liste des questionnaires du catalogue avec leur nombre de réponses. */
 export async function listSurveys(): Promise<SurveyListItem[]> {
   const supabase = await createServerSupabase();
+  const admin = await requireAdmin(supabase);
+  if (!admin.ok) return [];
+
   const { data: defs } = await supabase
     .from("survey_definitions")
     .select("id, title, description, version, status, audience, created_at, public_path, definition")
@@ -274,14 +307,8 @@ export async function renameSurvey(
 export async function fetchSurveyDefinition(
   surveyId: string,
 ): Promise<SurveyDefinitionResult> {
-  const supabase = await createServerSupabase();
-  const { data, error } = await supabase
-    .from("survey_definitions")
-    .select("definition")
-    .eq("id", surveyId)
-    .maybeSingle();
-
-  if (error || !data) {
+  const data = await loadSurveyRowById(surveyId, "definition");
+  if (!data) {
     return { ok: false, error: "Questionnaire introuvable." };
   }
 

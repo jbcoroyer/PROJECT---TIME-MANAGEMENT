@@ -17,6 +17,7 @@ type EventDbRow = {
   budget_posts?: unknown;
   template_key?: string | null;
   closure_recap?: unknown;
+  cover_image_path?: string | null;
 };
 
 function parseBudgetPosts(raw: unknown): EventRow["budgetPosts"] {
@@ -46,6 +47,7 @@ function mapEvent(row: EventDbRow): EventRow {
       row.closure_recap && typeof row.closure_recap === "object" && !Array.isArray(row.closure_recap)
         ? (row.closure_recap as EventRow["closureRecap"])
         : null,
+    coverImagePath: row.cover_image_path ?? null,
   };
 }
 
@@ -60,7 +62,7 @@ export function useEvents() {
       const { data, error } = await supabase
         .from("events")
         .select(
-          "id, created_at, name, location, start_date, end_date, status, allocated_budget, budget_posts, template_key, closure_recap",
+          "id, created_at, name, location, start_date, end_date, status, allocated_budget, budget_posts, template_key, closure_recap, cover_image_path",
         )
         .order("start_date", { ascending: true });
       if (error) throw error;

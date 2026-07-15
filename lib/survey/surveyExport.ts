@@ -11,7 +11,7 @@ function formatAnswer(value: string | number | string[] | undefined): string {
   return String(value);
 }
 
-/** Une colonne par question + méta (date, entité, service, nom). */
+/** Une colonne par question + méta (date, société, service, nom). */
 export function surveyResponsesToCsv(
   responses: readonly SurveyResponse[],
   definition: SurveyDefinition,
@@ -20,7 +20,7 @@ export function surveyResponsesToCsv(
 
   const headers = [
     "Date",
-    "Entité",
+    "Société",
     "Service",
     ...questions.map((q) => q.label),
     "Nom (facultatif)",

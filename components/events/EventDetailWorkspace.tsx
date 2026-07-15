@@ -16,7 +16,9 @@ import {
   Warehouse,
 } from "lucide-react";
 import EventBudgetSection from "./EventBudgetSection";
+import EventCoverImage from "./EventCoverImage";
 import EventDetailKanban from "./EventDetailKanban";
+import EventDetailTabs from "./EventDetailTabs";
 import EventMaterialNeeds from "./EventMaterialNeeds";
 import EventMilestoneBar from "./EventMilestoneBar";
 import EventPreparationDashboard from "./EventPreparationDashboard";
@@ -48,6 +50,12 @@ import { completedAtIsoForNewTaskInColumn, completedAtPatchForColumnChange } fro
 import { markTaskMutatedLocally } from "../../lib/taskMutatedLocally";
 
 type Tab = "tasks" | "stock" | "budget" | "documents";
+const EVENT_DETAIL_TABS = [
+  { id: "tasks" as const, label: "Tâches & planning", icon: ClipboardList },
+  { id: "stock" as const, label: "Matériel réservé", icon: Warehouse },
+  { id: "budget" as const, label: "Suivi budgétaire", icon: PiggyBank },
+  { id: "documents" as const, label: "Documents", icon: FileText },
+] as const;
 const EVENT_DOCUMENTS_BUCKET = "event-documents" as StorageBucket;
 
 type ExpenseDb = {
@@ -153,7 +161,7 @@ export default function EventDetailWorkspace({
       const { data, error } = await supabase
         .from("events")
         .select(
-          "id, created_at, name, location, start_date, end_date, status, allocated_budget, budget_posts, template_key, closure_recap",
+          "id, created_at, name, location, start_date, end_date, status, allocated_budget, budget_posts, template_key, closure_recap, cover_image_path",
         )
         .eq("id", id)
         .maybeSingle();
@@ -181,6 +189,7 @@ export default function EventDetailWorkspace({
           row.closure_recap && typeof row.closure_recap === "object"
             ? (row.closure_recap as EventRow["closureRecap"])
             : null,
+        coverImagePath: (row.cover_image_path as string | null) ?? null,
       });
     } finally {
       setLoadingEvent(false);
@@ -539,8 +548,16 @@ export default function EventDetailWorkspace({
           <p className="text-sm text-[var(--danger)]">Événement introuvable.</p>
         ) : (
           <>
-            <header className="ui-surface rounded-[24px] p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
+            <header className="ui-surface overflow-hidden rounded-[24px]">
+              <EventCoverImage
+                eventId={event.id}
+                eventName={event.name}
+                coverImagePath={event.coverImagePath ?? null}
+                variant="banner"
+                editable
+                onUpdated={(path) => setEvent((prev) => (prev ? { ...prev, coverImagePath: path } : prev))}
+              />
+              <div className="flex flex-wrap items-start justify-between gap-4 p-6">
                 <div className="min-w-0 flex-1">
                   <h1 className="ui-heading text-3xl font-semibold text-[var(--foreground)]">{event.name}</h1>
                   <p className="mt-2 text-sm text-[color:var(--foreground)]/60">{event.location}</p>
@@ -577,42 +594,16 @@ export default function EventDetailWorkspace({
               }
             />
 
-            <div className="flex flex-wrap gap-2 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2">
-              {(
-                [
-                  { id: "tasks" as const, label: "Tâches & planning", icon: ClipboardList },
-                  { id: "stock" as const, label: "Matériel réservé", icon: Warehouse },
-                  { id: "budget" as const, label: "Suivi budgétaire", icon: PiggyBank },
-                  { id: "documents" as const, label: "Devis/Facture", icon: FileText },
-                ] as const
-              ).map((item) => {
-                const Icon = item.icon;
-                const active = tab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setTab(item.id)}
-                    className={[
-                      "ui-transition inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold",
-                      active ? "bg-[var(--foreground)] text-[var(--accent-contrast)] shadow-sm" : "text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]",
-                    ].join(" ")}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
+            <EventDetailTabs items={EVENT_DETAIL_TABS} active={tab} onChange={setTab} />
 
             {tab === "tasks" && (
               <div className="space-y-6">
                 <section className="ui-surface rounded-[24px] p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex flex-col gap-3 border-b border-[var(--line)] pb-4 sm:flex-row sm:items-center sm:justify-between">
                     <h2 className="text-lg font-semibold text-[var(--foreground)]">Kanban événement</h2>
                     <Link
                       href={kanbanPath}
-                      className="ui-transition inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-xs font-semibold text-[color:var(--foreground)]/70"
+                      className="ui-transition inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 text-xs font-semibold text-[color:var(--foreground)]/70"
                     >
                       <KanbanSquare className="h-4 w-4 text-[var(--accent)]" />
                       Kanban principal
@@ -630,17 +621,17 @@ export default function EventDetailWorkspace({
                       </button>
                     </p>
                   ) : null}
-                  <div className="mt-4 grid gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3 md:grid-cols-[1fr_180px_auto]">
+                  <div className="mt-4 grid gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3 sm:grid-cols-[1fr_180px_auto]">
                     <input
                       value={newTaskTitle}
                       onChange={(e) => setNewTaskTitle(e.target.value)}
                       placeholder="Ajouter une tâche…"
-                      className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
+                      className="ui-focus-ring h-10 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-sm"
                     />
                     <select
                       value={newTaskCategory}
                       onChange={(e) => setNewTaskCategory(e.target.value)}
-                      className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
+                      className="ui-focus-ring h-10 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-sm"
                     >
                       <option value="">Catégorie…</option>
                       {eventTaskCategories.map((c) => (
@@ -653,7 +644,7 @@ export default function EventDetailWorkspace({
                       type="button"
                       disabled={creatingTask}
                       onClick={() => void handleCreateEventTask()}
-                      className="rounded-lg bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] disabled:opacity-60"
+                      className="h-10 rounded-lg bg-[var(--foreground)] px-4 text-sm font-semibold text-[var(--accent-contrast)] disabled:opacity-60"
                     >
                       {creatingTask ? "Ajout…" : "Ajouter"}
                     </button>
@@ -737,13 +728,18 @@ export default function EventDetailWorkspace({
 
             {tab === "documents" && (
               <section className="ui-surface rounded-[24px] p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-lg font-semibold text-[var(--foreground)]">Documents Devis / Facture</h2>
-                  <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <h2 className="text-lg font-semibold text-[var(--foreground)]">Devis &amp; factures</h2>
+                    <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
+                      Pièces jointes et justificatifs liés à l&apos;événement.
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
                     <select
                       value={uploadDocType}
                       onChange={(e) => setUploadDocType(e.target.value as EventDocumentType)}
-                      className="ui-focus-ring rounded-xl border border-[var(--line)] px-3 py-2 text-sm"
+                      className="ui-focus-ring h-10 min-w-[120px] rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-sm"
                     >
                       {documentTypes.map((t) => (
                         <option key={t} value={t}>
@@ -751,21 +747,21 @@ export default function EventDetailWorkspace({
                         </option>
                       ))}
                     </select>
-                  <label className="ui-transition inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[var(--foreground)] px-3 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90">
-                    <Upload className="h-4 w-4" />
-                    {uploadingDocuments ? "Upload..." : "Uploader des documents"}
-                    <input
-                      type="file"
-                      multiple
-                      accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx"
-                      className="hidden"
-                      disabled={uploadingDocuments}
-                      onChange={(e) => {
-                        void handleUploadDocuments(e.target.files);
-                        e.currentTarget.value = "";
-                      }}
-                    />
-                  </label>
+                    <label className="ui-transition inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[var(--foreground)] px-4 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90">
+                      <Upload className="h-4 w-4 shrink-0" />
+                      {uploadingDocuments ? "Upload…" : "Ajouter"}
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx"
+                        className="hidden"
+                        disabled={uploadingDocuments}
+                        onChange={(e) => {
+                          void handleUploadDocuments(e.target.files);
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
                   </div>
                 </div>
                 {loadingDocuments ? (
@@ -779,9 +775,9 @@ export default function EventDetailWorkspace({
                     {documents.map((doc) => (
                       <li
                         key={doc.path}
-                        className="grid gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3 md:grid-cols-[240px_1fr_auto]"
+                        className="grid gap-4 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-4 lg:grid-cols-[200px_1fr_auto] lg:items-center"
                       >
-                        <div className="h-[340px] overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface)]">
+                        <div className="h-[220px] overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface)] lg:h-[180px]">
                           {isImageDocument(doc.name) ? (
                             <Image
                               src={doc.publicUrl}
@@ -803,17 +799,17 @@ export default function EventDetailWorkspace({
                             </div>
                           )}
                         </div>
-                        <div className="min-w-0 self-center">
+                        <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-[var(--foreground)]">{doc.name}</p>
                           <span className="mt-1 inline-block rounded-full border border-[var(--line)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
                             {doc.docType}
                           </span>
-                          <p className="text-xs text-[color:var(--foreground)]/55">
+                          <p className="mt-2 text-xs text-[color:var(--foreground)]/55">
                             {doc.createdAt ? new Date(doc.createdAt).toLocaleString("fr-FR") : "Date inconnue"} ·{" "}
                             {formatNumber(doc.size / 1024)} Ko
                           </p>
                         </div>
-                        <div className="flex items-center gap-2 self-center">
+                        <div className="flex items-center gap-2 lg:justify-end">
                           <a
                             href={doc.publicUrl}
                             target="_blank"

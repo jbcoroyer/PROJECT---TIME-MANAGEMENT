@@ -1,7 +1,7 @@
 /** Catégories métier pour les tâches et besoins événementiels. */
 export const eventTaskCategories = [
   "Logistique",
-  "Stand",
+  "Lieu",
   "Communication",
   "Hébergement",
   "Matériel",

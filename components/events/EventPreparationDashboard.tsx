@@ -23,14 +23,14 @@ export default function EventPreparationDashboard(props: Props) {
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/50">
           Avancement préparation
         </p>
-        <div className="mt-4 flex flex-wrap items-end gap-6">
-          <div>
-            <p className="text-4xl font-semibold text-[var(--foreground)]">{stats.progressPct}%</p>
-            <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
+        <div className="mt-4 flex flex-wrap items-center gap-6">
+          <div className="shrink-0">
+            <p className="text-4xl font-semibold leading-none text-[var(--foreground)]">{stats.progressPct}%</p>
+            <p className="mt-2 text-sm text-[color:var(--foreground)]/55">
               {stats.doneTasks} / {stats.totalTasks} tâches terminées
             </p>
           </div>
-          <div className="h-3 flex-1 min-w-[120px] overflow-hidden rounded-full bg-[var(--surface-soft)] ring-1 ring-[var(--line)]">
+          <div className="h-3 min-w-[120px] flex-1 overflow-hidden rounded-full bg-[var(--surface-soft)] ring-1 ring-[var(--line)]">
             <div
               className="h-full rounded-full bg-[color:var(--foreground)]/30 transition-[width]"
               style={{ width: `${stats.progressPct}%` }}
@@ -41,7 +41,7 @@ export default function EventPreparationDashboard(props: Props) {
           <li className="flex items-center gap-2 text-[color:var(--foreground)]/70">
             <ListTodo className="h-4 w-4 shrink-0" />
             {stats.totalTasks === 0
-              ? "Aucune tâche — choisissez un modèle à la création ou ajoutez des tâches."
+              ? "Aucune tâche — ajoutez des tâches depuis l'onglet Tâches & planning."
               : `${stats.totalTasks} tâches liées à cet événement`}
           </li>
           {stats.overdueTasks > 0 ? (

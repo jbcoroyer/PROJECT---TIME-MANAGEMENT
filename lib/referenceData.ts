@@ -4,6 +4,7 @@ export type ReferenceRecord = {
   id: string;
   name: string;
   color?: string | null;
+  isDone?: boolean;
   logoUrl?: string | null;
   avatarUrl?: string | null;
 };

@@ -257,7 +257,7 @@ export default function SurveyResponsesWorkspace({
           Filtres
         </span>
         <select value={entity} onChange={(e) => setEntity(e.target.value)} className={selectClass}>
-          <option value="all">Toutes les entités</option>
+          <option value="all">Toutes les sociétés</option>
           {entityOptions.map((o) => (
             <option key={o} value={o}>
               {o}

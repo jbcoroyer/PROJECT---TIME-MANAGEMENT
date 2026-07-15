@@ -127,7 +127,7 @@ export default function V2SocialPage() {
               onChange={(e) => setEntityId(e.target.value)}
               className="ui-focus-ring rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--foreground)]"
             >
-              <option value="ALL">Toutes les entités</option>
+              <option value="ALL">Toutes les sociétés</option>
               {companies.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}

@@ -16,7 +16,7 @@ export default function EventStockReserve(props: EventStockReserveProps) {
   const { items, loading, recordMovement } = useInventory();
   const [itemId, setItemId] = useState<string>("");
   const [qty, setQty] = useState("1");
-  const [reason, setReason] = useState("Réservation salon");
+  const [reason, setReason] = useState("Réservation événement");
   const [userName, setUserName] = useState(defaultUserName);
   const [submitting, setSubmitting] = useState(false);
 

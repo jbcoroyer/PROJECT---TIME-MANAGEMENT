@@ -2,56 +2,67 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Bot, Layers, SlidersHorizontal } from "lucide-react";
-import AutomationsManager from "./AutomationsManager";
+import { Layers, SlidersHorizontal, Users } from "lucide-react";
 import AdminSettingsPanel from "../../settings/AdminSettingsPanel";
 import ModulesSettingsSection from "../../settings/ModulesSettingsSection";
-import TeamInviteSection from "../../settings/TeamInviteSection";
+import TeamSettingsSection from "../../settings/TeamSettingsSection";
 import UpgradeProBanner from "../../settings/UpgradeProBanner";
 import GdprDataSection from "../../settings/GdprDataSection";
 import PlatformAdminShortcut from "../../platform/PlatformAdminShortcut";
 import SignOutSection from "../../settings/SignOutSection";
-import { useReferenceData } from "../../../lib/useReferenceData";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { useCurrentUser } from "../../../lib/useCurrentUser";
 
-type SettingsTab = "modules" | "automations" | "admin";
+type SettingsTab = "team" | "modules" | "organisation";
 
-const ALL_TABS: { id: SettingsTab; icon: typeof Layers; labelKey: string; adminOnly?: boolean }[] = [
+const ALL_TABS: {
+  id: SettingsTab;
+  icon: typeof Layers;
+  labelKey: string;
+  adminOnly?: boolean;
+}[] = [
+  { id: "team", icon: Users, labelKey: "settings.tabs.team", adminOnly: true },
   { id: "modules", icon: Layers, labelKey: "settings.tabs.modules" },
-  { id: "automations", icon: Bot, labelKey: "settings.tabs.automations" },
-  { id: "admin", icon: SlidersHorizontal, labelKey: "settings.tabs.admin", adminOnly: true },
+  { id: "organisation", icon: SlidersHorizontal, labelKey: "settings.tabs.organisation", adminOnly: true },
 ];
 
 const SECTION_ANCHORS: Record<string, string> = {
-  team: "settings-team-invite",
+  team: "settings-team",
   modules: "settings-modules",
   outlook: "settings-outlook",
 };
 
-function tabForSection(section: string | null): SettingsTab {
-  if (section === "outlook") return "admin";
+function tabForSection(section: string | null, isAdmin: boolean): SettingsTab {
+  if (section === "outlook") return "organisation";
+  if (section === "team") return "team";
   if (section === "modules") return "modules";
-  return "modules";
+  return isAdmin ? "team" : "modules";
 }
 
 function V2SettingsPageContent() {
   const searchParams = useSearchParams();
   const section = searchParams.get("section");
-  const { admins, columns, domains } = useReferenceData();
   const { t } = useTranslation();
   const { user } = useCurrentUser();
   const isAdmin = Boolean(user?.isAdmin);
-  const sectionTab = section ? tabForSection(section) : null;
+  const sectionTab = section ? tabForSection(section, isAdmin) : null;
   const [manualTab, setManualTab] = useState<SettingsTab>("modules");
+  const [hasPickedTab, setHasPickedTab] = useState(false);
   const tab = sectionTab ?? manualTab;
 
-  const tabs = useMemo(
-    () => ALL_TABS.filter((item) => !item.adminOnly || isAdmin),
-    [isAdmin],
-  );
+  const tabs = useMemo(() => ALL_TABS.filter((item) => !item.adminOnly || isAdmin), [isAdmin]);
+  const activeTab = tabs.some((item) => item.id === tab) ? tab : isAdmin ? "team" : "modules";
 
-  const activeTab = tabs.some((item) => item.id === tab) ? tab : "modules";
+  useEffect(() => {
+    if (section || hasPickedTab) return;
+    setManualTab(isAdmin ? "team" : "modules");
+  }, [isAdmin, hasPickedTab, section]);
+
+  useEffect(() => {
+    if (!isAdmin && manualTab === "team") {
+      setManualTab("modules");
+    }
+  }, [isAdmin, manualTab]);
 
   useEffect(() => {
     if (!section) return;
@@ -84,21 +95,19 @@ function V2SettingsPageContent() {
         <UpgradeProBanner />
       </Suspense>
 
-      {isAdmin ? <TeamInviteSection /> : null}
-
       <PlatformAdminShortcut />
 
-      <nav
-        className="flex flex-wrap gap-2"
-        aria-label={t("settings.tabsLabel")}
-      >
+      <nav className="flex flex-wrap gap-2" aria-label={t("settings.tabsLabel")}>
         {tabs.map(({ id, icon: Icon, labelKey }) => {
           const active = activeTab === id;
           return (
             <button
               key={id}
               type="button"
-              onClick={() => setManualTab(id)}
+              onClick={() => {
+                setHasPickedTab(true);
+                setManualTab(id);
+              }}
               className={[
                 "ui-transition inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold",
                 active
@@ -113,32 +122,18 @@ function V2SettingsPageContent() {
         })}
       </nav>
 
+      {activeTab === "team" && isAdmin ? <TeamSettingsSection /> : null}
       {activeTab === "modules" ? <ModulesSettingsSection /> : null}
-
-      {activeTab === "automations" ? (
-        <section className="space-y-4">
-          <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)]/50 px-4 py-3">
-            <p className="text-sm text-[color:var(--foreground)]/65">{t("settings.automationsIntro")}</p>
-          </div>
-          <AutomationsManager
-            columns={columns.map((c) => c.name)}
-            domains={domains.map((d) => d.name)}
-            admins={admins.map((a) => a.name)}
-          />
-        </section>
-      ) : null}
-
-      {activeTab === "admin" && isAdmin ? (
+      {activeTab === "organisation" && isAdmin ? (
         <section>
           <div className="mb-4 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)]/50 px-4 py-3">
-            <p className="text-sm text-[color:var(--foreground)]/65">{t("settings.adminIntro")}</p>
+            <p className="text-sm text-[color:var(--foreground)]/65">{t("settings.organisationIntro")}</p>
           </div>
           <AdminSettingsPanel />
         </section>
       ) : null}
 
       <GdprDataSection />
-
       <SignOutSection />
     </div>
   );

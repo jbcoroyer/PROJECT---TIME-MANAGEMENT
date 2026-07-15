@@ -22,6 +22,7 @@ import {
   Clock,
 } from "lucide-react";
 import AdminAvatar from "./AdminAvatar";
+import ColumnStatusBadge from "./ColumnStatusBadge";
 import type { Task, AdminId } from "../lib/types";
 import type { ReferenceRecord } from "../lib/referenceData";
 import { getSupabaseBrowser } from "../lib/supabaseBrowser";
@@ -59,9 +60,9 @@ function getWeekInterval(anchor: Date) {
   return { start, end };
 }
 
-/** Heures d’estimation comptées dans la charge (hors catégorie Stand : voir ci‑dessous). */
+/** Heures d’estimation comptées dans la charge (hors catégorie Lieu : voir ci‑dessous). */
 function workloadEstimateContribution(task: Task): number {
-  if (task.eventCategory === "Stand") return 0;
+  if (task.eventCategory === "Lieu" || task.eventCategory === "Stand") return 0;
   if (task.estimatedHours > 0) return task.estimatedHours;
   if (task.estimatedDays > 0) return task.estimatedDays * 7;
   return 0;
@@ -255,9 +256,7 @@ function TaskRow(props: { task: Task; now: number }) {
       </div>
 
       {/* Colonne */}
-      <span className="hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--foreground)]/65 sm:inline">
-        {task.column}
-      </span>
+      <ColumnStatusBadge label={task.column} className="hidden sm:inline-flex" />
 
       {/* Deadline */}
       {task.deadline && (

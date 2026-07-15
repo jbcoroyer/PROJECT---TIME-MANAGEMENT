@@ -119,7 +119,7 @@ export default function EventRunOfShow(props: Props) {
         <div>
           <h2 className="text-lg font-semibold text-[var(--foreground)]">Feuille de route</h2>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
-            Planning jour par jour du salon ({daysBetween.length} jour(s)).
+            Planning jour par jour de l&apos;événement ({daysBetween.length} jour(s)).
           </p>
         </div>
         <button

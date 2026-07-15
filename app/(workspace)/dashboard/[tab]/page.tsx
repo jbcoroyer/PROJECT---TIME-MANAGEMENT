@@ -1,9 +1,8 @@
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import V2DashboardHomePage from "../../../../components/v2/dashboard/V2DashboardHomePage";
 
 const VALID_TABS = new Set([
-  "inbox",
   "kanban",
   "list",
   "todo",
@@ -11,7 +10,6 @@ const VALID_TABS = new Set([
   "analytics",
   "archives",
   "workload",
-  "triage",
 ]);
 
 export default async function V2DashboardTabPage({
@@ -20,6 +18,12 @@ export default async function V2DashboardTabPage({
   params: Promise<{ tab: string }>;
 }) {
   const { tab } = await params;
+  if (tab === "inbox") {
+    redirect("/dashboard/todo");
+  }
+  if (tab === "triage") {
+    redirect("/asks/triage");
+  }
   if (!VALID_TABS.has(tab)) {
     notFound();
   }

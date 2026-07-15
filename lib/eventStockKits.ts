@@ -11,30 +11,8 @@ export type EventStockKit = {
   items: EventStockKitItem[];
 };
 
-export const eventStockKits: EventStockKit[] = [
-  {
-    key: "stand-standard",
-    label: "Kit salon standard",
-    description: "Roll-ups, kakémonos et goodies courants.",
-    items: [
-      { nameIncludes: "roll", quantity: 2 },
-      { nameIncludes: "kaké", quantity: 2 },
-      { nameIncludes: "kake", quantity: 2 },
-      { nameIncludes: "goodies", quantity: 1 },
-      { nameIncludes: "flyer", quantity: 1 },
-    ],
-  },
-  {
-    key: "stand-compact",
-    label: "Kit compact",
-    description: "Minimum pour un petit stand.",
-    items: [
-      { nameIncludes: "roll", quantity: 1 },
-      { nameIncludes: "kaké", quantity: 1 },
-      { nameIncludes: "kake", quantity: 1 },
-    ],
-  },
-];
+/** Aucun kit prédéfini : les besoins matériel sont saisis manuellement. */
+export const eventStockKits: EventStockKit[] = [];
 
 export function resolveKitToInventoryIds(
   kit: EventStockKit,

@@ -219,19 +219,28 @@ function CardBody(props: {
       </p>
 
       {props.variant === "compact" ? (
-        <div className="flex min-w-0 items-center justify-between gap-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-1">
-            <PriorityBadge priority={task.priority} />
-            <span
-              className={[
-                "inline-flex max-w-[7rem] truncate rounded border px-1 py-px text-[9px] font-semibold",
-                domainClass,
-              ].join(" ")}
-            >
-              {task.domain}
-            </span>
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 items-center justify-between gap-1">
+            <div className="flex min-w-0 flex-wrap items-center gap-1">
+              <PriorityBadge priority={task.priority} />
+              <span
+                className={[
+                  "inline-flex max-w-[7rem] truncate rounded border px-1 py-px text-[9px] font-semibold",
+                  domainClass,
+                ].join(" ")}
+                title="Domaine — cliquez la carte pour modifier"
+              >
+                {task.domain}
+              </span>
+            </div>
+            {task.subtasks && task.subtasks.length > 0 && <SubtaskBadge subtasks={task.subtasks} />}
           </div>
-          {task.subtasks && task.subtasks.length > 0 && <SubtaskBadge subtasks={task.subtasks} />}
+          {interactive ? (
+            <p className="flex items-center gap-1 text-[8px] font-medium text-[color:var(--foreground)]/38 opacity-0 transition-opacity group-hover:opacity-100">
+              <Pencil className="h-2 w-2 shrink-0" aria-hidden />
+              Cliquer pour modifier
+            </p>
+          ) : null}
         </div>
       ) : props.variant === "dense" ? (
         <div className="flex min-w-0 flex-col gap-1">
@@ -330,13 +339,23 @@ function CardBody(props: {
                   "inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide",
                   domainClass,
                 ].join(" ")}
+                title="Domaine — cliquez la carte pour modifier"
               >
                 {task.domain}
               </span>
-              <PriorityBadge priority={task.priority} />
+              <span title="Priorité — cliquez la carte pour modifier">
+                <PriorityBadge priority={task.priority} />
+              </span>
             </div>
             {task.subtasks && task.subtasks.length > 0 && <SubtaskBadge subtasks={task.subtasks} />}
           </div>
+
+          {interactive ? (
+            <p className="flex items-center gap-1 text-[9px] font-medium text-[color:var(--foreground)]/38 opacity-0 transition-opacity group-hover:opacity-100">
+              <Pencil className="h-2.5 w-2.5 shrink-0" aria-hidden />
+              Cliquer pour modifier domaine, priorité…
+            </p>
+          ) : null}
         </>
       )}
     </>

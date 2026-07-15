@@ -58,7 +58,7 @@ export default function EventTasksKanban(props: EventTasksKanbanProps) {
   if (tasks.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-        Aucune tâche liée à un événement. Créez un salon pour générer la checklist.
+        Aucune tâche liée à un événement. Ajoutez des tâches depuis la fiche événement.
       </div>
     );
   }

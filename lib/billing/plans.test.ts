@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
+  canAccessTeamWorkload,
   canAddOrgMember,
   daysLeftInTrial,
   effectiveModulesForPlan,
@@ -103,5 +104,16 @@ describe("billing plans", () => {
     expect(hasPlanFeature("starter", "ai")).toBe(false);
     expect(hasPlanFeature("pro", "ai")).toBe(true);
     expect(hasPlanFeature("trial", "outlook_sync")).toBe(true);
+    expect(hasPlanFeature("free", "team_workload")).toBe(false);
+    expect(hasPlanFeature("starter", "team_workload")).toBe(true);
+    expect(hasPlanFeature("pro", "team_workload")).toBe(true);
+  });
+
+  it("masque la charge équipe sans plan payant ou avec un seul utilisateur", () => {
+    expect(canAccessTeamWorkload("free", 2)).toBe(false);
+    expect(canAccessTeamWorkload("starter", 1)).toBe(false);
+    expect(canAccessTeamWorkload("starter", 2)).toBe(true);
+    expect(canAccessTeamWorkload("pro", 3)).toBe(true);
+    expect(canAccessTeamWorkload("trial", 2)).toBe(true);
   });
 });

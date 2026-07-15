@@ -11,7 +11,15 @@ export type PaidPlan = "starter" | "pro";
 /** Plans affichés sur la page tarifs et le marketing. */
 export type PublicPlan = "free" | "starter" | "pro";
 
-export type PlanFeature = "ai" | "outlook_sync" | "slack_alerts" | "advanced_modules";
+export type PlanFeature =
+  | "ai"
+  | "outlook_sync"
+  | "slack_alerts"
+  | "advanced_modules"
+  | "team_workload";
+
+/** Minimum de collaborateurs actifs pour afficher la charge équipe. */
+export const TEAM_WORKLOAD_MIN_MEMBERS = 2;
 
 export const PLAN_FEATURE_LABELS: Record<PlanFeature, string> = {
   ai: "Assistant IA (reformulation, synthèses)",
@@ -19,6 +27,7 @@ export const PLAN_FEATURE_LABELS: Record<PlanFeature, string> = {
   slack_alerts: "Alertes stock Slack / Teams",
   advanced_modules:
     "Modules avancés (événements, réseaux sociaux, fichiers & visuels, stock, objectifs, enquêtes)",
+  team_workload: "Vue charge équipe (répartition par collaborateur)",
 };
 
 export type PublicPlanMarketing = {
@@ -94,6 +103,7 @@ export const PLAN_MARKETING_FEATURES: Record<PublicPlan, string[]> = {
   starter: [
     "2 à 5 collaborateurs invités",
     "Les 11 modules — sans restriction",
+    "Vue charge équipe (dès 2 personnes)",
     "Événements, réseaux sociaux, stock & fichiers",
     "Logo et couleurs de votre espace",
     "Support par e-mail sous 48 h",
@@ -101,6 +111,7 @@ export const PLAN_MARKETING_FEATURES: Record<PublicPlan, string[]> = {
   pro: [
     "5 à 25 collaborateurs",
     "Tous les modules + assistant IA",
+    "Vue charge équipe & analytics avancés",
     "Sync Outlook & alertes Slack / Teams",
     "Objectifs d'équipe & enquêtes avancées",
     "Support prioritaire & onboarding dédié",
@@ -120,6 +131,7 @@ export const PLAN_COMPARISON_ROWS: PlanComparisonRow[] = [
   { label: "Utilisateurs", free: "1 à 2", starter: "2 à 5", pro: "5 à 25" },
   { label: "Modules activables", free: "5 max", starter: "11 (tous)", pro: "11 (tous)" },
   { label: "Tableau de bord & tâches", free: true, starter: true, pro: true },
+  { label: "Charge équipe", free: false, starter: true, pro: true },
   { label: "Planning & boîte à idées", free: true, starter: true, pro: true },
   { label: "Boîte à demandes", free: true, starter: true, pro: true },
   { label: "Événements & réseaux sociaux", free: "Au choix*", starter: true, pro: true },
@@ -160,9 +172,16 @@ export function isModuleAllowedForPlan(plan: OrgPlan, moduleId: AppModuleId): bo
 }
 
 export function hasPlanFeature(plan: OrgPlan, feature: PlanFeature): boolean {
-  if (plan === "trial" || plan === "pro") return true;
-  void feature;
+  if (plan === "trial") return true;
+  if (feature === "team_workload") return plan === "starter" || plan === "pro";
+  if (plan === "pro") return true;
   return false;
+}
+
+/** Charge équipe : plan payant (Starter/Pro ou essai) et au moins 2 collaborateurs actifs. */
+export function canAccessTeamWorkload(plan: OrgPlan, activeMemberCount: number): boolean {
+  if (activeMemberCount < TEAM_WORKLOAD_MIN_MEMBERS) return false;
+  return hasPlanFeature(plan, "team_workload");
 }
 
 /** Nombre max de comptes par organisation (`null` = illimité côté produit). */

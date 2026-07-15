@@ -20,14 +20,12 @@ type EventsHubWorkspaceProps = {
   eventsBasePath?: string;
   kanbanPath?: string;
   showRetexNav?: boolean;
-  defaultAdminName?: string;
 };
 
 export default function EventsHubWorkspace({
   eventsBasePath = "/events",
   kanbanPath = "/dashboard/kanban",
   showRetexNav = false,
-  defaultAdminName = "",
 }: EventsHubWorkspaceProps) {
   const router = useRouter();
   const { events, loading: eventsLoading, loadEvents } = useEvents();
@@ -126,9 +124,9 @@ export default function EventsHubWorkspace({
             <CalendarRange className="h-3.5 w-3.5" />
             Espace événementiel
           </div>
-          <h1 className="ui-heading text-3xl font-semibold text-[var(--foreground)]">Hub salons &amp; événements</h1>
+          <h1 className="ui-heading text-3xl font-semibold text-[var(--foreground)]">Hub événementiel</h1>
           <p className="mt-2 max-w-2xl text-sm text-[color:var(--foreground)]/65">
-            Vue consolidée : calendrier des salons, charge de travail Kanban (tâches liées aux événements) et budget engagé sur
+            Vue consolidée : calendrier des événements, charge de travail Kanban (tâches liées) et budget engagé sur
             l&apos;année.
           </p>
         </div>
@@ -181,7 +179,7 @@ export default function EventsHubWorkspace({
       <div>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold text-[var(--foreground)]">Timeline des salons</h2>
+            <h2 className="text-xl font-semibold text-[var(--foreground)]">Timeline des événements</h2>
             <p className="text-sm text-[color:var(--foreground)]/55">Cliquez sur une carte pour ouvrir l&apos;espace de travail.</p>
           </div>
           <Link
@@ -217,7 +215,6 @@ export default function EventsHubWorkspace({
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         existingEvents={events}
-        defaultAdminName={defaultAdminName}
         onCreated={(id) => {
           void loadEvents();
           void loadTasks();

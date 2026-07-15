@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { domainTagStyles, adminBadgeClassFor } from "../lib/kanbanStyles";
 import AdminAvatar from "./AdminAvatar";
+import ColumnStatusBadge from "./ColumnStatusBadge";
 import type { Task, AdminId } from "../lib/types";
 
 const PERIODS = [
@@ -288,9 +289,7 @@ export default function ArchivesView(props: {
                 >
                   {task.domain}
                 </span>
-                <span className="rounded-md border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--foreground)]/75">
-                  {task.column}
-                </span>
+                <ColumnStatusBadge label={task.column} className="text-[10px]" />
                 {task.admins.map((admin) => (
                   <span
                     key={admin}

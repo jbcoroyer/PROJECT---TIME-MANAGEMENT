@@ -5,7 +5,11 @@ import V2AppShell from "./AppShell";
 import ModuleRouteGuard from "./ModuleRouteGuard";
 import ProductTour from "../onboarding/ProductTour";
 import FirstTaskTutorial from "../onboarding/FirstTaskTutorial";
+import BoardExplorationTutorial from "../onboarding/BoardExplorationTutorial";
+import ModuleDiscoveryHub from "../onboarding/ModuleDiscoveryHub";
+import ModuleMiniTour from "../onboarding/ModuleMiniTour";
 import { FirstTaskTutorialProvider } from "../../lib/onboarding/firstTaskTutorialContext";
+import { ExplorationTutorialProvider } from "../../lib/onboarding/explorationTutorialContext";
 import { GamificationProvider, useGamificationOptional } from "../../lib/gamification/gamificationContext";
 import { V2ShellSlotsProvider, useV2ShellSlots } from "../../lib/v2/shellSlotsContext";
 import { useCurrentUser } from "../../lib/useCurrentUser";
@@ -26,13 +30,21 @@ function OnboardingOverlays() {
   const gamification = useGamificationOptional();
   const firstTaskDone =
     user?.firstTaskTutorialCompleted || gamification?.profile.firstTaskTutorialCompleted;
-  const showProductTour = !loading && Boolean(firstTaskDone);
+  const moduleDiscoveryStatus = gamification?.profile.tutorials.module_discovery?.status;
+  const moduleDiscoveryDone =
+    moduleDiscoveryStatus === "completed" || moduleDiscoveryStatus === "skipped";
+  const showProductTour = !loading && Boolean(firstTaskDone) && moduleDiscoveryDone;
 
   return (
     <>
       <Suspense fallback={null}>
         <FirstTaskTutorial />
       </Suspense>
+      <Suspense fallback={null}>
+        <BoardExplorationTutorial />
+      </Suspense>
+      <ModuleDiscoveryHub />
+      <ModuleMiniTour />
       {showProductTour ? (
         <Suspense fallback={null}>
           <ProductTour />
@@ -45,12 +57,14 @@ function OnboardingOverlays() {
 export default function V2AppLayout({ children }: { children: ReactNode }) {
   return (
     <GamificationProvider>
-      <FirstTaskTutorialProvider>
-        <V2ShellSlotsProvider>
-          <V2AppShellWithSlots>{children}</V2AppShellWithSlots>
-          <OnboardingOverlays />
-        </V2ShellSlotsProvider>
-      </FirstTaskTutorialProvider>
+      <ExplorationTutorialProvider>
+        <FirstTaskTutorialProvider>
+          <V2ShellSlotsProvider>
+            <V2AppShellWithSlots>{children}</V2AppShellWithSlots>
+            <OnboardingOverlays />
+          </V2ShellSlotsProvider>
+        </FirstTaskTutorialProvider>
+      </ExplorationTutorialProvider>
     </GamificationProvider>
   );
 }

@@ -11,6 +11,8 @@ import { DONE_COLUMN_NAME } from "./workflowConstants";
 import { useConfirm } from "../components/ui/ConfirmDialog";
 import type { ColumnId, Task } from "./types";
 import type { TaskFormValuesWithSubtasks } from "./validation/taskSchema";
+import type { ReferenceRecord } from "./referenceData";
+import { resolveColumnRefs } from "./v2/boardColumns";
 
 const AUTO_ARCHIVE_DELAY_MS = 24 * 60 * 60 * 1000;
 
@@ -51,6 +53,7 @@ type UseTaskManagerParams = {
     dbPatch: Record<string, unknown>,
   ) => Promise<unknown>;
   columns: string[];
+  columnRecords: ReferenceRecord[];
   newTaskColumn: ColumnId;
   editingTaskId: string | null;
   onTaskFormDone: () => void;
@@ -62,6 +65,7 @@ export function useTaskManager({
   setTasks,
   optimisticUpdate,
   columns,
+  columnRecords,
   newTaskColumn,
   editingTaskId,
   onTaskFormDone,
@@ -120,7 +124,7 @@ export function useTaskManager({
 
       const payload = {
         ...basePayload,
-        column_id: newTaskColumn,
+        ...resolveColumnRefs(newTaskColumn, columnRecords),
         lane: selectedAdmins[0],
         elapsed_ms: 0,
         is_running: false,
@@ -142,6 +146,7 @@ export function useTaskManager({
 
       if (values.subtasks && values.subtasks.length > 0) {
         const firstColumn = columns[0] ?? "À faire";
+        const firstColumnRefs = resolveColumnRefs(firstColumn, columnRecords);
         const subtaskRows = values.subtasks.map((sub) => ({
           project_name: sub.name,
           company: values.company,
@@ -149,7 +154,7 @@ export function useTaskManager({
           admin: sub.adminName,
           lane: sub.adminName,
           deadline: sub.deadline || null,
-          column_id: firstColumn,
+          ...firstColumnRefs,
           priority: "Moyenne" as const,
           is_archived: false,
           is_client_request: false,
@@ -170,7 +175,7 @@ export function useTaskManager({
 
       onTaskFormDone();
     },
-    [columns, editingTaskId, newTaskColumn, onTaskFormDone, setTasks, supabase],
+    [columns, columnRecords, editingTaskId, newTaskColumn, onTaskFormDone, setTasks, supabase],
   );
 
   const handleArchiveTask = useCallback(
@@ -299,7 +304,10 @@ export function useTaskManager({
       const task = tasks.find((t) => t.id === taskId);
       if (!task || task.column === newColumn) return;
       const colMerge = completedAtPatchForColumnChange(task.column, newColumn);
-      const dbPatch: Record<string, unknown> = { column_id: newColumn, ...colMerge };
+      const dbPatch: Record<string, unknown> = {
+        ...resolveColumnRefs(newColumn, columnRecords),
+        ...colMerge,
+      };
       const nextCompletedAt =
         "completed_at" in colMerge
           ? colMerge.completed_at === null
@@ -312,7 +320,7 @@ export function useTaskManager({
         dbPatch,
       ).catch(() => toastError("Impossible de déplacer la tâche. Veuillez réessayer."));
     },
-    [optimisticUpdate, tasks],
+    [optimisticUpdate, tasks, columnRecords],
   );
 
   return {

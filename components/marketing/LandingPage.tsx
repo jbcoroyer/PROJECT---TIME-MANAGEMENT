@@ -31,7 +31,7 @@ const MODULE_COPY: Record<AppModuleId, { title: string; desc: string }> = {
   },
   events: {
     title: "Événements",
-    desc: "Salons, conférences : planning, matériel, budget et bilan.",
+    desc: "Événements, conférences : planning, matériel, budget et bilan.",
   },
   social: {
     title: "Réseaux sociaux",

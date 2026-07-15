@@ -16,5 +16,7 @@ export function isSetupExemptPath(pathname: string): boolean {
   if (pathname === "/" || pathname.startsWith("/login")) return true;
   if (pathname.startsWith("/auth")) return true;
   if (pathname.startsWith("/questionnaire/f/")) return true;
+  if (pathname.startsWith("/asks/f/")) return true;
+  if (pathname.startsWith("/agenda/b/")) return true;
   return false;
 }

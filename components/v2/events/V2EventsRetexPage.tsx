@@ -78,7 +78,7 @@ export default function V2EventsRetexPage() {
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">RETEX événement</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
-            Points forts, axes d&apos;amélioration et actions de suivi après chaque salon.
+            Points forts, axes d&apos;amélioration et actions de suivi après chaque événement.
           </p>
         </header>
 

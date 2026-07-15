@@ -154,20 +154,19 @@ export const en: MessageTree = {
   settings: {
     pageKicker: "Configuration",
     pageTitle: "Settings",
-    pageSubtitle: "Customize your workspace, modules, and advanced team settings.",
+    pageSubtitle: "Invite your team, choose modules, and manage your workspace.",
     tabsLabel: "Settings sections",
     tabs: {
+      team: "Team",
       modules: "Modules",
-      automations: "Automations",
-      admin: "Administration",
+      organisation: "Organization",
     },
-    automationsIntro: "Define automatic rules for triage, notifications, and archiving.",
-    adminIntro: "Manage team, reference data, visual identity, and external connections.",
+    organisationIntro: "Billing, visual identity, external connections, and account preferences.",
     locale: "Language",
     localeHint: "Interface language (French or English).",
     localeSaved: "Language saved.",
     modulesTitle: "Enabled modules",
-    modulesSubtitle: "Turn parts of the tool on or off based on your needs.",
+    modulesSubtitle: "Your active modules. Add or remove what you need.",
     modulesSaved: "Modules updated.",
     modulesMinOne: "At least one module must stay active.",
     modulesUnsaved: "Unsaved changes",
@@ -185,8 +184,8 @@ export const en: MessageTree = {
   },
   nav: {
     dashboard: "Dashboard",
-    asks: "Request inbox",
-    workspace: "My agenda",
+    asks: "Request space",
+    workspace: "Agenda",
     planning: "Planning",
     triage: "Process requests",
     events: "Events",
@@ -197,6 +196,9 @@ export const en: MessageTree = {
     okr: "Team goals",
     surveys: "Surveys",
     settings: "Settings",
+    newModule: "New",
+    newModuleAria: "{module} — module to explore",
+    newModuleHint: "You haven't explored {module} yet",
   },
   modules: {
     recommended: "Recommended",
@@ -227,36 +229,36 @@ export const en: MessageTree = {
       },
     },
     asks: {
-      name: "Request inbox",
-      tagline: "Receive and process requests",
+      name: "Request space",
+      tagline: "Client form and triage",
       description:
-        "Let collaborators submit structured requests and help the team triage, prioritize, and convert them into tasks.",
+        "Create a public form to share with clients. Submissions land in your triage queue and can become tasks.",
       highlights: {
-        h1: "Request form with extended fields",
-        h2: "Dedicated triage queue to approve or reject",
-        h3: "Automation rules to speed up processing",
+        h1: "Shareable public form link",
+        h2: "External access limited to the form only",
+        h3: "Triage queue to approve and convert to tasks",
       },
     },
     workspace: {
-      name: "My agenda",
-      tagline: "Your tasks and daily priorities",
+      name: "Agenda",
+      tagline: "Appointments, notes and online booking",
       description:
-        "Your individual dashboard: today's tasks, AI suggestions, and focus on what matters to you.",
+        "A dynamic agenda to schedule meetings, keep notes per appointment, and let clients book slots via a public link.",
       highlights: {
-        h1: "Daily agenda with priorities",
-        h2: "AI assistance to organize your day",
-        h3: "Personal view separate from team management",
+        h1: "Interactive calendar (month, week, day, list)",
+        h2: "Internal notes and follow-up per appointment",
+        h3: "Public booking page with available slots",
       },
     },
     planning: {
       name: "Planning",
-      tagline: "Anticipate workload",
+      tagline: "Retroplanning and team workload",
       description:
-        "Visualize projected work over time to balance resources and anticipate activity peaks.",
+        "Gantt-style project view (by task, person, domain or mode), with weeks, conflicts and daily capacity.",
       highlights: {
-        h1: "Timeline of planned tasks",
-        h2: "Cross-view by member or project",
-        h3: "Ideal complement to the dashboard",
+        h1: "Marketing-style Gantt retroplanning",
+        h2: "Group by person, domain or mode",
+        h3: "Overload and overlap detection",
       },
     },
     events: {
@@ -372,7 +374,7 @@ export const en: MessageTree = {
         title: "Enable your modules",
         body: "Choose only the modules you need (events, social, stock…).",
         examples: {
-          e1: "Enable Events for the trade show season",
+          e1: "Enable the Events module",
           e2: "Try the idea box with the team",
           e3: "Set up the social editorial calendar",
         },
@@ -398,21 +400,129 @@ export const en: MessageTree = {
     },
     quest: {
       clickNewTask: "Click « New task »",
-      fillForm: "Fill in the required project fields",
+      fillForm: "Go through Info → Planning → Details and create the project",
     },
     spotlight: {
       quest: "Quest {current} / {total}",
       clickTitle: "Open the creation form",
       clickBody: "Click the highlighted « New task » button to see how to structure a project.",
       fillTitle: "Bring your project to life",
-      fillBody: "Enter the project name, domain, priority, and owner — then submit to see your card on the Kanban board.",
+      fillBody: "Walk through all 3 form steps — Info, Planning, Details — then submit at the end to see your card on the Kanban board.",
     },
     reward: {
       badge: "Quest complete",
       title: "Well done, explorer!",
       body: "Your first project is live on the Kanban board. You've already mastered the basics — keep going!",
       xp: "+100 XP earned",
-      cta: "Explore my board",
+      cta: "Continue the adventure ✨",
+    },
+  },
+  boardExploration: {
+    intro: {
+      badge: "Quest #2 — Customize",
+      title: "Make the board yours",
+      body: "Add a column with a name and color, then discover the other dashboard views.",
+      xpHint: "Reward: +75 XP · « Board pilot » badge",
+      cta: "Let's go",
+    },
+    quest: {
+      addColumn: "Create a column (name + color)",
+      visitViews: "Visit List, Calendar and My tasks",
+      add_column: "Create a column (name + color)",
+      visit_views: "Visit List, Calendar and My tasks",
+    },
+    spotlight: {
+      step: "Step {current} / {total}",
+      addColumnTitle: "Add your column",
+      addColumnBody: "Click the + on the right, name your column, and pick a color via a column ⋯ menu if needed.",
+      listTitle: "Discover List view",
+      listBody: "Group and filter tasks by status — great for quick reviews.",
+      calendarTitle: "Switch to Calendar",
+      calendarBody: "See deadlines and planned work on a timeline.",
+      todoTitle: "Finish with My tasks",
+      todoBody: "Your assigned tasks, sorted by due date (overdue → today → week…).",
+    },
+    reward: {
+      badge: "Board mastered",
+      title: "Board customized!",
+      body: "You can add columns and switch views. Next: explore your workspace modules.",
+      xp: "+75 XP earned",
+      cta: "Discover modules",
+    },
+  },
+  moduleDiscovery: {
+    hub: {
+      badge: "Quest #3 — Explore",
+      title: "Your modules await",
+      body: "Visit each module freely, or launch a mini-guide (2 steps, non-blocking).",
+      close: "Minimize",
+      visit: "Visit",
+      guide: "Guide",
+      exploreAlone: "Explore on my own",
+      finish: "Finish journey",
+      finishPartial: "Continue later",
+      progress: "{done} / {total} guides completed",
+      noModules: "No additional modules enabled yet.",
+      moduleHint: {
+        workspace: "Personal focus and daily priorities",
+        asks: "Incoming requests to process",
+        planning: "Timeline and team capacity",
+        events: "Events and field operations",
+        social: "Editorial calendar and posts",
+        dam: "Shared media library",
+        stock: "Inventory and movements",
+        ideas: "Collaborative idea board",
+        okr: "Objectives and key results",
+        surveys: "Surveys and feedback",
+      },
+    },
+    miniTour: {
+      badge: "Guide · {module} ({current}/{total})",
+      next: "Next",
+      done: "Got it ✓",
+      skip: "Skip",
+    },
+  },
+  moduleTutorials: {
+    workspace: {
+      step1: { title: "Your focus space", body: "Daily agenda suggests time blocks. Full due-date list lives in My tasks on the dashboard." },
+      step2: { title: "Teammate filter", body: "Switch view to see a colleague's plan if needed." },
+    },
+    asks: {
+      step1: { title: "Your request space", body: "Create a client form and get a public link to share." },
+      step2: { title: "Process requests", body: "External submissions arrive in triage, ready to convert into tasks." },
+    },
+    planning: {
+      step1: { title: "Planning view", body: "See team workload over time." },
+      step2: { title: "Adjust slots", body: "Move or schedule work to balance load." },
+    },
+    events: {
+      step1: { title: "Events hub", body: "Run events and operations from this dashboard." },
+      step2: { title: "Linked tasks", body: "Each event has its own mini-Kanban." },
+    },
+    social: {
+      step1: { title: "Editorial calendar", body: "Plan social posts ahead." },
+      step2: { title: "Create a post", body: "Draft, schedule and track content status." },
+    },
+    dam: {
+      step1: { title: "Media library", body: "Centralize logos, visuals and approved assets." },
+      step2: { title: "Share", body: "Find files quickly for a task or post." },
+    },
+    stock: {
+      step1: { title: "Inventory", body: "Track stock and product references." },
+      step2: { title: "Movements", body: "Log ins and outs to keep stock accurate." },
+    },
+    ideas: {
+      step1: { title: "Idea wall", body: "Collect proposals from the team." },
+      step2: { title: "Prioritize", body: "Vote and surface ideas to turn into projects." },
+    },
+    okr: {
+      step1: { title: "Objectives", body: "Set quarterly OKRs." },
+      step2: { title: "Track progress", body: "Update key results as you go." },
+    },
+    surveys: {
+      step1: { title: "Responses", body: "Review feedback from your surveys." },
+      step2: { title: "Create", body: "Launch an internal or public questionnaire from admin." },
     },
   },
   gamification: {
@@ -447,6 +557,14 @@ export const en: MessageTree = {
         title: "First Kanban task",
         description: "Create your first guided project on the board.",
       },
+      boardExploration: {
+        title: "Customize the board",
+        description: "Columns, colors and List / Calendar / To-Do views.",
+      },
+      moduleDiscovery: {
+        title: "Explore modules",
+        description: "Visit or get guided in each enabled module.",
+      },
       productTour: {
         title: "Workspace tour",
         description: "Visit key areas: tasks, team, modules, Outlook.",
@@ -476,6 +594,14 @@ export const en: MessageTree = {
       moduleMaster: {
         title: "Module architect",
         description: "Configured modules for your needs.",
+      },
+      boardPilot: {
+        title: "Board pilot",
+        description: "Custom columns and dashboard views explored.",
+      },
+      moduleExplorer: {
+        title: "Module explorer",
+        description: "Discovered at least one module via the guided journey.",
       },
       centurion: {
         title: "Centurion",

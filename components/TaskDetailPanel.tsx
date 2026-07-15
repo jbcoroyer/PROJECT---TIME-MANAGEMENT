@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import {
   Archive,
   Check,
-  Focus,
   Layers,
   Plus,
   Pencil,
@@ -23,9 +22,11 @@ import { completedAtPatchForColumnChange } from "../lib/completedAt";
 import type { ReferenceRecord } from "../lib/referenceData";
 import { computeSlotHours, HALF_HOUR_OPTIONS } from "../lib/projectedWorkUtils";
 import CustomFieldInputs from "./CustomFieldInputs";
+import ColumnStatusBadge from "./ColumnStatusBadge";
+import ColumnStatusSelect from "./ColumnStatusSelect";
 import { useBoardFields } from "../lib/v2/boardFields";
 import { loadBoardIdForTask, useTaskCustomFields } from "../lib/v2/customFieldValues";
-import { ensureDefaultBoard } from "../lib/v2/boardColumns";
+import { ensureDefaultBoard, resolveColumnRefs } from "../lib/v2/boardColumns";
 
 /* ─── Chip d'info (affichage) ─── */
 function InfoChip(props: {
@@ -85,7 +86,6 @@ export default function TaskDetailPanel(props: {
   const { task } = props;
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [isFocusMode, setIsFocusMode] = useState(false);
 
   // Champs éditables
   const [editTitle, setEditTitle] = useState(task.projectName);
@@ -167,9 +167,9 @@ export default function TaskDetailPanel(props: {
       admin: editAdmins.join(","),
       lane: editAdmins[0],
       priority: editPriority,
-      column_id: editColumn,
       budget: editBudget,
       description: editDescription,
+      ...resolveColumnRefs(editColumn, props.columnRecords),
       ...colMerge,
     };
     await props.onSave(task.id, patch, dbPatch);
@@ -220,10 +220,7 @@ export default function TaskDetailPanel(props: {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className={[
-          "fixed inset-0 z-40 bg-slate-950/24 backdrop-blur-[1px]",
-          isFocusMode ? "bg-slate-950/35" : "",
-        ].join(" ")}
+        className="fixed inset-0 z-40 bg-slate-950/24 backdrop-blur-[1px]"
         onClick={props.onClose}
       />
 
@@ -235,12 +232,7 @@ export default function TaskDetailPanel(props: {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 42 }}
         transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.7 }}
-        className={[
-          "fixed z-50 flex w-full flex-col overflow-hidden bg-[var(--surface)]/97 shadow-[0_34px_90px_rgba(20,17,13,0.24)] backdrop-blur",
-          isFocusMode
-            ? "left-1/2 top-1/2 h-[86vh] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--line)]"
-            : "right-0 top-[64px] h-[calc(100vh-64px)] max-w-xl border-l border-[var(--line)]",
-        ].join(" ")}
+        className="fixed right-0 top-[64px] z-50 flex h-[calc(100vh-64px)] w-full max-w-xl flex-col overflow-hidden border-l border-[var(--line)] bg-[var(--surface)]/97 shadow-[0_34px_90px_rgba(20,17,13,0.24)] backdrop-blur"
       >
         {/* ── En-tête ── */}
         <div className="shrink-0 border-b border-[var(--line)] px-5 py-4">
@@ -261,22 +253,18 @@ export default function TaskDetailPanel(props: {
                   {task.projectName || "Projet sans titre"}
                 </h2>
               )}
+              {!isEditing ? (
+                <p className="mt-1 text-[11px] text-[color:var(--foreground)]/50">
+                  Cliquez <strong className="font-semibold text-[color:var(--foreground)]/65">Modifier</strong> pour changer domaine, priorité, état…
+                </p>
+              ) : null}
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setIsFocusMode((v) => !v)}
-                className="ui-transition inline-flex items-center gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-semibold text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]"
-                title={isFocusMode ? "Quitter le mode focus" : "Passer en mode focus"}
-              >
-                <Focus className="h-3.5 w-3.5" />
-                {isFocusMode ? "Quitter focus" : "Mode focus"}
-              </button>
               {!isEditing ? (
                 <button
                   type="button"
                   onClick={startEdit}
-                  className="ui-transition inline-flex items-center gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)] hover:text-[color:var(--foreground)]/75"
+                  className="ui-transition inline-flex items-center gap-1 rounded-lg border border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_10%,var(--surface))] px-2.5 py-1.5 text-xs font-semibold text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_16%,var(--surface))]"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                   Modifier
@@ -319,6 +307,10 @@ export default function TaskDetailPanel(props: {
 
           {/* ── Labels / Métadonnées ── */}
           {!isEditing ? (
+            <>
+              <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)]/60 px-3 py-2 text-xs text-[color:var(--foreground)]/55">
+                Ces libellés sont modifiables — utilisez le bouton <strong className="font-semibold text-[color:var(--foreground)]/75">Modifier</strong> en haut.
+              </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <InfoChip
                 icon={<Layers className="h-3 w-3" />}
@@ -331,8 +323,9 @@ export default function TaskDetailPanel(props: {
               <InfoChip
                 icon={<Tag className="h-3 w-3" />}
                 label="État"
-                value={task.column}
-              />
+              >
+                <ColumnStatusBadge label={task.column} records={props.columnRecords} className="mt-1" />
+              </InfoChip>
               <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2">
                 <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/45">
                   <Tag className="h-3 w-3" />Priorité
@@ -364,6 +357,7 @@ export default function TaskDetailPanel(props: {
                 </div>
               </div>
             </div>
+            </>
           ) : (
             /* ── Mode édition : formulaire compact ── */
             <div className="space-y-3 rounded-2xl border border-[var(--line)]/80 bg-[var(--surface-soft)] p-4">
@@ -382,13 +376,14 @@ export default function TaskDetailPanel(props: {
                 </div>
                 <div>
                   <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/55">État</label>
-                  <select
-                    value={editColumn}
-                    onChange={(e) => setEditColumn(e.target.value as ColumnId)}
-                    className="ui-focus-ring mt-1 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm"
-                  >
-                    {props.columnRecords.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
-                  </select>
+                  <div className="mt-1">
+                    <ColumnStatusSelect
+                      value={editColumn}
+                      columns={props.columns as ColumnId[]}
+                      records={props.columnRecords}
+                      onChange={setEditColumn}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/55">Priorité</label>

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Package, RotateCcw } from "lucide-react";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
-import { eventStockKits, resolveKitToInventoryIds } from "../../lib/eventStockKits";
 import { useInventory, getInventoryErrorMessage } from "../../lib/useInventory";
 import { formatInventorySelectOptionLabel } from "../../lib/stockUtils";
 import { toastError, toastSuccess } from "../../lib/toast";
@@ -30,7 +29,6 @@ export default function EventMaterialNeeds(props: Props) {
   const [loading, setLoading] = useState(true);
   const [itemId, setItemId] = useState("");
   const [qty, setQty] = useState("1");
-  const [kitKey, setKitKey] = useState(eventStockKits[0]?.key ?? "");
   const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(async () => {
@@ -96,33 +94,6 @@ export default function EventMaterialNeeds(props: Props) {
     await load();
   };
 
-  const applyKit = async () => {
-    const kit = eventStockKits.find((k) => k.key === kitKey);
-    if (!kit) return;
-    const resolved = resolveKitToInventoryIds(
-      kit,
-      items.map((i) => ({ id: i.id, name: i.name })),
-    );
-    if (resolved.length === 0) {
-      toastError("Aucun article du stock ne correspond à ce kit.");
-      return;
-    }
-    const supabase = getSupabaseBrowser();
-    for (const line of resolved) {
-      await supabase.from("event_material_needs").upsert(
-        {
-          event_id: eventId,
-          inventory_item_id: line.inventoryItemId,
-          quantity_needed: line.quantity,
-          notes: `Kit ${kit.label}`,
-        },
-        { onConflict: "event_id,inventory_item_id" },
-      );
-    }
-    toastSuccess(`Kit « ${kit.label} » appliqué (${resolved.length} ligne(s))`);
-    await load();
-  };
-
   const fulfillNeed = async (need: MaterialNeedRow) => {
     const remaining = need.quantityNeeded - need.quantityFulfilled;
     if (remaining <= 0) {
@@ -141,7 +112,7 @@ export default function EventMaterialNeeds(props: Props) {
         changeAmount: -remaining,
         projectId: null,
         eventId,
-        reason: `Salon — ${need.itemName}`,
+        reason: `Événement — ${need.itemName}`,
         userName: defaultUserName,
       });
       const supabase = getSupabaseBrowser();
@@ -172,7 +143,7 @@ export default function EventMaterialNeeds(props: Props) {
         changeAmount: qtyReturn,
         projectId: null,
         eventId,
-        reason: `Retour salon — ${need.itemName}`,
+        reason: `Retour événement — ${need.itemName}`,
         userName: defaultUserName,
       });
       const supabase = getSupabaseBrowser();
@@ -203,36 +174,15 @@ export default function EventMaterialNeeds(props: Props) {
           Besoins matériel ({pendingCount} en attente)
         </div>
         <p className="mt-3 text-sm text-[color:var(--foreground)]/60">
-          Déclarez les besoins avant la sortie stock. Un kit applique plusieurs lignes d&apos;un coup.
+          Déclarez les besoins matériel avant la sortie stock.
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <select
-            value={kitKey}
-            onChange={(e) => setKitKey(e.target.value)}
-            className="ui-focus-ring rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
-          >
-            {eventStockKits.map((k) => (
-              <option key={k.key} value={k.key}>
-                {k.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => void applyKit()}
-            className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm font-semibold"
-          >
-            Appliquer le kit
-          </button>
-        </div>
-
-        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_100px_auto]">
+        <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_100px_auto]">
           <select
             value={itemId}
             onChange={(e) => setItemId(e.target.value)}
             disabled={invLoading}
-            className="ui-focus-ring rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
+            className="ui-focus-ring h-10 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-sm"
           >
             <option value="">Article…</option>
             {items.map((i) => (
@@ -246,12 +196,12 @@ export default function EventMaterialNeeds(props: Props) {
             min={1}
             value={qty}
             onChange={(e) => setQty(e.target.value)}
-            className="ui-focus-ring rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
+            className="ui-focus-ring h-10 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-sm"
           />
           <button
             type="button"
             onClick={() => void addNeed()}
-            className="rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)]"
+            className="h-10 rounded-xl bg-[var(--foreground)] px-4 text-sm font-semibold text-[var(--accent-contrast)]"
           >
             Ajouter
           </button>

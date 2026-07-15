@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import {
   Archive,
@@ -10,10 +11,8 @@ import {
   CalendarDays,
   ClipboardList,
   Command as CommandIcon,
-  Inbox,
   KanbanSquare,
   LayoutTemplate,
-  ListFilter,
   Plus,
   Search,
   Table2,
@@ -37,6 +36,10 @@ import { useEvents } from "../../../lib/useEvents";
 import { useCurrentUser } from "../../../lib/useCurrentUser";
 import { useBranding } from "../../../lib/brandingContext";
 import { teamAdminNameForUser } from "../../../lib/taskConcernsUser";
+import {
+  ensureCurrentUserTeamMember,
+  resolveFallbackAssigneeName,
+} from "../../../lib/ensureCurrentTeamMember";
 import { getSupabaseBrowser } from "../../../lib/supabaseBrowser";
 import { useTaskManager } from "../../../lib/useTaskManager";
 import { DONE_COLUMN_NAME } from "../../../lib/workflowConstants";
@@ -47,21 +50,17 @@ import { completedAtIsoForNewTaskInColumn } from "../../../lib/completedAt";
 import { markTaskMutatedLocally, markTasksMutatedLocally } from "../../../lib/taskMutatedLocally";
 import { normalizeProjectName } from "../../../lib/normalize";
 import { useAppShortcuts } from "../../../lib/v2/useAppShortcuts";
-import { useInAppNotifications } from "../../../lib/inAppNotificationsContext";
-import { usePresence } from "../../../lib/v2/usePresence";
-import { useAutomationRules, useAutomationRunner, type AutomationRule } from "../../../lib/v2/automations";
-import { useIntakeRequests, type IntakeRequest } from "../../../lib/v2/intake";
 import { useAutoArchiveHours } from "../../../lib/v2/v2Preferences";
 import { getTemplateById, TASK_TEMPLATES } from "../../../lib/v2/taskTemplates";
+import { resolveColumnRefs } from "../../../lib/v2/boardColumns";
+import { canAccessTeamWorkload } from "../../../lib/billing/plans";
+import { useBillingPlan } from "../../../lib/billing/useBillingPlan";
 import DashboardNotificationBell from "../../DashboardNotificationBell";
-import PresenceBar from "../PresenceBar";
 import V2CommandPalette, { type PaletteAction } from "./V2CommandPalette";
 import V2QuickAddTask from "./V2QuickAddTask";
-import V2Inbox from "./V2Inbox";
-import V2TriagePanel from "./V2TriagePanel";
-import IntakeTaskMappingModal from "./IntakeTaskMappingModal";
 import { useFirstTaskTutorialOptional } from "../../../lib/onboarding/firstTaskTutorialContext";
-import { buildTaskDraftFromRequest, type IntakeTaskDraft } from "../../../lib/v2/intakeMapping";
+import { useExplorationTutorialOptional } from "../../../lib/onboarding/explorationTutorialContext";
+import { useGamificationOptional } from "../../../lib/gamification/gamificationContext";
 
 const V2ListView = dynamic(() => import("../list/V2ListView"));
 
@@ -76,17 +75,14 @@ const KanbanBoardView = dynamic(() => import("../../KanbanBoardView"), {
 });
 
 type MainTab =
-  | "inbox"
   | "kanban"
   | "list"
   | "todo"
   | "calendar"
   | "analytics"
   | "archives"
-  | "workload"
-  | "triage";
+  | "workload";
 const MAIN_TAB_SET = new Set<MainTab>([
-  "inbox",
   "kanban",
   "list",
   "todo",
@@ -94,19 +90,16 @@ const MAIN_TAB_SET = new Set<MainTab>([
   "analytics",
   "archives",
   "workload",
-  "triage",
 ]);
 
 const MAIN_TABS: { id: MainTab; label: string; icon: typeof KanbanSquare }[] = [
-  { id: "inbox", label: "Inbox", icon: Inbox },
-  { id: "todo", label: "Ma To-Do List", icon: ClipboardList },
+  { id: "todo", label: "Mes tâches", icon: ClipboardList },
   { id: "kanban", label: "Tableau Kanban", icon: KanbanSquare },
   { id: "list", label: "Vue liste", icon: Table2 },
   { id: "calendar", label: "Calendrier", icon: CalendarDays },
   { id: "workload", label: "Charge équipe", icon: Users },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "archives", label: "Archives", icon: Archive },
-  { id: "triage", label: "Triage", icon: ListFilter },
 ];
 
 const ToDoListView = dynamic(() => import("../../ToDoListView"));
@@ -121,33 +114,27 @@ export default function V2DashboardHomePage() {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams();
   const searchParams = useSearchParams();
   const { user: currentUser } = useCurrentUser();
   const { branding } = useBranding();
   const { tasks, setTasks, optimisticUpdate } = useTasks();
-  const { events: salonEvents } = useEvents();
+  const { events: calendarEvents } = useEvents();
   const {
     admins: adminRecords,
     columns: columnRecords,
     companies: companyRecords,
     domains: domainRecords,
   } = useReferenceData();
+  const { plan } = useBillingPlan();
 
-  const { pushNotification } = useInAppNotifications();
-  const { rules: automationRules } = useAutomationRules();
-  const {
-    requests: intakeRequests,
-    loading: intakeLoading,
-    updateRequest: updateIntakeRequest,
-  } = useIntakeRequests();
+  const teamMemberCount = adminRecords.length;
+  const showTeamWorkload = canAccessTeamWorkload(plan, teamMemberCount);
+  const visibleMainTabs = useMemo(
+    () => MAIN_TABS.filter((tab) => tab.id !== "workload" || showTeamWorkload),
+    [showTeamWorkload],
+  );
   const [autoArchiveHours] = useAutoArchiveHours();
-
-  const presenceMembers = usePresence("v2-dashboard", {
-    id: currentUser?.id ?? null,
-    name: currentUser?.teamMemberName ?? currentUser?.displayName ?? currentUser?.email ?? null,
-    avatarUrl: currentUser?.avatarUrl ?? null,
-  });
-
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [newTask, setNewTask] = useState<NewTaskFormState>(initialFormState);
@@ -157,9 +144,6 @@ export default function V2DashboardHomePage() {
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") ?? "");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isCommandOpen, setIsCommandOpen] = useState(false);
-  const [mappingRequest, setMappingRequest] = useState<IntakeRequest | null>(null);
-  const [mappingDraft, setMappingDraft] = useState<IntakeTaskDraft | null>(null);
-  const [mappingBusy, setMappingBusy] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const quickAddRef = useRef<HTMLInputElement | null>(null);
@@ -167,13 +151,17 @@ export default function V2DashboardHomePage() {
   const onboardingTaskHandledRef = useRef<string | null>(null);
 
   const activeTab = useMemo<MainTab>(() => {
+    const fromParams = params.tab;
+    if (typeof fromParams === "string" && MAIN_TAB_SET.has(fromParams as MainTab)) {
+      return fromParams as MainTab;
+    }
     const match = pathname.match(/^\/dashboard\/([^/?#]+)/);
-    const candidate = match?.[1];
-    if (candidate && MAIN_TAB_SET.has(candidate as MainTab)) {
-      return candidate as MainTab;
+    const fromPath = match?.[1];
+    if (fromPath && MAIN_TAB_SET.has(fromPath as MainTab)) {
+      return fromPath as MainTab;
     }
     return "kanban";
-  }, [pathname]);
+  }, [params.tab, pathname]);
 
   const navigateToTab = useCallback(
     (tab: MainTab) => {
@@ -183,6 +171,20 @@ export default function V2DashboardHomePage() {
     },
     [router, searchQuery],
   );
+
+  useEffect(() => {
+    if (activeTab !== "workload" || showTeamWorkload) return;
+    navigateToTab("kanban");
+  }, [activeTab, showTeamWorkload, navigateToTab]);
+
+  useEffect(() => {
+    const fromParams = params.tab;
+    const fromPath = pathname.match(/^\/dashboard\/([^/?#]+)/)?.[1];
+    const tab = typeof fromParams === "string" ? fromParams : fromPath;
+    if (tab === "inbox") {
+      navigateToTab("todo");
+    }
+  }, [params.tab, pathname, navigateToTab]);
 
   const taskCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastFocusedTaskIdRef = useRef<string | null>(null);
@@ -221,6 +223,13 @@ export default function V2DashboardHomePage() {
   }, [adminNamesForPalette]);
 
   const columns = useMemo(() => columnRecords.map((item) => item.name), [columnRecords]);
+  const openTodoColumns = useMemo(
+    () =>
+      columnRecords
+        .filter((col) => !col.isDone && col.name !== "Terminé")
+        .map((col) => col.name),
+    [columnRecords],
+  );
   const companies = useMemo(() => companyRecords.map((item) => item.name), [companyRecords]);
 
   const adminAvatarMap = useMemo<Record<string, string | null>>(
@@ -263,25 +272,80 @@ export default function V2DashboardHomePage() {
     const next = new URLSearchParams();
     const q = searchParams.get("q");
     if (q) next.set("q", q);
+    const tabSegment = MAIN_TAB_SET.has(activeTab) ? activeTab : "kanban";
     const target =
-      next.toString().length > 0 ? `/dashboard/kanban?${next.toString()}` : "/dashboard/kanban";
-    if (pathname !== "/dashboard/kanban" || searchParams.has("task")) {
+      next.toString().length > 0
+        ? `/dashboard/${tabSegment}?${next.toString()}`
+        : `/dashboard/${tabSegment}`;
+    if (pathname !== target || searchParams.has("task")) {
       router.replace(target, { scroll: false });
     }
-  }, [tasks, searchParams, pathname, router]);
+  }, [tasks, searchParams, pathname, router, activeTab]);
 
-  const defaultAdminName = useMemo(
-    () => teamAdminNameForUser(admins, currentUser) ?? "",
-    [currentUser, admins],
-  );
+  const defaultAdminName = useMemo(() => {
+    const matched = teamAdminNameForUser(admins, currentUser);
+    if (matched) return matched;
+    return resolveFallbackAssigneeName(currentUser) ?? "";
+  }, [currentUser, admins]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    if (adminRecords.length > 0 && defaultAdminName) return;
+    void ensureCurrentUserTeamMember(supabase, currentUser);
+  }, [currentUser, adminRecords.length, defaultAdminName, supabase]);
 
   const tutorial = useFirstTaskTutorialOptional();
-  const tutorialHighlightButton = Boolean(tutorial?.active) && tutorial?.step === "clickNewTask";
+  const exploration = useExplorationTutorialOptional();
+  const gamification = useGamificationOptional();
+  const firstTaskTutorialCompleted = Boolean(
+    currentUser?.firstTaskTutorialCompleted ||
+      gamification?.profile.firstTaskTutorialCompleted,
+  );
+  const firstTaskTutorialEligible = tasks.length === 0 && !firstTaskTutorialCompleted;
+  const tutorialHighlightButton =
+    Boolean(tutorial?.active) && tutorial?.step === "clickNewTask" && firstTaskTutorialEligible;
   const tutorialModalActive =
-    Boolean(tutorial?.active) && tutorial?.step === "fillForm" && isFormOpen;
+    Boolean(tutorial?.active) &&
+    tutorial?.step === "fillForm" &&
+    isFormOpen &&
+    firstTaskTutorialEligible;
+
+  const tutorialAutoCompletedRef = useRef(false);
+  useEffect(() => {
+    if (tutorialAutoCompletedRef.current) return;
+    if (tasks.length === 0 || firstTaskTutorialCompleted) return;
+    if (
+      !tutorial?.active &&
+      gamification?.profile.tutorials.first_task?.status !== "in_progress"
+    ) {
+      return;
+    }
+    tutorialAutoCompletedRef.current = true;
+    tutorial?.finishCelebration();
+    void gamification?.completeTutorial("first_task");
+  }, [
+    tasks.length,
+    firstTaskTutorialCompleted,
+    tutorial,
+    gamification,
+  ]);
+
+  useEffect(() => {
+    if (!tutorial?.active) return;
+    if (exploration?.boardActive) return;
+    if (tutorial.step === "celebrate" || tutorial.step === "done") return;
+    if (activeTab === "kanban") return;
+    tutorial.dismissTutorial();
+    if (isFormOpen) setIsFormOpen(false);
+  }, [activeTab, tutorial, isFormOpen, exploration?.boardActive]);
 
   const handleOpenForm = useCallback((options?: { fromTutorialButton?: boolean }) => {
-    if (tutorial?.active && tutorial.step === "clickNewTask" && !options?.fromTutorialButton) {
+    if (
+      firstTaskTutorialEligible &&
+      tutorial?.active &&
+      tutorial.step === "clickNewTask" &&
+      !options?.fromTutorialButton
+    ) {
       return;
     }
     const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
@@ -295,13 +359,19 @@ export default function V2DashboardHomePage() {
     });
     setNewTaskColumn((columns[0] as ColumnId) ?? "À faire");
     setIsFormOpen(true);
-    tutorial?.notifyNewTaskClicked();
-    tutorial?.notifyFormOpened();
-  }, [defaultAdminName, columns, companyRecords, domainRecords, tutorial]);
+    if (firstTaskTutorialEligible) {
+      tutorial?.notifyNewTaskClicked();
+      tutorial?.notifyFormOpened();
+    }
+  }, [defaultAdminName, columns, companyRecords, domainRecords, tutorial, firstTaskTutorialEligible]);
 
   const handleOpenFormForColumn = useCallback(
     (column: ColumnId) => {
-      if (tutorial?.active && (tutorial.step === "clickNewTask" || tutorial.step === "fillForm")) {
+      if (
+        firstTaskTutorialEligible &&
+        tutorial?.active &&
+        (tutorial.step === "clickNewTask" || tutorial.step === "fillForm")
+      ) {
         return;
       }
       const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
@@ -316,7 +386,7 @@ export default function V2DashboardHomePage() {
       setNewTaskColumn(column);
       setIsFormOpen(true);
     },
-    [defaultAdminName, companyRecords, domainRecords, tutorial],
+    [defaultAdminName, companyRecords, domainRecords, tutorial, firstTaskTutorialEligible],
   );
 
   const handleCloseForm = useCallback(() => {
@@ -336,7 +406,7 @@ export default function V2DashboardHomePage() {
   const handleTaskFormDone = useCallback(() => {
     const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
     const firstDomain = domainRecords[0]?.name ?? initialFormState.domain;
-    if (tutorial?.active && tutorial.step === "fillForm") {
+    if (firstTaskTutorialEligible && tutorial?.active && tutorial.step === "fillForm") {
       tutorial.notifyTaskCreated();
     }
     setIsFormOpen(false);
@@ -347,7 +417,7 @@ export default function V2DashboardHomePage() {
       admins: defaultAdminName ? [defaultAdminName] : [],
     });
     setNewTaskColumn((columns[0] as ColumnId) ?? "À faire");
-  }, [companyRecords, domainRecords, defaultAdminName, columns, tutorial]);
+  }, [companyRecords, domainRecords, defaultAdminName, columns, tutorial, firstTaskTutorialEligible]);
 
   const openEditForTask = useCallback((task: Task) => {
     setEditingTaskId(task.id);
@@ -384,6 +454,7 @@ export default function V2DashboardHomePage() {
     setTasks,
     optimisticUpdate,
     columns,
+    columnRecords,
     newTaskColumn,
     editingTaskId,
     onTaskFormDone: handleTaskFormDone,
@@ -440,7 +511,7 @@ export default function V2DashboardHomePage() {
         projected_work: [],
         estimated_hours: 0,
         estimated_days: 0,
-        column_id: column,
+        ...resolveColumnRefs(column, columnRecords),
         lane: admins0[0] ?? null,
         elapsed_ms: 0,
         is_running: false,
@@ -463,7 +534,7 @@ export default function V2DashboardHomePage() {
       });
       toastSuccess("Tâche créée");
     },
-    [columns, companyRecords, domainRecords, defaultAdminName, setTasks, supabase],
+    [columns, columnRecords, companyRecords, domainRecords, defaultAdminName, setTasks, supabase],
   );
 
   const clearOnboardingTaskParams = useCallback(() => {
@@ -476,33 +547,29 @@ export default function V2DashboardHomePage() {
   }, [pathname, router, searchParams]);
 
   useEffect(() => {
+    if (searchParams.get("quickAdd") !== "1") return;
+
     const draft = searchParams.get("taskDraft")?.trim() ?? "";
     const shouldCreate = searchParams.get("createTask") === "1";
-    const quickAdd = searchParams.get("quickAdd") === "1";
-    if (!quickAdd) return;
-
     const signature = `${shouldCreate ? "create" : "prefill"}:${draft}`;
+
+    // Retirer tout de suite les paramètres d'onboarding pour ne pas bloquer la navigation.
+    clearOnboardingTaskParams();
+
     if (onboardingTaskHandledRef.current === signature) return;
     onboardingTaskHandledRef.current = signature;
 
     const applyQuickAdd = () => {
+      if (shouldCreate && draft) {
+        void handleQuickCreate(draft);
+        return;
+      }
       if (draft) {
         setQuickAddPrefill(draft);
       } else {
         window.setTimeout(() => quickAddRef.current?.focus(), 250);
       }
-      clearOnboardingTaskParams();
     };
-
-    if (shouldCreate && draft) {
-      if (activeTab !== "kanban") navigateToTab("kanban");
-      window.setTimeout(() => {
-        void handleQuickCreate(draft).finally(() => {
-          clearOnboardingTaskParams();
-        });
-      }, activeTab === "kanban" ? 0 : 280);
-      return;
-    }
 
     if (activeTab !== "kanban") {
       navigateToTab("kanban");
@@ -569,7 +636,7 @@ export default function V2DashboardHomePage() {
         projected_work: [],
         estimated_hours: 0,
         estimated_days: 0,
-        column_id: column,
+        ...resolveColumnRefs(column, columnRecords),
         lane: admins0[0] ?? null,
         elapsed_ms: 0,
         is_running: false,
@@ -596,52 +663,6 @@ export default function V2DashboardHomePage() {
   );
 
   const domainNames = useMemo(() => domainRecords.map((d) => d.name), [domainRecords]);
-
-  const runAutomationAction = useCallback(
-    (rule: AutomationRule, task: Task) => {
-      switch (rule.actionType) {
-        case "set_priority": {
-          const p = rule.actionParams.priority as Priority | undefined;
-          if (p && task.priority !== p) {
-            void optimisticUpdate(task.id, { ...task, priority: p }, { priority: p }).catch(() => {});
-          }
-          break;
-        }
-        case "move_to_column": {
-          const c = rule.actionParams.column as ColumnId | undefined;
-          if (c && task.column !== c) handleMoveTask(task.id, c);
-          break;
-        }
-        case "add_assignee": {
-          const a = rule.actionParams.assignee;
-          if (a && !task.admins.includes(a)) {
-            const nextAdmins = [...task.admins, a];
-            void optimisticUpdate(task.id, { ...task, admins: nextAdmins }, { admin: nextAdmins.join(",") }).catch(() => {});
-          }
-          break;
-        }
-        case "archive": {
-          if (!task.isArchived) {
-            void optimisticUpdate(task.id, { ...task, isArchived: true }, { is_archived: true }).catch(() => {});
-          }
-          break;
-        }
-        case "notify": {
-          pushNotification({
-            title: rule.name,
-            body: rule.actionParams.message || `Automatisation appliquée à « ${task.projectName} »`,
-            href: `/dashboard/kanban?task=${task.id}`,
-          });
-          break;
-        }
-        default:
-          break;
-      }
-    },
-    [handleMoveTask, optimisticUpdate, pushNotification],
-  );
-
-  useAutomationRunner({ rules: automationRules, tasks, now, runAction: runAutomationAction });
 
   useEffect(() => {
     const cutoff = Date.now() - autoArchiveHours * 60 * 60 * 1000;
@@ -676,72 +697,6 @@ export default function V2DashboardHomePage() {
     [setTasks, supabase],
   );
 
-  const handleAcceptRequest = useCallback(
-    (request: IntakeRequest) => {
-      const draft = buildTaskDraftFromRequest(request, {
-        companies,
-        domains: domainNames,
-        admins,
-        tasks,
-        defaultAdmin: defaultAdminName || undefined,
-      });
-      setMappingRequest(request);
-      setMappingDraft(draft);
-    },
-    [admins, companies, defaultAdminName, domainNames, tasks],
-  );
-
-  const handleConfirmMappedTask = useCallback(
-    async (mapped: IntakeTaskDraft) => {
-      if (!mappingRequest || mappingBusy) return;
-      setMappingBusy(true);
-      try {
-        const column = (columns[0] as ColumnId) ?? "À faire";
-        const created = await insertTaskRow({
-          project_name: normalizeProjectName(mapped.projectName),
-          company: mapped.company,
-          domain: mapped.domain,
-          admin: mapped.admins.join(","),
-          is_client_request: mapped.isClientRequest,
-          client_name: mapped.clientName,
-          deadline: mapped.deadline || null,
-          budget: mapped.budget,
-          description: mapped.description,
-          priority: mapped.priority,
-          projected_work: [],
-          estimated_hours: mapped.estimatedHours,
-          estimated_days: mapped.estimatedHours > 0 ? Math.ceil(mapped.estimatedHours / 7) : 0,
-          column_id: column,
-          lane: mapped.admins[0] ?? null,
-          elapsed_ms: 0,
-          is_running: false,
-          last_start_time_ms: null,
-          is_archived: false,
-          completed_at: completedAtIsoForNewTaskInColumn(column),
-        });
-        if (!created) return;
-        await updateIntakeRequest(mappingRequest.id, {
-          status: "accepted",
-          linkedTaskId: created.id,
-          decidedAt: new Date().toISOString(),
-        });
-        setMappingRequest(null);
-        setMappingDraft(null);
-        toastSuccess("Demande convertie en tâche");
-      } finally {
-        setMappingBusy(false);
-      }
-    },
-    [columns, insertTaskRow, mappingBusy, mappingRequest, updateIntakeRequest],
-  );
-
-  const handleRejectRequest = useCallback(
-    async (request: IntakeRequest) => {
-      await updateIntakeRequest(request.id, { status: "rejected", decidedAt: new Date().toISOString() });
-    },
-    [updateIntakeRequest],
-  );
-
   const handleApplyTemplate = useCallback(
     async (templateId: string) => {
       const tpl = getTemplateById(templateId);
@@ -766,7 +721,7 @@ export default function V2DashboardHomePage() {
         projected_work: [],
         estimated_hours: 0,
         estimated_days: 0,
-        column_id: column,
+        ...resolveColumnRefs(column, columnRecords),
         lane: admins0[0] ?? null,
         elapsed_ms: 0,
         is_running: false,
@@ -782,7 +737,7 @@ export default function V2DashboardHomePage() {
         admin: admins0.join(","),
         lane: admins0[0] ?? null,
         deadline: null,
-        column_id: column,
+        ...resolveColumnRefs(column, columnRecords),
         priority: "Moyenne" as const,
         is_archived: false,
         is_client_request: false,
@@ -800,12 +755,7 @@ export default function V2DashboardHomePage() {
       }
       toastSuccess(`Modèle « ${tpl.name} » appliqué`);
     },
-    [columns, companyRecords, defaultAdminName, domainNames, domainRecords, insertTaskRow, setTasks, supabase],
-  );
-
-  const pendingTriageCount = useMemo(
-    () => intakeRequests.filter((r) => r.status === "triage").length,
-    [intakeRequests],
+    [columns, columnRecords, companyRecords, defaultAdminName, domainNames, domainRecords, insertTaskRow, setTasks, supabase],
   );
 
   const activeTasks = useMemo(() => {
@@ -938,15 +888,15 @@ export default function V2DashboardHomePage() {
       event.preventDefault();
       cycleActiveTaskPriority();
     },
-    "g i": () => navigateToTab("inbox"),
+    "g i": () => navigateToTab("todo"),
     "g k": () => navigateToTab("kanban"),
     "g l": () => navigateToTab("list"),
     "g t": () => navigateToTab("todo"),
     "g c": () => navigateToTab("calendar"),
-    "g w": () => navigateToTab("workload"),
+    ...(showTeamWorkload ? { "g w": () => navigateToTab("workload") } : {}),
     "g a": () => navigateToTab("analytics"),
     "g r": () => navigateToTab("archives"),
-    "g d": () => navigateToTab("triage"),
+    "g d": () => router.push("/asks/triage"),
     Escape: () => {
       if (!isCommandOpen && selectedTaskId) {
         closeTaskDetailPanel();
@@ -980,17 +930,25 @@ export default function V2DashboardHomePage() {
         keywords: ["filtrer", "chercher"],
         perform: () => searchInputRef.current?.focus(),
       },
-      { id: "nav-inbox", group: "Navigation", label: "Inbox", hint: "G I", perform: () => navigateToTab("inbox") },
+      { id: "nav-todo", group: "Navigation", label: "Mes tâches", hint: "G T · G I", perform: () => navigateToTab("todo") },
       { id: "nav-kanban", group: "Navigation", label: "Tableau Kanban", hint: "G K", perform: () => navigateToTab("kanban") },
       { id: "nav-list", group: "Navigation", label: "Vue liste", hint: "G L", perform: () => navigateToTab("list") },
-      { id: "nav-todo", group: "Navigation", label: "Ma To-Do List", hint: "G T", perform: () => navigateToTab("todo") },
       { id: "nav-calendar", group: "Navigation", label: "Calendrier", hint: "G C", perform: () => navigateToTab("calendar") },
-      { id: "nav-workload", group: "Navigation", label: "Charge équipe", hint: "G W", perform: () => navigateToTab("workload") },
+      ...(showTeamWorkload
+        ? [
+            {
+              id: "nav-workload",
+              group: "Navigation",
+              label: "Charge équipe",
+              hint: "G W",
+              perform: () => navigateToTab("workload"),
+            } satisfies PaletteAction,
+          ]
+        : []),
       { id: "nav-analytics", group: "Navigation", label: "Analytics", hint: "G A", perform: () => navigateToTab("analytics") },
       { id: "nav-archives", group: "Navigation", label: "Archives", hint: "G R", perform: () => navigateToTab("archives") },
-      { id: "nav-triage", group: "Navigation", label: "Triage des demandes", hint: "G D", perform: () => navigateToTab("triage") },
-      { id: "open-asks", group: "Navigation", label: "Faire une demande", keywords: ["asks", "intake", "demande"], perform: () => router.push("/asks") },
-      { id: "open-automations", group: "Navigation", label: "Automatisations (paramètres)", keywords: ["règles", "automation"], perform: () => router.push("/settings") },
+      { id: "nav-triage", group: "Navigation", label: "Traiter les demandes", hint: "G D", perform: () => router.push("/asks/triage") },
+      { id: "open-asks", group: "Navigation", label: "Espace demandes", keywords: ["asks", "intake", "demande", "formulaire"], perform: () => router.push("/asks") },
       ...TASK_TEMPLATES.map((tpl) => ({
         id: `template-${tpl.id}`,
         group: "Modèles",
@@ -1063,6 +1021,7 @@ export default function V2DashboardHomePage() {
     handleOpenForm,
     navigateToTab,
     router,
+    showTeamWorkload,
     selectedTaskId,
     tasks,
   ]);
@@ -1074,7 +1033,7 @@ export default function V2DashboardHomePage() {
           <button
             type="button"
             onClick={() => setIsCommandOpen(true)}
-            className="flex w-full max-w-md items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-left shadow-[var(--shadow-1)] ui-transition hover:border-[var(--line-strong)]"
+            className="flex w-full items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-left shadow-[var(--shadow-1)] ui-transition hover:border-[var(--line-strong)]"
           >
             <Search className="h-4 w-4 text-[color:var(--foreground)]/45" aria-hidden />
             <span className="flex-1 text-sm text-[color:var(--foreground)]/45">Rechercher ou lancer une commande…</span>
@@ -1085,7 +1044,6 @@ export default function V2DashboardHomePage() {
         }
         toolbarRight={
           <div className="flex shrink-0 items-center gap-2">
-            <PresenceBar members={presenceMembers} />
             <DashboardNotificationBell />
             <button
               type="button"
@@ -1150,14 +1108,19 @@ export default function V2DashboardHomePage() {
             className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-1"
             aria-label="Onglets principaux"
           >
-            {MAIN_TABS.map((tab) => {
+            {visibleMainTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
+              const q = searchQuery.trim();
+              const href = q
+                ? `/dashboard/${tab.id}?q=${encodeURIComponent(q)}`
+                : `/dashboard/${tab.id}`;
               return (
-                <button
+                <Link
                   key={tab.id}
-                  type="button"
-                  onClick={() => navigateToTab(tab.id)}
+                  href={href}
+                  data-tutorial={`dashboard-tab-${tab.id}`}
+                  aria-current={isActive ? "page" : undefined}
                   className={[
                     "ui-transition inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold",
                     isActive
@@ -1172,42 +1135,17 @@ export default function V2DashboardHomePage() {
                       {archivedTasks.length}
                     </span>
                   )}
-                  {tab.id === "triage" && pendingTriageCount > 0 && (
-                    <span className="rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--accent-contrast)]">
-                      {pendingTriageCount}
-                    </span>
-                  )}
-                </button>
+                </Link>
               );
             })}
           </nav>
-
-          {activeTab === "inbox" && (
-            <V2Inbox
-              tasks={tasks}
-              currentUserName={effectiveUser}
-              now={now}
-              onOpenTask={(taskId) => setSelectedTaskId(taskId)}
-            />
-          )}
-
-          {activeTab === "triage" && (
-            <V2TriagePanel
-              requests={intakeRequests}
-              loading={intakeLoading}
-              tasks={tasks}
-              admins={admins}
-              onAccept={handleAcceptRequest}
-              onReject={(request) => void handleRejectRequest(request)}
-              onOpenTask={(taskId) => setSelectedTaskId(taskId)}
-            />
-          )}
 
           {activeTab === "todo" && (
             <ToDoListView
               tasks={activeTasks}
               now={now}
               admins={admins}
+              openColumns={openTodoColumns}
               currentUserName={effectiveUser}
               onTaskClick={(task) => setSelectedTaskId(task.id)}
             />
@@ -1251,6 +1189,7 @@ export default function V2DashboardHomePage() {
                 onDeleteTask={(taskId) => void handleDeleteTask(taskId)}
                 onEditTask={openEditForTask}
                 onAddTaskForColumn={handleOpenFormForColumn}
+                onColumnCreated={() => exploration?.notifyColumnAdded()}
                 taskCardRefs={taskCardRefs}
                 lastFocusedTaskIdRef={lastFocusedTaskIdRef}
               />
@@ -1280,7 +1219,7 @@ export default function V2DashboardHomePage() {
               tasks={filteredActiveTasks}
               admins={admins}
               currentUserName={currentUser?.teamMemberName ?? null}
-              salonEvents={salonEvents}
+              calendarEvents={calendarEvents}
               onSelectTask={(taskId) => {
                 lastFocusedTaskIdRef.current = null;
                 setSelectedTaskId(taskId);
@@ -1288,7 +1227,7 @@ export default function V2DashboardHomePage() {
             />
           )}
 
-          {activeTab === "workload" && (
+          {activeTab === "workload" && showTeamWorkload && (
             <WorkloadView tasks={workloadFlatTasks} admins={admins} adminRecords={adminRecords} now={now} />
           )}
 
@@ -1349,20 +1288,6 @@ export default function V2DashboardHomePage() {
           open={isCommandOpen}
           onClose={() => setIsCommandOpen(false)}
           actions={paletteActions}
-        />
-
-        <IntakeTaskMappingModal
-          open={mappingRequest !== null}
-          draft={mappingDraft}
-          domains={domainNames}
-          admins={admins}
-          busy={mappingBusy}
-          onClose={() => {
-            if (mappingBusy) return;
-            setMappingRequest(null);
-            setMappingDraft(null);
-          }}
-          onConfirm={(mapped) => void handleConfirmMappedTask(mapped)}
         />
     </AdminAvatarContext.Provider>
   );

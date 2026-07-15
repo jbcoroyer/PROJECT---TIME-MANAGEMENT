@@ -12,7 +12,9 @@ import {
 import AdminAvatar from "../../AdminAvatar";
 import CompanyAvatar from "../../CompanyAvatar";
 import type { ReferenceRecord } from "../../../lib/referenceData";
-import { columnStyles, adminFilterPillClassFor, adminSolidColorFor, domainTagStyles } from "../../../lib/kanbanStyles";
+import { adminFilterPillClassFor, adminSolidColorFor, domainTagStyles } from "../../../lib/kanbanStyles";
+import { useColumnVisuals } from "../../../lib/useColumnVisuals";
+import ColumnStatusSelect from "../../ColumnStatusSelect";
 import {
   priorities,
   type AdminId,
@@ -100,26 +102,7 @@ function StatusCell({
   columns: ColumnId[];
   onChange: (next: ColumnId) => void;
 }) {
-  const styles = columnStyles[value] ?? columnStyles["À faire"];
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value as ColumnId)}
-      className={[
-        "w-full cursor-pointer rounded-lg border px-2 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30",
-        styles.cellBg,
-        styles.cellBorder,
-        styles.headerText,
-      ].join(" ")}
-      aria-label="Statut"
-    >
-      {columns.map((col) => (
-        <option key={col} value={col}>
-          {col}
-        </option>
-      ))}
-    </select>
-  );
+  return <ColumnStatusSelect value={value} columns={columns} onChange={onChange} />;
 }
 
 function PriorityCell({
@@ -512,6 +495,8 @@ export default function V2ListView(props: V2ListViewProps) {
     onEditTask,
   } = props;
 
+  const { visualFor } = useColumnVisuals();
+
   const filterTouchedRef = useRef(false);
   const [selectedAdmins, setSelectedAdmins] = useState<Set<AdminId>>(() => {
     if (currentUserName && admins.includes(currentUserName)) {
@@ -671,19 +656,21 @@ export default function V2ListView(props: V2ListViewProps) {
           {columns.map((groupColumn) => {
             const groupTasks = tasksByColumn.get(groupColumn) ?? [];
             const collapsed = collapsedGroups.has(groupColumn);
-            const styles = columnStyles[groupColumn] ?? columnStyles["À faire"];
+            const visual = visualFor(groupColumn);
 
             return (
               <div key={groupColumn} role="rowgroup" className="border-b border-[var(--line)]">
                 <button
                   type="button"
                   onClick={() => toggleGroup(groupColumn)}
-                  className={[
-                    "flex w-full items-center gap-2 border-l-4 px-4 py-2.5 text-left text-sm font-semibold transition-colors hover:bg-[var(--surface-soft)]",
-                    styles.headerText,
-                  ].join(" ")}
-                  style={{ borderLeftColor: "var(--accent)" }}
+                  className="flex w-full flex-col border-l-4 px-4 py-2.5 text-left text-sm font-semibold transition-colors hover:bg-[var(--surface-soft)]"
+                  style={{
+                    borderLeftColor: visual.color,
+                    backgroundColor: visual.softBg,
+                    color: visual.textColor,
+                  }}
                 >
+                  <div className="flex w-full items-center gap-2">
                   {collapsed ? (
                     <ChevronRight className="h-4 w-4 shrink-0 opacity-60" />
                   ) : (
@@ -693,6 +680,7 @@ export default function V2ListView(props: V2ListViewProps) {
                   <span className="rounded-full bg-[color:var(--foreground)]/8 px-2 py-0.5 text-[11px] font-semibold text-[color:var(--foreground)]/55">
                     {groupTasks.length} élément{groupTasks.length !== 1 ? "s" : ""}
                   </span>
+                  </div>
                 </button>
 
                 {!collapsed && (

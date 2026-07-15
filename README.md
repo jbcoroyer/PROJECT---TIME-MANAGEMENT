@@ -15,9 +15,9 @@ Activables par organisation à l’onboarding (`/setup`) ou dans **Paramètres �
 |--------|-------|-------------|
 | Tableau de bord | `/dashboard/*` | Kanban, inbox, liste, to-do, calendrier, analytics, charge, archives |
 | Mon espace | `/todo` | Agenda du jour, suggestions IA |
-| Demandes | `/asks` | Portail de demandes, triage (`/dashboard/triage`) |
+| Demandes | `/asks` | Espace demandes, triage (`/asks/triage`) |
 | Planning | `/planning` | Semaine, mois, timeline, charge |
-| Événements | `/events/*` | Salons, budget, run-of-show, RETEX |
+| Événements | `/events/*` | Événements, budget, run-of-show, RETEX |
 | Réseaux sociaux | `/social` | Calendrier éditorial, stats LinkedIn, repurposing IA |
 | DAM | `/dam` | Bibliothèque d’assets (logos, visuels, tags) |
 | Stock | `/stock/*` | Impressions, PLV, goodies, alertes Slack |
@@ -131,11 +131,25 @@ Guide Stripe local : [docs/TEST_STRIPE_WEBHOOK.md](docs/TEST_STRIPE_WEBHOOK.md)
 
 ## Migrations Supabase
 
-Les 36 fichiers dans `supabase/migrations/` s’appliquent **dans l’ordre chronologique** :
+Les **46** fichiers dans `supabase/migrations/` s’appliquent **dans l’ordre chronologique** :
 
 ```bash
 npx supabase db push
 ```
+
+Migrations récentes (session juillet 2026) :
+
+| Fichier | Contenu |
+|---------|---------|
+| `20260715130000_modular_boards_foundation.sql` | Boards connectés, colonnes, champs custom |
+| `20260715140000_board_fields_relation_type.sql` | Type `relation` + Realtime `board_fields` |
+| `20260715150000_seed_board_on_signup.sql` | Board par défaut à l'inscription |
+| `20260715160000_intake_forms.sql` | Table `intake_forms`, lien `intake_requests` |
+| `20260715170000_intake_forms_definition.sql` | Colonne `definition` JSON éditable |
+| `20260715180000_survey_definitions_rls_fix.sql` | RLS org-only sur `survey_definitions` |
+| `20260715190000_agenda_module.sql` | Agenda : RDV, notes, booking public |
+| `20260715193000_event_cover_image.sql` | Image de couverture par événement |
+| `20260715194000_session_features_verify.sql` | Vérification idempotente + Realtime agenda |
 
 > **Important :** ne supprimez pas de fichiers de migration déjà appliqués en production — l’historique Supabase doit rester cohérent. Les migrations « fix » (`*_fix.sql`) corrigent des étapes précédentes et restent nécessaires pour les nouvelles installations.
 

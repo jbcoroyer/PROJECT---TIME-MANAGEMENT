@@ -13,6 +13,7 @@ import {
 import { fallbackReferenceData, type ReferenceRecord } from "./referenceData";
 import { getSupabaseBrowser } from "./supabaseBrowser";
 import { resolveStorageAssetUrl } from "./storageClient";
+import { ensureDefaultBoard, listByBoard } from "./v2/boardColumns";
 
 type ReferenceDataState = {
   admins: ReferenceRecord[];
@@ -40,12 +41,23 @@ type DomainRecord = {
   color?: string | null;
 };
 
-type ColumnRecord = {
-  id?: string;
-  name?: string;
-};
-
 const ReferenceDataContext = createContext<ReferenceDataState | null>(null);
+
+async function loadBoardColumns(): Promise<ReferenceRecord[]> {
+  try {
+    const boardId = await ensureDefaultBoard();
+    if (!boardId) return [];
+    const boardCols = await listByBoard(boardId);
+    return boardCols.map((col) => ({
+      id: col.id,
+      name: col.label,
+      color: col.color,
+      isDone: col.isDone,
+    }));
+  } catch {
+    return [];
+  }
+}
 
 export function ReferenceDataProvider({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -57,7 +69,7 @@ export function ReferenceDataProvider({ children }: { children: ReactNode }) {
   const loadedRef = useRef(false);
 
   const load = useCallback(async () => {
-    const [adminsRes, companiesRes, domainsRes, columnsRes] = await Promise.all([
+    const [adminsRes, companiesRes, domainsRes, boardColumns] = await Promise.all([
       supabase
         .from("team_members")
         .select("id, display_name, avatar_url")
@@ -73,11 +85,7 @@ export function ReferenceDataProvider({ children }: { children: ReactNode }) {
         .select("id, name, color")
         .eq("is_active", true)
         .order("sort_order", { ascending: true }),
-      supabase
-        .from("workflow_columns")
-        .select("id, name")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true }),
+      loadBoardColumns(),
     ]);
 
     const adminsRaw = (adminsRes.data ?? []) as TeamMemberRecord[];
@@ -121,19 +129,14 @@ export function ReferenceDataProvider({ children }: { children: ReactNode }) {
         .filter((item) => item.id && item.name) || [];
 
     const columns =
-      ((columnsRes.data ?? []) as ColumnRecord[])
-        .map((item) => ({
-          id: String(item.id ?? ""),
-          name: String(item.name ?? ""),
-        }))
-        .filter((item) => item.id && item.name) || [];
+      boardColumns.length > 0 ? boardColumns : fallbackReferenceData.columns;
 
     loadedRef.current = true;
     setState({
       admins,
       companies: companies.length > 0 ? companies : [],
       domains: domains.length > 0 ? domains : fallbackReferenceData.domains,
-      columns: columns.length > 0 ? columns : fallbackReferenceData.columns,
+      columns,
       loading: false,
     });
   }, [supabase]);
@@ -170,7 +173,7 @@ export function ReferenceDataProvider({ children }: { children: ReactNode }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "domains" }, () => {
         scheduleReload();
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "workflow_columns" }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "board_columns" }, () => {
         scheduleReload();
       })
       .subscribe();

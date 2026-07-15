@@ -4,15 +4,18 @@ import { useMemo, useState } from "react";
 import {
   addDays,
   addMonths,
+  addWeeks,
   eachDayOfInterval,
+  endOfISOWeek,
   endOfMonth,
   endOfWeek,
   format,
   isSameDay,
-  isWithinInterval,
+  startOfISOWeek,
   startOfMonth,
   startOfWeek,
   subMonths,
+  subWeeks,
 } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -25,16 +28,20 @@ import {
   Scale,
   ShieldAlert,
 } from "lucide-react";
+import RetroplanningGantt, {
+  RetroplanningGroupToggle,
+} from "./RetroplanningGantt";
+import type { RetroplanningGroupBy } from "../../../lib/v2/retroplanning";
 import { useTasks } from "../../../lib/useTasks";
-import type { Task } from "../../../lib/types";
 import { DONE_COLUMN_NAME } from "../../../lib/workflowConstants";
 import {
   buildWorkload,
   detectConflicts,
   DAILY_CAPACITY_HOURS,
 } from "../../../lib/v2/workload";
+import type { Task } from "../../../lib/types";
 
-type ViewId = "week" | "month" | "timeline" | "workload";
+type ViewId = "retroplanning" | "week" | "month" | "workload";
 
 function taskPrimaryDate(task: Task): Date | null {
   const slot = task.projectedWork.find((p) => p.date);
@@ -52,8 +59,9 @@ const PRIORITY_DOT: Record<string, string> = {
 
 export default function V2PlanningPage() {
   const { tasks } = useTasks();
-  const [view, setView] = useState<ViewId>("week");
+  const [view, setView] = useState<ViewId>("retroplanning");
   const [anchor, setAnchor] = useState<Date>(() => new Date());
+  const [groupBy, setGroupBy] = useState<RetroplanningGroupBy>("tasks");
 
   const activeTasks = useMemo(
     () => tasks.filter((t) => !t.isArchived && !t.parentTaskId && t.column !== DONE_COLUMN_NAME),
@@ -81,38 +89,24 @@ export default function V2PlanningPage() {
     });
 
   const navigate = (dir: -1 | 1) => {
-    if (view === "month" || view === "timeline") {
+    if (view === "retroplanning") {
+      setAnchor((prev) => (dir === 1 ? addWeeks(prev, 4) : subWeeks(prev, 4)));
+    } else if (view === "month") {
       setAnchor((prev) => (dir === 1 ? addMonths(prev, 1) : subMonths(prev, 1)));
     } else {
       setAnchor((prev) => addDays(prev, dir * 7));
     }
   };
 
-  const rangeLabel =
-    view === "week"
-      ? `Semaine du ${format(weekDays[0], "d MMM", { locale: fr })}`
-      : format(anchor, "MMMM yyyy", { locale: fr });
+  const retroRangeStart = useMemo(() => startOfISOWeek(subWeeks(anchor, 2)), [anchor]);
+  const retroRangeEnd = useMemo(() => endOfISOWeek(addWeeks(anchor, 10)), [anchor]);
 
-  // Timeline (mois courant)
-  const timelineStart = startOfMonth(anchor);
-  const timelineEnd = endOfMonth(anchor);
-  const timelineTasks = useMemo(
-    () =>
-      activeTasks
-        .map((t) => {
-          const end = t.deadline ? new Date(t.deadline) : taskPrimaryDate(t);
-          const startSlot = t.projectedWork.find((p) => p.date);
-          const start = startSlot ? new Date(startSlot.date) : end;
-          if (!start || !end) return null;
-          return { task: t, start, end: end < start ? start : end };
-        })
-        .filter((x): x is { task: Task; start: Date; end: Date } => x !== null)
-        .filter((x) => isWithinInterval(x.start, { start: timelineStart, end: timelineEnd }) || isWithinInterval(x.end, { start: timelineStart, end: timelineEnd }))
-        .sort((a, b) => a.start.getTime() - b.start.getTime())
-        .slice(0, 40),
-    [activeTasks, timelineStart, timelineEnd],
-  );
-  const totalDays = Math.max(1, monthDays.length);
+  const rangeLabel =
+    view === "retroplanning"
+      ? `Sem. ${format(retroRangeStart, "I")} – ${format(retroRangeEnd, "I")} · ${format(retroRangeStart, "yyyy")}`
+      : view === "week"
+        ? `Semaine du ${format(weekDays[0], "d MMM", { locale: fr })}`
+        : format(anchor, "MMMM yyyy", { locale: fr });
 
   return (
       <div className="space-y-5">
@@ -121,9 +115,9 @@ export default function V2PlanningPage() {
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
               <CalendarDays className="h-3.5 w-3.5" /> Planning
             </p>
-            <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Vues synchronisées</h1>
+            <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Rétroplanning & charge</h1>
             <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
-              Semaine, mois, timeline et charge sur une même donnée, avec détection de conflits.
+              Vue Gantt marketing, semaine, mois et charge — par tâche, personne, domaine ou mode.
             </p>
           </div>
           {conflicts.length > 0 ? (
@@ -140,9 +134,9 @@ export default function V2PlanningPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <nav className="flex items-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-1">
             {[
+              { id: "retroplanning" as const, label: "Rétroplanning", icon: GanttChartSquare },
               { id: "week" as const, label: "Semaine", icon: LayoutGrid },
               { id: "month" as const, label: "Mois", icon: CalendarDays },
-              { id: "timeline" as const, label: "Timeline", icon: GanttChartSquare },
               { id: "workload" as const, label: "Charge", icon: Scale },
             ].map((v) => {
               const Icon = v.icon;
@@ -185,6 +179,18 @@ export default function V2PlanningPage() {
             </button>
           </div>
         </div>
+
+        {view === "retroplanning" ? (
+          <div className="space-y-3">
+            <RetroplanningGroupToggle value={groupBy} onChange={setGroupBy} />
+            <RetroplanningGantt
+              tasks={activeTasks}
+              rangeStart={retroRangeStart}
+              rangeEnd={retroRangeEnd}
+              groupBy={groupBy}
+            />
+          </div>
+        ) : null}
 
         {view === "week" ? (
           <section className="ui-surface overflow-x-auto rounded-2xl p-4">
@@ -259,40 +265,6 @@ export default function V2PlanningPage() {
                 );
               })}
             </div>
-          </section>
-        ) : null}
-
-        {view === "timeline" ? (
-          <section className="ui-surface overflow-x-auto rounded-2xl p-4">
-            {timelineTasks.length === 0 ? (
-              <p className="py-8 text-center text-sm text-[color:var(--foreground)]/55">Aucune tâche datée sur ce mois.</p>
-            ) : (
-              <div className="min-w-[720px] space-y-1.5">
-                <div className="flex items-center gap-2 border-b border-[var(--line)] pb-1 text-[10px] text-[color:var(--foreground)]/45">
-                  <span className="w-48 shrink-0">Tâche</span>
-                  <span className="flex-1">{format(timelineStart, "MMMM yyyy", { locale: fr })}</span>
-                </div>
-                {timelineTasks.map(({ task, start, end }) => {
-                  const startOffset = Math.max(0, (start.getDate() - 1) / totalDays) * 100;
-                  const spanDays = Math.max(1, end.getDate() - start.getDate() + 1);
-                  const width = Math.min(100 - startOffset, (spanDays / totalDays) * 100);
-                  return (
-                    <div key={task.id} className="flex items-center gap-2">
-                      <span className="w-48 shrink-0 truncate text-[11px] font-semibold text-[var(--foreground)]">{task.projectName}</span>
-                      <div className="relative h-5 flex-1 rounded bg-[var(--surface-soft)]">
-                        <div
-                          className="absolute top-0 flex h-5 items-center rounded bg-[var(--accent)] px-1.5 text-[9px] font-semibold text-[var(--accent-contrast)]"
-                          style={{ left: `${startOffset}%`, width: `${width}%` }}
-                          title={`${format(start, "d MMM", { locale: fr })} → ${format(end, "d MMM", { locale: fr })}`}
-                        >
-                          <span className="truncate">{task.admins[0] ?? ""}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </section>
         ) : null}
 

@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import { Copy, X } from "lucide-react";
 import { createEventWithTasks, duplicateEvent } from "../../app/actions/events";
-import { eventChecklistTemplates } from "../../lib/eventChecklistTemplates";
 import { eventStatuses, type EventRow, type EventStatus } from "../../lib/eventTypes";
 import { toastError, toastSuccess } from "../../lib/toast";
 
@@ -12,11 +11,10 @@ type CreateEventModalProps = {
   onClose: () => void;
   onCreated: (eventId: string) => void;
   existingEvents?: EventRow[];
-  defaultAdminName?: string;
 };
 
 export default function CreateEventModal(props: CreateEventModalProps) {
-  const { open, onClose, onCreated, existingEvents = [], defaultAdminName = "" } = props;
+  const { open, onClose, onCreated, existingEvents = [] } = props;
   const [mode, setMode] = useState<"new" | "duplicate">("new");
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -24,7 +22,6 @@ export default function CreateEventModal(props: CreateEventModalProps) {
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState<EventStatus>("Brouillon");
   const [allocatedBudget, setAllocatedBudget] = useState("0");
-  const [templateKey, setTemplateKey] = useState(eventChecklistTemplates[0]?.key ?? "");
   const [sourceEventId, setSourceEventId] = useState("");
   const [copyTasks, setCopyTasks] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -39,7 +36,6 @@ export default function CreateEventModal(props: CreateEventModalProps) {
     setEndDate("");
     setStatus("Brouillon");
     setAllocatedBudget("0");
-    setTemplateKey(eventChecklistTemplates[0]?.key ?? "");
     setSourceEventId("");
     setCopyTasks(true);
     setMode("new");
@@ -49,7 +45,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
     e.preventDefault();
     if (submitLockRef.current || submitting) return;
     if (!name.trim() && mode === "new") {
-      toastError("Indiquez le nom du salon.");
+      toastError("Indiquez le nom de l'événement.");
       return;
     }
     if (!startDate || !endDate) {
@@ -64,10 +60,6 @@ export default function CreateEventModal(props: CreateEventModalProps) {
       toastError("Choisissez un événement à dupliquer.");
       return;
     }
-    if (mode === "new" && templateKey && !defaultAdminName.trim()) {
-      toastError("Configurez au moins un collaborateur actif pour générer la checklist.");
-      return;
-    }
 
     submitLockRef.current = true;
     setSubmitting(true);
@@ -75,7 +67,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
       if (mode === "duplicate") {
         const result = await duplicateEvent({
           sourceEventId,
-          name: name.trim() || "Salon (copie)",
+          name: name.trim() || "Événement (copie)",
           startDate,
           endDate,
           copyTasks,
@@ -98,16 +90,12 @@ export default function CreateEventModal(props: CreateEventModalProps) {
         endDate,
         status,
         allocatedBudget: Number(allocatedBudget.replace(",", ".")) || 0,
-        templateKey: templateKey || null,
-        defaultAdminName: defaultAdminName.trim(),
       });
       if (!result.ok) {
         toastError(result.error);
         return;
       }
-      toastSuccess(
-        templateKey ? "Événement et checklist créés" : "Événement créé",
-      );
+      toastSuccess("Événement créé");
       onCreated(result.eventId);
       resetForm();
       onClose();
@@ -134,7 +122,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
               {mode === "duplicate" ? "Dupliquer" : "Nouvel événement"}
             </p>
             <h2 className="ui-heading mt-1 text-2xl font-semibold text-[var(--foreground)]">
-              {mode === "duplicate" ? "Créer à partir d'un salon" : "Créer un salon"}
+              {mode === "duplicate" ? "Créer à partir d'un événement" : "Créer un événement"}
             </h2>
           </div>
           <button type="button" onClick={onClose} className="rounded-xl border border-[var(--line)] p-2" aria-label="Fermer">
@@ -171,7 +159,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
             <>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                  Salon source
+                  Événement source
                 </label>
                 <select
                   value={sourceEventId}
@@ -195,38 +183,15 @@ export default function CreateEventModal(props: CreateEventModalProps) {
                 Recopier les tâches (échéances recalées)
               </label>
             </>
-          ) : (
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                Modèle de checklist
-              </label>
-              <select
-                value={templateKey}
-                onChange={(e) => setTemplateKey(e.target.value)}
-                className="ui-focus-ring w-full rounded-xl border border-[var(--line)] px-3 py-2.5 text-sm"
-              >
-                <option value="">Aucune (tâches vides)</option>
-                {eventChecklistTemplates.map((t) => (
-                  <option key={t.key} value={t.key}>
-                    {t.label} ({t.tasks.length} tâches)
-                  </option>
-                ))}
-              </select>
-              {templateKey ? (
-                <p className="mt-1 text-xs text-[color:var(--foreground)]/55">
-                  {eventChecklistTemplates.find((t) => t.key === templateKey)?.description}
-                </p>
-              ) : null}
-            </div>
-          )}
+          ) : null}
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Nom du salon</label>
+            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Nom de l&apos;événement</label>
             <input
               value={name}
               onChange={(ev) => setName(ev.target.value)}
               className="ui-focus-ring w-full rounded-xl border border-[var(--line)] px-3 py-2.5 text-sm"
-              placeholder={mode === "duplicate" ? "Laisser vide = nom + (copie)" : "Ex. Salon 2026"}
+              placeholder={mode === "duplicate" ? "Laisser vide = nom + (copie)" : "Ex. Conférence annuelle 2026"}
             />
           </div>
           {mode === "new" ? (
@@ -236,6 +201,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
                 value={location}
                 onChange={(ev) => setLocation(ev.target.value)}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] px-3 py-2.5 text-sm"
+                placeholder="Adresse, salle, visio…"
               />
             </div>
           ) : null}

@@ -16,21 +16,6 @@ export type TaskTemplate = {
  */
 export const TASK_TEMPLATES: TaskTemplate[] = [
   {
-    id: "kit-salon",
-    name: "Kit salon / stand",
-    description: "Préparation complète d'un salon professionnel.",
-    domain: "🎟️ Event",
-    priority: "Haute",
-    subtasks: [
-      "Réserver le stand et valider l'emplacement",
-      "Concevoir les visuels (kakémonos, roll-up)",
-      "Commander le print et les goodies",
-      "Préparer la logistique (transport, montage)",
-      "Planifier la communication avant/pendant/après",
-      "Débrief & RETEX post-salon",
-    ],
-  },
-  {
     id: "campagne-social",
     name: "Campagne réseaux sociaux",
     description: "Lancement d'une campagne multi-réseaux.",

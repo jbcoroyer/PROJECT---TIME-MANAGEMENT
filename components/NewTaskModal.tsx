@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -27,10 +27,14 @@ import type { ReferenceRecord } from "../lib/referenceData";
 import { HALF_HOUR_OPTIONS } from "../lib/projectedWorkUtils";
 import { taskFormSchema, type TaskFormValues, type TaskFormValuesWithSubtasks, type PendingSubtask } from "../lib/validation/taskSchema";
 import { normalizeProjectName } from "../lib/normalize";
-import { resolveDefaultSubtaskAssignee } from "../lib/taskConcernsUser";
+import { ensureCurrentUserTeamMember, resolveFallbackAssigneeName } from "../lib/ensureCurrentTeamMember";
+import { resolveDefaultSubtaskAssignee, teamAdminNameForUser } from "../lib/taskConcernsUser";
 import type { CurrentUser } from "../lib/useCurrentUser";
 import CustomFieldInputs from "./CustomFieldInputs";
 import { ensureDefaultBoard } from "../lib/v2/boardColumns";
+import { getSupabaseBrowser } from "../lib/supabaseBrowser";
+import { useBranding } from "../lib/brandingContext";
+import { toastError, toastSuccess } from "../lib/toast";
 import { useBoardFields } from "../lib/v2/boardFields";
 import {
   attachCustomFieldsAfterCreate,
@@ -51,12 +55,24 @@ export default function NewTaskModal(props: {
   companies: ReferenceRecord[];
   domains: ReferenceRecord[];
   currentUserName?: string | null;
-  currentUser?: Pick<CurrentUser, "teamMemberName" | "displayName" | "email"> | null;
+  currentUser?: Pick<CurrentUser, "teamMemberName" | "displayName" | "email" | "id" | "teamMemberId" | "avatarUrl" | "organizationId"> | null;
   tutorialMode?: boolean;
   onCancel: () => void;
   onSubmit: (values: TaskFormValuesWithSubtasks) => Promise<void> | void;
 }) {
   const { open, editingTaskId, initialValues, admins, domains, onCancel, tutorialMode = false } = props;
+  const { branding } = useBranding();
+  const supabase = useMemo(() => getSupabaseBrowser(), []);
+  const [extraDomains, setExtraDomains] = useState<ReferenceRecord[]>([]);
+  const [showNewDomain, setShowNewDomain] = useState(false);
+  const [newDomainLabel, setNewDomainLabel] = useState("");
+  const [addingDomain, setAddingDomain] = useState(false);
+
+  const domainOptions = useMemo(() => {
+    const byName = new Map(domains.map((d) => [d.name, d]));
+    for (const domain of extraDomains) byName.set(domain.name, domain);
+    return Array.from(byName.values());
+  }, [domains, extraDomains]);
 
   const onSubmit = async (values: TaskFormValues) => {
     await props.onSubmit({
@@ -106,6 +122,34 @@ export default function NewTaskModal(props: {
     defaultValues,
   });
 
+  const createDomain = useCallback(
+    async (label: string) => {
+      const trimmed = label.trim();
+      if (!trimmed || addingDomain) return false;
+      setAddingDomain(true);
+      const name = `🖥️ ${trimmed}`.trim();
+      const { data, error } = await supabase
+        .from("domains")
+        .insert({ name, color: branding.primaryColor, is_active: true })
+        .select("id, name")
+        .single();
+      if (error || !data) {
+        toastError(`Ajout impossible : ${error?.message ?? "erreur"}`);
+        setAddingDomain(false);
+        return false;
+      }
+      const created = { id: String(data.id), name: String(data.name) };
+      setExtraDomains((prev) => [...prev, created]);
+      setValue("domain", created.name, { shouldValidate: true });
+      setNewDomainLabel("");
+      setShowNewDomain(false);
+      setAddingDomain(false);
+      toastSuccess("Domaine ajouté.");
+      return true;
+    },
+    [addingDomain, branding.primaryColor, setValue, supabase],
+  );
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "projectedWork",
@@ -114,15 +158,32 @@ export default function NewTaskModal(props: {
   const watchedAdminsRaw = useWatch({ control, name: "admins" });
   const watchedAdmins = useMemo(() => watchedAdminsRaw ?? [], [watchedAdminsRaw]);
 
-  const adminNames = useMemo(() => admins.map((a) => a.name), [admins]);
+  const assigneeOptions = useMemo(() => {
+    const byName = new Map<string, ReferenceRecord>();
+    for (const admin of admins) {
+      if (admin.name.trim()) byName.set(admin.name, admin);
+    }
+    const fallbackName = resolveFallbackAssigneeName(props.currentUser ?? null);
+    if (fallbackName && !byName.has(fallbackName)) {
+      byName.set(fallbackName, {
+        id: props.currentUser?.teamMemberId ?? `self-${props.currentUser?.id ?? "me"}`,
+        name: fallbackName,
+        avatarUrl: props.currentUser?.avatarUrl ?? null,
+      });
+    }
+    return Array.from(byName.values());
+  }, [admins, props.currentUser]);
 
   const defaultSubtaskAdmin = useMemo(
     () =>
-      resolveDefaultSubtaskAssignee(adminNames, {
-        currentUser: props.currentUser ?? null,
-        parentTaskAdmins: watchedAdmins,
-      }),
-    [adminNames, props.currentUser, watchedAdmins],
+      resolveDefaultSubtaskAssignee(
+        assigneeOptions.map((a) => a.name),
+        {
+          currentUser: props.currentUser ?? null,
+          parentTaskAdmins: watchedAdmins,
+        },
+      ),
+    [assigneeOptions, props.currentUser, watchedAdmins],
   );
 
   const effectiveSubAdmin = newSubAdmin || defaultSubtaskAdmin;
@@ -132,8 +193,17 @@ export default function NewTaskModal(props: {
   const estimateError = errors.estimatedHours?.message || errors.estimatedDays?.message;
   const projectedWorkWatch = useWatch({ control, name: "projectedWork" }) ?? [];
 
+  const openSessionRef = useRef<string | null>(null);
+  const openSessionKey = `${open}:${editingTaskId ?? "new"}`;
+
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      openSessionRef.current = null;
+      return;
+    }
+    if (openSessionRef.current === openSessionKey) return;
+    openSessionRef.current = openSessionKey;
+
     const timeoutId = window.setTimeout(() => {
       reset(defaultValues);
       setStep(0);
@@ -144,7 +214,26 @@ export default function NewTaskModal(props: {
       setCustomFieldsDraft({});
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [open, reset, defaultValues]);
+  }, [open, openSessionKey, reset, defaultValues]);
+
+  useEffect(() => {
+    if (!open) return;
+    const timeoutId = window.setTimeout(() => {
+      if (watchedAdmins.length > 0) return;
+      const fallback =
+        teamAdminNameForUser(assigneeOptions.map((a) => a.name), props.currentUser ?? null) ||
+        resolveFallbackAssigneeName(props.currentUser ?? null);
+      if (!fallback) return;
+      setValue("admins", [fallback as AdminId], { shouldValidate: true });
+    }, 60);
+    return () => window.clearTimeout(timeoutId);
+  }, [open, assigneeOptions, props.currentUser, setValue, watchedAdmins.length]);
+
+  useEffect(() => {
+    if (!open || !props.currentUser) return;
+    if (admins.length > 0) return;
+    void ensureCurrentUserTeamMember(getSupabaseBrowser(), props.currentUser);
+  }, [open, admins.length, props.currentUser]);
 
   useEffect(() => {
     if (!open) return;
@@ -210,10 +299,15 @@ export default function NewTaskModal(props: {
     if (valid) setStep((prev) => Math.min(prev + 1, 2) as 0 | 1 | 2);
   };
 
-  const handleTutorialCreate = async () => {
-    const valid = await trigger(stepFields[0]);
-    if (!valid) return;
-    await handleSubmit(onSubmit)();
+  const submitTask = handleSubmit(onSubmit);
+
+  const handleFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (!editingTaskId && step < 2) {
+      event.preventDefault();
+      void handleNextStep();
+      return;
+    }
+    void submitTask(event);
   };
 
   const handleStepKeyDown = (event: ReactKeyboardEvent<HTMLFormElement>) => {
@@ -222,10 +316,6 @@ export default function NewTaskModal(props: {
     const tagName = target.tagName.toLowerCase();
     if (tagName === "textarea") return;
     event.preventDefault();
-    if (tutorialMode && step === 0) {
-      void handleTutorialCreate();
-      return;
-    }
     void handleNextStep();
   };
 
@@ -275,7 +365,7 @@ export default function NewTaskModal(props: {
               ) : null}
             </div>
 
-            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} onKeyDown={handleStepKeyDown}>
+            <form className="space-y-4" onSubmit={handleFormSubmit} onKeyDown={handleStepKeyDown}>
               <input type="hidden" {...register("company")} />
               <div className="grid grid-cols-3 gap-2">
                 {[
@@ -287,10 +377,10 @@ export default function NewTaskModal(props: {
                     key={s.id}
                     type="button"
                     onClick={() => {
-                      if (tutorialMode) return;
+                      if (tutorialMode && s.id > step) return;
                       setStep(s.id as 0 | 1 | 2);
                     }}
-                    disabled={tutorialMode && s.id !== 0}
+                    disabled={tutorialMode && s.id > step}
                     aria-current={step === s.id ? "step" : undefined}
                     className={[
                       "inline-flex items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-xs font-semibold transition",
@@ -307,7 +397,11 @@ export default function NewTaskModal(props: {
 
               <p className="text-[11px] text-[color:var(--foreground)]/55">
                 {tutorialMode
-                  ? "Remplissez les champs obligatoires (*) pour créer votre premier projet."
+                  ? step === 0
+                    ? "Étape 1 sur 3 — Infos : remplissez les champs obligatoires (*), puis cliquez Continuer."
+                    : step === 1
+                      ? "Étape 2 sur 3 — Planning : ajoutez une échéance ou des créneaux (optionnel), puis Continuer."
+                      : "Étape 3 sur 3 — Détails : complétez si besoin, puis créez votre premier projet."
                   : `Étape ${step + 1} sur 3. Appuyez sur Entrée pour continuer.`}
               </p>
 
@@ -344,12 +438,56 @@ export default function NewTaskModal(props: {
                     {...register("domain")}
                     className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] shadow-sm focus:outline-none"
                   >
-                    {domains.map((domain) => (
+                    {domainOptions.map((domain) => (
                       <option key={domain.id} value={domain.name}>
                         {domain.name}
                       </option>
                     ))}
                   </select>
+                  {!showNewDomain ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowNewDomain(true)}
+                      className="ui-transition inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--brand-primary)] hover:underline"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Ajouter un domaine
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newDomainLabel}
+                        onChange={(e) => setNewDomainLabel(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void createDomain(newDomainLabel);
+                          }
+                        }}
+                        placeholder="Nom du domaine"
+                        className="ui-focus-ring min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-xs"
+                      />
+                      <button
+                        type="button"
+                        disabled={addingDomain || !newDomainLabel.trim()}
+                        onClick={() => void createDomain(newDomainLabel)}
+                        className="ui-btn ui-btn-primary shrink-0 px-3 py-1.5 text-xs disabled:opacity-50"
+                      >
+                        {addingDomain ? "…" : "OK"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNewDomain(false);
+                          setNewDomainLabel("");
+                        }}
+                        className="ui-transition rounded-lg border border-[var(--line)] px-2 py-1.5 text-xs text-[color:var(--foreground)]/60 hover:bg-[var(--surface-soft)]"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
                   {errors.domain?.message && (
                     <p className="text-[11px] text-[var(--danger)]">{errors.domain.message}</p>
                   )}
@@ -385,7 +523,12 @@ export default function NewTaskModal(props: {
                   </label>
                   <fieldset className="grid grid-cols-2 gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-2 text-xs text-[var(--foreground)] shadow-sm">
                     <legend className="sr-only">Admins responsables</legend>
-                    {admins.map((adminOption) => {
+                    {assigneeOptions.length === 0 ? (
+                      <p className="col-span-2 px-1 py-2 text-[11px] text-[color:var(--foreground)]/55">
+                        Chargement de votre profil…
+                      </p>
+                    ) : (
+                    assigneeOptions.map((adminOption) => {
                       const admin = adminOption.name;
                       const checked = watchedAdmins.includes(admin as AdminId);
                       return (
@@ -409,8 +552,14 @@ export default function NewTaskModal(props: {
                           <span>{admin}</span>
                         </label>
                       );
-                    })}
+                    })
+                    )}
                   </fieldset>
+                  {assigneeOptions.length === 1 ? (
+                    <p className="text-[10px] text-[color:var(--foreground)]/45">
+                      Vous êtes assigné automatiquement. Ajoutez d&apos;autres collaborateurs dans Paramètres → Administration.
+                    </p>
+                  ) : null}
                   {adminsError && <p className="text-[11px] text-[var(--danger)]">{adminsError}</p>}
                 </div>
               </div>}
@@ -743,7 +892,7 @@ export default function NewTaskModal(props: {
                       onChange={(e) => setNewSubAdmin(e.target.value)}
                       className="ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs"
                     >
-                      {admins.map((a) => (
+                      {assigneeOptions.map((a) => (
                         <option key={a.id} value={a.name}>{a.name.split(" ")[0]}</option>
                       ))}
                     </select>
@@ -783,7 +932,7 @@ export default function NewTaskModal(props: {
                   Annuler
                 </button>
                 ) : null}
-                {step > 0 && !tutorialMode && (
+                {step > 0 ? (
                   <button
                     type="button"
                     onClick={() => setStep((prev) => Math.max(prev - 1, 0) as 0 | 1 | 2)}
@@ -792,22 +941,21 @@ export default function NewTaskModal(props: {
                     <ArrowLeft className="h-4 w-4" />
                     Retour
                   </button>
-                )}
-                {tutorialMode && step === 0 ? (
+                ) : null}
+                {step < 2 ? (
                   <button
                     type="button"
-                    onClick={() => void handleTutorialCreate()}
-                    disabled={isSubmitting}
-                    className="ui-transition inline-flex items-center gap-1 rounded-xl bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)] disabled:opacity-70"
-                  >
-                    <Check className="h-4 w-4" />
-                    Créer mon premier projet ✨
-                  </button>
-                ) : step < 2 ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleNextStep()}
-                    className="ui-transition inline-flex items-center gap-1 rounded-xl bg-[var(--foreground)] px-5 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:opacity-90"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      void handleNextStep();
+                    }}
+                    className={[
+                      "ui-transition inline-flex items-center gap-1 rounded-xl px-5 py-2 text-sm font-semibold hover:opacity-90",
+                      tutorialMode
+                        ? "bg-[var(--accent)] text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)]"
+                        : "bg-[var(--foreground)] text-[var(--accent-contrast)]",
+                    ].join(" ")}
                   >
                     <ArrowRight className="h-4 w-4" />
                     Continuer
@@ -816,10 +964,19 @@ export default function NewTaskModal(props: {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="ui-transition inline-flex items-center gap-1 rounded-xl bg-[var(--foreground)] px-5 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:opacity-90 disabled:opacity-70"
+                    className={[
+                      "ui-transition inline-flex items-center gap-1 rounded-xl px-5 py-2 text-sm font-semibold hover:opacity-90 disabled:opacity-70",
+                      tutorialMode
+                        ? "bg-[var(--accent)] text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)]"
+                        : "bg-[var(--foreground)] text-[var(--accent-contrast)]",
+                    ].join(" ")}
                   >
                     <Check className="h-4 w-4" />
-                    {editingTaskId ? "Enregistrer" : "Créer la tâche"}
+                    {editingTaskId
+                      ? "Enregistrer"
+                      : tutorialMode
+                        ? "Créer mon premier projet ✨"
+                        : "Créer la tâche"}
                   </button>
                 )}
               </div>

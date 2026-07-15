@@ -12,9 +12,15 @@ const PARTICLE_COLORS = ["#fbbf24", "#f472b6", "#60a5fa", "#34d399", "#a78bfa", 
 type TutorialRewardCelebrationProps = {
   open: boolean;
   onComplete: () => void;
+  /** Préfixe i18n (ex. firstTaskTutorial.reward ou boardExploration.reward). */
+  messagePrefix?: string;
 };
 
-export default function TutorialRewardCelebration({ open, onComplete }: TutorialRewardCelebrationProps) {
+export default function TutorialRewardCelebration({
+  open,
+  onComplete,
+  messagePrefix = "firstTaskTutorial.reward",
+}: TutorialRewardCelebrationProps) {
   const { t } = useTranslation({ preferBrowser: true });
 
   const [particles] = useState(() =>
@@ -70,7 +76,7 @@ export default function TutorialRewardCelebration({ open, onComplete }: Tutorial
           transition={{ delay: 0.25 }}
           className="mt-4 text-xs font-bold uppercase tracking-[0.14em] text-amber-600"
         >
-          {t("firstTaskTutorial.reward.badge")}
+          {t(`${messagePrefix}.badge`)}
         </motion.p>
 
         <motion.h2
@@ -79,7 +85,7 @@ export default function TutorialRewardCelebration({ open, onComplete }: Tutorial
           transition={{ delay: 0.32 }}
           className="mt-1 text-2xl font-bold text-[var(--foreground)]"
         >
-          {t("firstTaskTutorial.reward.title")}
+          {t(`${messagePrefix}.title`)}
         </motion.h2>
 
         <motion.p
@@ -88,7 +94,7 @@ export default function TutorialRewardCelebration({ open, onComplete }: Tutorial
           transition={{ delay: 0.4 }}
           className="mt-2 text-sm text-[color:var(--foreground)]/65"
         >
-          {t("firstTaskTutorial.reward.body")}
+          {t(`${messagePrefix}.body`)}
         </motion.p>
 
         <motion.div
@@ -98,7 +104,7 @@ export default function TutorialRewardCelebration({ open, onComplete }: Tutorial
           className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber-300/50 bg-amber-50/80 px-3 py-1.5 text-sm font-semibold text-amber-800 dark:bg-amber-950/30 dark:text-amber-200"
         >
           <Star className="h-4 w-4 fill-amber-400 text-amber-500" aria-hidden />
-          {t("firstTaskTutorial.reward.xp")}
+          {t(`${messagePrefix}.xp`)}
           <Sparkles className="h-4 w-4 text-amber-500" aria-hidden />
         </motion.div>
 
@@ -110,7 +116,7 @@ export default function TutorialRewardCelebration({ open, onComplete }: Tutorial
           onClick={onComplete}
           className="ui-btn ui-btn-primary mt-5 w-full px-4 py-2.5 text-sm font-semibold"
         >
-          {t("firstTaskTutorial.reward.cta")}
+          {t(`${messagePrefix}.cta`)}
         </motion.button>
       </motion.div>
     </div>,

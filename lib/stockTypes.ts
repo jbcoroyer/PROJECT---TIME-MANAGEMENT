@@ -29,7 +29,7 @@ export type RecordStockMovementPayload = {
   itemId: string;
   changeAmount: number;
   projectId?: string | null;
-  /** Imputation événement (salon) — distinct du projet stock */
+  /** Imputation événement — distinct du projet stock */
   eventId?: string | null;
   reason?: string | null;
   userName?: string | null;

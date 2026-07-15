@@ -1,7 +1,9 @@
-"use client";
+import IntakeFormHubWorkspace from "../../../components/v2/asks/IntakeFormHubWorkspace";
+import { getOrgIntakeForm } from "../../../app/actions/intakeForm";
 
-import AskForm from "../../../components/v2/AskForm";
+export const dynamic = "force-dynamic";
 
-export default function V2AsksPage() {
-  return <AskForm />;
+export default async function V2AsksPage() {
+  const form = await getOrgIntakeForm();
+  return <IntakeFormHubWorkspace initialForm={form} />;
 }

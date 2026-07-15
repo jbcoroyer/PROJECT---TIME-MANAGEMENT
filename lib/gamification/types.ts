@@ -1,4 +1,10 @@
-export type TutorialId = "first_task" | "product_tour" | "team_setup" | "modules_tour";
+export type TutorialId =
+  | "first_task"
+  | "board_exploration"
+  | "module_discovery"
+  | "product_tour"
+  | "team_setup"
+  | "modules_tour";
 
 export type TutorialStatus = "pending" | "in_progress" | "completed" | "skipped";
 
@@ -6,6 +12,8 @@ export type TutorialProgress = {
   status: TutorialStatus;
   step?: string;
   updatedAt?: string;
+  /** Données libres (ex. modules visités). */
+  meta?: Record<string, unknown>;
 };
 
 export type GamificationProfile = {

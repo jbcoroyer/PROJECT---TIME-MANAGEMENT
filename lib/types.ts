@@ -3,7 +3,7 @@
 export const defaultColumns = ["À faire", "En cours", "En validation", "Terminé"] as const;
 /** Plus de noms « fantômes » : les assignés viennent uniquement de `team_members` (Paramètres). */
 export const defaultAdmins: readonly string[] = [];
-/** Entités : uniquement via la table `companies` (Paramètres → Entités). */
+/** Sociétés : via la table `companies`, gérées inline dans les formulaires. */
 export const defaultCompanies = [] as const;
 export const defaultDomains = [
   "🖥️ Digitale",
@@ -55,11 +55,11 @@ export type Task = {
   completedAt?: string;
   /** ID de la tache parente (null = tache racine) */
   parentTaskId?: string;
-  /** Lien optionnel vers un événement (salon) — imbrication charge de travail globale */
+  /** Lien optionnel vers un événement — imbrication charge de travail globale */
   eventId?: string;
   /** Catégorie métier événement (Logistique, Com, etc.) */
   eventCategory?: string | null;
-  /** Nom du salon (jointure `events`) — regroupement Kanban */
+  /** Nom de l'événement (jointure `events`) — regroupement Kanban */
   eventName?: string | null;
   /** Sous-taches regroupees cote client (non persistees ici) */
   subtasks?: Task[];

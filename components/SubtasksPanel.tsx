@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { getSupabaseBrowser } from "../lib/supabaseBrowser";
 import AdminAvatar from "./AdminAvatar";
+import ColumnStatusSelect from "./ColumnStatusSelect";
 import type { Task, AdminId, ColumnId } from "../lib/types";
 import { adminBadgeClassFor } from "../lib/kanbanStyles";
 import { completedAtPatchForColumnChange } from "../lib/completedAt";
@@ -231,16 +232,15 @@ function SubtaskRow(props: {
         </span>
       )}
 
-      {/* Sélecteur de colonne */}
-      <select
-        value={subtask.column}
-        onChange={(e) => props.onColumnChange(e.target.value)}
-        className="hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-[11px] sm:block"
-      >
-        {props.columns.map((col) => (
-          <option key={col} value={col}>{col}</option>
-        ))}
-      </select>
+      <div className="hidden sm:block sm:min-w-[120px]">
+        <ColumnStatusSelect
+          value={subtask.column as ColumnId}
+          columns={props.columns as ColumnId[]}
+          onChange={(col) => props.onColumnChange(col)}
+          size="sm"
+          aria-label="Statut de la sous-tâche"
+        />
+      </div>
 
       {/* Suppression */}
       <button

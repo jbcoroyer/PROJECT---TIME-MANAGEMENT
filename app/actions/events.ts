@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 import { buildDefaultBudgetPosts } from "../../lib/eventBudgetUtils";
-import { buildChecklistTaskRows, shiftTaskDeadline } from "../../lib/eventTaskFactory";
+import { shiftTaskDeadline } from "../../lib/eventTaskFactory";
 import type { EventClosureRecap, EventStatus } from "../../lib/eventTypes";
 import { defaultDomains } from "../../lib/types";
 
@@ -14,8 +14,6 @@ export type CreateEventInput = {
   endDate: string;
   status: EventStatus;
   allocatedBudget: number;
-  templateKey?: string | null;
-  defaultAdminName?: string;
 };
 
 export type CreateEventResult = { ok: true; eventId: string } | { ok: false; error: string };
@@ -77,7 +75,7 @@ export async function createEventWithTasks(input: CreateEventInput): Promise<Cre
       status: input.status,
       allocated_budget: Math.max(0, Number(input.allocatedBudget) || 0),
       budget_posts: budgetPosts,
-      template_key: input.templateKey?.trim() || null,
+      template_key: null,
     })
     .select("id")
     .single();
@@ -87,25 +85,6 @@ export async function createEventWithTasks(input: CreateEventInput): Promise<Cre
   }
 
   const eventId = event.id as string;
-  const adminName = input.defaultAdminName?.trim() || "";
-
-  if (input.templateKey && adminName) {
-    const rows = buildChecklistTaskRows({
-      eventId,
-      startDate: input.startDate,
-      templateKey: input.templateKey,
-      defaultAdmin: adminName,
-    });
-    if (rows.length > 0) {
-      const { error: taskErr } = await supabase.from("tasks").insert(rows);
-      if (taskErr) {
-        return {
-          ok: false,
-          error: `Événement créé mais checklist non générée : ${taskErr.message}`,
-        };
-      }
-    }
-  }
 
   revalidatePath("/events/dashboard");
   revalidatePath(`/events/${eventId}`);
@@ -239,6 +218,28 @@ export async function closeEventWithRecap(
   if (error) return { ok: false, error: error.message };
   revalidatePath("/events/dashboard");
   revalidatePath(`/events/${input.eventId}`);
+  return { ok: true };
+}
+
+export type UpdateEventCoverResult = { ok: true } | { ok: false; error: string };
+
+export async function updateEventCoverImage(
+  eventId: string,
+  coverImagePath: string | null,
+): Promise<UpdateEventCoverResult> {
+  const id = eventId?.trim();
+  if (!id) return { ok: false, error: "Identifiant d'événement manquant." };
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase
+    .from("events")
+    .update({ cover_image_path: coverImagePath?.trim() || null })
+    .eq("id", id);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/events/dashboard");
+  revalidatePath(`/events/${id}`);
   return { ok: true };
 }
 

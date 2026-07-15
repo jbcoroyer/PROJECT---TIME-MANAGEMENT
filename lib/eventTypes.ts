@@ -25,6 +25,7 @@ export type EventRow = {
   budgetPosts?: BudgetPostsMap;
   templateKey?: string | null;
   closureRecap?: EventClosureRecap | null;
+  coverImagePath?: string | null;
 };
 
 export const expenseStatuses = ["devis", "engage", "paye"] as const;
@@ -52,7 +53,7 @@ export const expenseCategories = [
   "Logistique",
   "Hébergement",
   "Communication",
-  "Stand",
+  "Lieu",
   "Matériel",
   "Autre",
 ] as const;

@@ -4,20 +4,11 @@ export type BudgetPostsMap = Record<string, number>;
 
 const defaultBudgetPostKeys: ExpenseCategory[] = [...expenseCategories];
 
-/** Répartition indicative par défaut (% du budget alloué). */
-const DEFAULT_SHARES: Record<ExpenseCategory, number> = {
-  Stand: 0.35,
-  Logistique: 0.2,
-  Communication: 0.15,
-  Hébergement: 0.12,
-  Matériel: 0.13,
-  Autre: 0.05,
-};
-
-export function buildDefaultBudgetPosts(allocatedBudget: number): BudgetPostsMap {
+/** Répartition par poste — initialisée à zéro, saisie par l'utilisateur. */
+export function buildDefaultBudgetPosts(_allocatedBudget: number): BudgetPostsMap {
   const posts: BudgetPostsMap = {};
   for (const key of defaultBudgetPostKeys) {
-    posts[key] = Math.round(allocatedBudget * (DEFAULT_SHARES[key] ?? 0.1) * 100) / 100;
+    posts[key] = 0;
   }
   return posts;
 }

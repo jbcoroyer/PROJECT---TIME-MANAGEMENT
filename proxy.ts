@@ -22,6 +22,8 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/ideas") ||
     pathname === "/questionnaire" ||
     pathname.startsWith("/questionnaire/f/") ||
+    pathname.startsWith("/asks/f/") ||
+    pathname.startsWith("/agenda/b/") ||
     pathname.startsWith("/billing") ||
     pathname.startsWith("/pricing") ||
     pathname.startsWith("/privacy") ||

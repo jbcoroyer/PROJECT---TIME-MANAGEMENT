@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Layers, Save } from "lucide-react";
-import ModuleCatalog from "../setup/ModuleCatalog";
+import CompactModulePicker from "./CompactModulePicker";
 import { updateBranding } from "../../app/actions/branding";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
@@ -66,10 +66,11 @@ export default function ModulesSettingsSection() {
         </div>
 
         <div className="p-4 sm:p-5">
-          <ModuleCatalog
-            variant="settings"
-            showIntro={false}
+          <CompactModulePicker
             value={enabledModules}
+            maxModules={moduleLimit}
+            onLimitError={() => toastError(moduleLimitErrorForPlan(plan))}
+            onMinOneError={() => toastError(t("settings.modulesMinOne"))}
             onChange={(next) => {
               if (next.length === 0) {
                 toastError(t("settings.modulesMinOne"));

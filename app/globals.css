@@ -159,6 +159,10 @@
   --ink: #1a1611;
   --ink-muted: rgba(26, 22, 17, 0.6);
   --ink-muted-60: rgba(26, 22, 17, 0.6);
+  --sidebar-contrast-bg: #1a1611;
+  --sidebar-contrast-fg: #f6f1e7;
+  --sidebar-contrast-muted: rgba(246, 241, 231, 0.72);
+  --sidebar-contrast-line: rgba(246, 241, 231, 0.15);
   --success: #3e7d52;
   --warning: #b07320;
   --danger: #b4453f;
@@ -407,6 +411,112 @@ select.ui-input {
 .ui-nav-link--active:hover {
   background: rgba(255, 255, 255, 0.85);
   color: var(--ink);
+}
+
+.ui-nav-discovery-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.125rem 0.4375rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+  animation: ui-nav-discovery-pulse 2.4s ease-in-out infinite;
+}
+
+/* Sidebar contrastée — même principe que auth-atelier__panel */
+.ui-sidebar-contrast {
+  position: relative;
+  overflow: hidden;
+  background: var(--sidebar-contrast-bg);
+  color: var(--sidebar-contrast-fg);
+  border-color: var(--sidebar-contrast-line);
+}
+
+.ui-sidebar-contrast__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.95 0 0 0 0 0.85 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.ui-sidebar-contrast__glow {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(100px);
+  background: radial-gradient(circle, oklch(0.55 0.16 45 / 0.35), transparent 70%);
+}
+
+.ui-sidebar-contrast .ui-nav-link {
+  color: var(--sidebar-contrast-muted);
+}
+
+.ui-sidebar-contrast .ui-nav-link:hover {
+  color: var(--sidebar-contrast-fg);
+  background: rgba(246, 241, 231, 0.08);
+}
+
+.ui-sidebar-contrast .ui-nav-link--active {
+  color: var(--sidebar-contrast-fg);
+  background: rgba(246, 241, 231, 0.12);
+  border-color: rgba(246, 241, 231, 0.1);
+  box-shadow: inset 3px 0 0 var(--accent-on-dark);
+}
+
+.ui-sidebar-contrast .ui-nav-link--active:hover {
+  color: var(--sidebar-contrast-fg);
+  background: rgba(246, 241, 231, 0.16);
+}
+
+.ui-sidebar-contrast .ui-nav-num {
+  color: rgba(246, 241, 231, 0.38);
+}
+
+.ui-sidebar-contrast .ui-nav-link--active .ui-nav-num {
+  color: var(--accent-on-dark);
+}
+
+.ui-sidebar-contrast .ui-nav-discovery-badge {
+  color: var(--accent-on-dark);
+  background: rgba(224, 138, 82, 0.16);
+  box-shadow: 0 0 0 1px rgba(224, 138, 82, 0.28);
+}
+
+.ui-sidebar-contrast .ui-sidebar-user-card {
+  border-color: var(--sidebar-contrast-line);
+  background: rgba(246, 241, 231, 0.06);
+}
+
+.ui-sidebar-contrast .ui-sidebar-user-card .ui-sidebar-user-name {
+  color: var(--sidebar-contrast-fg);
+}
+
+.ui-sidebar-contrast .ui-sidebar-user-card .ui-sidebar-user-meta {
+  color: rgba(246, 241, 231, 0.62);
+}
+
+.ui-sidebar-contrast .ui-sidebar-user-card .ui-sidebar-user-link {
+  color: var(--accent-on-dark);
+}
+
+@keyframes ui-nav-discovery-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
+      0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+  }
 }
 
 /* Pills & statuts semantiques - pas de couleurs arc-en-ciel */

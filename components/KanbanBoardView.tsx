@@ -29,6 +29,7 @@ import {
   ListTodo,
   Plus,
   Settings2,
+  Sparkles,
   X,
 } from "lucide-react";
 import { KanbanCardUI } from "./KanbanCard";
@@ -97,10 +98,13 @@ function colSortId(columnId: string) {
   return `${COL_SORT_PREFIX}${columnId}`;
 }
 
+const KANBAN_EDIT_HINTS_KEY = "kanban-edit-hints-dismissed";
+
 function DroppableColumn(props: {
   column: BoardColumn;
   children: React.ReactNode;
   count: number;
+  editable?: boolean;
   onAddTask?: () => void;
   tightList?: boolean;
   onRename: (label: string) => Promise<void>;
@@ -116,13 +120,14 @@ function DroppableColumn(props: {
     <div
       ref={props.sortableRef}
       style={props.sortableStyle}
-      className="flex min-w-[270px] flex-1 flex-col border-r border-[rgba(26,22,17,0.1)] pr-4 mr-4 last:border-r-0 last:mr-0"
+      className="flex min-w-0 flex-1 basis-0 flex-col border-r border-[rgba(26,22,17,0.1)] px-1.5 last:border-r-0 sm:px-2"
     >
       <div className="flex items-start gap-1">
         <div className="min-w-0 flex-1">
           <KanbanColumnHeader
             column={props.column}
             count={props.count}
+            editable={props.editable}
             dragHandleProps={props.dragHandleProps}
             onRename={props.onRename}
             onColorChange={props.onColorChange}
@@ -159,6 +164,7 @@ function SortableKanbanColumn(props: {
   column: BoardColumn;
   children: React.ReactNode;
   count: number;
+  editable?: boolean;
   onAddTask?: () => void;
   tightList?: boolean;
   onRename: (label: string) => Promise<void>;
@@ -179,6 +185,7 @@ function SortableKanbanColumn(props: {
     <DroppableColumn
       column={props.column}
       count={props.count}
+      editable={props.editable}
       tightList={props.tightList}
       onAddTask={props.onAddTask}
       onRename={props.onRename}
@@ -228,6 +235,8 @@ function DraggableCard(props: {
         "cursor-grab rounded-2xl focus:outline-none focus:ring-2 focus:ring-neutral-300 active:cursor-grabbing",
         isDragging ? "opacity-25 scale-95" : "",
       ].join(" ")}
+      title="Cliquer pour ouvrir et modifier la tâche"
+      aria-label={`Ouvrir la tâche ${props.task.projectName || "sans titre"} pour modifier domaine, priorité et détails`}
     >
       <KanbanCardUI
         task={props.task}
@@ -278,6 +287,7 @@ export default function KanbanBoardView(props: {
   onDeleteTask: (taskId: string) => void;
   onEditTask: (task: Task) => void;
   onAddTaskForColumn?: (column: ColumnId) => void;
+  onColumnCreated?: () => void;
   taskCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   lastFocusedTaskIdRef: React.MutableRefObject<string | null>;
   currentUserName?: string | null;
@@ -321,6 +331,14 @@ export default function KanbanBoardView(props: {
   const [newColumnName, setNewColumnName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<BoardColumn | null>(null);
   const [reassignTargetId, setReassignTargetId] = useState("");
+  const [editHintsDismissed, setEditHintsDismissed] = useState(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      return localStorage.getItem(KANBAN_EDIT_HINTS_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
   const confirm = useConfirm();
 
   const {
@@ -338,6 +356,15 @@ export default function KanbanBoardView(props: {
       .then((id) => setBoardId(id))
       .catch(() => setBoardId(null));
   }, []);
+
+  const dismissEditHints = () => {
+    setEditHintsDismissed(true);
+    try {
+      localStorage.setItem(KANBAN_EDIT_HINTS_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  };
 
   const displayColumns = useMemo((): BoardColumn[] => {
     if (boardColumns.length > 0) return boardColumns;
@@ -613,11 +640,11 @@ export default function KanbanBoardView(props: {
           <button
             type="button"
             onClick={() => setFieldsEditorOpen(true)}
-            title="Champs personnalisés, relations, listes déroulantes…"
-            className="ui-transition ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-[11px] font-semibold text-[color:var(--foreground)]/70 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            title="Ajouter ou modifier des champs personnalisés sur les tâches"
+            className="ui-transition ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_8%,var(--surface-soft))] px-3 py-1.5 text-[11px] font-semibold text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_14%,var(--surface-soft))]"
           >
             <Settings2 className="h-3.5 w-3.5" />
-            Personnaliser le board
+            Champs &amp; libellés
           </button>
         ) : (
           <span className="ml-auto" />
@@ -640,8 +667,42 @@ export default function KanbanBoardView(props: {
         </button>
       </div>
 
+      {canEditColumns && !editHintsDismissed ? (
+        <div
+          role="note"
+          className="relative rounded-2xl border border-[color-mix(in_srgb,var(--accent)_28%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_7%,var(--surface))] px-4 py-3 pr-11 shadow-[0_1px_2px_rgba(20,17,13,0.04)]"
+        >
+          <button
+            type="button"
+            onClick={dismissEditHints}
+            className="ui-transition absolute right-2.5 top-2.5 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/55 shadow-sm hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--line))] hover:text-[color:var(--foreground)]/85"
+            aria-label="Fermer cette aide"
+            title="Fermer"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+          <div className="flex items-start gap-3">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Tout est modifiable depuis ce board</p>
+              <ul className="mt-1.5 space-y-1 text-xs leading-relaxed text-[color:var(--foreground)]/72">
+                <li>
+                  <strong className="text-[var(--foreground)]">Colonnes</strong> — survolez un titre (« À faire », « En cours »…) puis cliquez pour le renommer ; menu <strong>⋯</strong> pour la couleur
+                </li>
+                <li>
+                  <strong className="text-[var(--foreground)]">Tâches</strong> — cliquez une carte, puis <strong>Modifier</strong> pour changer domaine, priorité, état…
+                </li>
+                <li>
+                  <strong className="text-[var(--foreground)]">Champs personnalisés</strong> — bouton <strong>Champs &amp; libellés</strong> ci-dessus
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* ── Tableau Kanban ── */}
-      <section className="rounded-3xl border border-[var(--line)] bg-[var(--surface)]/85 p-5 shadow-[0_1px_2px_rgba(20,17,13,0.04)] backdrop-blur">
+      <section className="rounded-3xl border border-[var(--line)] bg-[var(--surface)]/85 p-3 shadow-[0_1px_2px_rgba(20,17,13,0.04)] backdrop-blur sm:p-5">
         <DndContext
           sensors={sensors}
           onDragStart={handleDragStart}
@@ -651,7 +712,7 @@ export default function KanbanBoardView(props: {
             items={canEditColumns ? displayColumns.map((c) => colSortId(c.id)) : []}
             strategy={horizontalListSortingStrategy}
           >
-          <div className="flex gap-0 overflow-x-auto border-t border-[rgba(26,22,17,0.16)] pb-2 pt-5">
+          <div className="flex w-full min-w-0 items-stretch overflow-hidden border-t border-[rgba(26,22,17,0.16)] pt-4 sm:pt-5">
             {displayColumns.map((col) => {
               const colTasks = filteredTasks
                 .filter((t) => t.column === col.label)
@@ -703,7 +764,7 @@ export default function KanbanBoardView(props: {
                               onPointerDown={(e) => e.stopPropagation()}
                               onClick={() => toggleEventGroupCollapse(eventId)}
                               className="ui-transition flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/55 hover:bg-[var(--surface-soft)] hover:text-[color:var(--foreground)]/75"
-                              title={collapsed ? "Déplier les tâches du salon" : "Replier (nom du salon seulement)"}
+                              title={collapsed ? "Déplier les tâches de l'événement" : "Replier (nom de l'événement seulement)"}
                               aria-expanded={!collapsed}
                             >
                               {collapsed ? (
@@ -758,10 +819,10 @@ export default function KanbanBoardView(props: {
                     );
                   })}
                   {colTasks.length === 0 && (
-                    <div className="flex flex-1 flex-col items-center justify-center gap-2 py-10 text-center">
-                      <ListTodo className="h-8 w-8 text-[color:var(--foreground)]/20" />
-                      <p className="text-xs text-[color:var(--foreground)]/45">Aucune tâche ici.</p>
-                      <p className="text-[11px] text-[color:var(--foreground)]/35">
+                    <div className="flex flex-1 flex-col items-center justify-center gap-1.5 px-1 py-6 text-center sm:gap-2 sm:py-10">
+                      <ListTodo className="h-6 w-6 text-[color:var(--foreground)]/20 sm:h-8 sm:w-8" />
+                      <p className="text-[10px] text-[color:var(--foreground)]/45 sm:text-xs">Aucune tâche ici.</p>
+                      <p className="hidden text-[11px] text-[color:var(--foreground)]/35 sm:block">
                         Créez-en une avec le bouton + ou la touche N.
                       </p>
                     </div>
@@ -775,6 +836,7 @@ export default function KanbanBoardView(props: {
                     key={col.id}
                     column={col}
                     count={colTasks.length}
+                    editable
                     tightList={tightColumn}
                     onAddTask={
                       props.onAddTaskForColumn
@@ -809,6 +871,7 @@ export default function KanbanBoardView(props: {
                   key={col.id}
                   column={col}
                   count={colTasks.length}
+                  editable={false}
                   tightList={tightColumn}
                   onAddTask={
                     props.onAddTaskForColumn
@@ -824,18 +887,34 @@ export default function KanbanBoardView(props: {
               );
             })}
             {canEditColumns ? (
-              <div className="flex min-w-[220px] flex-col justify-start pr-4">
+              <div className="relative flex shrink-0 flex-col self-start pl-1 sm:pl-2">
                 {addingColumn ? (
-                  <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] p-3">
+                  <div className="absolute left-0 top-0 z-20 w-56 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-[0_12px_40px_rgba(20,17,13,0.12)]">
                     <input
                       value={newColumnName}
                       onChange={(e) => setNewColumnName(e.target.value)}
                       placeholder="Nom de la colonne"
-                      className="ui-focus-ring mb-2 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
+                      autoFocus
+                      className="ui-focus-ring mb-2 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm"
                       onKeyDown={(e) => {
                         if (e.key === "Escape") {
                           setAddingColumn(false);
                           setNewColumnName("");
+                        }
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const name = newColumnName.trim();
+                          if (!name) return;
+                          void createColumn(name)
+                            .then(() => {
+                              toastSuccess("Colonne ajoutée.");
+                              setAddingColumn(false);
+                              setNewColumnName("");
+                              props.onColumnCreated?.();
+                            })
+                            .catch((err) =>
+                              toastError(err instanceof Error ? err.message : "Ajout impossible."),
+                            );
                         }
                       }}
                     />
@@ -851,9 +930,10 @@ export default function KanbanBoardView(props: {
                               toastSuccess("Colonne ajoutée.");
                               setAddingColumn(false);
                               setNewColumnName("");
+                              props.onColumnCreated?.();
                             })
-                            .catch((e) =>
-                              toastError(e instanceof Error ? e.message : "Ajout impossible."),
+                            .catch((err) =>
+                              toastError(err instanceof Error ? err.message : "Ajout impossible."),
                             );
                         }}
                       >
@@ -871,16 +951,17 @@ export default function KanbanBoardView(props: {
                       </button>
                     </div>
                   </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setAddingColumn(true)}
-                    className="ui-transition inline-flex items-center gap-2 rounded-2xl border border-dashed border-[var(--line)] px-4 py-3 text-sm font-semibold text-[color:var(--foreground)]/60 hover:border-[var(--accent)] hover:text-[var(--accent)]"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Ajouter une colonne
-                  </button>
-                )}
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setAddingColumn(true)}
+                  data-tutorial="add-column-button"
+                  className="ui-transition inline-flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-[color-mix(in_srgb,var(--accent)_35%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_4%,var(--surface-soft))] text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_10%,var(--surface-soft))]"
+                  title="Ajouter une colonne"
+                  aria-label="Ajouter une colonne"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
               </div>
             ) : null}
           </div>

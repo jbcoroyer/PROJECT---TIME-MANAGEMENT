@@ -21,8 +21,8 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
   workspace: {
     id: "workspace",
     category: "pilotage",
-    defaultRoute: "/todo",
-    routePrefixes: ["/todo"],
+    defaultRoute: "/agenda",
+    routePrefixes: ["/agenda", "/todo"],
     recommended: true,
   },
   planning: {

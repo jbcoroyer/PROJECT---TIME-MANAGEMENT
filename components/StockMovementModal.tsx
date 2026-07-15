@@ -175,7 +175,7 @@ export default function StockMovementModal(props: StockMovementModalProps) {
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm"
-                placeholder={mode === "add" ? "Ex. Réassort fournisseur" : "Ex. Dotation salon, perte, don client"}
+                placeholder={mode === "add" ? "Ex. Réassort fournisseur" : "Ex. Dotation événement, perte, don client"}
               />
             </div>
           </div>

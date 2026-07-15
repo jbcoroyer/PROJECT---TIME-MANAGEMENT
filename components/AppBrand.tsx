@@ -45,7 +45,13 @@ export function AppMark({
 
 type WordmarkSize = "sidebar" | "login" | "compact";
 
-export function AppWordmark({ size = "sidebar" }: { size?: WordmarkSize }) {
+export function AppWordmark({
+  size = "sidebar",
+  onDark = false,
+}: {
+  size?: WordmarkSize;
+  onDark?: boolean;
+}) {
   const { branding } = useBranding();
   const sizeClass =
     size === "login"
@@ -56,7 +62,11 @@ export function AppWordmark({ size = "sidebar" }: { size?: WordmarkSize }) {
 
   return (
     <span
-      className={["app-wordmark ui-display text-[var(--foreground)]", sizeClass].join(" ")}
+      className={[
+        "app-wordmark ui-display",
+        onDark ? "text-[var(--sidebar-contrast-fg)]" : "text-[var(--foreground)]",
+        sizeClass,
+      ].join(" ")}
       aria-label={branding.appName}
     >
       {branding.appName}

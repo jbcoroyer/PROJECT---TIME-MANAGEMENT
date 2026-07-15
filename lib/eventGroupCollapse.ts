@@ -22,7 +22,7 @@ export function persistCollapsedEventGroupIds(ids: Set<string>): void {
   }
 }
 
-/** Si l’id est dans l’ensemble, le groupe salon est replié (nom seul visible). */
+/** Si l’id est dans l’ensemble, le groupe événement est replié (nom seul visible). */
 export function toggleCollapsedEventGroup(prev: Set<string>, eventId: string): Set<string> {
   const next = new Set(prev);
   if (next.has(eventId)) next.delete(eventId);

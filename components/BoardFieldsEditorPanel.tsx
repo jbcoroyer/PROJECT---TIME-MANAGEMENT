@@ -164,7 +164,7 @@ function SortableFieldRow(props: {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--foreground)]/50">
-                  Entité liée
+                  Société liée
                 </label>
                 <select
                   value={props.field.config.entity ?? "companies"}

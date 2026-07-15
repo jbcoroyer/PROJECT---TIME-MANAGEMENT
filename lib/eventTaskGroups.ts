@@ -6,7 +6,7 @@ export function sortTasksByDeadline(a: Task, b: Task) {
   return da - db;
 }
 
-/** Tâches sans salon en liste plate ; tâches événement regroupées par `eventId`. */
+/** Tâches sans événement en liste plate ; tâches événement regroupées par `eventId`. */
 export function partitionTasksByEvent(tasks: Task[]) {
   const standalone: Task[] = [];
   const groups = new Map<string, Task[]>();

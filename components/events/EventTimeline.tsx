@@ -4,6 +4,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { MapPin, Trash2 } from "lucide-react";
+import EventCoverImage from "./EventCoverImage";
 import type { EventRow } from "../../lib/eventTypes";
 import { computeEventPreparationStats } from "../../lib/eventPreparationStats";
 import type { Task } from "../../lib/types";
@@ -22,7 +23,7 @@ export default function EventTimeline(props: EventTimelineProps) {
   if (events.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-        Aucun événement planifié. Créez un salon pour l&apos;afficher ici.
+        Aucun événement planifié. Créez un événement pour l&apos;afficher ici.
       </div>
     );
   }
@@ -36,11 +37,17 @@ export default function EventTimeline(props: EventTimelineProps) {
         return (
           <div
             key={ev.id}
-            className="relative ui-surface rounded-[22px] border border-[var(--line)] transition-[border-color,box-shadow] hover:border-[var(--line-strong)] hover:shadow-[0_12px_40px_rgba(28,24,20,0.08)]"
+            className="relative ui-surface overflow-hidden rounded-[22px] border border-[var(--line)] transition-[border-color,box-shadow] hover:border-[var(--line-strong)] hover:shadow-[0_12px_40px_rgba(28,24,20,0.08)]"
           >
+            <EventCoverImage
+              eventId={ev.id}
+              eventName={ev.name}
+              coverImagePath={ev.coverImagePath ?? null}
+              variant="card"
+            />
             <Link
               href={`${eventsBasePath}/${ev.id}`}
-              className="group block rounded-[22px] p-5 pr-14"
+              className="group block p-5 pr-14"
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <span
@@ -57,7 +64,9 @@ export default function EventTimeline(props: EventTimelineProps) {
                 </span>
                 <span className="text-xs font-medium text-[color:var(--foreground)]/55">{range}</span>
               </div>
-              <h3 className="text-lg font-semibold text-[var(--foreground)] group-hover:text-[color:var(--foreground)]/75">{ev.name}</h3>
+              <h3 className="text-lg font-semibold text-[var(--foreground)] group-hover:text-[color:var(--foreground)]/75">
+                {ev.name}
+              </h3>
               {ev.location && (
                 <p className="mt-2 flex items-start gap-1.5 text-sm text-[color:var(--foreground)]/60">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
@@ -65,7 +74,8 @@ export default function EventTimeline(props: EventTimelineProps) {
                 </p>
               )}
               <p className="mt-4 text-sm text-[color:var(--foreground)]/55">
-                Budget alloué : <span className="font-semibold text-[var(--foreground)]">{formatCurrency(ev.allocatedBudget)}</span>
+                Budget alloué :{" "}
+                <span className="font-semibold text-[var(--foreground)]">{formatCurrency(ev.allocatedBudget)}</span>
               </p>
               {tasks.length > 0 ? (() => {
                 const stats = computeEventPreparationStats(ev.id, tasks);
@@ -93,7 +103,7 @@ export default function EventTimeline(props: EventTimelineProps) {
               <button
                 type="button"
                 title="Supprimer l'événement"
-                className="ui-transition ui-btn ui-btn-outline-danger absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full !p-0"
+                className="ui-transition ui-btn ui-btn-outline-danger absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full !p-0 shadow-sm"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();

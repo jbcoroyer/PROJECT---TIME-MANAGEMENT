@@ -23,6 +23,7 @@ describe("modules", () => {
   });
 
   it("triage rattaché au module demandes", () => {
+    expect(resolveModuleForPath("/asks/triage")).toBe("asks");
     expect(resolveModuleForPath("/dashboard/triage")).toBe("asks");
   });
 
@@ -33,6 +34,6 @@ describe("modules", () => {
 
   it("redirige vers le premier module actif", () => {
     expect(getDefaultModuleRoute(["events", "stock"])).toBe("/events/dashboard");
-    expect(getDefaultModuleRoute(["workspace"])).toBe("/todo");
+    expect(getDefaultModuleRoute(["workspace"])).toBe("/agenda");
   });
 });

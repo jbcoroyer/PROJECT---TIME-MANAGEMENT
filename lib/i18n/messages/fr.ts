@@ -157,20 +157,19 @@ export const fr: MessageTree = {
   settings: {
     pageKicker: "Configuration",
     pageTitle: "Paramètres",
-    pageSubtitle: "Personnalisez votre espace, vos modules et les réglages avancés de l'équipe.",
+    pageSubtitle: "Invitez votre équipe, choisissez vos modules et gérez votre espace.",
     tabsLabel: "Sections des paramètres",
     tabs: {
+      team: "Équipe",
       modules: "Modules",
-      automations: "Automatisations",
-      admin: "Administration",
+      organisation: "Organisation",
     },
-    automationsIntro: "Définissez des règles automatiques pour le triage, les notifications et l'archivage.",
-    adminIntro: "Gérez l'équipe, les référentiels, l'identité visuelle et les connexions externes.",
+    organisationIntro: "Facturation, identité visuelle, connexions externes et préférences du compte.",
     locale: "Langue",
     localeHint: "Langue affichée dans l'interface (français ou anglais).",
     localeSaved: "Langue enregistrée.",
     modulesTitle: "Modules activés",
-    modulesSubtitle: "Activez ou désactivez les parties de l'outil selon vos besoins.",
+    modulesSubtitle: "Vos modules actifs. Ajoutez ou retirez ce dont vous avez besoin.",
     modulesSaved: "Modules mis à jour.",
     modulesMinOne: "Au moins un module doit rester actif.",
     modulesUnsaved: "Modifications non enregistrées",
@@ -189,8 +188,8 @@ export const fr: MessageTree = {
   },
   nav: {
     dashboard: "Tableau de bord",
-    asks: "Boîte à demandes",
-    workspace: "Mon agenda",
+    asks: "Espace demandes",
+    workspace: "Agenda",
     planning: "Planning",
     triage: "Traiter les demandes",
     events: "Événements",
@@ -201,6 +200,9 @@ export const fr: MessageTree = {
     okr: "Objectifs d'équipe",
     surveys: "Enquêtes",
     settings: "Paramètres",
+    newModule: "Nouveau",
+    newModuleAria: "{module} — module à découvrir",
+    newModuleHint: "Vous n'avez pas encore exploré {module}",
   },
   modules: {
     recommended: "Recommandé",
@@ -231,36 +233,36 @@ export const fr: MessageTree = {
       },
     },
     asks: {
-      name: "Boîte à demandes",
-      tagline: "Recevoir et traiter les demandes",
+      name: "Espace demandes",
+      tagline: "Formulaire client et triage",
       description:
-        "Permet à vos collaborateurs de soumettre des demandes structurées et à l'équipe de les trier, prioriser et convertir en tâches.",
+        "Créez un formulaire public à partager avec vos clients. Les demandes arrivent dans votre file de triage pour être converties en tâches.",
       highlights: {
-        h1: "Formulaire de demande avec champs enrichis",
-        h2: "File de triage dédiée pour valider ou rejeter",
-        h3: "Règles d'automatisation pour accélérer le traitement",
+        h1: "Formulaire public partageable par lien",
+        h2: "Accès externe limité au seul formulaire",
+        h3: "File de triage pour valider et convertir en tâches",
       },
     },
     workspace: {
-      name: "Mon agenda",
-      tagline: "Vos tâches et priorités du jour",
+      name: "Agenda",
+      tagline: "Rendez-vous, notes et réservation en ligne",
       description:
-        "Votre tableau de bord individuel : tâches du jour, suggestions IA et focus sur ce qui compte pour vous.",
+        "Un agenda dynamique pour planifier vos RDV, consigner des notes par rendez-vous et laisser vos clients réserver des créneaux via un lien public.",
       highlights: {
-        h1: "Agenda quotidien avec priorités",
-        h2: "Assistance IA pour organiser la journée",
-        h3: "Vue personnelle distincte du pilotage d'équipe",
+        h1: "Calendrier interactif (mois, semaine, jour, liste)",
+        h2: "Notes internes et suivi par rendez-vous",
+        h3: "Page de réservation publique avec créneaux disponibles",
       },
     },
     planning: {
       name: "Planning",
-      tagline: "Anticiper la charge",
+      tagline: "Rétroplanning et charge d'équipe",
       description:
-        "Visualisez le travail projeté dans le temps pour équilibrer les ressources et anticiper les pics d'activité.",
+        "Visualisez vos projets en Gantt (par tâche, personne, domaine ou mode), avec semaines, conflits et charge journalière.",
       highlights: {
-        h1: "Timeline des tâches planifiées",
-        h2: "Lecture transverse par membre ou projet",
-        h3: "Complément idéal du tableau de bord",
+        h1: "Rétroplanning Gantt type marketing",
+        h2: "Regroupement par personne, domaine ou mode",
+        h3: "Détection des surcharges et chevauchements",
       },
     },
     events: {
@@ -376,7 +378,7 @@ export const fr: MessageTree = {
         title: "Activez vos modules",
         body: "Choisissez uniquement les modules dont vous avez besoin (événements, social, stock…).",
         examples: {
-          e1: "Activer le module Événements pour la saison salons",
+          e1: "Activer le module Événements",
           e2: "Tester la boîte à idées avec l'équipe",
           e3: "Configurer le calendrier éditorial social",
         },
@@ -402,21 +404,129 @@ export const fr: MessageTree = {
     },
     quest: {
       clickNewTask: "Cliquer sur « Nouvelle tâche »",
-      fillForm: "Remplir les champs obligatoires du projet",
+      fillForm: "Parcourir Infos → Planning → Détails et créer le projet",
     },
     spotlight: {
       quest: "Quête {current} / {total}",
       clickTitle: "Ouvrez le formulaire de création",
       clickBody: "Cliquez sur le bouton « Nouvelle tâche » en surbrillance pour découvrir comment structurer un projet.",
       fillTitle: "Donnez vie à votre projet",
-      fillBody: "Renseignez le nom du projet, le domaine, la priorité et le responsable — puis validez pour voir votre carte apparaître sur le Kanban.",
+      fillBody: "Parcourez les 3 étapes du formulaire — Infos, Planning, Détails — puis validez à la fin pour voir votre carte sur le Kanban.",
     },
     reward: {
       badge: "Quête accomplie",
       title: "Bravo, explorateur !",
       body: "Votre premier projet est en ligne sur le tableau Kanban. Vous maîtrisez déjà l'essentiel — continuez comme ça !",
       xp: "+100 XP gagnés",
-      cta: "Explorer mon tableau",
+      cta: "Continuer l'aventure ✨",
+    },
+  },
+  boardExploration: {
+    intro: {
+      badge: "Quête n°2 — Personnaliser",
+      title: "Faites le board à votre image",
+      body: "Ajoutez une colonne avec son nom et sa couleur, puis découvrez les autres vues du tableau de bord.",
+      xpHint: "Récompense : +75 XP · Badge « Pilote du board »",
+      cta: "C'est parti",
+    },
+    quest: {
+      addColumn: "Créer une colonne (nom + couleur)",
+      visitViews: "Visiter Liste, Calendrier et Mes tâches",
+      add_column: "Créer une colonne (nom + couleur)",
+      visit_views: "Visiter Liste, Calendrier et Mes tâches",
+    },
+    spotlight: {
+      step: "Étape {current} / {total}",
+      addColumnTitle: "Ajoutez votre colonne",
+      addColumnBody: "Cliquez sur le + à droite du board, donnez un nom à la colonne et choisissez une couleur via le menu ⋯ d'une colonne si besoin.",
+      listTitle: "Découvrez la vue Liste",
+      listBody: "Regroupez et filtrez vos tâches par statut — idéal pour les revues rapides.",
+      calendarTitle: "Passez au Calendrier",
+      calendarBody: "Visualisez deadlines et charge planifiée sur une timeline.",
+      todoTitle: "Terminez par Mes tâches",
+      todoBody: "Vos tâches assignées, triées par échéance (retard → aujourd'hui → semaine…).",
+    },
+    reward: {
+      badge: "Board maîtrisé",
+      title: "Board personnalisé !",
+      body: "Vous savez créer des colonnes et naviguer entre les vues. Prochaine étape : explorer les modules de votre espace.",
+      xp: "+75 XP gagnés",
+      cta: "Découvrir les modules",
+    },
+  },
+  moduleDiscovery: {
+    hub: {
+      badge: "Quête n°3 — Explorer",
+      title: "Vos modules vous attendent",
+      body: "Visitez chaque module librement, ou lancez un mini-guide (2 étapes, non bloquant).",
+      close: "Réduire",
+      visit: "Visiter",
+      guide: "Guide",
+      exploreAlone: "Explorer seul",
+      finish: "Terminer le parcours",
+      finishPartial: "Continuer plus tard",
+      progress: "{done} / {total} guides complétés",
+      noModules: "Aucun module supplémentaire activé pour le moment.",
+      moduleHint: {
+        workspace: "RDV, réservation et planning du jour",
+        asks: "Demandes entrantes à traiter",
+        planning: "Timeline et capacité équipe",
+        events: "Événements et opérations terrain",
+        social: "Calendrier éditorial et posts",
+        dam: "Bibliothèque médias partagée",
+        stock: "Inventaire et mouvements",
+        ideas: "Boîte à idées collaborative",
+        okr: "Objectifs et résultats clés",
+        surveys: "Questionnaires et retours",
+      },
+    },
+    miniTour: {
+      badge: "Guide · {module} ({current}/{total})",
+      next: "Suivant",
+      done: "Compris ✓",
+      skip: "Passer",
+    },
+  },
+  moduleTutorials: {
+    workspace: {
+      step1: { title: "Calendrier dynamique", body: "Visualisez et gérez vos rendez-vous en vues mois, semaine, jour ou liste." },
+      step2: { title: "Réservation en ligne", body: "Configurez vos disponibilités et partagez le lien public pour que vos clients réservent un créneau." },
+    },
+    asks: {
+      step1: { title: "Votre espace de demandes", body: "Créez un formulaire client et récupérez un lien public à partager." },
+      step2: { title: "Traiter les demandes", body: "Les soumissions externes arrivent dans la file de triage, prêtes à être converties en tâches." },
+    },
+    planning: {
+      step1: { title: "Rétroplanning Gantt", body: "Vue marketing avec barres par semaine, ligne « aujourd'hui » et légende par mode." },
+      step2: { title: "Regrouper la vue", body: "Basculez entre tâches, personnes, domaines ou modes pour piloter comme en lancement projet." },
+    },
+    events: {
+      step1: { title: "Hub événements", body: "Pilotez vos événements et opérations depuis ce tableau de bord." },
+      step2: { title: "Tâches liées", body: "Chaque événement a son mini-Kanban de tâches associées." },
+    },
+    social: {
+      step1: { title: "Calendrier éditorial", body: "Planifiez vos publications sur les réseaux." },
+      step2: { title: "Créer un post", body: "Rédigez, programmez et suivez l'état de vos contenus." },
+    },
+    dam: {
+      step1: { title: "Médiathèque", body: "Centralisez logos, visuels et assets validés." },
+      step2: { title: "Partager", body: "Retrouvez rapidement un fichier pour une tâche ou un post." },
+    },
+    stock: {
+      step1: { title: "Inventaire", body: "Suivez vos stocks et références produits." },
+      step2: { title: "Mouvements", body: "Enregistrez entrées et sorties pour garder le stock à jour." },
+    },
+    ideas: {
+      step1: { title: "Mur d'idées", body: "Collectez les propositions de l'équipe." },
+      step2: { title: "Prioriser", body: "Votez et faites émerger les idées à transformer en projets." },
+    },
+    okr: {
+      step1: { title: "Objectifs", body: "Définissez vos OKR par trimestre." },
+      step2: { title: "Suivi", body: "Mettez à jour l'avancement des résultats clés." },
+    },
+    surveys: {
+      step1: { title: "Réponses", body: "Consultez les retours collectés via vos enquêtes." },
+      step2: { title: "Créer", body: "Lancez un questionnaire interne ou public depuis l'admin." },
     },
   },
   gamification: {
@@ -451,6 +561,14 @@ export const fr: MessageTree = {
         title: "Première tâche Kanban",
         description: "Créez votre premier projet guidé sur le tableau.",
       },
+      boardExploration: {
+        title: "Personnaliser le board",
+        description: "Colonnes, couleurs et vues Liste / Calendrier / To-Do.",
+      },
+      moduleDiscovery: {
+        title: "Explorer les modules",
+        description: "Visitez ou guidez-vous dans chaque module activé.",
+      },
       productTour: {
         title: "Découverte de l'espace",
         description: "Visitez les zones clés : tâches, équipe, modules, Outlook.",
@@ -480,6 +598,14 @@ export const fr: MessageTree = {
       moduleMaster: {
         title: "Architecte modules",
         description: "Modules configurés selon vos besoins.",
+      },
+      boardPilot: {
+        title: "Pilote du board",
+        description: "Colonnes personnalisées et vues du dashboard explorées.",
+      },
+      moduleExplorer: {
+        title: "Explorateur modules",
+        description: "Au moins un module découvert via le parcours guidé.",
       },
       centurion: {
         title: "Centurion",

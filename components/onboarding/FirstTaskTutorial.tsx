@@ -11,9 +11,10 @@ import {
   useFirstTaskTutorial,
   type FirstTaskTutorialStep,
 } from "../../lib/onboarding/firstTaskTutorialContext";
+import { useExplorationTutorialOptional } from "../../lib/onboarding/explorationTutorialContext";
 import TutorialRewardCelebration from "./TutorialRewardCelebration";
 import TutorialSpotlight from "./TutorialSpotlight";
-import { markProductTourPending } from "./ProductTour";
+import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import "./first-task-tutorial.css";
 
 const QUEST_STEPS: FirstTaskTutorialStep[] = ["clickNewTask", "fillForm"];
@@ -57,8 +58,10 @@ export default function FirstTaskTutorial() {
     finishCelebration,
     dismissTutorial,
   } = useFirstTaskTutorial();
+  const exploration = useExplorationTutorialOptional();
 
   const initializedRef = useRef(false);
+  const existingTasksCheckedRef = useRef(false);
 
   const needsTutorial = useMemo(() => {
     if (loading || gamificationLoading || !user || !gamification) return false;
@@ -76,6 +79,25 @@ export default function FirstTaskTutorial() {
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    if (!needsTutorial || !onDashboard || !gamification || existingTasksCheckedRef.current) return;
+
+    void (async () => {
+      existingTasksCheckedRef.current = true;
+      const supabase = getSupabaseBrowser();
+      const { count, error } = await supabase
+        .from("tasks")
+        .select("id", { count: "exact", head: true });
+
+      if (error || !count || count <= 0) return;
+
+      initializedRef.current = true;
+      setTutorialRuntime(false, "done");
+      await completeTutorial("first_task");
+      reload();
+    })();
+  }, [needsTutorial, onDashboard, gamification, setTutorialRuntime, completeTutorial, reload]);
 
   useEffect(() => {
     if (!needsTutorial || !onDashboard || !gamification) return;
@@ -122,10 +144,10 @@ export default function FirstTaskTutorial() {
   const handleCelebrationComplete = useCallback(async () => {
     await completeTutorial("first_task");
     reload();
-    markProductTourPending();
     finishCelebration();
     stripTourParam();
-  }, [completeTutorial, finishCelebration, reload, stripTourParam]);
+    exploration?.startBoardExploration();
+  }, [completeTutorial, finishCelebration, reload, stripTourParam, exploration]);
 
   const handlePause = useCallback(() => {
     dismissTutorial();

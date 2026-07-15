@@ -189,3 +189,41 @@
   outline-offset: 2px;
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent) !important;
 }
+
+.first-task-tutorial__module-hub {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 1rem;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(6, 8, 14, 0.35), transparent 40%);
+}
+
+.first-task-tutorial__module-hub-card {
+  position: relative;
+  pointer-events: auto;
+  width: min(26rem, calc(100vw - 2rem));
+  max-height: min(88vh, 640px);
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
+  background: color-mix(in srgb, var(--surface) 94%, var(--accent) 6%);
+  padding: 1.25rem 1.15rem 1rem;
+  box-shadow: 0 22px 60px rgba(10, 8, 6, 0.28);
+}
+
+.first-task-tutorial__mini-tour-float {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 155;
+  max-width: min(22rem, calc(100vw - 2rem));
+}
+
+.first-task-tutorial__mini-tour-card {
+  position: static !important;
+  width: 100% !important;
+  box-shadow: 0 16px 48px rgba(10, 8, 6, 0.22);
+}
