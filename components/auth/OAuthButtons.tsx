@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { setOAuthNextPath } from "../../lib/auth/oauthNextCookie";
 import { getOAuthCallbackOrigin } from "../../lib/publicAppUrl";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError } from "../../lib/toast";
@@ -50,7 +51,8 @@ export default function OAuthButtons({
     setBusy(true);
     try {
       const supabase = getSupabaseBrowser();
-      const redirectTo = `${getOAuthCallbackOrigin()}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+      setOAuthNextPath(nextPath);
+      const redirectTo = `${getOAuthCallbackOrigin()}/auth/callback`;
 
       const data = signUpMetadata
         ? Object.fromEntries(

@@ -60,8 +60,10 @@ Dashboard : [Authentication → URL Configuration](https://supabase.com/dashboar
 | Champ | Valeur |
 |-------|--------|
 | **Site URL** | `https://project-time-management.vercel.app` |
-| **Redirect URLs** | `https://project-time-management.vercel.app/auth/callback` |
-| | `http://localhost:3000/auth/callback` |
+| **Redirect URLs** | `https://project-time-management.vercel.app/**` |
+| | `http://localhost:3000/**` |
+
+Le wildcard `/**` est **obligatoire** pour Google OAuth (callback avec ou sans paramètres).
 
 **Email** : confirmer que « Confirm email » est activé si vous l'utilisez en production.
 
