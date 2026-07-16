@@ -14,10 +14,27 @@ export function isInvalidRefreshTokenError(error: unknown): boolean {
   return e.code === "refresh_token_not_found";
 }
 
+const PUBLIC_NO_REDIRECT_PREFIXES = [
+  "/",
+  "/login",
+  "/signup",
+  "/auth/",
+  "/pricing",
+  "/privacy",
+  "/terms",
+  "/legal",
+  "/ideas",
+  "/questionnaire",
+  "/asks/f/",
+  "/agenda/b/",
+];
+
 function shouldHardRedirectToLogin(): boolean {
   if (typeof window === "undefined") return false;
   const p = window.location.pathname;
-  return !p.startsWith("/login") && !p.startsWith("/auth/");
+  return !PUBLIC_NO_REDIRECT_PREFIXES.some(
+    (prefix) => p === prefix || (prefix !== "/" && p.startsWith(prefix)),
+  );
 }
 
 /**

@@ -34,7 +34,6 @@ import { useReferenceData } from "../../../lib/useReferenceData";
 import { useTasks } from "../../../lib/useTasks";
 import { useEvents } from "../../../lib/useEvents";
 import { useCurrentUser } from "../../../lib/useCurrentUser";
-import { useBranding } from "../../../lib/brandingContext";
 import { teamAdminNameForUser } from "../../../lib/taskConcernsUser";
 import {
   ensureCurrentUserTeamMember,
@@ -117,7 +116,6 @@ export default function V2DashboardHomePage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const { user: currentUser } = useCurrentUser();
-  const { branding } = useBranding();
   const { tasks, setTasks, optimisticUpdate } = useTasks();
   const { events: calendarEvents } = useEvents();
   const {
@@ -1069,15 +1067,12 @@ export default function V2DashboardHomePage() {
           <header className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
-                  {branding.tagline.trim() || branding.appName}
-                </p>
                 {effectiveUser ? (
-                  <h1 className="ui-heading mt-1 text-3xl font-semibold tracking-tight text-[var(--foreground)]">
+                  <h1 className="ui-heading text-3xl font-semibold tracking-tight text-[var(--foreground)]">
                     Bonjour, {effectiveUser.split(" ")[0]} 👋
                   </h1>
                 ) : (
-                  <h1 className="ui-heading mt-1 text-3xl font-semibold tracking-tight text-[var(--foreground)]">
+                  <h1 className="ui-heading text-3xl font-semibold tracking-tight text-[var(--foreground)]">
                     Tableau de bord
                   </h1>
                 )}

@@ -274,7 +274,7 @@ export default function FirstTaskTutorial() {
           targetSelector='[data-tutorial="new-task-modal"]'
           visible
           padding={12}
-          cardPosition="top"
+          cardPosition="bottom-right"
         >
           <span className="first-task-tutorial__badge">
             <Sparkles className="h-3 w-3" aria-hidden />

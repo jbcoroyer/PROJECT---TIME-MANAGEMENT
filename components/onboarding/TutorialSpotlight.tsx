@@ -16,7 +16,7 @@ type TutorialSpotlightProps = {
   visible: boolean;
   padding?: number;
   children?: React.ReactNode;
-  cardPosition?: "bottom" | "top" | "left" | "right" | "auto";
+  cardPosition?: "bottom" | "top" | "left" | "right" | "bottom-right" | "auto";
 };
 
 function measureTarget(selector: string, padding: number): Rect | null {
@@ -36,13 +36,29 @@ function cardStyle(rect: Rect, position: TutorialSpotlightProps["cardPosition"])
   const cardWidth = Math.min(352, window.innerWidth - 32);
   const base: React.CSSProperties = { width: cardWidth };
 
+  if (position === "bottom-right") {
+    return {
+      ...base,
+      top: Math.max(16, window.innerHeight - 240),
+      left: Math.max(16, window.innerWidth - cardWidth - 16),
+    };
+  }
+
   if (position === "bottom" || position === "auto") {
     const top = rect.top + rect.height + gap;
-    if (top + 180 < window.innerHeight || position === "bottom") {
+    const fitsBelow = top + 200 < window.innerHeight;
+    if (fitsBelow || position === "bottom") {
       return {
         ...base,
         top: Math.min(top, window.innerHeight - 200),
         left: Math.min(Math.max(16, rect.left), window.innerWidth - cardWidth - 16),
+      };
+    }
+    if (position === "auto") {
+      return {
+        ...base,
+        top: Math.max(16, window.innerHeight - 240),
+        left: Math.max(16, window.innerWidth - cardWidth - 16),
       };
     }
   }
