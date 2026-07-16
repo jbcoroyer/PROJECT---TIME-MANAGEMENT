@@ -197,13 +197,13 @@ export default function LandingPage() {
             </h1>
             <div className="mt-11 flex flex-wrap items-end justify-between gap-10">
               <p className="mkt-hero-sub max-w-[540px] text-lg leading-relaxed text-[var(--ink-muted)]">
-                Pour tous les services qui pilotent des projets et de la planification — pas seulement
-                la com&apos;. À{" "}
+                Pour tous les services qui pilotent des projets et de la planification.
+                <br />
+                Tarif unique de{" "}
                 <strong className="font-semibold text-[var(--ink)]">
-                  {PRICE_PER_SEAT_EUR}&nbsp;€ par utilisateur / mois
-                </strong>{" "}
-                (min. {MONTHLY_FLOOR_EUR}&nbsp;€ jusqu&apos;à {FLOOR_INCLUDED_SEATS} personnes), tout est
-                inclus.
+                  {PRICE_PER_SEAT_EUR}&nbsp;€ par utilisateur
+                </strong>
+                . Tout est inclus&nbsp;!
               </p>
               <div className="mkt-hero-cta flex flex-wrap items-center gap-[18px]">
                 <Link href="/signup" className="mkt-cta-primary px-8 py-[17px] text-base">
