@@ -144,7 +144,8 @@ const WORKFLOW_EXAMPLES = [
 
 export default function LandingPage() {
   return (
-    <div className="mkt-page relative min-h-screen overflow-hidden bg-[var(--background)]">
+    <div className="mkt-page relative min-h-screen overflow-x-clip bg-[var(--background)]">
+      <HeroMouseGlow />
       <header className="relative z-10 border-b border-[var(--line)]">
         <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-5 sm:grid-cols-[1fr_auto_1fr] sm:px-10">
           <Link href="/" className="flex items-center gap-3">
@@ -177,9 +178,8 @@ export default function LandingPage() {
       </header>
 
       <main className="relative z-[5]">
-        <section className="relative px-6 pb-[90px] pt-[110px] sm:px-10">
-          <HeroMouseGlow />
-          <div className="relative z-[1] mx-auto max-w-[1280px]">
+        <section className="relative z-[5] px-6 pb-[90px] pt-[110px] sm:px-10">
+          <div className="relative mx-auto max-w-[1280px]">
             <div className="mkt-hero-kicker flex items-center gap-3.5">
               <span className="ui-kicker text-[12px] tracking-[0.18em]">
                 Un espace de travail sur mesure pour vos projets.

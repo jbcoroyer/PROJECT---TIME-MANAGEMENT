@@ -111,11 +111,15 @@
   margin-block: -0.06em;
 }
 
-/* Halo hero qui suit la souris */
+/* Halo qui suit la souris sur toute la page (viewport) */
 .mkt-mouse-glow {
   --gx: 72%;
   --gy: 28%;
+  position: fixed;
+  inset: 0;
   z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .mkt-mouse-glow__blob {

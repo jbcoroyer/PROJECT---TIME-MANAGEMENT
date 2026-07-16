@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Halo décoratif qui suit la souris avec un léger amortissement.
+ * Halo décoratif sur toute la page : suit la souris (viewport) avec amortissement.
  * Désactivé si prefers-reduced-motion.
  */
 export default function HeroMouseGlow() {
@@ -29,9 +29,8 @@ export default function HeroMouseGlow() {
     const onMove = (e: PointerEvent) => {
       const w = window.innerWidth || 1;
       const h = Math.max(window.innerHeight, 1);
-      // Garde le halo dans la zone hero (haut de page) pour rester subtil
-      target.current.x = Math.min(0.95, Math.max(0.05, e.clientX / w));
-      target.current.y = Math.min(0.85, Math.max(0.08, e.clientY / h));
+      target.current.x = Math.min(1, Math.max(0, e.clientX / w));
+      target.current.y = Math.min(1, Math.max(0, e.clientY / h));
     };
 
     const tick = () => {
@@ -54,7 +53,7 @@ export default function HeroMouseGlow() {
   return (
     <div
       ref={rootRef}
-      className="mkt-mouse-glow pointer-events-none absolute inset-0 overflow-hidden"
+      className="mkt-mouse-glow pointer-events-none"
       aria-hidden
       style={{ ["--gx" as string]: "72%", ["--gy" as string]: "28%" }}
     >
