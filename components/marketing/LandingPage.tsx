@@ -185,11 +185,11 @@ export default function LandingPage() {
               </span>
               <span className="mkt-hero-line h-px max-w-[220px] flex-1 bg-[rgba(26,22,17,0.25)]" aria-hidden />
             </div>
-            <h1 className="ui-display mt-9 max-w-[1100px] text-[clamp(3.2rem,7.5vw,6.4rem)] leading-[0.98] tracking-[-0.02em] text-[var(--ink)]">
-              <span className="mkt-hero-line-reveal block overflow-hidden">
+            <h1 className="ui-display mt-9 max-w-[1100px] text-[clamp(3.2rem,7.5vw,6.4rem)] leading-[1.08] tracking-[-0.02em] text-[var(--ink)]">
+              <span className="mkt-hero-line-reveal block">
                 <span className="mkt-hero-line-inner block">Enfin un gestionnaire</span>
               </span>
-              <span className="mkt-hero-line-reveal block overflow-hidden">
+              <span className="mkt-hero-line-reveal block">
                 <span className="mkt-hero-line-inner mkt-hero-line-inner--2 block">
                   de projet <em className="italic text-[var(--accent)]">abordable.</em>
                 </span>

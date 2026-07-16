@@ -104,6 +104,13 @@
   padding-left: 1.25rem;
 }
 
+/* Évite la coupe des ascendantes/italiques serif dans le reveal hero */
+.mkt-hero-line-reveal {
+  overflow: hidden;
+  padding-block: 0.1em 0.14em;
+  margin-block: -0.06em;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .mkt-hero-kicker {
     animation: at-fade 1s 0.1s both;
