@@ -16,6 +16,7 @@ import {
   brandingStyleVars,
   type AppBranding,
 } from "./branding";
+import { useCurrentUser } from "./currentUserContext";
 import { LEGACY_ORG_ID } from "./tenantConstants";
 import { getSupabaseBrowser } from "./supabaseBrowser";
 import { useRealtimeReload } from "./useRealtimeReload";
@@ -45,30 +46,15 @@ function applyBrandingToDocument(branding: AppBranding) {
 
 export function BrandingProvider({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
+  const { user, loading: userLoading } = useCurrentUser();
   const [branding, setBranding] = useState<AppBranding>(DEFAULT_BRANDING);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    setLoading(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    if (userLoading) return;
 
-    let organizationId: string | null = null;
-    if (user) {
-      for (let attempt = 0; attempt < 6; attempt += 1) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("organization_id")
-          .eq("id", user.id)
-          .maybeSingle();
-        organizationId = (profile?.organization_id as string | null) ?? null;
-        if (organizationId) break;
-        if (attempt < 5) {
-          await new Promise((resolve) => window.setTimeout(resolve, 350));
-        }
-      }
-    }
+    setLoading(true);
+    const organizationId = user?.organizationId ?? null;
 
     let query = supabase.from("app_settings").select(APP_SETTINGS_SELECT);
 
@@ -99,7 +85,7 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     setBranding(brandingWithUrls);
     applyBrandingToDocument(brandingWithUrls);
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, user, userLoading]);
 
   const patchBranding = useCallback((patch: Partial<AppBranding>) => {
     setBranding((prev) => {

@@ -505,6 +505,7 @@ export default function V2ListView(props: V2ListViewProps) {
     return new Set();
   });
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [expandedEmptyGroups, setExpandedEmptyGroups] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -561,11 +562,28 @@ export default function V2ListView(props: V2ListViewProps) {
     return map;
   }, [filteredTasks, columns]);
 
-  const toggleGroup = (col: string) => {
-    setCollapsedGroups((prev) => {
+  const isGroupCollapsed = useCallback(
+    (groupColumn: ColumnId, taskCount: number) => {
+      if (taskCount > 0) return collapsedGroups.has(groupColumn);
+      return !expandedEmptyGroups.has(groupColumn);
+    },
+    [collapsedGroups, expandedEmptyGroups],
+  );
+
+  const toggleGroup = (groupColumn: ColumnId, taskCount: number) => {
+    if (taskCount > 0) {
+      setCollapsedGroups((prev) => {
+        const next = new Set(prev);
+        if (next.has(groupColumn)) next.delete(groupColumn);
+        else next.add(groupColumn);
+        return next;
+      });
+      return;
+    }
+    setExpandedEmptyGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(col)) next.delete(col);
-      else next.add(col);
+      if (next.has(groupColumn)) next.delete(groupColumn);
+      else next.add(groupColumn);
       return next;
     });
   };
@@ -655,15 +673,18 @@ export default function V2ListView(props: V2ListViewProps) {
 
           {columns.map((groupColumn) => {
             const groupTasks = tasksByColumn.get(groupColumn) ?? [];
-            const collapsed = collapsedGroups.has(groupColumn);
+            const collapsed = isGroupCollapsed(groupColumn, groupTasks.length);
             const visual = visualFor(groupColumn);
 
             return (
               <div key={groupColumn} role="rowgroup" className="border-b border-[var(--line)]">
                 <button
                   type="button"
-                  onClick={() => toggleGroup(groupColumn)}
-                  className="flex w-full flex-col border-l-4 px-4 py-2.5 text-left text-sm font-semibold transition-colors hover:bg-[var(--surface-soft)]"
+                  onClick={() => toggleGroup(groupColumn, groupTasks.length)}
+                  className={[
+                    "flex w-full flex-col border-l-4 px-4 text-left text-sm font-semibold transition-colors hover:bg-[var(--surface-soft)]",
+                    collapsed ? "py-2" : "py-2.5",
+                  ].join(" ")}
                   style={{
                     borderLeftColor: visual.color,
                     backgroundColor: visual.softBg,
@@ -685,37 +706,31 @@ export default function V2ListView(props: V2ListViewProps) {
 
                 {!collapsed && (
                   <>
-                    {groupTasks.length === 0 ? (
-                      <div className="border-t border-dashed border-[var(--line)] px-4 py-6 text-center text-sm text-[color:var(--foreground)]/45">
-                        Aucun élément dans ce groupe.
-                      </div>
-                    ) : (
-                      groupTasks.map((task) => (
-                        <ListRow
-                          key={task.id}
-                          task={task}
-                          columns={columns}
-                          admins={admins}
-                          companies={companies}
-                          domains={domains}
-                          companyRecords={companyRecords}
-                          now={now}
-                          selected={selectedIds.has(task.id)}
-                          onToggleSelect={() =>
-                            setSelectedIds((prev) => {
-                              const next = new Set(prev);
-                              if (next.has(task.id)) next.delete(task.id);
-                              else next.add(task.id);
-                              return next;
-                            })
-                          }
-                          onOpenTask={onOpenTask}
-                          onMoveTask={onMoveTask}
-                          onInlineSave={onInlineSave}
-                          onEditTask={onEditTask}
-                        />
-                      ))
-                    )}
+                    {groupTasks.map((task) => (
+                      <ListRow
+                        key={task.id}
+                        task={task}
+                        columns={columns}
+                        admins={admins}
+                        companies={companies}
+                        domains={domains}
+                        companyRecords={companyRecords}
+                        now={now}
+                        selected={selectedIds.has(task.id)}
+                        onToggleSelect={() =>
+                          setSelectedIds((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(task.id)) next.delete(task.id);
+                            else next.add(task.id);
+                            return next;
+                          })
+                        }
+                        onOpenTask={onOpenTask}
+                        onMoveTask={onMoveTask}
+                        onInlineSave={onInlineSave}
+                        onEditTask={onEditTask}
+                      />
+                    ))}
                     <AddItemRow groupColumn={groupColumn} onQuickAdd={onQuickAdd} />
                   </>
                 )}

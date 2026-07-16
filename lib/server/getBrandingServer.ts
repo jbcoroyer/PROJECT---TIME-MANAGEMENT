@@ -3,6 +3,7 @@ import {
   mergeBranding,
   type AppBranding,
 } from "../branding";
+import { getServerAuthUser } from "./authSafe";
 import { getPublicBrandingOrganizationId, getServerOrgContext } from "./orgContext";
 import { createServerSupabase } from "./supabaseServer";
 import { createServerSignedStorageUrl } from "./storageSignedUrl";
@@ -14,9 +15,7 @@ const APP_SETTINGS_SELECT =
 export async function getBrandingServer(): Promise<AppBranding> {
   try {
     const supabase = await createServerSupabase();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getServerAuthUser(supabase);
     const ctx = await getServerOrgContext();
 
     // Profil pas encore visible : ne pas lire le branding « legacy » (évite redirects incohérents).

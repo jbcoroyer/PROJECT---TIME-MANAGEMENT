@@ -167,14 +167,26 @@ export default function V2AppShell({
       .filter(Boolean)
       .join(" ");
 
+  const dashboardHref = "/dashboard/kanban";
+
+  const brandBlock = (options?: { onClick?: () => void; className?: string }) => (
+    <Link
+      href={dashboardHref}
+      onClick={options?.onClick}
+      className={[
+        "relative flex items-center gap-3 rounded-xl outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40",
+        options?.className ?? "",
+      ].join(" ")}
+      aria-label={`Retour au tableau de bord — ${branding.appName}`}
+    >
+      <AppMark className="h-9 w-9" starOnDark />
+      <AppWordmark size="sidebar" onDark />
+    </Link>
+  );
+
   const sidebarContent = (options?: { onNavClick?: () => void; hideBrand?: boolean }) => (
     <>
-      {!options?.hideBrand ? (
-        <div className="relative flex items-center gap-3">
-          <AppMark className="h-9 w-9" starOnDark />
-          <AppWordmark size="sidebar" onDark />
-        </div>
-      ) : null}
+      {!options?.hideBrand ? brandBlock({ onClick: options?.onNavClick }) : null}
       <nav
         className={[
           "min-h-0 flex-1 space-y-px overflow-y-auto overscroll-contain",
@@ -239,23 +251,23 @@ export default function V2AppShell({
   );
 
   return (
-    <div className="min-h-svh bg-[var(--background)] text-[var(--foreground)]">
-      <div className="lg:flex lg:min-h-svh">
+    <div className="h-svh overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+      <div className="flex h-full">
         <aside
-          className="ui-sidebar-contrast hidden w-[280px] shrink-0 flex-col border-r py-7 pl-6 pr-5 lg:sticky lg:top-0 lg:flex lg:h-svh lg:overflow-hidden"
+          className="ui-sidebar-contrast hidden w-[280px] shrink-0 flex-col border-r py-7 pl-6 pr-5 md:flex md:h-full md:overflow-hidden"
         >
           <div className="ui-sidebar-contrast__grain" aria-hidden />
           <div className="ui-sidebar-contrast__glow -bottom-40 -right-24 h-64 w-64" aria-hidden />
           <div className="relative flex min-h-0 flex-1 flex-col">{sidebarContent()}</div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
           {mobileNavOpen ? (
             <>
               <button
                 type="button"
                 aria-label="Fermer le menu"
-                className="fixed inset-0 bg-[var(--foreground)]/20 lg:hidden"
+                className="fixed inset-0 bg-[var(--foreground)]/20 md:hidden"
                 style={{ zIndex: "var(--z-overlay)" }}
                 onClick={() => setMobileNavOpen(false)}
               />
@@ -263,15 +275,12 @@ export default function V2AppShell({
                 role="dialog"
                 aria-modal="true"
                 aria-label="Navigation principale"
-                className="ui-sidebar-contrast fixed inset-y-0 left-0 flex w-72 max-w-[88vw] flex-col border-r p-5 lg:hidden"
+                className="ui-sidebar-contrast fixed inset-y-0 left-0 flex w-72 max-w-[88vw] flex-col border-r p-5 md:hidden"
                 style={{ zIndex: "calc(var(--z-overlay) + 1)" }}
               >
                 <div className="ui-sidebar-contrast__grain" aria-hidden />
                 <div className="relative mb-4 flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    <AppMark className="h-9 w-9" starOnDark />
-                    <AppWordmark size="sidebar" onDark />
-                  </div>
+                  {brandBlock({ onClick: () => setMobileNavOpen(false) })}
                   <button
                     type="button"
                     onClick={() => setMobileNavOpen(false)}
@@ -312,7 +321,7 @@ export default function V2AppShell({
                 <button
                   type="button"
                   onClick={() => setMobileNavOpen(true)}
-                  className="ui-btn ui-btn-secondary inline-flex h-10 w-10 rounded-[10px] p-0 lg:hidden"
+                  className="ui-btn ui-btn-secondary inline-flex h-10 w-10 rounded-[10px] p-0 md:hidden"
                   aria-label="Ouvrir le menu"
                   aria-expanded={mobileNavOpen}
                 >
