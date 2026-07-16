@@ -233,25 +233,26 @@ export default function PricingPageContent() {
         </ScrollReveal>
 
         <ScrollReveal delay={80} className="mt-20">
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:gap-14">
-            <div>
-              <h2 className="ui-display text-[clamp(1.6rem,2.5vw,2rem)] text-[var(--ink)]">
-                Comment ça se calcule
-              </h2>
-              <p className="mt-3 text-[15px] leading-relaxed text-[var(--ink-muted)]">
-                Chaque personne active coûte {PRICE_PER_SEAT_EUR}&nbsp;€/mois. Pour une petite équipe
-                (jusqu&apos;à {FLOOR_INCLUDED_SEATS} personnes), la facture reste à{" "}
-                {MONTHLY_FLOOR_EUR}&nbsp;€/mois. Ensuite, elle augmente de {PRICE_PER_SEAT_EUR}&nbsp;€
-                par siège ajouté.
-              </p>
-              <div className="mt-6 grid grid-cols-2 gap-3">
+          <div>
+            <h2 className="ui-display text-[clamp(1.6rem,2.5vw,2rem)] text-[var(--ink)]">
+              Comment ça se calcule
+            </h2>
+            <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-[var(--ink-muted)]">
+              Chaque personne active coûte {PRICE_PER_SEAT_EUR}&nbsp;€/mois. Pour une petite équipe
+              (jusqu&apos;à {FLOOR_INCLUDED_SEATS} personnes), la facture reste à{" "}
+              {MONTHLY_FLOOR_EUR}&nbsp;€/mois. Ensuite, elle augmente de {PRICE_PER_SEAT_EUR}&nbsp;€
+              par siège ajouté.
+            </p>
+
+            <div className="mt-8 grid grid-cols-1 items-stretch gap-5 lg:grid-cols-2 lg:gap-6">
+              <div className="grid grid-cols-2 gap-3">
                 {EXAMPLE_SIZES.map((seats) => {
                   const price = formatMonthlyPriceEur(seats);
                   const atFloor = seats <= FLOOR_INCLUDED_SEATS;
                   return (
                     <div
                       key={seats}
-                      className="rounded-[18px] border border-[rgba(26,22,17,0.15)] bg-[var(--surface)] px-4 py-4"
+                      className="flex flex-col justify-between rounded-[18px] border border-[rgba(26,22,17,0.15)] bg-[var(--surface)] px-4 py-4"
                     >
                       <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(26,22,17,0.45)]">
                         {seats} pers.
@@ -266,37 +267,41 @@ export default function PricingPageContent() {
                   );
                 })}
               </div>
-            </div>
 
-            <div className="rounded-[22px] border border-[rgba(26,22,17,0.2)] bg-[var(--surface)] px-7 py-7 sm:px-9 sm:py-8">
-              <h2 className="ui-display text-xl text-[var(--ink)]">Simulateur</h2>
-              <p className="mt-2 text-sm text-[var(--ink-muted)]">
-                Ajustez le nombre de collaborateurs pour estimer votre facture mensuelle.
-              </p>
-              <label
-                className="mt-5 block text-sm font-semibold text-[var(--ink)]"
-                htmlFor="pricing-simulator"
-              >
-                Nombre de personnes
-              </label>
-              <input
-                id="pricing-simulator"
-                type="range"
-                min={1}
-                max={50}
-                value={simulatorSeats}
-                onChange={(e) => setSimulatorSeats(Number(e.target.value))}
-                className="mt-2 w-full"
-              />
-              <p className="mt-5 text-lg font-semibold text-[var(--ink)]">
-                Vous êtes {simulatorSeats} personne{simulatorSeats > 1 ? "s" : ""} ? Vous payez{" "}
-                <strong className="text-[var(--accent)]">{simulatedPrice}</strong>/mois
-              </p>
-              <p className="mt-1 text-xs text-[rgba(26,22,17,0.5)]">
-                {simulatorSeats <= FLOOR_INCLUDED_SEATS
-                  ? `Minimum ${MONTHLY_FLOOR_EUR} €/mois (jusqu’à ${FLOOR_INCLUDED_SEATS} personnes).`
-                  : `${simulatorSeats} personnes × ${PRICE_PER_SEAT_EUR} € = ${(calculateMonthlyPriceCents(simulatorSeats) / 100).toFixed(0)} €/mois.`}
-              </p>
+              <div className="flex h-full flex-col justify-between rounded-[22px] border border-[rgba(26,22,17,0.2)] bg-[var(--surface)] px-7 py-7 sm:px-8 sm:py-8">
+                <div>
+                  <h3 className="ui-display text-xl text-[var(--ink)]">Simulateur</h3>
+                  <p className="mt-2 text-sm text-[var(--ink-muted)]">
+                    Ajustez le nombre de collaborateurs pour estimer votre facture mensuelle.
+                  </p>
+                  <label
+                    className="mt-5 block text-sm font-semibold text-[var(--ink)]"
+                    htmlFor="pricing-simulator"
+                  >
+                    Nombre de personnes
+                  </label>
+                  <input
+                    id="pricing-simulator"
+                    type="range"
+                    min={1}
+                    max={50}
+                    value={simulatorSeats}
+                    onChange={(e) => setSimulatorSeats(Number(e.target.value))}
+                    className="mt-2 w-full"
+                  />
+                </div>
+                <div className="mt-6">
+                  <p className="text-lg font-semibold text-[var(--ink)]">
+                    Vous êtes {simulatorSeats} personne{simulatorSeats > 1 ? "s" : ""} ? Vous payez{" "}
+                    <strong className="text-[var(--accent)]">{simulatedPrice}</strong>/mois
+                  </p>
+                  <p className="mt-1 text-xs text-[rgba(26,22,17,0.5)]">
+                    {simulatorSeats <= FLOOR_INCLUDED_SEATS
+                      ? `Minimum ${MONTHLY_FLOOR_EUR} €/mois (jusqu’à ${FLOOR_INCLUDED_SEATS} personnes).`
+                      : `${simulatorSeats} personnes × ${PRICE_PER_SEAT_EUR} € = ${(calculateMonthlyPriceCents(simulatorSeats) / 100).toFixed(0)} €/mois.`}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </ScrollReveal>
