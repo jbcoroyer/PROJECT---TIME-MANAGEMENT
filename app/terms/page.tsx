@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalDocument title="Conditions générales d'utilisation" lastUpdated="13 juillet 2026">
+    <LegalDocument title="Conditions générales d'utilisation" lastUpdated="16 juillet 2026">
       <section>
         <h2 className="text-lg font-semibold text-[var(--foreground)]">1. Objet</h2>
         <p className="mt-2">
@@ -32,8 +32,8 @@ export default function TermsPage() {
         <h2 className="text-lg font-semibold text-[var(--foreground)]">3. Description du Service</h2>
         <p className="mt-2">
           Le Service propose des outils de pilotage de projet, de communication et de collaboration au sein
-          d&apos;organisations. Les fonctionnalités disponibles dépendent du plan souscrit (Gratuit, Starter,
-          Pro ou essai gratuit de 14 jours).
+          d&apos;organisations. Pendant l&apos;essai gratuit de 14 jours, puis avec un abonnement actif, toutes
+          les fonctionnalités du Service sont incluses (modules, assistant IA, intégrations).
         </p>
       </section>
 
@@ -49,10 +49,12 @@ export default function TermsPage() {
       <section>
         <h2 className="text-lg font-semibold text-[var(--foreground)]">5. Abonnements et facturation</h2>
         <p className="mt-2">
-          Les abonnements payants sont facturés mensuellement via Stripe. L&apos;essai gratuit de 14 jours donne
-          accès à l&apos;ensemble des fonctionnalités. À l&apos;issue de l&apos;essai, l&apos;organisation
-          bascule automatiquement sur le plan Gratuit (1 à 2 utilisateurs) sans carte bancaire. Les tarifs en
-          vigueur sont consultables sur la page{" "}
+          Un seul abonnement est proposé : 2&nbsp;€ par utilisateur actif et par mois, avec un minimum de
+          10&nbsp;€/mois (jusqu&apos;à 5 utilisateurs). La facturation est mensuelle via Stripe et la quantité
+          suit le nombre de membres de l&apos;organisation. L&apos;essai gratuit de 14 jours donne accès à
+          l&apos;ensemble des fonctionnalités sans carte bancaire. À l&apos;issue de l&apos;essai, un
+          abonnement actif est requis pour continuer à utiliser le Service. Les tarifs en vigueur sont
+          consultables sur la page{" "}
           <a href="/pricing" className="text-[var(--brand-primary)] hover:underline">
             Tarifs
           </a>

@@ -15,8 +15,8 @@ function trialReminderHtml(orgName: string, daysLeft: number): string {
   return `
     <p>Bonjour,</p>
     <p>${urgency}</p>
-    <p>Pour l'espace <strong>${orgName}</strong> : souscrivez à l'abonnement pour continuer après l'essai ({TRIAL_DAYS} jours gratuits, sans carte).</p>
-    <p><a href="${process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "http://localhost:3000"}/pricing">Voir les offres</a></p>
+    <p>Pour l'espace <strong>${orgName}</strong> : souscrivez à l'abonnement unique (2&nbsp;€/utilisateur/mois, min. 10&nbsp;€) pour continuer après l'essai ({TRIAL_DAYS} jours gratuits, sans carte).</p>
+    <p><a href="${process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "http://localhost:3000"}/pricing">Voir les tarifs</a></p>
   `;
 }
 

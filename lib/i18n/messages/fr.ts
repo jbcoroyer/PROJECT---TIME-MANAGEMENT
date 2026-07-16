@@ -185,6 +185,11 @@ export const fr: MessageTree = {
     gdprExporting: "Export…",
     gdprDeleteAccount: "Supprimer mon compte",
     gdprDeleting: "Suppression…",
+    billingTitle: "Facturation",
+    billingSubtitle:
+      "Abonnement unique : 2 €/utilisateur/mois (min. 10 €). Essai 14 jours sans carte.",
+    outlookTitle: "Agenda Outlook 365",
+    outlookSubtitle: "Synchronisez vos tâches planifiées vers votre agenda Microsoft Outlook.",
     billing: {
       loadError: "Impossible de charger la facturation.",
       genericError: "Erreur facturation",
@@ -425,11 +430,11 @@ export const fr: MessageTree = {
       },
       outlook: {
         title: "Connectez Outlook",
-        body: "Synchronisez vos tâches planifiées vers Microsoft 365 (plan Pro).",
+        body: "Synchronisez vos tâches planifiées vers Microsoft 365 (inclus dans l'abonnement).",
         examples: {
           e1: "Synchroniser la réunion client de vendredi",
           e2: "Pousser les deadlines du planning vers l'agenda",
-          e3: "Connecter Microsoft 365 pour le plan Pro",
+          e3: "Connecter Microsoft 365 à votre espace",
         },
       },
     },

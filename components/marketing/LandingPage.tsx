@@ -56,9 +56,9 @@ const MODULE_COPY: Record<AppModuleId, { title: string; desc: string }> = {
 };
 
 const HERO_STATS = [
-  { value: "11", label: "Modules à la carte" },
+  { value: "11", label: "Modules inclus" },
   { value: `${TRIAL_DAYS} j`, label: "Essai complet, sans CB" },
-  { value: "0€", label: "Pour 2 personnes, à vie" },
+  { value: "2€", label: "Par utilisateur / mois" },
 ];
 
 const MARQUEE_WORDS = [
@@ -77,9 +77,9 @@ const MARQUEE_WORDS = [
 ];
 
 const WHY_POINTS = [
-  { num: "01", text: "Activez uniquement les modules dont vous avez besoin" },
-  { num: "02", text: "Invitez vos collègues en quelques clics par e-mail" },
-  { num: "03", text: "Personnalisez logo et couleurs de votre espace" },
+  { num: "01", text: "Tout inclus : les 11 modules, IA, Outlook et alertes" },
+  { num: "02", text: "2 € par utilisateur / mois, minimum 10 € (jusqu’à 5 personnes)" },
+  { num: "03", text: "Invitez vos collègues — la facture suit le nombre de sièges" },
   { num: "04", text: `Essai complet de ${TRIAL_DAYS} jours, sans carte bancaire` },
 ];
 
@@ -136,8 +136,8 @@ export default function LandingPage() {
             </h1>
             <div className="mt-11 flex flex-wrap items-end justify-between gap-10">
               <p className="mkt-hero-sub max-w-[440px] text-lg leading-relaxed text-[var(--ink-muted)]">
-                Kanban, planning, événements, réseaux sociaux, stock — chaque équipe compose son espace,
-                module par module. Rien de plus.
+                Kanban, planning, événements, réseaux sociaux, stock — un seul abonnement, tout inclus.
+                2&nbsp;€ par utilisateur / mois, minimum 10&nbsp;€.
               </p>
               <div className="mkt-hero-cta flex flex-wrap items-center gap-[18px]">
                 <Link href="/signup" className="mkt-cta-primary px-8 py-[17px] text-base">
@@ -223,7 +223,7 @@ export default function LandingPage() {
                     12
                   </span>
                   <h3 className="ui-display text-[27px] tracking-[-0.01em] text-[var(--background)]">
-                    Assistant IA <em className="text-[var(--accent-on-dark)] italic">— plan Pro</em>
+                    Assistant IA <em className="text-[var(--accent-on-dark)] italic">— inclus</em>
                   </h3>
                   <p className="col-span-2 text-[15px] leading-[1.55] text-[rgba(246,241,231,0.6)] sm:col-span-1">
                     Reformulez, résumez, gagnez du temps sur le rédactionnel.
@@ -242,9 +242,9 @@ export default function LandingPage() {
             <ScrollReveal direction="left">
               <span className="ui-kicker text-[12px] tracking-[0.18em]">N°02 — Pourquoi WorkSpace</span>
               <p className="ui-display mt-7 text-[clamp(1.8rem,3.2vw,2.6rem)] leading-[1.2] tracking-[-0.01em] text-[var(--ink)]">
-                « Commencez léger à deux, ajoutez des modules quand le besoin arrive.{" "}
-                <em className="text-[var(--accent)] italic">L&apos;outil grandit avec vous</em>, jamais
-                l&apos;inverse. »
+                « Un seul prix, tout inclus. Vous payez au siège —{" "}
+                <em className="text-[var(--accent)] italic">l&apos;équipe grandit, la facture reste claire</em>,
+                sans paliers cachés. »
               </p>
               <ul className="mt-9 flex flex-col">
                 {WHY_POINTS.map((pt) => (
@@ -276,14 +276,14 @@ export default function LandingPage() {
               Prêt à arrêter de <em className="text-[var(--accent-on-dark)] italic">courir partout</em> ?
             </h2>
             <p className="mx-auto mt-[22px] max-w-[460px] text-[17px] text-[rgba(246,241,231,0.6)]">
-              Créez votre espace en moins de 5 minutes. Choisissez vos modules, invitez un collègue,
-              c&apos;est parti.
+              Créez votre espace en moins de 5 minutes. {TRIAL_DAYS} jours pour tout tester, sans carte
+              bancaire.
             </p>
             <Link
               href="/signup"
               className="mkt-cta-band mt-9 inline-flex items-center gap-2.5 rounded-[100px] bg-[var(--background)] px-9 py-[18px] text-base font-semibold text-[var(--ink)]"
             >
-              Créer mon espace gratuitement{" "}
+              Essayer {TRIAL_DAYS} jours gratuits{" "}
               <span className="font-[family-name:var(--font-mono)]">→</span>
             </Link>
           </ScrollReveal>

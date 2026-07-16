@@ -158,10 +158,11 @@ export default function BillingCard() {
         <div className="rounded-xl border border-[color-mix(in_srgb,var(--accent)_40%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] p-4">
           <div className="flex items-center gap-2">
             <CreditCard className="h-4 w-4 text-[color:var(--foreground)]/50" />
-            <h3 className="font-semibold text-[var(--foreground)]">Abonnement unique</h3>
+            <h3 className="font-semibold text-[var(--foreground)]">Abonnement unique — tout inclus</h3>
           </div>
           <p className="mt-2 text-sm text-[color:var(--foreground)]/65">
-            {seatEur} € par utilisateur et par mois, minimum {floorEur} €/mois — tout inclus.
+            {seatEur} € par utilisateur et par mois, minimum {floorEur} €/mois (jusqu&apos;à {FLOOR_INCLUDED_SEATS}{" "}
+            collaborateurs). Après l&apos;essai, un abonnement est requis.
           </p>
           <ul className="mt-3 space-y-1.5">
             {SINGLE_PLAN_FEATURES.map((feature) => (

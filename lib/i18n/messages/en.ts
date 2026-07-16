@@ -181,6 +181,10 @@ export const en: MessageTree = {
     gdprExporting: "Exporting…",
     gdprDeleteAccount: "Delete my account",
     gdprDeleting: "Deleting…",
+    billingTitle: "Billing",
+    billingSubtitle: "Single plan: €2/user/month (€10 min). 14-day trial, no card required.",
+    outlookTitle: "Outlook 365 calendar",
+    outlookSubtitle: "Sync your scheduled tasks to your Microsoft Outlook calendar.",
     billing: {
       loadError: "Could not load billing.",
       genericError: "Billing error",
@@ -421,11 +425,11 @@ export const en: MessageTree = {
       },
       outlook: {
         title: "Connect Outlook",
-        body: "Sync scheduled tasks to Microsoft 365 (Pro plan).",
+        body: "Sync scheduled tasks to Microsoft 365 (included in your subscription).",
         examples: {
           e1: "Sync Friday's client meeting",
           e2: "Push planning deadlines to the calendar",
-          e3: "Connect Microsoft 365 for the Pro plan",
+          e3: "Connect Microsoft 365 to your workspace",
         },
       },
     },

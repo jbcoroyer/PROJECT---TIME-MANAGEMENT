@@ -83,7 +83,7 @@ export default function AdminSettingsPanel() {
       <SettingsSection
         icon={CreditCard}
         title="Facturation"
-        subtitle="Gérez votre plan (Gratuit, essai ou abonnement Stripe)."
+        subtitle="Abonnement unique : 2 €/utilisateur/mois (min. 10 €). Essai 14 jours sans carte."
       >
         <BillingCard />
       </SettingsSection>
