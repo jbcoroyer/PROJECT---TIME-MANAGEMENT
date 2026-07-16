@@ -327,15 +327,17 @@ export default function V2AppShell({
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setMobileNavOpen(true)}
-                  className="ui-btn ui-btn-secondary inline-flex h-10 w-10 rounded-[10px] p-0 md:hidden"
-                  aria-label="Ouvrir le menu"
-                  aria-expanded={mobileNavOpen}
-                >
-                  <Menu className="h-5 w-5" aria-hidden />
-                </button>
+                <div className="md:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setMobileNavOpen(true)}
+                    className="ui-btn ui-btn-secondary inline-flex h-10 w-10 rounded-[10px] p-0"
+                    aria-label="Ouvrir le menu"
+                    aria-expanded={mobileNavOpen}
+                  >
+                    <Menu className="h-5 w-5" aria-hidden />
+                  </button>
+                </div>
                 {toolbarRight}
               </div>
             </header>
