@@ -14,6 +14,7 @@ import { useGamificationOptional } from "../../lib/gamification/gamificationCont
 import { useModuleVisits } from "../../lib/useModuleVisits";
 import { AppMark, AppWordmark } from "../AppBrand";
 import ModuleDiscoveryBadge from "../onboarding/ModuleDiscoveryBadge";
+import SidebarBillingVignette from "./SidebarBillingVignette";
 
 type V2AppShellProps = {
   children: ReactNode;
@@ -235,6 +236,9 @@ export default function V2AppShell({
         })}
       </nav>
       <div className="mt-4 shrink-0 space-y-2 border-t border-[rgba(246,241,231,0.15)] pt-4">
+        {!isGuest && !userLoading ? (
+          <SidebarBillingVignette onNavigate={options?.onNavClick} />
+        ) : null}
         {settingsLink(options?.onNavClick)}
         {userLoading ? (
           <div className="h-[52px] animate-pulse rounded-xl bg-[rgba(246,241,231,0.08)]" aria-hidden />

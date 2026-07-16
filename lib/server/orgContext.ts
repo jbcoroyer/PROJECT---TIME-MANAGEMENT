@@ -1,6 +1,7 @@
 import "server-only";
 
 import { LEGACY_ORG_ID } from "../tenantConstants";
+import { getServerAuthUser } from "./authSafe";
 import { createSupabaseAdmin } from "./supabaseAdmin";
 import { createServerSupabase } from "./supabaseServer";
 
@@ -13,9 +14,7 @@ export type ServerOrgContext = {
 /** Organisation courante (profil connecté). */
 export async function getServerOrgContext(): Promise<ServerOrgContext | null> {
   const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getServerAuthUser(supabase);
   if (!user) return null;
 
   const { data: profile, error } = await supabase

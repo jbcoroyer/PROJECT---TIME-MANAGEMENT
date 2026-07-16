@@ -505,6 +505,138 @@ select.ui-input {
   color: var(--accent-on-dark);
 }
 
+.ui-sidebar-billing {
+  position: relative;
+  border: 1px solid rgba(246, 241, 231, 0.16);
+  background: rgba(246, 241, 231, 0.06);
+  color: var(--sidebar-contrast-fg);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.ui-sidebar-billing:hover {
+  border-color: rgba(246, 241, 231, 0.28);
+  background: rgba(246, 241, 231, 0.09);
+  transform: translateY(-1px);
+}
+
+.ui-sidebar-billing__glow {
+  pointer-events: none;
+  position: absolute;
+  inset: -40% -20% auto auto;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-on-dark) 45%, transparent), transparent 70%);
+  opacity: 0.55;
+  filter: blur(18px);
+}
+
+.ui-sidebar-billing__kicker {
+  color: rgba(246, 241, 231, 0.55);
+}
+
+.ui-sidebar-billing__title {
+  color: var(--sidebar-contrast-fg);
+}
+
+.ui-sidebar-billing__body {
+  color: rgba(246, 241, 231, 0.72);
+}
+
+.ui-sidebar-billing__icon {
+  background: rgba(246, 241, 231, 0.1);
+  color: var(--accent-on-dark);
+  box-shadow: inset 0 0 0 1px rgba(246, 241, 231, 0.08);
+}
+
+.ui-sidebar-billing__icon--active {
+  background: color-mix(in srgb, #7ec87a 22%, transparent);
+  color: #b6e3b2;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #7ec87a 35%, transparent);
+}
+
+.ui-sidebar-billing__link {
+  color: var(--accent-on-dark);
+}
+
+.ui-sidebar-billing--trial {
+  border-color: color-mix(in srgb, var(--accent-on-dark) 48%, rgba(246, 241, 231, 0.12));
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--accent-on-dark) 28%, transparent) 0%,
+      rgba(246, 241, 231, 0.05) 48%,
+      rgba(246, 241, 231, 0.03) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(246, 241, 231, 0.1),
+    0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+.ui-sidebar-billing--trial:hover {
+  border-color: color-mix(in srgb, var(--accent-on-dark) 68%, rgba(246, 241, 231, 0.18));
+  box-shadow:
+    inset 0 1px 0 rgba(246, 241, 231, 0.14),
+    0 14px 32px rgba(0, 0, 0, 0.22);
+}
+
+.ui-sidebar-billing--urgent {
+  border-color: color-mix(in srgb, var(--accent-on-dark) 70%, rgba(246, 241, 231, 0.1));
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--accent-on-dark) 38%, transparent) 0%,
+      rgba(246, 241, 231, 0.04) 55%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(246, 241, 231, 0.12),
+    0 0 0 1px color-mix(in srgb, var(--accent-on-dark) 22%, transparent),
+    0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.ui-sidebar-billing--active {
+  border-color: color-mix(in srgb, #7ec87a 28%, rgba(246, 241, 231, 0.12));
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, #7ec87a 14%, transparent) 0%,
+      rgba(246, 241, 231, 0.05) 55%
+    );
+}
+
+.ui-sidebar-billing--active:hover {
+  border-color: color-mix(in srgb, #7ec87a 40%, rgba(246, 241, 231, 0.18));
+}
+
+.ui-sidebar-billing__meter {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(246, 241, 231, 0.12);
+}
+
+.ui-sidebar-billing__meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-on-dark), color-mix(in srgb, var(--accent-on-dark) 55%, white));
+}
+
+.ui-sidebar-billing__cta {
+  background: var(--accent-on-dark);
+  color: var(--ink, #1a1611);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-on-dark) 28%, transparent);
+}
+
+.ui-sidebar-billing--trial:hover .ui-sidebar-billing__cta,
+.ui-sidebar-billing--urgent:hover .ui-sidebar-billing__cta {
+  filter: brightness(1.06);
+}
+
 @keyframes ui-nav-discovery-pulse {
   0%,
   100% {

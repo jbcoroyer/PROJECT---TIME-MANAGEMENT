@@ -1,20 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isInvalidRefreshTokenError } from "./lib/supabaseAuthRecovery";
 
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const pkceCode = request.nextUrl.searchParams.get("code");
-
-  // Si Supabase renvoie le code PKCE sur /, /login ou /signup, envoyer vers le handler d'échange.
-  if (pkceCode && (pathname === "/" || pathname === "/login" || pathname === "/signup")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/callback";
-    return NextResponse.redirect(url);
-  }
-
-  // Laisser passer les routes publiques (boîte à idées + questionnaire accessibles sans compte).
-  // Attention : /questionnaire/reponses reste protégé (page interne du service Communication).
-  if (
+function isPublicPath(pathname: string): boolean {
+  return (
     pathname === "/" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
@@ -32,8 +21,18 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.includes(".")
-  ) {
-    return NextResponse.next();
+  );
+}
+
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const pkceCode = request.nextUrl.searchParams.get("code");
+
+  // Si Supabase renvoie le code PKCE sur /, /login ou /signup, envoyer vers le handler d'échange.
+  if (pkceCode && (pathname === "/" || pathname === "/login" || pathname === "/signup")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
   }
 
   const response = NextResponse.next({
@@ -42,6 +41,8 @@ export async function proxy(request: NextRequest) {
     },
   });
 
+  // Toujours synchroniser / nettoyer la session (y compris pages publiques) :
+  // après un wipe DB, les cookies de refresh token obsolètes saturent sinon la console.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -62,9 +63,14 @@ export async function proxy(request: NextRequest) {
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (error && isInvalidRefreshTokenError(error)) {
+    await supabase.auth.signOut();
+  }
+
+  if (!isPublicPath(pathname) && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

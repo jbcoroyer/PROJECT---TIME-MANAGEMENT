@@ -11,7 +11,11 @@ export async function getServerAuthUser(
   } = await supabase.auth.getUser();
 
   if (error && isInvalidRefreshTokenError(error)) {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // ignore
+    }
     return null;
   }
 
