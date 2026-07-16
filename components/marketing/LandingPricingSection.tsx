@@ -28,9 +28,9 @@ export default function LandingPricingSection() {
             11 modules · IA · Outlook · Slack/Teams · essai {TRIAL_DAYS} j sans CB
           </p>
         </div>
-        <span className="ui-display text-[34px] text-[var(--ink)]">
+        <span className="ui-display text-[34px] text-[var(--accent)]">
           {PRICE_PER_SEAT_EUR} €
-          <span className="text-[15px] text-[rgba(26,22,17,0.5)]">/user/mois</span>
+          <span className="text-[15px] text-[rgba(26,22,17,0.5)]">/utilisateur/mois</span>
         </span>
       </div>
 

@@ -9,12 +9,9 @@ import { MONTHLY_FLOOR_EUR, PRICE_PER_SEAT_EUR, TRIAL_DAYS } from "../../lib/bil
 import "../marketing/marketing.css";
 
 const PROOF_POINTS = [
-  { num: "01", text: "Kanban, demandes clients, planning, events, social, stock…" },
-  { num: "02", text: "IA, Outlook 365 et alertes Slack / Teams inclus" },
-  {
-    num: "03",
-    text: `${PRICE_PER_SEAT_EUR} €/user/mois · min. ${MONTHLY_FLOOR_EUR} € · essai ${TRIAL_DAYS} j sans CB`,
-  },
+  "Kanban, demandes, planning, events, stock, objectifs…",
+  "IA, Outlook 365 et alertes Slack / Teams inclus",
+  `${PRICE_PER_SEAT_EUR} €/utilisateur/mois · min. ${MONTHLY_FLOOR_EUR} € · essai ${TRIAL_DAYS} j sans CB`,
 ];
 
 type AuthAtelierShellProps = {
@@ -47,30 +44,27 @@ export default function AuthAtelierShell({ children, heading, subtitle }: AuthAt
 
         <div className="relative">
           <span className="ui-kicker text-[12px] tracking-[0.18em] text-[var(--accent-on-dark)]">
-            N°01 — Votre espace vous attend
+            Un espace de travail sur mesure pour vos projets.
           </span>
           <p className="ui-display mt-[26px] text-[clamp(2.2rem,3.6vw,3.4rem)] leading-[1.08] tracking-[-0.02em] text-[var(--background)]">
-            Dix outils en moins.
+            Enfin un gestionnaire
             <br />
-            <em className="text-[var(--accent-on-dark)] italic">Une équipe</em> en plus.
+            de projet <em className="text-[var(--accent-on-dark)] italic">abordable.</em>
           </p>
           <div className="mt-10 flex flex-col border-t border-[rgba(246,241,231,0.15)]">
-            {PROOF_POINTS.map((pt) => (
+            {PROOF_POINTS.map((text) => (
               <div
-                key={pt.num}
-                className="flex items-center gap-4 border-b border-[rgba(246,241,231,0.15)] py-[15px]"
+                key={text}
+                className="border-b border-[rgba(246,241,231,0.15)] py-[15px] text-[15px] text-[rgba(246,241,231,0.75)]"
               >
-                <span className="font-[family-name:var(--font-mono)] text-[11px] text-[var(--accent-on-dark)]">
-                  {pt.num}
-                </span>
-                <span className="text-[15px] text-[rgba(246,241,231,0.75)]">{pt.text}</span>
+                {text}
               </div>
             ))}
           </div>
         </div>
 
         <p className="relative m-0 font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.14em] text-[rgba(246,241,231,0.4)]">
-          © 2026 WorkSpace — Fait avec soin
+          © 2026 WorkSpace — Fait en France 🇫🇷
         </p>
       </aside>
 
