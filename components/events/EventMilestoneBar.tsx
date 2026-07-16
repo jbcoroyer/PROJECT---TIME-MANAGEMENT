@@ -3,7 +3,7 @@
 import { buildEventMilestones } from "../../lib/eventMilestones";
 import type { EventRow } from "../../lib/eventTypes";
 import type { Task } from "../../lib/types";
-import { getDateFnsLocale, getIntlLocale } from "../../lib/i18n/dateFnsLocale";
+import { getIntlLocale } from "../../lib/i18n/dateFnsLocale";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Props = {

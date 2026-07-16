@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import {
   Calendar,
   CheckCircle2,
-  Link2,
   Mail,
   MapPin,
   MessageSquare,

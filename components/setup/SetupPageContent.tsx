@@ -13,16 +13,12 @@ import { useTranslation } from "../../lib/i18n/useTranslation";
 import "./setup-onboarding.css";
 
 export default function SetupPageContent() {
-  const [locale, setLocale] = useState<AppLocale>("fr");
+  const [locale, setLocale] = useState<AppLocale>(() => readStoredLocale() ?? detectBrowserLocale());
   const { t } = useTranslation({ preferBrowser: true, localeOverride: locale });
   const { branding, loading: brandingLoading } = useBranding();
   const { user, loading: userLoading } = useCurrentUser();
   const primary = branding.primaryColor || "oklch(0.6 0.19 45)";
   const [previewAccent, setPreviewAccent] = useState(primary);
-
-  useEffect(() => {
-    setLocale(readStoredLocale() ?? detectBrowserLocale());
-  }, []);
 
   useEffect(() => {
     writeStoredLocale(locale);

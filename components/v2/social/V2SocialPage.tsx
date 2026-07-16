@@ -90,11 +90,12 @@ export default function V2SocialPage() {
   const hoursStat = useMemo(() => bestHours(posts), [posts]);
   const recommendation = useMemo(() => {
     if (daysStat.length === 0 || hoursStat.length === 0) return null;
+    const { weekday: weekdayLabel } = createDisplayLabelHelpers(locale);
     return t("social.insights.recommendation", {
-      day: weekday(daysStat[0].label),
+      day: weekdayLabel(daysStat[0].label),
       hour: hoursStat[0].label,
     });
-  }, [daysStat, hoursStat, t, weekday]);
+  }, [daysStat, hoursStat, t, locale]);
   const topPosts = useMemo(() => topPerformingPosts(visiblePosts), [visiblePosts]);
 
   const recyclePost = async (post: SocialPost) => {
