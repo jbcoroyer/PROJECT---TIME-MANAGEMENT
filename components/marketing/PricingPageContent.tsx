@@ -187,10 +187,15 @@ export default function PricingPageContent() {
               </div>
               <div className="border-t border-[rgba(26,22,17,0.12)] pt-6">
                 <p className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.14em] text-[rgba(26,22,17,0.45)]">
-                  Formule
+                  En résumé
                 </p>
-                <p className="ui-display mt-3 text-[1.65rem] leading-snug text-[var(--ink)]">
-                  max({MONTHLY_FLOOR_EUR}&nbsp;€, utilisateurs × {PRICE_PER_SEAT_EUR}&nbsp;€)
+                <p className="ui-display mt-3 text-[1.35rem] leading-snug text-[var(--ink)]">
+                  {PRICE_PER_SEAT_EUR}&nbsp;€ par personne / mois
+                </p>
+                <p className="mt-2 text-[14.5px] leading-relaxed text-[var(--ink-muted)]">
+                  Minimum {MONTHLY_FLOOR_EUR}&nbsp;€/mois — jusqu&apos;à {FLOOR_INCLUDED_SEATS}{" "}
+                  personnes incluses. Au-delà, +{PRICE_PER_SEAT_EUR}&nbsp;€ par personne
+                  supplémentaire.
                 </p>
               </div>
             </div>
@@ -234,8 +239,10 @@ export default function PricingPageContent() {
                 Comment ça se calcule
               </h2>
               <p className="mt-3 text-[15px] leading-relaxed text-[var(--ink-muted)]">
-                Facturation = max({MONTHLY_FLOOR_EUR}&nbsp;€, nombre d&apos;utilisateurs ×{" "}
-                {PRICE_PER_SEAT_EUR}&nbsp;€). La quantité Stripe suit le nombre de membres actifs.
+                Chaque personne active coûte {PRICE_PER_SEAT_EUR}&nbsp;€/mois. Pour une petite équipe
+                (jusqu&apos;à {FLOOR_INCLUDED_SEATS} personnes), la facture reste à{" "}
+                {MONTHLY_FLOOR_EUR}&nbsp;€/mois. Ensuite, elle augmente de {PRICE_PER_SEAT_EUR}&nbsp;€
+                par siège ajouté.
               </p>
               <div className="mt-6 grid grid-cols-2 gap-3">
                 {EXAMPLE_SIZES.map((seats) => {
@@ -286,8 +293,9 @@ export default function PricingPageContent() {
                 <strong className="text-[var(--accent)]">{simulatedPrice}</strong>/mois
               </p>
               <p className="mt-1 text-xs text-[rgba(26,22,17,0.5)]">
-                Calcul : max({MONTHLY_FLOOR_EUR} €, {simulatorSeats} × {PRICE_PER_SEAT_EUR} €) ={" "}
-                {(calculateMonthlyPriceCents(simulatorSeats) / 100).toFixed(0)} €
+                {simulatorSeats <= FLOOR_INCLUDED_SEATS
+                  ? `Minimum ${MONTHLY_FLOOR_EUR} €/mois (jusqu’à ${FLOOR_INCLUDED_SEATS} personnes).`
+                  : `${simulatorSeats} personnes × ${PRICE_PER_SEAT_EUR} € = ${(calculateMonthlyPriceCents(simulatorSeats) / 100).toFixed(0)} €/mois.`}
               </p>
             </div>
           </div>
