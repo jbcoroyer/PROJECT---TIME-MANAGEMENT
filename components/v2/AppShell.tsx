@@ -161,7 +161,7 @@ export default function V2AppShell({
       .filter(Boolean)
       .join(" ");
 
-  const dashboardHref = "/dashboard/kanban";
+  const dashboardHref = "/dashboard";
   const settingsActive = isNavActive(settingsNavItem.href, pathname);
   const settingsLabel = t(settingsNavItem.labelKey);
 
@@ -169,8 +169,9 @@ export default function V2AppShell({
     <Link
       href={dashboardHref}
       onClick={options?.onClick}
+      title={`Retour au tableau de bord — ${branding.appName}`}
       className={[
-        "relative flex items-center gap-3 rounded-xl outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40",
+        "relative z-10 flex cursor-pointer items-center gap-3 rounded-xl outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40",
         options?.className ?? "",
       ].join(" ")}
       aria-label={`Retour au tableau de bord — ${branding.appName}`}
