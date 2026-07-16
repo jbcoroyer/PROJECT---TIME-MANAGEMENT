@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { needsInviteProfileCompletion } from "../../lib/inviteOnboarding";
 import { sendTransactionalEmail } from "../../lib/server/email";
+import { syncStripeSubscriptionQuantity } from "../../lib/server/stripeSubscriptionSync";
 import { SETUP_PATH, INVITE_ACCEPT_PATH } from "../../lib/setupPaths";
 import { syncUserDisplayName } from "../../lib/syncUserDisplayName";
 import { getSetupAccess } from "./setup";
@@ -51,6 +52,14 @@ export async function completeAuthSession(type: string | null = null) {
   const supabase = await createSupabaseServer();
   await syncUserDisplayName(supabase);
   await sendWelcomeIfNeeded(type);
+
+  const isInvite = type === "invite";
+  if (isInvite) {
+    const access = await getSetupAccess();
+    if (access.organizationId) {
+      void syncStripeSubscriptionQuantity(access.organizationId, "invite_auth_completed");
+    }
+  }
 }
 
 /** Où envoyer l'utilisateur après connexion (nouveau compte Google → installation). */

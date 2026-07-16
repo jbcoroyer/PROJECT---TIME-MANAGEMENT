@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasPlanFeature, effectivePlanForOrg, type OrgPlan, type PlanFeature } from "../billing/plans";
+import { effectivePlanForOrg, type OrgPlan } from "../billing/plans";
 import { getOrganizationBilling } from "./billingOrg";
 import { getServerOrgContext, type ServerOrgContext } from "./orgContext";
 
@@ -20,8 +20,9 @@ export async function requireAdmin(): Promise<ServerOrgContext | NextResponse> {
   return ctx;
 }
 
+/** Toutes les fonctionnalités sont incluses — vérifie uniquement l'authentification. */
 export async function requirePlanFeature(
-  feature: PlanFeature,
+  _feature: string,
 ): Promise<{ ctx: ServerOrgContext; plan: OrgPlan } | NextResponse> {
   const ctx = await requireAuth();
   if (ctx instanceof NextResponse) return ctx;
@@ -31,12 +32,6 @@ export async function requirePlanFeature(
     plan: (org?.plan ?? "trial") as OrgPlan,
     trialEndsAt: org?.trialEndsAt ?? null,
   });
-  if (!hasPlanFeature(plan, feature)) {
-    return NextResponse.json(
-      { error: "Fonctionnalité disponible avec le plan Pro." },
-      { status: 403 },
-    );
-  }
 
   return { ctx, plan };
 }

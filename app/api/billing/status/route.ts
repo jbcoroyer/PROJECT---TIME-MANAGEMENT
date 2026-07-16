@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import {
   BILLING_STATUS_LABELS,
   PLAN_LABELS,
+  calculateMonthlyPriceCents,
   daysLeftInTrial,
   isOrgAccessAllowed,
   type BillingStatus,
   type OrgPlan,
 } from "../../../../lib/billing/plans";
-import { downgradeExpiredTrialToFree, getOrganizationBilling } from "../../../../lib/server/billingOrg";
+import { finalizeExpiredTrial, getOrganizationBilling } from "../../../../lib/server/billingOrg";
+import { countOrganizationMembers } from "../../../../lib/server/orgMembers";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
 import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { isStripeConfigured } from "../../../../lib/server/stripe";
@@ -31,11 +33,13 @@ export async function GET(request: Request) {
     let billingStatus = org.billingStatus as BillingStatus;
     let trialEndsAt = org.trialEndsAt;
 
-    plan = await downgradeExpiredTrialToFree(ctx.organizationId, plan, trialEndsAt);
-    if (plan === "free" && org.plan === "trial") {
-      billingStatus = "active";
+    plan = await finalizeExpiredTrial(ctx.organizationId, plan, trialEndsAt);
+    if (plan === "canceled" && org.plan === "trial") {
+      billingStatus = "canceled";
       trialEndsAt = null;
     }
+
+    const memberCount = await countOrganizationMembers(ctx.organizationId);
 
     return NextResponse.json({
       plan,
@@ -49,6 +53,8 @@ export async function GET(request: Request) {
         billingStatus,
         trialEndsAt: org.trialEndsAt,
       }),
+      memberCount,
+      monthlyPriceCents: calculateMonthlyPriceCents(memberCount),
       hasStripeCustomer: Boolean(org.stripeCustomerId),
       hasActiveSubscription: Boolean(org.stripeSubscriptionId),
       stripeConfigured: isStripeConfigured(),

@@ -7,35 +7,30 @@ import { AppMark } from "../AppBrand";
 import { useBranding } from "../../lib/brandingContext";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import type { BillingBlockReason } from "../../lib/billing/resolveBillingAccess";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Props = {
   reason: BillingBlockReason;
   trialDaysLeft: number | null;
 };
 
-function reasonCopy(reason: BillingBlockReason): { title: string; body: string } {
-  if (reason === "trial_expired") {
-    return {
-      title: "Votre essai gratuit est terminé",
-      body: "Vous pouvez continuer sur le plan Gratuit (1 à 2 utilisateurs) ou choisir un abonnement pour débloquer plus de fonctionnalités.",
-    };
-  }
-  if (reason === "subscription_inactive") {
-    return {
-      title: "Abonnement inactif",
-      body: "Votre abonnement est suspendu ou résilié. Réactivez-le pour continuer à utiliser l'application.",
-    };
-  }
-  return {
-    title: "Accès suspendu",
-    body: "Un abonnement actif est requis pour utiliser cet espace.",
-  };
-}
-
 export default function BillingRequiredScreen({ reason, trialDaysLeft }: Props) {
   const router = useRouter();
   const { branding } = useBranding();
-  const copy = reasonCopy(reason);
+  const { t } = useTranslation();
+
+  const copy =
+    reason === "trial_expired"
+      ? { title: t("billingGate.trialExpiredTitle"), body: t("billingGate.trialExpiredBody") }
+      : reason === "subscription_inactive"
+        ? {
+            title: t("billingGate.subscriptionInactiveTitle"),
+            body: t("billingGate.subscriptionInactiveBody"),
+          }
+        : {
+            title: t("billingGate.accessSuspendedTitle"),
+            body: t("billingGate.accessSuspendedBody"),
+          };
 
   async function signOut() {
     const supabase = getSupabaseBrowser();
@@ -51,7 +46,7 @@ export default function BillingRequiredScreen({ reason, trialDaysLeft }: Props) 
             <AppMark className="h-9 w-9" />
             <div>
               <p className="text-sm font-semibold text-[var(--foreground)]">{branding.appName}</p>
-              <p className="text-xs text-[color:var(--foreground)]/55">Facturation</p>
+              <p className="text-xs text-[color:var(--foreground)]/55">{t("billingGate.billing")}</p>
             </div>
           </div>
           <button
@@ -60,7 +55,7 @@ export default function BillingRequiredScreen({ reason, trialDaysLeft }: Props) 
             className="ui-transition inline-flex items-center gap-2 rounded-xl border border-[var(--line)] px-3 py-2 text-sm font-medium text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]"
           >
             <LogOut className="h-4 w-4" />
-            Se déconnecter
+            {t("billingGate.signOut")}
           </button>
         </header>
 
@@ -79,7 +74,7 @@ export default function BillingRequiredScreen({ reason, trialDaysLeft }: Props) 
                 <p className="mt-2 text-sm leading-relaxed text-[color:var(--foreground)]/70">{copy.body}</p>
                 {reason === "trial_expired" && trialDaysLeft === 0 && (
                   <p className="mt-2 text-xs font-medium uppercase tracking-wide text-[color:var(--foreground)]/50">
-                    Essai expiré
+                    {t("billingGate.trialExpiredBadge")}
                   </p>
                 )}
               </div>
@@ -89,15 +84,13 @@ export default function BillingRequiredScreen({ reason, trialDaysLeft }: Props) 
           <div className="space-y-4 px-5 py-5 sm:px-6">
             <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--foreground)]/80">
               <CreditCard className="h-4 w-4" />
-              Choisir un abonnement
+              {t("billingGate.choosePlan")}
             </div>
             <BillingCard />
           </div>
         </div>
 
-        <p className="text-center text-xs text-[color:var(--foreground)]/50">
-          Vos données sont conservées. L&apos;accès est rétabli dès qu&apos;un abonnement est actif.
-        </p>
+        <p className="text-center text-xs text-[color:var(--foreground)]/50">{t("billingGate.dataKept")}</p>
       </div>
     </div>
   );

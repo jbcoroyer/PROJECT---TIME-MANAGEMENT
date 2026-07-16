@@ -120,8 +120,8 @@ export async function listTrialingOrganizations(): Promise<OrganizationBilling[]
   return data.map((row) => rowToBilling(row as OrgBillingRow));
 }
 
-/** Passe une organisation dont l'essai est expiré sur le plan Gratuit. */
-export async function downgradeExpiredTrialToFree(
+/** Marque une organisation dont l'essai est expiré comme résiliée (accès bloqué). */
+export async function finalizeExpiredTrial(
   organizationId: string,
   plan: OrgPlan,
   trialEndsAt: string | null,
@@ -129,9 +129,12 @@ export async function downgradeExpiredTrialToFree(
   if (plan !== "trial" || !isTrialExpired(trialEndsAt)) return plan;
 
   await updateOrganizationBilling(organizationId, {
-    plan: "free",
-    billingStatus: "active",
+    plan: "canceled",
+    billingStatus: "canceled",
     trialEndsAt: null,
   });
-  return "free";
+  return "canceled";
 }
+
+/** @deprecated Utiliser finalizeExpiredTrial */
+export const downgradeExpiredTrialToFree = finalizeExpiredTrial;

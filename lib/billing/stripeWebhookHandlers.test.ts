@@ -15,11 +15,11 @@ function makeSubscription(overrides: Partial<Stripe.Subscription> = {}): Stripe.
     object: "subscription",
     status: "active",
     customer: "cus_abc",
-    metadata: { organization_id: "org-1", plan: "pro" },
+    metadata: { organization_id: "org-1" },
     trial_end: null,
     items: {
       object: "list",
-      data: [{ price: { id: "price_pro" } } as Stripe.SubscriptionItem],
+      data: [{ price: { id: "price_single" }, quantity: 3 } as Stripe.SubscriptionItem],
       has_more: false,
       url: "",
     },
@@ -43,14 +43,16 @@ describe("stripeWebhookHandlers", () => {
     expect(subscriptionIdFromInvoice(invoice)).toBe("sub_legacy");
   });
 
-  it("résout le plan depuis les metadata", () => {
-    vi.stubEnv("STRIPE_PRICE_PRO", "price_pro");
-    const subscription = makeSubscription({
-      items: { object: "list", data: [], has_more: false, url: "" } as Stripe.ApiList<Stripe.SubscriptionItem>,
-      metadata: { plan: "pro" },
-    });
-    expect(resolvePlanFromSubscription(subscription)).toBe("pro");
+  it("résout le plan actif depuis le price_id unique", () => {
+    vi.stubEnv("STRIPE_PRICE_SINGLE_PLAN", "price_single");
+    const subscription = makeSubscription();
+    expect(resolvePlanFromSubscription(subscription)).toBe("active");
     vi.unstubAllEnvs();
+  });
+
+  it("résout canceled pour un abonnement supprimé", () => {
+    const subscription = makeSubscription({ status: "canceled" });
+    expect(resolvePlanFromSubscription(subscription)).toBe("canceled");
   });
 
   it("synchronise le billing d'un abonnement via metadata organization_id", async () => {
@@ -63,7 +65,7 @@ describe("stripeWebhookHandlers", () => {
     expect(deps.updateOrganizationBilling).toHaveBeenCalledWith(
       "org-1",
       expect.objectContaining({
-        plan: "pro",
+        plan: "active",
         billingStatus: "trialing",
         stripeSubscriptionId: "sub_123",
         stripeCustomerId: "cus_abc",
@@ -115,7 +117,7 @@ describe("stripeWebhookHandlers", () => {
     });
   });
 
-  it("réinitialise le plan après suppression d'abonnement", async () => {
+  it("marque l'org comme canceled après suppression d'abonnement", async () => {
     const deps = makeDeps();
     const subscription = makeSubscription();
 
@@ -127,27 +129,16 @@ describe("stripeWebhookHandlers", () => {
     await handleStripeWebhookEvent(event, deps);
 
     expect(deps.updateOrganizationBilling).toHaveBeenLastCalledWith("org-1", {
-      plan: "free",
-      billingStatus: "active",
+      plan: "canceled",
+      billingStatus: "canceled",
       stripeSubscriptionId: null,
     });
   });
 
   it("construit un patch billing cohérent", () => {
-    vi.stubEnv("STRIPE_PRICE_STARTER", "price_starter");
-    const patch = buildSubscriptionBillingPatch(
-      makeSubscription({
-        status: "active",
-        metadata: { plan: "starter" },
-        items: {
-          object: "list",
-          data: [{ price: { id: "price_starter" } } as Stripe.SubscriptionItem],
-          has_more: false,
-          url: "",
-        } as Stripe.ApiList<Stripe.SubscriptionItem>,
-      }),
-    );
-    expect(patch.plan).toBe("starter");
+    vi.stubEnv("STRIPE_PRICE_SINGLE_PLAN", "price_single");
+    const patch = buildSubscriptionBillingPatch(makeSubscription());
+    expect(patch.plan).toBe("active");
     expect(patch.billingStatus).toBe("active");
     vi.unstubAllEnvs();
   });

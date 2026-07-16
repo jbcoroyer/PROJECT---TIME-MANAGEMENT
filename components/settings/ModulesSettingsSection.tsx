@@ -6,16 +6,12 @@ import CompactModulePicker from "./CompactModulePicker";
 import { updateBranding } from "../../app/actions/branding";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
-import { maxModulesForPlan, moduleLimitErrorForPlan } from "../../lib/billing/plans";
-import { useBillingPlan } from "../../lib/billing/useBillingPlan";
 import { type AppModuleId } from "../../lib/modules";
 import { toastError, toastSuccess } from "../../lib/toast";
 
 export default function ModulesSettingsSection() {
   const { branding, reload } = useBranding();
-  const { plan } = useBillingPlan();
   const { t } = useTranslation();
-  const moduleLimit = maxModulesForPlan(plan);
   const [enabledModules, setEnabledModules] = useState<AppModuleId[]>(branding.enabledModules);
   const [saving, setSaving] = useState(false);
   const dirty =
@@ -29,10 +25,6 @@ export default function ModulesSettingsSection() {
   async function handleSave() {
     if (enabledModules.length === 0) {
       toastError(t("settings.modulesMinOne"));
-      return;
-    }
-    if (moduleLimit !== null && enabledModules.length > moduleLimit) {
-      toastError(moduleLimitErrorForPlan(plan));
       return;
     }
     setSaving(true);
@@ -57,10 +49,7 @@ export default function ModulesSettingsSection() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-[var(--foreground)]">{t("settings.modulesTitle")}</h2>
-              <p className="mt-0.5 text-sm text-[color:var(--foreground)]/60">
-                {t("settings.modulesSubtitle")}
-                {moduleLimit !== null ? ` · ${moduleLimit} modules max sur le plan Gratuit` : null}
-              </p>
+              <p className="mt-0.5 text-sm text-[color:var(--foreground)]/60">{t("settings.modulesSubtitle")}</p>
             </div>
           </div>
         </div>
@@ -68,16 +57,12 @@ export default function ModulesSettingsSection() {
         <div className="p-4 sm:p-5">
           <CompactModulePicker
             value={enabledModules}
-            maxModules={moduleLimit}
-            onLimitError={() => toastError(moduleLimitErrorForPlan(plan))}
+            maxModules={null}
+            onLimitError={() => undefined}
             onMinOneError={() => toastError(t("settings.modulesMinOne"))}
             onChange={(next) => {
               if (next.length === 0) {
                 toastError(t("settings.modulesMinOne"));
-                return;
-              }
-              if (moduleLimit !== null && next.length > moduleLimit) {
-                toastError(moduleLimitErrorForPlan(plan));
                 return;
               }
               setEnabledModules(next);

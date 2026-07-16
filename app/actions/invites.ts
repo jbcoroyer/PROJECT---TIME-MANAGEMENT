@@ -2,12 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { mapAppSettingsRow, mergeBranding } from "../../lib/branding";
-import { canAddOrgMember, effectivePlanForOrg, memberLimitErrorForPlan, type OrgPlan } from "../../lib/billing/plans";
 import { getDefaultModuleRoute } from "../../lib/modules";
 import { splitDisplayName } from "../../lib/inviteOnboarding";
-import { getOrganizationBilling } from "../../lib/server/billingOrg";
-import { countOrganizationMembers } from "../../lib/server/orgMembers";
 import { getServerOrgContext } from "../../lib/server/orgContext";
+import { syncStripeSubscriptionQuantity } from "../../lib/server/stripeSubscriptionSync";
 import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 import { sendTransactionalEmail } from "../../lib/server/email";
@@ -54,20 +52,6 @@ export async function inviteTeamMember(input: {
   const email = input.email.trim().toLowerCase();
   if (!email || !email.includes("@")) {
     return { ok: false, error: "Adresse e-mail invalide." };
-  }
-
-  const org = await getOrganizationBilling(ctx.organizationId);
-  const plan = effectivePlanForOrg({
-    plan: (org?.plan ?? "trial") as OrgPlan,
-    trialEndsAt: org?.trialEndsAt ?? null,
-  });
-  const memberCount = await countOrganizationMembers(ctx.organizationId);
-
-  if (!canAddOrgMember(plan, memberCount)) {
-    return {
-      ok: false,
-      error: memberLimitErrorForPlan(plan),
-    };
   }
 
   const role = input.role === "admin" ? "admin" : "user";
@@ -262,6 +246,11 @@ export async function completeInviteProfile(input: {
     },
   });
   if (authError) return { ok: false, error: authError.message };
+
+  const organizationId = (profile?.organization_id as string | null) ?? null;
+  if (organizationId) {
+    void syncStripeSubscriptionQuantity(organizationId, "invite_profile_completed");
+  }
 
   revalidatePath("/", "layout");
   return { ok: true };
