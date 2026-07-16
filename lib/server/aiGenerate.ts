@@ -107,9 +107,7 @@ async function buildRepurposeSystemPrompt(): Promise<string> {
 async function buildSummarySystemPrompt(): Promise<string> {
   const branding = await getBrandingServer();
   const org = branding.appName.trim() || "l'organisation";
-  const tagline = branding.tagline.trim();
-  const context = tagline ? ` — ${tagline}` : "";
-  return `Tu es l'assistant de pilotage de ${org}${context}. Tu produis des synthèses courtes, actionnables et factuelles en français à partir des données fournies.`;
+  return `Tu es l'assistant de pilotage de ${org}. Tu produis des synthèses courtes, actionnables et factuelles en français à partir des données fournies.`;
 }
 
 export async function aiRepurpose(input: {

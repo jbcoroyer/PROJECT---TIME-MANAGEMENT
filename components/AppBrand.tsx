@@ -80,8 +80,6 @@ type BrandHeadingProps = {
 };
 
 export function BrandHeading({ size = "sidebar", children }: BrandHeadingProps) {
-  const { branding } = useBranding();
-  const tagline = branding.tagline.trim();
   const isLogin = size === "login";
 
   if (isLogin) {
@@ -91,7 +89,6 @@ export function BrandHeading({ size = "sidebar", children }: BrandHeadingProps) 
           <AppMark className="h-16 w-16 sm:h-[4.5rem] sm:w-[4.5rem]" />
         </div>
         <AppWordmark size="login" />
-        {tagline ? <p className="ui-kicker mt-3">{tagline}</p> : null}
         {children}
       </div>
     );
@@ -103,11 +100,6 @@ export function BrandHeading({ size = "sidebar", children }: BrandHeadingProps) 
         <AppMark className="mt-0.5 h-10 w-10" />
         <div className="min-w-0">
           <AppWordmark size="sidebar" />
-          {tagline ? (
-            <p className="mt-1 text-[11px] font-medium tracking-[0.08em] text-[color:var(--foreground)]/50">
-              {tagline}
-            </p>
-          ) : null}
         </div>
       </div>
       {children}

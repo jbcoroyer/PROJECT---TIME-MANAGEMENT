@@ -3,6 +3,7 @@
 import { Heart, MessageCircle, MoreHorizontal, Repeat2, Send, ThumbsUp } from "lucide-react";
 import { useBranding } from "../../../lib/brandingContext";
 import { useResolvedStorageUrl } from "../../../lib/useResolvedStorageUrl";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 type SocialPreviewProps = {
   network: string;
@@ -30,17 +31,18 @@ function Avatar({ name, url }: { name: string; url?: string | null }) {
 }
 
 function VisualBlock({ url }: { url?: string | null }) {
+  const { t } = useTranslation();
   const resolved = useResolvedStorageUrl("social-post-visuals", url);
   if (!resolved) {
     return (
       <div className="flex aspect-video w-full items-center justify-center rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface-soft)] text-xs text-[color:var(--foreground)]/45">
-        Aperçu visuel
+        {t("social.preview.visualPlaceholder")}
       </div>
     );
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={resolved} alt="Visuel" className="w-full rounded-lg border border-[var(--line)] object-cover" />
+    <img src={resolved} alt={t("social.preview.visualAlt")} className="w-full rounded-lg border border-[var(--line)] object-cover" />
   );
 }
 
@@ -52,9 +54,10 @@ export default function SocialPreview({
   text,
   visualUrl,
 }: SocialPreviewProps) {
+  const { t } = useTranslation();
   const { branding } = useBranding();
-  const orgLine = branding.tagline.trim() || branding.appName;
-  const displayText = text.trim() || "Votre texte apparaîtra ici…";
+  const orgLine = branding.appName;
+  const displayText = text.trim() || t("social.preview.textPlaceholder");
 
   if (network === "Instagram") {
     return (
@@ -108,15 +111,15 @@ export default function SocialPreview({
           <Avatar name={authorName} url={authorAvatarUrl} />
           <div>
             <p className="text-sm font-semibold">{authorName}</p>
-            <p className="text-xs text-slate-500">À l&apos;instant · 🌎</p>
+            <p className="text-xs text-slate-500">{t("social.preview.facebookNow")}</p>
           </div>
         </div>
         <p className="whitespace-pre-wrap px-3 pb-3 text-sm">{displayText}</p>
         <VisualBlock url={visualUrl} />
         <div className="flex items-center justify-around border-t border-slate-100 p-2 text-slate-600">
-          <span className="flex items-center gap-1 text-xs"><ThumbsUp className="h-4 w-4" /> J&apos;aime</span>
-          <span className="flex items-center gap-1 text-xs"><MessageCircle className="h-4 w-4" /> Commenter</span>
-          <span className="flex items-center gap-1 text-xs"><Send className="h-4 w-4" /> Partager</span>
+          <span className="flex items-center gap-1 text-xs"><ThumbsUp className="h-4 w-4" /> {t("social.preview.like")}</span>
+          <span className="flex items-center gap-1 text-xs"><MessageCircle className="h-4 w-4" /> {t("social.preview.comment")}</span>
+          <span className="flex items-center gap-1 text-xs"><Send className="h-4 w-4" /> {t("social.preview.share")}</span>
         </div>
       </div>
     );
@@ -129,17 +132,17 @@ export default function SocialPreview({
         <Avatar name={authorName} url={authorAvatarUrl} />
         <div>
           <p className="text-sm font-semibold">{authorName}</p>
-          <p className="text-xs text-slate-500">{orgLine} · À l&apos;instant</p>
+          <p className="text-xs text-slate-500">{orgLine} · {t("social.preview.linkedinNow")}</p>
         </div>
         <MoreHorizontal className="ml-auto h-4 w-4 text-slate-400" />
       </div>
       <p className="whitespace-pre-wrap px-3 pb-3 text-sm">{displayText}</p>
       <VisualBlock url={visualUrl} />
       <div className="flex items-center justify-around border-t border-slate-100 p-2 text-slate-600">
-        <span className="flex items-center gap-1 text-xs"><ThumbsUp className="h-4 w-4" /> J&apos;aime</span>
-        <span className="flex items-center gap-1 text-xs"><MessageCircle className="h-4 w-4" /> Commenter</span>
-        <span className="flex items-center gap-1 text-xs"><Repeat2 className="h-4 w-4" /> Republier</span>
-        <span className="flex items-center gap-1 text-xs"><Send className="h-4 w-4" /> Envoyer</span>
+        <span className="flex items-center gap-1 text-xs"><ThumbsUp className="h-4 w-4" /> {t("social.preview.like")}</span>
+        <span className="flex items-center gap-1 text-xs"><MessageCircle className="h-4 w-4" /> {t("social.preview.comment")}</span>
+        <span className="flex items-center gap-1 text-xs"><Repeat2 className="h-4 w-4" /> {t("social.preview.repost")}</span>
+        <span className="flex items-center gap-1 text-xs"><Send className="h-4 w-4" /> {t("social.preview.send")}</span>
       </div>
     </div>
   );

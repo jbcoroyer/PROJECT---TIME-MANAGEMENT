@@ -10,8 +10,6 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 import { useBranding } from "../brandingContext";
-import { effectiveModulesForPlan } from "../billing/plans";
-import { useBillingPlan } from "../billing/useBillingPlan";
 import { useGamificationOptional } from "../gamification/gamificationContext";
 import type { AppModuleId } from "../modules/types";
 import { isModuleEnabled } from "../modules";
@@ -74,7 +72,6 @@ function readCompletedModules(meta: Record<string, unknown> | undefined): AppMod
 export function ExplorationTutorialProvider({ children }: { children: ReactNode }) {
   const gamification = useGamificationOptional();
   const { branding } = useBranding();
-  const { plan } = useBillingPlan();
   const pathname = usePathname();
 
   const [boardActive, setBoardActive] = useState(false);
@@ -83,10 +80,7 @@ export function ExplorationTutorialProvider({ children }: { children: ReactNode 
   const [activeModuleTour, setActiveModuleTour] = useState<AppModuleId | null>(null);
   const [moduleTourStep, setModuleTourStep] = useState(0);
 
-  const allowedModules = useMemo(
-    () => effectiveModulesForPlan(plan, branding.enabledModules),
-    [plan, branding.enabledModules],
-  );
+  const allowedModules = useMemo(() => branding.enabledModules, [branding.enabledModules]);
 
   const availableModules = useMemo(
     () =>

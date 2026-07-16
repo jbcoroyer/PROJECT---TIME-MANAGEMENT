@@ -28,8 +28,7 @@ Dashboard : [project-time-management → Settings → Environment Variables](htt
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_test_…` ou `pk_live_…` |
 | `STRIPE_SECRET_KEY` | `sk_test_…` ou `sk_live_…` |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…` du webhook **production** (voir §5) |
-| `STRIPE_PRICE_STARTER` | `price_…` |
-| `STRIPE_PRICE_PRO` | `price_…` |
+| `STRIPE_PRICE_SINGLE_PLAN` | `price_…` (prix unique tiered) |
 | `BILLING_ENFORCEMENT` | `true` |
 
 ### Recommandées
@@ -94,9 +93,9 @@ Le wildcard `/**` est **obligatoire** pour Google OAuth (callback avec ou sans p
 
 ---
 
-## 4. Outlook 365 (sync calendrier — plan Pro)
+## 4. Outlook 365 (sync calendrier — inclus)
 
-Connexion utilisateur : **email/mot de passe** ou **Google** uniquement. Outlook est une intégration calendrier distincte (variables `MS_*`).
+Connexion utilisateur : **email/mot de passe** ou **Google** uniquement. Outlook est une intégration calendrier distincte (variables `MS_*`), incluse dans l'abonnement.
 
 ### 4.1 Azure (API Graph)
 

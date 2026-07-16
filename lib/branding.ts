@@ -117,7 +117,7 @@ function envBrandingDefaults(): AppBranding {
     organizationId: null,
     appName: envString("NEXT_PUBLIC_APP_NAME") ?? "Workspace",
     appShortName: envString("NEXT_PUBLIC_APP_SHORT_NAME", "NEXT_PUBLIC_APP_NAME") ?? "Workspace",
-    tagline: envString("NEXT_PUBLIC_APP_TAGLINE") ?? "",
+    tagline: "",
     logoUrl: envString("NEXT_PUBLIC_APP_LOGO_SRC"),
     iconUrl: envString("NEXT_PUBLIC_APP_ICON_SRC"),
     markUrl: getAppMarkSrcFromEnv(),
@@ -198,7 +198,7 @@ export function mergeBranding(row: AppSettingsRow | null | undefined): AppBrandi
     organizationId: pickNullable(row?.organization_id, env.organizationId),
     appName: pickString(row?.app_name, env.appName, "Workspace"),
     appShortName: pickString(row?.app_short_name, env.appShortName, "Workspace"),
-    tagline: pickString(row?.tagline, env.tagline, ""),
+    tagline: "",
     logoUrl: pickNullable(row?.logo_url, env.logoUrl),
     iconUrl: pickNullable(row?.icon_url, env.iconUrl),
     markUrl: pickNullable(legacyMark, env.markUrl),
@@ -220,10 +220,7 @@ export function mergeBranding(row: AppSettingsRow | null | undefined): AppBrandi
 }
 
 export function brandingToMetadata(branding: AppBranding): Metadata {
-  const description =
-    branding.tagline.trim() !== ""
-      ? `${branding.appName} — ${branding.tagline}`
-      : `${branding.appName} — gestion de projet, événements et communication.`;
+  const description = `${branding.appName} — gestion de projet, événements et communication.`;
 
   return {
     title: {
@@ -247,7 +244,7 @@ export function brandingToDbPatch(
   };
   if (patch.appName !== undefined) row.app_name = patch.appName;
   if (patch.appShortName !== undefined) row.app_short_name = patch.appShortName;
-  if (patch.tagline !== undefined) row.tagline = patch.tagline;
+  if (patch.tagline !== undefined) row.tagline = "";
   if (patch.logoUrl !== undefined) row.logo_url = patch.logoUrl;
   if (patch.iconUrl !== undefined) row.icon_url = patch.iconUrl;
   if (patch.markUrl !== undefined) {

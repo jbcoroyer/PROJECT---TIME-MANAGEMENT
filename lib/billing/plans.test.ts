@@ -1,15 +1,13 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
+  calculateMonthlyPriceCents,
   canAccessTeamWorkload,
-  canAddOrgMember,
   daysLeftInTrial,
-  effectiveModulesForPlan,
-  hasPlanFeature,
+  effectivePlanForOrg,
   isModuleAllowedForPlan,
   isOrgAccessAllowed,
   mapStripeSubscriptionStatus,
-  maxMembersForPlan,
-  maxModulesForPlan,
+  planFromPriceId,
 } from "./plans";
 
 describe("billing plans", () => {
@@ -28,24 +26,24 @@ describe("billing plans", () => {
     ).toBe(true);
   });
 
-  it("bloque l'accès après expiration de l'essai sans rétrogradation", () => {
+  it("bloque l'accès après expiration de l'essai", () => {
     expect(
       isOrgAccessAllowed({
         plan: "trial",
         billingStatus: "trialing",
         trialEndsAt: "2026-07-10T10:00:00Z",
       }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  it("autorise le plan Gratuit", () => {
+  it("bloque le plan canceled", () => {
     expect(
       isOrgAccessAllowed({
-        plan: "free",
-        billingStatus: "active",
+        plan: "canceled",
+        billingStatus: "canceled",
         trialEndsAt: null,
       }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("calcule les jours restants d'essai", () => {
@@ -56,39 +54,37 @@ describe("billing plans", () => {
   it("bloque un abonnement résilié", () => {
     expect(
       isOrgAccessAllowed({
-        plan: "starter",
+        plan: "active",
         billingStatus: "canceled",
         trialEndsAt: null,
       }),
     ).toBe(false);
   });
 
-  it("limite les membres sur Gratuit, Starter et Pro", () => {
-    expect(maxMembersForPlan("free")).toBe(2);
-    expect(maxMembersForPlan("starter")).toBe(5);
-    expect(maxMembersForPlan("pro")).toBe(25);
-    expect(canAddOrgMember("free", 1)).toBe(true);
-    expect(canAddOrgMember("free", 2)).toBe(false);
-    expect(canAddOrgMember("starter", 4)).toBe(true);
-    expect(canAddOrgMember("starter", 5)).toBe(false);
-    expect(canAddOrgMember("pro", 24)).toBe(true);
-    expect(canAddOrgMember("pro", 25)).toBe(false);
+  it("autorise un abonnement actif", () => {
+    expect(
+      isOrgAccessAllowed({
+        plan: "active",
+        billingStatus: "active",
+        trialEndsAt: null,
+      }),
+    ).toBe(true);
   });
 
-  it("limite les modules sur le plan Gratuit", () => {
-    expect(maxModulesForPlan("free")).toBe(5);
-    expect(maxModulesForPlan("starter")).toBeNull();
-    const enabled = [
-      "dashboard",
-      "workspace",
-      "planning",
-      "ideas",
-      "asks",
-      "events",
-      "social",
-    ] as const;
-    expect(effectiveModulesForPlan("free", [...enabled])).toHaveLength(5);
-    expect(effectiveModulesForPlan("starter", [...enabled])).toHaveLength(7);
+  it("calcule le prix mensuel avec plancher", () => {
+    expect(calculateMonthlyPriceCents(1)).toBe(1000);
+    expect(calculateMonthlyPriceCents(5)).toBe(1000);
+    expect(calculateMonthlyPriceCents(6)).toBe(1200);
+    expect(calculateMonthlyPriceCents(8)).toBe(1600);
+    expect(calculateMonthlyPriceCents(12)).toBe(2400);
+  });
+
+  it("résume l'offre unique", async () => {
+    const { singlePlanPricingSummary, PRICE_PER_SEAT_EUR, MONTHLY_FLOOR_EUR } = await import("./plans");
+    expect(PRICE_PER_SEAT_EUR).toBe(2);
+    expect(MONTHLY_FLOOR_EUR).toBe(10);
+    expect(singlePlanPricingSummary()).toContain("2 €");
+    expect(singlePlanPricingSummary()).toContain("10 €");
   });
 
   it("mappe les statuts Stripe", () => {
@@ -96,24 +92,31 @@ describe("billing plans", () => {
     expect(mapStripeSubscriptionStatus("incomplete_expired")).toBe("canceled");
   });
 
-  it("autorise tous les modules par identifiant et restreint les features premium au Pro", () => {
-    expect(isModuleAllowedForPlan("free", "dashboard")).toBe(true);
-    expect(isModuleAllowedForPlan("free", "social")).toBe(true);
-    expect(isModuleAllowedForPlan("starter", "social")).toBe(true);
-    expect(hasPlanFeature("free", "ai")).toBe(false);
-    expect(hasPlanFeature("starter", "ai")).toBe(false);
-    expect(hasPlanFeature("pro", "ai")).toBe(true);
-    expect(hasPlanFeature("trial", "outlook_sync")).toBe(true);
-    expect(hasPlanFeature("free", "team_workload")).toBe(false);
-    expect(hasPlanFeature("starter", "team_workload")).toBe(true);
-    expect(hasPlanFeature("pro", "team_workload")).toBe(true);
+  it("autorise tous les modules", () => {
+    expect(isModuleAllowedForPlan("trial", "social")).toBe(true);
+    expect(isModuleAllowedForPlan("canceled", "dashboard")).toBe(true);
   });
 
-  it("masque la charge équipe sans plan payant ou avec un seul utilisateur", () => {
-    expect(canAccessTeamWorkload("free", 2)).toBe(false);
-    expect(canAccessTeamWorkload("starter", 1)).toBe(false);
-    expect(canAccessTeamWorkload("starter", 2)).toBe(true);
-    expect(canAccessTeamWorkload("pro", 3)).toBe(true);
+  it("affiche la charge équipe dès 2 collaborateurs", () => {
+    expect(canAccessTeamWorkload("trial", 1)).toBe(false);
     expect(canAccessTeamWorkload("trial", 2)).toBe(true);
+    expect(canAccessTeamWorkload("active", 3)).toBe(true);
+    expect(canAccessTeamWorkload("canceled", 5)).toBe(true);
+  });
+
+  it("résout le plan effectif après essai expiré", () => {
+    expect(
+      effectivePlanForOrg({
+        plan: "trial",
+        trialEndsAt: "2026-07-10T10:00:00Z",
+      }),
+    ).toBe("canceled");
+  });
+
+  it("reconnaît le price_id unique", () => {
+    vi.stubEnv("STRIPE_PRICE_SINGLE_PLAN", "price_single");
+    expect(planFromPriceId("price_single")).toBe("active");
+    expect(planFromPriceId("price_other")).toBeNull();
+    vi.unstubAllEnvs();
   });
 });

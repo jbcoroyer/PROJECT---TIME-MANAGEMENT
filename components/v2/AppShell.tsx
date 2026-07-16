@@ -8,14 +8,13 @@ import { Menu, Settings2, X } from "lucide-react";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { isModuleEnabled } from "../../lib/modules";
-import { effectiveModulesForPlan } from "../../lib/billing/plans";
-import { useBillingPlan } from "../../lib/billing/useBillingPlan";
 import { isNavActive, NAV_ITEMS } from "../../lib/navigation";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { useGamificationOptional } from "../../lib/gamification/gamificationContext";
 import { useModuleVisits } from "../../lib/useModuleVisits";
 import { AppMark, AppWordmark } from "../AppBrand";
 import ModuleDiscoveryBadge from "../onboarding/ModuleDiscoveryBadge";
+import SidebarBillingVignette from "./SidebarBillingVignette";
 
 type V2AppShellProps = {
   children: ReactNode;
@@ -111,7 +110,6 @@ export default function V2AppShell({
   const pathname = usePathname();
   const { branding } = useBranding();
   const { t } = useTranslation();
-  const { plan } = useBillingPlan();
   const { user, loading: userLoading } = useCurrentUser();
   const gamification = useGamificationOptional();
   const { showDiscoveryBadge } = useModuleVisits(user?.id);
@@ -126,16 +124,13 @@ export default function V2AppShell({
   const isAdmin = Boolean(user?.isAdmin);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const allowedModules = effectiveModulesForPlan(plan, branding.enabledModules);
+  const allowedModules = branding.enabledModules;
 
-  const items = [
-    ...NAV_ITEMS.filter((item) => {
-      if (item.adminOnly && !isAdmin) return false;
-      if (!item.moduleId) return true;
-      return isModuleEnabled(allowedModules, item.moduleId);
-    }),
-    settingsNavItem,
-  ];
+  const moduleItems = NAV_ITEMS.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (!item.moduleId) return true;
+    return isModuleEnabled(allowedModules, item.moduleId);
+  });
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -167,20 +162,34 @@ export default function V2AppShell({
       .filter(Boolean)
       .join(" ");
 
-  const dashboardHref = "/dashboard/kanban";
+  const dashboardHref = "/dashboard";
+  const settingsActive = isNavActive(settingsNavItem.href, pathname);
+  const settingsLabel = t(settingsNavItem.labelKey);
 
   const brandBlock = (options?: { onClick?: () => void; className?: string }) => (
     <Link
       href={dashboardHref}
       onClick={options?.onClick}
+      title={`Retour au tableau de bord — ${branding.appName}`}
       className={[
-        "relative flex items-center gap-3 rounded-xl outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40",
+        "relative z-10 flex cursor-pointer items-center gap-3 rounded-xl outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40",
         options?.className ?? "",
       ].join(" ")}
       aria-label={`Retour au tableau de bord — ${branding.appName}`}
     >
       <AppMark className="h-9 w-9" starOnDark />
       <AppWordmark size="sidebar" onDark />
+    </Link>
+  );
+
+  const settingsLink = (onNavClick?: () => void) => (
+    <Link
+      href={settingsNavItem.href}
+      onClick={onNavClick}
+      className={navLinkClass(settingsActive)}
+    >
+      <Settings2 className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+      <span>{settingsLabel}</span>
     </Link>
   );
 
@@ -192,8 +201,9 @@ export default function V2AppShell({
           "min-h-0 flex-1 space-y-px overflow-y-auto overscroll-contain",
           options?.hideBrand ? "mt-0" : "mt-[34px]",
         ].join(" ")}
+        aria-label="Modules"
       >
-        {items.map((item, index) => {
+        {moduleItems.map((item, index) => {
           const active = isNavActive(item.href, pathname);
           const num = String(index + 1).padStart(2, "0");
           const unvisited = !active && showDiscoveryBadge(item.moduleId);
@@ -225,7 +235,11 @@ export default function V2AppShell({
           );
         })}
       </nav>
-      <div className="mt-4 space-y-2 border-t border-[rgba(246,241,231,0.15)] pt-4">
+      <div className="mt-4 shrink-0 space-y-2 border-t border-[rgba(246,241,231,0.15)] pt-4">
+        {!isGuest && !userLoading ? (
+          <SidebarBillingVignette onNavigate={options?.onNavClick} />
+        ) : null}
+        {settingsLink(options?.onNavClick)}
         {userLoading ? (
           <div className="h-[52px] animate-pulse rounded-xl bg-[rgba(246,241,231,0.08)]" aria-hidden />
         ) : isGuest ? (
@@ -318,15 +332,17 @@ export default function V2AppShell({
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setMobileNavOpen(true)}
-                  className="ui-btn ui-btn-secondary inline-flex h-10 w-10 rounded-[10px] p-0 md:hidden"
-                  aria-label="Ouvrir le menu"
-                  aria-expanded={mobileNavOpen}
-                >
-                  <Menu className="h-5 w-5" aria-hidden />
-                </button>
+                <div className="md:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setMobileNavOpen(true)}
+                    className="ui-btn ui-btn-secondary inline-flex h-10 w-10 rounded-[10px] p-0"
+                    aria-label="Ouvrir le menu"
+                    aria-expanded={mobileNavOpen}
+                  >
+                    <Menu className="h-5 w-5" aria-hidden />
+                  </button>
+                </div>
                 {toolbarRight}
               </div>
             </header>

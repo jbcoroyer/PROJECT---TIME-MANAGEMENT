@@ -6,19 +6,20 @@ import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import {
-  Archive,
-  BarChart3,
-  CalendarDays,
-  ClipboardList,
   Command as CommandIcon,
-  KanbanSquare,
   LayoutTemplate,
   Plus,
   Search,
-  Table2,
-  Users,
 } from "lucide-react";
-import { toastError, toastSuccess } from "../../../lib/toast";
+import { MAIN_TAB_SET, MAIN_TABS, type MainTab } from "./dashboardTypes";
+import {
+  buildActiveTasks,
+  buildArchivedTasks,
+  buildWorkloadTasks,
+  filterTasksByQuery,
+} from "./dashboardTaskSelectors";
+import { useDashboardQuickCreate } from "./useDashboardQuickCreate";
+import { useDashboardPaletteActions } from "./useDashboardPaletteActions";
 import { V2ShellSlotSetter } from "../../../lib/v2/shellSlotsContext";
 import { AdminAvatarContext } from "../../../lib/adminAvatarContext";
 import {
@@ -44,22 +45,18 @@ import { useTaskManager } from "../../../lib/useTaskManager";
 import { DONE_COLUMN_NAME } from "../../../lib/workflowConstants";
 import { syncAdminColorAssignments } from "../../../lib/adminColorAssignments";
 import { getAdminColorPaletteSize } from "../../../lib/kanbanStyles";
-import { mapTaskRow } from "../../../lib/taskMappers";
-import { completedAtIsoForNewTaskInColumn } from "../../../lib/completedAt";
-import { markTaskMutatedLocally, markTasksMutatedLocally } from "../../../lib/taskMutatedLocally";
-import { normalizeProjectName } from "../../../lib/normalize";
 import { useAppShortcuts } from "../../../lib/v2/useAppShortcuts";
 import { useAutoArchiveHours } from "../../../lib/v2/v2Preferences";
-import { getTemplateById, TASK_TEMPLATES } from "../../../lib/v2/taskTemplates";
-import { resolveColumnRefs } from "../../../lib/v2/boardColumns";
+import { TASK_TEMPLATES } from "../../../lib/v2/taskTemplates";
 import { canAccessTeamWorkload } from "../../../lib/billing/plans";
 import { useBillingPlan } from "../../../lib/billing/useBillingPlan";
 import DashboardNotificationBell from "../../DashboardNotificationBell";
-import V2CommandPalette, { type PaletteAction } from "./V2CommandPalette";
+import V2CommandPalette from "./V2CommandPalette";
 import V2QuickAddTask from "./V2QuickAddTask";
 import { useFirstTaskTutorialOptional } from "../../../lib/onboarding/firstTaskTutorialContext";
 import { useExplorationTutorialOptional } from "../../../lib/onboarding/explorationTutorialContext";
 import { useGamificationOptional } from "../../../lib/gamification/gamificationContext";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 const V2ListView = dynamic(() => import("../list/V2ListView"));
 
@@ -72,34 +69,6 @@ const KanbanBoardView = dynamic(() => import("../../KanbanBoardView"), {
     </div>
   ),
 });
-
-type MainTab =
-  | "kanban"
-  | "list"
-  | "todo"
-  | "calendar"
-  | "analytics"
-  | "archives"
-  | "workload";
-const MAIN_TAB_SET = new Set<MainTab>([
-  "kanban",
-  "list",
-  "todo",
-  "calendar",
-  "analytics",
-  "archives",
-  "workload",
-]);
-
-const MAIN_TABS: { id: MainTab; label: string; icon: typeof KanbanSquare }[] = [
-  { id: "todo", label: "Mes tâches", icon: ClipboardList },
-  { id: "kanban", label: "Tableau Kanban", icon: KanbanSquare },
-  { id: "list", label: "Vue liste", icon: Table2 },
-  { id: "calendar", label: "Calendrier", icon: CalendarDays },
-  { id: "workload", label: "Charge équipe", icon: Users },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "archives", label: "Archives", icon: Archive },
-];
 
 const ToDoListView = dynamic(() => import("../../ToDoListView"));
 const AnalyticsView = dynamic(() => import("../../AnalyticsView"));
@@ -125,6 +94,7 @@ export default function V2DashboardHomePage() {
     domains: domainRecords,
   } = useReferenceData();
   const { plan } = useBillingPlan();
+  const { t } = useTranslation();
 
   const teamMemberCount = adminRecords.length;
   const showTeamWorkload = canAccessTeamWorkload(plan, teamMemberCount);
@@ -458,82 +428,19 @@ export default function V2DashboardHomePage() {
     onTaskFormDone: handleTaskFormDone,
   });
 
-  /** Création rapide « <3 s » : titre seul, valeurs par défaut, ajout optimiste + rollback. */
-  const handleQuickCreate = useCallback(
-    async (rawTitle: string) => {
-      const title = normalizeProjectName(rawTitle);
-      if (!title) return;
-      const column = (columns[0] as ColumnId) ?? "À faire";
-      const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
-      const firstDomain = domainRecords[0]?.name ?? initialFormState.domain;
-      const admins0 = defaultAdminName ? [defaultAdminName] : [];
-      const tempId = `temp-${globalThis.crypto?.randomUUID?.() ?? String(Date.now())}`;
-      const nowIso = new Date().toISOString();
+  const domainNames = useMemo(() => domainRecords.map((d) => d.name), [domainRecords]);
 
-      const optimisticTask: Task = {
-        id: tempId,
-        createdAt: nowIso,
-        projectName: title,
-        company: firstCompany,
-        domain: firstDomain,
-        admins: admins0,
-        isClientRequest: false,
-        clientName: "",
-        requestDate: nowIso,
-        deadline: "",
-        budget: "",
-        description: "",
-        column,
-        priority: "Moyenne",
-        projectedWork: [],
-        elapsedMs: 0,
-        isRunning: false,
-        isArchived: false,
-        estimatedHours: 0,
-        estimatedDays: 0,
-        completedAt: completedAtIsoForNewTaskInColumn(column) ?? undefined,
-      };
-      setTasks((prev) => [...prev, optimisticTask]);
-
-      const payload = {
-        project_name: title,
-        company: firstCompany,
-        domain: firstDomain,
-        admin: admins0.join(","),
-        is_client_request: false,
-        client_name: "",
-        deadline: null,
-        budget: "",
-        description: "",
-        priority: "Moyenne" as const,
-        projected_work: [],
-        estimated_hours: 0,
-        estimated_days: 0,
-        ...resolveColumnRefs(column, columnRecords),
-        lane: admins0[0] ?? null,
-        elapsed_ms: 0,
-        is_running: false,
-        last_start_time_ms: null,
-        is_archived: false,
-        completed_at: completedAtIsoForNewTaskInColumn(column),
-      };
-
-      const { data, error } = await supabase.from("tasks").insert(payload).select().single();
-      if (error || !data) {
-        setTasks((prev) => prev.filter((t) => t.id !== tempId));
-        toastError(`Impossible de créer la tâche : ${error?.message ?? "erreur inconnue"}`);
-        return;
-      }
-      const created = mapTaskRow(data);
-      markTaskMutatedLocally(created.id);
-      setTasks((prev) => {
-        const cleaned = prev.filter((t) => t.id !== tempId && t.id !== created.id);
-        return [...cleaned, created];
-      });
-      toastSuccess("Tâche créée");
-    },
-    [columns, columnRecords, companyRecords, domainRecords, defaultAdminName, setTasks, supabase],
-  );
+  const { handleQuickCreate, handleQuickCreateForColumn, handleApplyTemplate } = useDashboardQuickCreate({
+    supabase,
+    tasks,
+    setTasks,
+    columns,
+    columnRecords,
+    companyRecords,
+    domainRecords,
+    domainNames,
+    defaultAdminName,
+  });
 
   const clearOnboardingTaskParams = useCallback(() => {
     const next = new URLSearchParams(searchParams.toString());
@@ -551,7 +458,6 @@ export default function V2DashboardHomePage() {
     const shouldCreate = searchParams.get("createTask") === "1";
     const signature = `${shouldCreate ? "create" : "prefill"}:${draft}`;
 
-    // Retirer tout de suite les paramètres d'onboarding pour ne pas bloquer la navigation.
     clearOnboardingTaskParams();
 
     if (onboardingTaskHandledRef.current === signature) return;
@@ -584,84 +490,6 @@ export default function V2DashboardHomePage() {
     searchParams,
   ]);
 
-  const handleQuickCreateForColumn = useCallback(
-    async (rawTitle: string, targetColumn: ColumnId) => {
-      const title = normalizeProjectName(rawTitle);
-      if (!title) return;
-      const column = targetColumn;
-      const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
-      const firstDomain = domainRecords[0]?.name ?? initialFormState.domain;
-      const admins0 = defaultAdminName ? [defaultAdminName] : [];
-      const tempId = `temp-${globalThis.crypto?.randomUUID?.() ?? String(Date.now())}`;
-      const nowIso = new Date().toISOString();
-
-      const optimisticTask: Task = {
-        id: tempId,
-        createdAt: nowIso,
-        projectName: title,
-        company: firstCompany,
-        domain: firstDomain,
-        admins: admins0,
-        isClientRequest: false,
-        clientName: "",
-        requestDate: nowIso,
-        deadline: "",
-        budget: "",
-        description: "",
-        column,
-        priority: "Moyenne",
-        projectedWork: [],
-        elapsedMs: 0,
-        isRunning: false,
-        isArchived: false,
-        estimatedHours: 0,
-        estimatedDays: 0,
-        completedAt: completedAtIsoForNewTaskInColumn(column) ?? undefined,
-      };
-      setTasks((prev) => [...prev, optimisticTask]);
-
-      const payload = {
-        project_name: title,
-        company: firstCompany,
-        domain: firstDomain,
-        admin: admins0.join(","),
-        is_client_request: false,
-        client_name: "",
-        deadline: null,
-        budget: "",
-        description: "",
-        priority: "Moyenne" as const,
-        projected_work: [],
-        estimated_hours: 0,
-        estimated_days: 0,
-        ...resolveColumnRefs(column, columnRecords),
-        lane: admins0[0] ?? null,
-        elapsed_ms: 0,
-        is_running: false,
-        last_start_time_ms: null,
-        is_archived: false,
-        completed_at: completedAtIsoForNewTaskInColumn(column),
-      };
-
-      const { data, error } = await supabase.from("tasks").insert(payload).select().single();
-      if (error || !data) {
-        setTasks((prev) => prev.filter((t) => t.id !== tempId));
-        toastError(`Impossible de créer la tâche : ${error?.message ?? "erreur inconnue"}`);
-        return;
-      }
-      const created = mapTaskRow(data);
-      markTaskMutatedLocally(created.id);
-      setTasks((prev) => {
-        const cleaned = prev.filter((t) => t.id !== tempId && t.id !== created.id);
-        return [...cleaned, created];
-      });
-      toastSuccess("Tâche créée");
-    },
-    [columnRecords, companyRecords, domainRecords, defaultAdminName, setTasks, supabase],
-  );
-
-  const domainNames = useMemo(() => domainRecords.map((d) => d.name), [domainRecords]);
-
   useEffect(() => {
     const cutoff = Date.now() - autoArchiveHours * 60 * 60 * 1000;
     const toArchive = tasks.filter(
@@ -677,126 +505,13 @@ export default function V2DashboardHomePage() {
     }
   }, [tasks, autoArchiveHours, optimisticUpdate]);
 
-  const insertTaskRow = useCallback(
-    async (payload: Record<string, unknown>): Promise<Task | null> => {
-      const { data, error } = await supabase.from("tasks").insert(payload).select().single();
-      if (error || !data) {
-        toastError(`Création impossible : ${error?.message ?? "erreur inconnue"}`);
-        return null;
-      }
-      const created = mapTaskRow(data);
-      markTaskMutatedLocally(created.id);
-      setTasks((prev) => {
-        const cleaned = prev.filter((t) => t.id !== created.id);
-        return [...cleaned, created];
-      });
-      return created;
-    },
-    [setTasks, supabase],
+  const activeTasks = useMemo(() => buildActiveTasks(tasks), [tasks]);
+  const archivedTasks = useMemo(() => buildArchivedTasks(tasks), [tasks]);
+  const workloadFlatTasks = useMemo(() => buildWorkloadTasks(tasks), [tasks]);
+  const filteredActiveTasks = useMemo(
+    () => filterTasksByQuery(activeTasks, searchQuery),
+    [activeTasks, searchQuery],
   );
-
-  const handleApplyTemplate = useCallback(
-    async (templateId: string) => {
-      const tpl = getTemplateById(templateId);
-      if (!tpl) return;
-      const column = (columns[0] as ColumnId) ?? "À faire";
-      const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
-      const domain = domainNames.includes(tpl.domain)
-        ? tpl.domain
-        : (domainRecords[0]?.name ?? initialFormState.domain);
-      const admins0 = defaultAdminName ? [defaultAdminName] : [];
-      const parent = await insertTaskRow({
-        project_name: tpl.name,
-        company: firstCompany,
-        domain,
-        admin: admins0.join(","),
-        is_client_request: false,
-        client_name: "",
-        deadline: null,
-        budget: "",
-        description: tpl.description,
-        priority: tpl.priority,
-        projected_work: [],
-        estimated_hours: 0,
-        estimated_days: 0,
-        ...resolveColumnRefs(column, columnRecords),
-        lane: admins0[0] ?? null,
-        elapsed_ms: 0,
-        is_running: false,
-        last_start_time_ms: null,
-        is_archived: false,
-        completed_at: completedAtIsoForNewTaskInColumn(column),
-      });
-      if (!parent) return;
-      const subRows = tpl.subtasks.map((name) => ({
-        project_name: name,
-        company: firstCompany,
-        domain,
-        admin: admins0.join(","),
-        lane: admins0[0] ?? null,
-        deadline: null,
-        ...resolveColumnRefs(column, columnRecords),
-        priority: "Moyenne" as const,
-        is_archived: false,
-        is_client_request: false,
-        parent_task_id: parent.id,
-        estimated_hours: 0,
-        estimated_days: 0,
-        elapsed_ms: 0,
-        is_running: false,
-      }));
-      const { data: subData, error: subError } = await supabase.from("tasks").insert(subRows).select();
-      if (!subError && subData) {
-        const rows = subData as { id: string }[];
-        markTasksMutatedLocally(rows.map((r) => r.id).filter(Boolean));
-        setTasks((prev) => [...prev, ...subData.map(mapTaskRow)]);
-      }
-      toastSuccess(`Modèle « ${tpl.name} » appliqué`);
-    },
-    [columns, columnRecords, companyRecords, defaultAdminName, domainNames, domainRecords, insertTaskRow, setTasks, supabase],
-  );
-
-  const activeTasks = useMemo(() => {
-    const roots = tasks.filter((task) => !task.isArchived && !task.parentTaskId);
-    const subtaskMap = new Map<string, Task[]>();
-    for (const t of tasks) {
-      if (t.parentTaskId) {
-        const arr = subtaskMap.get(t.parentTaskId) ?? [];
-        arr.push(t);
-        subtaskMap.set(t.parentTaskId, arr);
-      }
-    }
-    return roots.map((t) => ({ ...t, subtasks: subtaskMap.get(t.id) ?? [] }));
-  }, [tasks]);
-
-  const archivedTasks = useMemo(
-    () => tasks.filter((task) => task.isArchived && !task.parentTaskId),
-    [tasks],
-  );
-
-  const workloadFlatTasks = useMemo(
-    () => tasks.filter((t) => !t.isArchived && t.column !== DONE_COLUMN_NAME),
-    [tasks],
-  );
-
-  const filteredActiveTasks = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return activeTasks.filter((task) => {
-      if (!query) return true;
-      const haystack = [
-        task.projectName,
-        task.company,
-        task.domain,
-        task.clientName,
-        task.description,
-        task.admins.join(" "),
-      ]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [activeTasks, searchQuery]);
-
   const analyticsTasks = useMemo(() => [...activeTasks, ...archivedTasks], [activeTasks, archivedTasks]);
 
   const selectedTask = useMemo(
@@ -906,125 +621,24 @@ export default function V2DashboardHomePage() {
     },
   });
 
-  const basePaletteActions = useMemo<PaletteAction[]>(
-    () => [
-      {
-        id: "quick-add",
-        group: "Actions rapides",
-        label: "Création rapide de tâche",
-        hint: "C",
-        keywords: ["nouvelle", "ajouter", "new"],
-        perform: focusQuickAdd,
-      },
-      {
-        id: "new-task",
-        group: "Actions rapides",
-        label: "Nouvelle tâche (détaillée)",
-        hint: "N",
-        keywords: ["créer", "formulaire"],
-        perform: handleOpenForm,
-      },
-      {
-        id: "focus-search",
-        group: "Actions rapides",
-        label: "Rechercher une tâche",
-        hint: "/",
-        keywords: ["filtrer", "chercher"],
-        perform: focusSearch,
-      },
-      { id: "nav-todo", group: "Navigation", label: "Mes tâches", hint: "G T · G I", perform: () => navigateToTab("todo") },
-      { id: "nav-kanban", group: "Navigation", label: "Tableau Kanban", hint: "G K", perform: () => navigateToTab("kanban") },
-      { id: "nav-list", group: "Navigation", label: "Vue liste", hint: "G L", perform: () => navigateToTab("list") },
-      { id: "nav-calendar", group: "Navigation", label: "Calendrier", hint: "G C", perform: () => navigateToTab("calendar") },
-      ...(showTeamWorkload
-        ? [
-            {
-              id: "nav-workload",
-              group: "Navigation",
-              label: "Charge équipe",
-              hint: "G W",
-              perform: () => navigateToTab("workload"),
-            } satisfies PaletteAction,
-          ]
-        : []),
-      { id: "nav-analytics", group: "Navigation", label: "Analytics", hint: "G A", perform: () => navigateToTab("analytics") },
-      { id: "nav-archives", group: "Navigation", label: "Archives", hint: "G R", perform: () => navigateToTab("archives") },
-      { id: "nav-triage", group: "Navigation", label: "Traiter les demandes", hint: "G D", perform: () => router.push("/asks/triage") },
-      { id: "open-asks", group: "Navigation", label: "Espace demandes", keywords: ["asks", "intake", "demande", "formulaire"], perform: () => router.push("/asks") },
-      ...TASK_TEMPLATES.map((tpl) => ({
-        id: `template-${tpl.id}`,
-        group: "Modèles",
-        label: `Créer depuis un modèle : ${tpl.name}`,
-        keywords: ["template", "bundle", tpl.domain],
-        perform: () => void handleApplyTemplate(tpl.id),
-      })),
-    ],
-    [focusQuickAdd, focusSearch, handleApplyTemplate, handleOpenForm, navigateToTab, router, showTeamWorkload],
-  );
-
-  const taskPaletteActions = useMemo<PaletteAction[]>(() => {
-    const activeId = selectedTaskId ?? lastFocusedTaskId;
-    const activeTask = activeId ? tasks.find((t) => t.id === activeId) : null;
-    if (!activeTask) return [];
-
-    const group = `Tâche : ${activeTask.projectName}`;
-    const actions: PaletteAction[] = [];
-
-    for (const col of columns) {
-      if (col === activeTask.column) continue;
-      actions.push({
-        id: `status-${col}`,
-        group,
-        label: `Statut → ${col}`,
-        keywords: ["colonne", "déplacer", "statut"],
-        perform: () => handleMoveTask(activeTask.id, col as ColumnId),
-      });
-    }
-    for (const prio of priorities) {
-      if (prio === activeTask.priority) continue;
-      actions.push({
-        id: `prio-${prio}`,
-        group,
-        label: `Priorité → ${prio}`,
-        keywords: ["priorité"],
-        perform: () => void handleInlineSave(activeTask.id, { priority: prio }, { priority: prio }),
-      });
-    }
-    actions.push({
-      id: "open-active",
-      group,
-      label: "Ouvrir le détail",
-      perform: () => setSelectedTaskId(activeTask.id),
-    });
-    actions.push({
-      id: "archive-active",
-      group,
-      label: "Archiver la tâche",
-      perform: () => void handleArchiveTask(activeTask.id),
-    });
-
-    return actions;
-  }, [columns, handleArchiveTask, handleInlineSave, handleMoveTask, lastFocusedTaskId, selectedTaskId, tasks]);
-
-  const clientPaletteActions = useMemo<PaletteAction[]>(() => {
-    const clients = Array.from(
-      new Set(
-        tasks.map((task) => task.clientName?.trim()).filter((name): name is string => Boolean(name)),
-      ),
-    ).slice(0, 8);
-
-    return clients.map((client) => ({
-      id: `client-${client}`,
-      group: "Recherche",
-      label: `Client : ${client}`,
-      perform: () => setSearchQuery(client),
-    }));
-  }, [tasks]);
-
-  const paletteActions = useMemo(
-    () => [...basePaletteActions, ...taskPaletteActions, ...clientPaletteActions],
-    [basePaletteActions, clientPaletteActions, taskPaletteActions],
-  );
+  const paletteActions = useDashboardPaletteActions({
+    tasks,
+    columns,
+    selectedTaskId,
+    lastFocusedTaskId,
+    showTeamWorkload,
+    focusQuickAdd,
+    focusSearch,
+    handleOpenForm,
+    handleApplyTemplate,
+    handleMoveTask,
+    handleInlineSave,
+    handleArchiveTask,
+    navigateToTab,
+    router,
+    setSearchQuery,
+    setSelectedTaskId,
+  });
 
   return (
     <AdminAvatarContext.Provider value={adminAvatarMap}>
@@ -1036,7 +650,7 @@ export default function V2DashboardHomePage() {
             className="flex w-full items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-left shadow-[var(--shadow-1)] ui-transition hover:border-[var(--line-strong)]"
           >
             <Search className="h-4 w-4 text-[color:var(--foreground)]/45" aria-hidden />
-            <span className="flex-1 text-sm text-[color:var(--foreground)]/45">Rechercher ou lancer une commande…</span>
+            <span className="flex-1 text-sm text-[color:var(--foreground)]/45">{t("dashboard.searchPlaceholder")}</span>
             <kbd className="inline-flex items-center gap-1 rounded-md border border-[var(--line)] bg-[var(--surface-soft)] px-1.5 py-0.5 text-[10px] text-[color:var(--foreground)]/55">
               <CommandIcon className="h-3 w-3" /> K
             </kbd>
@@ -1049,7 +663,7 @@ export default function V2DashboardHomePage() {
               type="button"
               data-tutorial="new-task-button"
               onClick={() => handleOpenForm({ fromTutorialButton: true })}
-              title="Nouvelle tâche (N)"
+              title={t("dashboard.newTaskShortcut")}
               className={[
                 "ui-transition inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-[var(--shadow-1)] hover:-translate-y-0.5 hover:bg-[var(--accent-strong)]",
                 tutorialHighlightButton ? "relative z-[150]" : "",
@@ -1058,7 +672,7 @@ export default function V2DashboardHomePage() {
               <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white/25 text-white">
                 <Plus className="h-3.5 w-3.5" />
               </span>
-              <span>Nouvelle tâche</span>
+              <span>{t("dashboard.newTask")}</span>
             </button>
           </div>
         }
@@ -1086,7 +700,9 @@ export default function V2DashboardHomePage() {
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <span className="rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/55">
-                  {activeTasks.length} tâche{activeTasks.length !== 1 ? "s" : ""} active{activeTasks.length !== 1 ? "s" : ""}
+                  {t(activeTasks.length === 1 ? "dashboard.activeTasksOne" : "dashboard.activeTasksMany", {
+                    count: activeTasks.length,
+                  })}
                 </span>
                 {archivedTasks.length > 0 && (
                   <button
@@ -1094,7 +710,9 @@ export default function V2DashboardHomePage() {
                     onClick={() => navigateToTab("archives")}
                     className="ui-transition rounded-full border border-dashed border-[var(--line-strong)] bg-[var(--surface-soft)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
                   >
-                    {archivedTasks.length} archivée{archivedTasks.length !== 1 ? "s" : ""}
+                    {t(archivedTasks.length === 1 ? "dashboard.archivedOne" : "dashboard.archivedMany", {
+                      count: archivedTasks.length,
+                    })}
                   </button>
                 )}
               </div>
@@ -1103,7 +721,7 @@ export default function V2DashboardHomePage() {
 
           <nav
             className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-1"
-            aria-label="Onglets principaux"
+            aria-label={t("dashboard.mainTabsAria")}
           >
             {visibleMainTabs.map((tab) => {
               const Icon = tab.icon;
@@ -1126,7 +744,7 @@ export default function V2DashboardHomePage() {
                   ].join(" ")}
                 >
                   <Icon className="h-4 w-4" />
-                  {tab.label}
+                  {t(tab.labelKey)}
                   {tab.id === "archives" && archivedTasks.length > 0 && (
                     <span className="rounded-full bg-[color:var(--foreground)]/12 px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--foreground)]/80">
                       {archivedTasks.length}
@@ -1158,7 +776,7 @@ export default function V2DashboardHomePage() {
               />
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50">
-                  <LayoutTemplate className="h-3.5 w-3.5" /> Modèles :
+                  <LayoutTemplate className="h-3.5 w-3.5" /> {t("dashboard.templates")}
                 </span>
                 {TASK_TEMPLATES.map((tpl) => (
                   <button

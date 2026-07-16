@@ -5,13 +5,16 @@ import Link from "next/link";
 import { AtelierMark } from "../AtelierMark";
 import { AppWordmark } from "../AppBrand";
 import { useBranding } from "../../lib/brandingContext";
-import { TRIAL_DAYS } from "../../lib/billing/plans";
+import { MONTHLY_FLOOR_EUR, PRICE_PER_SEAT_EUR, TRIAL_DAYS } from "../../lib/billing/plans";
 import "../marketing/marketing.css";
 
 const PROOF_POINTS = [
-  { num: "01", text: "11 modules à la carte, activés selon vos besoins" },
-  { num: "02", text: "Gratuit à vie pour 2 personnes" },
-  { num: "03", text: `${TRIAL_DAYS} jours d'essai complet, sans carte bancaire` },
+  { num: "01", text: "Kanban, demandes clients, planning, events, social, stock…" },
+  { num: "02", text: "IA, Outlook 365 et alertes Slack / Teams inclus" },
+  {
+    num: "03",
+    text: `${PRICE_PER_SEAT_EUR} €/user/mois · min. ${MONTHLY_FLOOR_EUR} € · essai ${TRIAL_DAYS} j sans CB`,
+  },
 ];
 
 type AuthAtelierShellProps = {

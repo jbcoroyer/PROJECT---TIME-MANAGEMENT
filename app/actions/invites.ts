@@ -2,12 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { mapAppSettingsRow, mergeBranding } from "../../lib/branding";
-import { canAddOrgMember, effectivePlanForOrg, memberLimitErrorForPlan, type OrgPlan } from "../../lib/billing/plans";
 import { getDefaultModuleRoute } from "../../lib/modules";
 import { splitDisplayName } from "../../lib/inviteOnboarding";
-import { getOrganizationBilling } from "../../lib/server/billingOrg";
-import { countOrganizationMembers } from "../../lib/server/orgMembers";
 import { getServerOrgContext } from "../../lib/server/orgContext";
+import { syncStripeSubscriptionQuantity } from "../../lib/server/stripeSubscriptionSync";
 import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 import { sendTransactionalEmail } from "../../lib/server/email";
@@ -29,7 +27,6 @@ export type InviteWelcomeContext =
       needsOnboarding: true;
       email: string;
       workspaceName: string;
-      workspaceTagline: string;
       inviterName: string;
       organizationId: string;
       teamMemberId: string | null;
@@ -54,20 +51,6 @@ export async function inviteTeamMember(input: {
   const email = input.email.trim().toLowerCase();
   if (!email || !email.includes("@")) {
     return { ok: false, error: "Adresse e-mail invalide." };
-  }
-
-  const org = await getOrganizationBilling(ctx.organizationId);
-  const plan = effectivePlanForOrg({
-    plan: (org?.plan ?? "trial") as OrgPlan,
-    trialEndsAt: org?.trialEndsAt ?? null,
-  });
-  const memberCount = await countOrganizationMembers(ctx.organizationId);
-
-  if (!canAddOrgMember(plan, memberCount)) {
-    return {
-      ok: false,
-      error: memberLimitErrorForPlan(plan),
-    };
   }
 
   const role = input.role === "admin" ? "admin" : "user";
@@ -144,7 +127,7 @@ export async function getInviteWelcomeContext(): Promise<InviteWelcomeContext> {
       const { data: settings } = await admin
         .from("app_settings")
         .select(
-          "organization_id, app_name, enabled_modules, is_configured, primary_color, locale, timezone, tagline, mark_url",
+          "organization_id, app_name, enabled_modules, is_configured, primary_color, locale, timezone, mark_url",
         )
         .eq("organization_id", orgId)
         .maybeSingle();
@@ -170,7 +153,7 @@ export async function getInviteWelcomeContext(): Promise<InviteWelcomeContext> {
 
   const { data: settings } = await admin
     .from("app_settings")
-    .select("app_name, tagline")
+    .select("app_name")
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -179,7 +162,6 @@ export async function getInviteWelcomeContext(): Promise<InviteWelcomeContext> {
     (settings?.app_name as string | undefined)?.trim() ||
     (meta.workspace_name as string | undefined)?.trim() ||
     "votre espace";
-  const workspaceTagline = (settings?.tagline as string | undefined)?.trim() || "";
   const inviterName = (meta.invited_by_name as string | undefined)?.trim() || "Un administrateur";
   const member = (profile?.team_members as { job_title?: string | null } | null) ?? null;
   const suggested = splitDisplayName(profile?.display_name as string | undefined);
@@ -189,7 +171,6 @@ export async function getInviteWelcomeContext(): Promise<InviteWelcomeContext> {
     needsOnboarding: true,
     email: user.email ?? "",
     workspaceName,
-    workspaceTagline,
     inviterName,
     organizationId,
     teamMemberId: (profile?.team_member_id as string | null) ?? null,
@@ -262,6 +243,11 @@ export async function completeInviteProfile(input: {
     },
   });
   if (authError) return { ok: false, error: authError.message };
+
+  const organizationId = (profile?.organization_id as string | null) ?? null;
+  if (organizationId) {
+    void syncStripeSubscriptionQuantity(organizationId, "invite_profile_completed");
+  }
 
   revalidatePath("/", "layout");
   return { ok: true };

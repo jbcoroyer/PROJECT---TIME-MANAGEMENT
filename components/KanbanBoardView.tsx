@@ -141,28 +141,17 @@ function KanbanColumn(props: {
       style={sortableStyle}
       className="flex min-w-0 flex-1 basis-0 flex-col border-r border-[rgba(26,22,17,0.1)] px-1.5 last:border-r-0 sm:px-2"
     >
-      <div className="flex items-start gap-1">
-        <div className="min-w-0 flex-1">
-          <KanbanColumnHeader
-            column={props.column}
-            count={props.count}
-            editable={props.editable}
-            dragHandleProps={dragHandleProps}
-            onRename={props.onRename}
-            onColorChange={props.onColorChange}
-            onDeleteRequest={props.onDeleteRequest}
-          />
-        </div>
-        {props.onAddTask ? (
-          <button
-            type="button"
-            onClick={props.onAddTask}
-            className="ui-transition mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-dashed border-[rgba(26,22,17,0.3)] text-[rgba(26,22,17,0.4)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
-            title="Ajouter une tâche dans cette colonne"
-          >
-            <Plus className="h-3.5 w-3.5" />
-          </button>
-        ) : null}
+      <div className="min-w-0">
+        <KanbanColumnHeader
+          column={props.column}
+          count={props.count}
+          editable={props.editable}
+          dragHandleProps={dragHandleProps}
+          onRename={props.onRename}
+          onColorChange={props.onColorChange}
+          onDeleteRequest={props.onDeleteRequest}
+          onAddTask={props.onAddTask}
+        />
       </div>
 
       <div

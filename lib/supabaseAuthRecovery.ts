@@ -45,7 +45,25 @@ function shouldHardRedirectToLogin(): boolean {
 export async function clearInvalidSupabaseSession(
   supabase: SupabaseClient,
 ): Promise<boolean> {
-  await supabase.auth.signOut();
+  try {
+    await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    // ignore
+  }
+
+  if (typeof window !== "undefined") {
+    try {
+      const keys = Object.keys(window.localStorage);
+      for (const key of keys) {
+        if (key.startsWith("sb-") && key.includes("auth")) {
+          window.localStorage.removeItem(key);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   if (shouldHardRedirectToLogin()) {
     window.location.href = "/login";
     return true;

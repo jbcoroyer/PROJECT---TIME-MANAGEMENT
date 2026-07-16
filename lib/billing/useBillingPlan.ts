@@ -1,15 +1,37 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { OrgPlan } from "../billing/plans";
+import type { BillingStatus, OrgPlan } from "./plans";
 
-type BillingPlanState = {
+export type BillingStatusSnapshot = {
   plan: OrgPlan;
+  billingStatus: BillingStatus;
+  trialDaysLeft: number | null;
+  accessAllowed: boolean;
+  isAdmin: boolean;
+  memberCount: number;
+  monthlyPriceCents: number;
+  hasActiveSubscription: boolean;
+};
+
+type BillingPlanState = BillingStatusSnapshot & {
   loading: boolean;
+  reload: () => void;
+};
+
+const DEFAULTS: BillingStatusSnapshot = {
+  plan: "trial",
+  billingStatus: "trialing",
+  trialDaysLeft: null,
+  accessAllowed: true,
+  isAdmin: false,
+  memberCount: 1,
+  monthlyPriceCents: 1000,
+  hasActiveSubscription: false,
 };
 
 export function useBillingPlan(): BillingPlanState {
-  const [plan, setPlan] = useState<OrgPlan>("trial");
+  const [state, setState] = useState<BillingStatusSnapshot>(DEFAULTS);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -19,8 +41,22 @@ export function useBillingPlan(): BillingPlanState {
         setLoading(false);
         return;
       }
-      const data = (await res.json()) as { plan?: OrgPlan };
-      if (data.plan) setPlan(data.plan);
+      const data = (await res.json()) as Partial<BillingStatusSnapshot> & { plan?: OrgPlan };
+      if (!data.plan) {
+        setLoading(false);
+        return;
+      }
+      setState({
+        plan: data.plan,
+        billingStatus: (data.billingStatus as BillingStatus) ?? DEFAULTS.billingStatus,
+        trialDaysLeft: typeof data.trialDaysLeft === "number" ? data.trialDaysLeft : null,
+        accessAllowed: data.accessAllowed !== false,
+        isAdmin: Boolean(data.isAdmin),
+        memberCount: typeof data.memberCount === "number" ? data.memberCount : 1,
+        monthlyPriceCents:
+          typeof data.monthlyPriceCents === "number" ? data.monthlyPriceCents : 1000,
+        hasActiveSubscription: Boolean(data.hasActiveSubscription),
+      });
     } catch {
       /* ignore — utilisateur non connecté ou billing indisponible */
     } finally {
@@ -32,5 +68,13 @@ export function useBillingPlan(): BillingPlanState {
     void load();
   }, [load]);
 
-  return { plan, loading };
+  useEffect(() => {
+    const onFocus = () => {
+      void load();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [load]);
+
+  return { ...state, loading, reload: () => void load() };
 }

@@ -33,13 +33,18 @@ export function subscriptionIdFromInvoice(invoice: Stripe.Invoice): string | nul
 }
 
 export function resolvePlanFromSubscription(subscription: Stripe.Subscription): OrgPlan {
+  if (subscription.status === "canceled" || subscription.status === "incomplete_expired") {
+    return "canceled";
+  }
+
   const priceId = subscription.items.data[0]?.price?.id ?? null;
-  const planFromMeta = subscription.metadata.plan;
-  return (
-    planFromPriceId(priceId) ||
-    (planFromMeta === "starter" || planFromMeta === "pro" ? planFromMeta : null) ||
-    "starter"
-  );
+  if (planFromPriceId(priceId)) return "active";
+
+  if (subscription.status === "active" || subscription.status === "trialing" || subscription.status === "past_due") {
+    return "active";
+  }
+
+  return "canceled";
 }
 
 export function buildSubscriptionBillingPatch(subscription: Stripe.Subscription): OrgBillingPatch {
@@ -123,8 +128,8 @@ export async function handleStripeWebhookEvent(
 
       if (event.type === "customer.subscription.deleted" && organizationId) {
         await deps.updateOrganizationBilling(organizationId, {
-          plan: "free",
-          billingStatus: "active",
+          plan: "canceled",
+          billingStatus: "canceled",
           stripeSubscriptionId: null,
         });
       }

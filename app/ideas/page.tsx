@@ -134,7 +134,7 @@ export default function IdeasPage() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[color:var(--foreground)]/50">
-                {branding.tagline.trim() || branding.appName}
+                {branding.appName}
               </p>
               <h1 className="ui-heading mt-1 text-3xl font-semibold tracking-tight text-[var(--foreground)]">
                 Boîte à idées
