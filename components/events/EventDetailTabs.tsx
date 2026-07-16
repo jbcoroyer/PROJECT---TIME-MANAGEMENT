@@ -1,6 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 export type EventDetailTabItem<T extends string> = {
   id: T;
@@ -19,11 +20,13 @@ export default function EventDetailTabs<T extends string>({
   active,
   onChange,
 }: EventDetailTabsProps<T>) {
+  const { t } = useTranslation();
+
   return (
     <nav
       className="grid grid-cols-2 gap-1 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1 lg:grid-cols-4"
       role="tablist"
-      aria-label="Sections de l'événement"
+      aria-label={t("eventsLegacy.detail.ariaSections")}
     >
       {items.map((item) => {
         const Icon = item.icon;

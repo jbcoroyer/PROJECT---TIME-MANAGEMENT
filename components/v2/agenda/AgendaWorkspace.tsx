@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { AgendaAppointment, AgendaSettings } from "../../../lib/agenda/agendaTypes";
 import type { AgendaStats } from "../../../app/actions/agenda";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import AgendaBookingPanel from "./AgendaBookingPanel";
 import AgendaCalendarView from "./AgendaCalendarView";
 import AppointmentDetailPanel from "./AppointmentDetailPanel";
@@ -20,18 +21,13 @@ import V2TodoPage from "../todo/V2TodoPage";
 
 type TabId = "calendar" | "booking" | "today";
 
-const TABS: { id: TabId; label: string; icon: typeof CalendarDays }[] = [
-  { id: "calendar", label: "Calendrier", icon: CalendarRange },
-  { id: "booking", label: "Réservation", icon: Link2 },
-  { id: "today", label: "Ma journée", icon: Sun },
-];
-
 type AgendaWorkspaceProps = {
   settings: AgendaSettings;
   stats: AgendaStats;
 };
 
 export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -47,6 +43,16 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
   const [slotEnd, setSlotEnd] = useState<Date | undefined>();
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const tabs = useMemo(
+    () =>
+      [
+        { id: "calendar" as const, label: t("agenda.workspace.tabs.calendar"), icon: CalendarRange },
+        { id: "booking" as const, label: t("agenda.workspace.tabs.booking"), icon: Link2 },
+        { id: "today" as const, label: t("agenda.workspace.tabs.today"), icon: Sun },
+      ],
+    [t],
+  );
+
   const setTab = useCallback(
     (tab: TabId) => {
       router.replace(tab === "calendar" ? "/agenda" : `/agenda?tab=${tab}`);
@@ -61,24 +67,21 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
 
   const statCards = useMemo(
     () => [
-      { label: "Aujourd'hui", value: stats.todayCount, icon: Sun },
-      { label: "À venir", value: stats.upcomingCount, icon: CalendarDays },
-      { label: "En attente", value: stats.pendingCount, icon: Clock },
+      { label: t("agenda.workspace.stats.today"), value: stats.todayCount, icon: Sun },
+      { label: t("agenda.workspace.stats.upcoming"), value: stats.upcomingCount, icon: CalendarDays },
+      { label: t("agenda.workspace.stats.pending"), value: stats.pendingCount, icon: Clock },
     ],
-    [stats],
+    [stats, t],
   );
 
   return (
     <div className="space-y-5">
       <header className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
         <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-          <CalendarDays className="h-3.5 w-3.5" /> Agenda dynamique
+          <CalendarDays className="h-3.5 w-3.5" /> {t("agenda.workspace.badge")}
         </p>
-        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Agenda & rendez-vous</h1>
-        <p className="mt-1 max-w-2xl text-sm text-[var(--ink-muted)]">
-          Gérez vos RDV, notes de compte-rendu et réservations en ligne. Votre calendrier se met à jour
-          en temps réel à chaque nouvelle réservation.
-        </p>
+        <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{t("agenda.workspace.title")}</h1>
+        <p className="mt-1 max-w-2xl text-sm text-[var(--ink-muted)]">{t("agenda.workspace.subtitle")}</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {statCards.map(({ label, value, icon: Icon }) => (
             <div
@@ -96,7 +99,7 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
       </header>
 
       <div className="flex flex-wrap gap-2">
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
@@ -145,10 +148,7 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
         <div className="space-y-4">
           <div className="ui-surface flex items-start gap-3 rounded-2xl p-4">
             <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
-            <p className="text-sm text-[var(--ink-muted)]">
-              Vue « Ma journée » : planning time-blocké généré à partir de vos tâches. Complète le
-              calendrier de RDV pour une vision unifiée de votre activité.
-            </p>
+            <p className="text-sm text-[var(--ink-muted)]">{t("agenda.workspace.todayTab.description")}</p>
           </div>
           <V2TodoPage />
         </div>

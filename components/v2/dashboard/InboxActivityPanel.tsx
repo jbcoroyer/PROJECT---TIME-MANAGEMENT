@@ -3,9 +3,13 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { useInAppNotifications } from "../../../lib/inAppNotificationsContext";
+import { getIntlLocale } from "../../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 export default function InboxActivityPanel() {
+  const { t, locale } = useTranslation();
   const { history } = useInAppNotifications();
+  const intlLocale = getIntlLocale(locale);
 
   return (
     <section className="ui-surface h-fit rounded-2xl p-5 lg:sticky lg:top-5">
@@ -14,16 +18,14 @@ export default function InboxActivityPanel() {
           <Bell className="h-4 w-4" />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-[var(--foreground)]">Activité récente</h2>
-          <p className="text-xs text-[color:var(--foreground)]/55">
-            Changements sur vos tâches (assignations, échéances, colonnes)
-          </p>
+          <h2 className="text-base font-semibold text-[var(--foreground)]">{t("dashboard.inbox.title")}</h2>
+          <p className="text-xs text-[color:var(--foreground)]/55">{t("dashboard.inbox.subtitle")}</p>
         </div>
       </div>
 
       {history.length === 0 ? (
         <p className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-8 text-center text-xs leading-relaxed text-[color:var(--foreground)]/55">
-          Rien pour l&apos;instant. Les mises à jour du board apparaîtront ici en temps réel.
+          {t("dashboard.inbox.empty")}
         </p>
       ) : (
         <ul className="space-y-2">
@@ -43,7 +45,7 @@ export default function InboxActivityPanel() {
               ) : null}
               <div className="mt-1.5 flex items-center justify-between gap-2">
                 <span className="text-[10px] text-[color:var(--foreground)]/45">
-                  {new Date(entry.at).toLocaleString("fr-FR", {
+                  {new Date(entry.at).toLocaleString(intlLocale, {
                     day: "numeric",
                     month: "short",
                     hour: "2-digit",
@@ -55,7 +57,7 @@ export default function InboxActivityPanel() {
                     href={entry.href}
                     className="text-[11px] font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]"
                   >
-                    Ouvrir
+                    {t("dashboard.open")}
                   </Link>
                 ) : null}
               </div>

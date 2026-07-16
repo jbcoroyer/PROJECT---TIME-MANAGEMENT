@@ -10,6 +10,7 @@ import { orderedIntakeQuestions } from "../../../lib/intake/intakeFormDefinition
 import { validateIntakeAnswers } from "../../../lib/intake/intakeFormAnswers";
 import type { SurveyAnswers } from "../../../lib/survey/surveyTypes";
 import { toastError } from "../../../lib/toast";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import QuestionField from "../../survey/QuestionField";
 import IntakeFormBrandHeader from "./IntakeFormBrandHeader";
 
@@ -19,6 +20,7 @@ type PublicIntakeFormProps = {
 };
 
 export default function PublicIntakeForm({ formId, meta }: PublicIntakeFormProps) {
+  const { t } = useTranslation();
   const questions = useMemo(
     () => orderedIntakeQuestions(meta.definition),
     [meta.definition],
@@ -78,16 +80,18 @@ export default function PublicIntakeForm({ formId, meta }: PublicIntakeFormProps
           <IntakeFormBrandHeader appName={meta.appName} />
           <div className="ui-surface mt-8 rounded-2xl border-l-4 border-l-[var(--accent)] p-8 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-[var(--success)]" />
-            <h1 className="mt-3 text-xl font-semibold text-[var(--foreground)]">Demande envoyée</h1>
+            <h1 className="mt-3 text-xl font-semibold text-[var(--foreground)]">
+              {t("asks.public.success.title")}
+            </h1>
             <p className="mt-2 text-sm text-[color:var(--foreground)]/60">
-              Votre demande a bien été transmise à {meta.appName}. Vous serez recontacté·e prochainement.
+              {t("asks.public.success.message", { appName: meta.appName })}
             </p>
             <button
               type="button"
               onClick={resetForm}
               className="ui-btn ui-btn-secondary mt-6 text-sm"
             >
-              Soumettre une autre demande
+              {t("asks.public.success.submitAnother")}
             </button>
           </div>
         </div>
@@ -104,7 +108,7 @@ export default function PublicIntakeForm({ formId, meta }: PublicIntakeFormProps
 
         <div className="ui-surface mt-8 rounded-2xl border-l-4 border-l-[var(--accent)] p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-            Formulaire public
+            {t("asks.public.badge")}
           </p>
           <h1 className="mt-2 text-2xl font-semibold text-[var(--foreground)]">
             {intro.title || meta.title}
@@ -115,7 +119,7 @@ export default function PublicIntakeForm({ formId, meta }: PublicIntakeFormProps
             <p className="mt-2 text-sm text-[color:var(--foreground)]/60">{meta.welcomeMessage}</p>
           ) : (
             <p className="mt-2 text-sm text-[color:var(--foreground)]/60">
-              Décrivez votre besoin. L&apos;équipe {meta.appName} qualifiera votre demande avant de la traiter.
+              {t("asks.public.defaultWelcome", { appName: meta.appName })}
             </p>
           )}
 
@@ -143,13 +147,13 @@ export default function PublicIntakeForm({ formId, meta }: PublicIntakeFormProps
               disabled={!canSubmit}
               className="ui-transition inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--accent)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)] disabled:opacity-50"
             >
-              <Send className="h-4 w-4" /> Envoyer la demande
+              <Send className="h-4 w-4" /> {t("asks.public.submit")}
             </button>
           </form>
         </div>
 
         <p className="mt-6 text-center text-[11px] text-[color:var(--foreground)]/40">
-          Accès limité à ce formulaire — vous n&apos;avez pas accès au reste de la plateforme.
+          {t("asks.public.footer")}
         </p>
       </div>
     </div>

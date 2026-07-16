@@ -15,6 +15,7 @@ import { uploadStockVisual } from "../lib/stockVisualUpload";
 import { STOCK_VISUAL_ACCEPT, stockVisualFileError } from "../lib/stockVisualUtils";
 import { toastError } from "../lib/toast";
 import StockVisualPreview from "./stock/StockVisualPreview";
+import { useTranslation } from "../lib/i18n/useTranslation";
 
 type Props = {
   open: boolean;
@@ -48,6 +49,7 @@ function newLangRow(partial?: Partial<LangRow>): LangRow {
 }
 
 export default function InventoryPrintModal(props: Props) {
+  const { t } = useTranslation();
   const { open, initialItem, allItems, onClose, onSubmit, onSubmitMany, onDelete } = props;
   const { branding } = useBranding();
   const printSpeciesOptions = branding.printSpecies;
@@ -126,11 +128,11 @@ export default function InventoryPrintModal(props: Props) {
     event.preventDefault();
     const doc = resolvedDocType();
     if (!doc) {
-      toastError("Le type de document est obligatoire (choisissez dans la liste ou saisissez un type personnalisé).");
+      toastError(t("inventory.print.docTypeRequired"));
       return;
     }
     if (!name.trim()) {
-      toastError("Le nom du document est obligatoire.");
+      toastError(t("inventory.print.nameRequired"));
       return;
     }
 
@@ -142,7 +144,7 @@ export default function InventoryPrintModal(props: Props) {
       if (visualFile) {
         const { path, url, error } = await uploadStockVisual(visualFile, "print");
         if (error || !path) {
-          toastError(`Upload image impossible : ${error}`);
+          toastError(t("inventory.print.uploadError", { error: error ?? "" }));
           return;
         }
         if (url) setVisualPreviewUrl(url);
@@ -151,7 +153,7 @@ export default function InventoryPrintModal(props: Props) {
 
     if (isEditing) {
       if (!language.trim()) {
-        toastError("La langue est obligatoire.");
+        toastError(t("inventory.print.languageRequired"));
         return;
       }
         await onSubmit({
@@ -176,7 +178,7 @@ export default function InventoryPrintModal(props: Props) {
       if (!lang) continue;
       const key = lang.toLowerCase();
       if (seenLang.has(key)) {
-        toastError(`La langue « ${lang} » est indiquée plusieurs fois.`);
+        toastError(t("inventory.print.duplicateLanguage", { lang }));
         return;
       }
       seenLang.add(key);
@@ -192,7 +194,7 @@ export default function InventoryPrintModal(props: Props) {
       });
     }
     if (drafts.length === 0) {
-      toastError("Ajoutez au moins une langue avec une ligne renseignée.");
+      toastError(t("inventory.print.addLanguageRow"));
       return;
     }
 
@@ -216,16 +218,16 @@ export default function InventoryPrintModal(props: Props) {
       <div className="ui-surface max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[28px] p-6">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">Print</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">{t("inventory.print.badge")}</p>
             <h2 className="ui-heading mt-1 text-2xl font-semibold text-[var(--foreground)]">
-              {isEditing ? "Modifier un document" : "Ajouter un document"}
+              {isEditing ? t("inventory.print.editTitle") : t("inventory.print.addTitle")}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2 text-[color:var(--foreground)]/60 hover:bg-[var(--surface-soft)]"
-            aria-label="Fermer"
+            aria-label={t("inventory.common.close")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -235,7 +237,7 @@ export default function InventoryPrintModal(props: Props) {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                Type de document
+                {t("inventory.print.docType")}
               </label>
               <select
                 value={docSelect}
@@ -247,20 +249,20 @@ export default function InventoryPrintModal(props: Props) {
                     {d}
                   </option>
                 ))}
-                <option value={OTHER_DOC}>Autre (saisie libre)…</option>
+                <option value={OTHER_DOC}>{t("inventory.print.otherOption")}</option>
               </select>
               {docSelect === OTHER_DOC && (
                 <input
                   value={customDocType}
                   onChange={(e) => setCustomDocType(e.target.value)}
                   className="ui-focus-ring w-full rounded-xl border border-[var(--line)]/85 bg-[var(--surface-soft)] px-3 py-2.5 text-sm"
-                  placeholder="Nouveau type — apparaîtra dans la liste pour les prochains documents"
+                  placeholder={t("inventory.print.customTypePlaceholder")}
                 />
               )}
             </div>
 
             <div className="md:col-span-2">
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Espèce</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.print.species")}</label>
               <select
                 value={species}
                 onChange={(e) => setSpecies(e.target.value as PrintSpeciesValue)}
@@ -275,32 +277,32 @@ export default function InventoryPrintModal(props: Props) {
             </div>
 
             <div className="md:col-span-2">
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Nom du document</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.print.docName")}</label>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm"
-                placeholder="Référence ou libellé interne (identique pour toutes les langues)"
+                placeholder={t("inventory.print.namePlaceholder")}
               />
             </div>
 
             {isEditing ? (
               <>
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Langue</label>
+                  <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.common.language")}</label>
                   <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
                     className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm"
                   >
-                    <optgroup label="Principales">
+                    <optgroup label={t("inventory.common.featuredLanguages")}>
                       {PRINT_LANGUAGES_FEATURED_FR.map((l) => (
                         <option key={l} value={l}>
                           {l}
                         </option>
                       ))}
                     </optgroup>
-                    <optgroup label="Autres langues (les plus parlées)">
+                    <optgroup label={t("inventory.common.otherLanguages")}>
                       {restLang.map((l) => (
                         <option key={l} value={l}>
                           {l}
@@ -311,7 +313,7 @@ export default function InventoryPrintModal(props: Props) {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Quantité</label>
+                  <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.common.quantity")}</label>
                   <input
                     type="number"
                     min="0"
@@ -322,7 +324,7 @@ export default function InventoryPrintModal(props: Props) {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Prix unitaire</label>
+                  <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.common.unitPrice")}</label>
                   <input
                     type="number"
                     min="0"
@@ -334,7 +336,7 @@ export default function InventoryPrintModal(props: Props) {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Seuil d&apos;alerte</label>
+                  <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.common.alertThreshold")}</label>
                   <input
                     type="number"
                     min="0"
@@ -348,7 +350,7 @@ export default function InventoryPrintModal(props: Props) {
               <div className="md:col-span-2 space-y-3">
                 <div className="flex flex-wrap items-end justify-between gap-2">
                   <label className="block text-xs font-semibold text-[color:var(--foreground)]/65">
-                    Langues et quantités (une ligne par langue — même document)
+                    {t("inventory.print.langRowsTitle")}
                   </label>
                   <button
                     type="button"
@@ -366,7 +368,7 @@ export default function InventoryPrintModal(props: Props) {
                     className="ui-transition inline-flex items-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface)]"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Ajouter une langue
+                    {t("inventory.print.addLanguage")}
                   </button>
                 </div>
                 <div className="space-y-3 rounded-[20px] border border-[var(--line)] bg-[var(--surface-soft)]/40 p-4">
@@ -376,7 +378,7 @@ export default function InventoryPrintModal(props: Props) {
                       className="grid gap-3 border-b border-[var(--line)] pb-3 last:border-b-0 last:pb-0 md:grid-cols-12 md:items-end"
                     >
                       <div className="md:col-span-4">
-                        <label className="mb-1 block text-[11px] font-semibold text-[color:var(--foreground)]/55">Langue</label>
+                        <label className="mb-1 block text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("inventory.common.language")}</label>
                         <select
                           value={row.language}
                           onChange={(e) => {
@@ -385,14 +387,14 @@ export default function InventoryPrintModal(props: Props) {
                           }}
                           className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
                         >
-                          <optgroup label="Principales">
+                          <optgroup label={t("inventory.common.featuredLanguages")}>
                             {PRINT_LANGUAGES_FEATURED_FR.map((l) => (
                               <option key={l} value={l}>
                                 {l}
                               </option>
                             ))}
                           </optgroup>
-                          <optgroup label="Autres langues (les plus parlées)">
+                          <optgroup label={t("inventory.common.otherLanguages")}>
                             {restLang.map((l) => (
                               <option key={l} value={l}>
                                 {l}
@@ -402,7 +404,7 @@ export default function InventoryPrintModal(props: Props) {
                         </select>
                       </div>
                       <div className="md:col-span-2">
-                        <label className="mb-1 block text-[11px] font-semibold text-[color:var(--foreground)]/55">Quantité</label>
+                        <label className="mb-1 block text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("inventory.print.qtyShort")}</label>
                         <input
                           type="number"
                           min="0"
@@ -415,7 +417,7 @@ export default function InventoryPrintModal(props: Props) {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="mb-1 block text-[11px] font-semibold text-[color:var(--foreground)]/55">Prix unit.</label>
+                        <label className="mb-1 block text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("inventory.print.priceShort")}</label>
                         <input
                           type="number"
                           min="0"
@@ -429,7 +431,7 @@ export default function InventoryPrintModal(props: Props) {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="mb-1 block text-[11px] font-semibold text-[color:var(--foreground)]/55">Seuil alerte</label>
+                        <label className="mb-1 block text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("inventory.print.thresholdShort")}</label>
                         <input
                           type="number"
                           min="0"
@@ -448,7 +450,7 @@ export default function InventoryPrintModal(props: Props) {
                             onClick={() => setLangRows((rows) => rows.filter((r) => r.key !== row.key))}
                             className="ui-transition ui-btn ui-btn-outline-danger rounded-xl px-3 py-2 text-xs font-semibold"
                           >
-                            Retirer
+                            {t("inventory.common.remove")}
                           </button>
                         ) : null}
                       </div>
@@ -462,7 +464,7 @@ export default function InventoryPrintModal(props: Props) {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                URL image ou PDF (optionnel)
+                {t("inventory.print.visualUrlOptional")}
               </label>
               <input
                 value={visualUrl}
@@ -473,11 +475,11 @@ export default function InventoryPrintModal(props: Props) {
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                Importer une image ou un PDF
+                {t("inventory.print.uploadLabel")}
               </label>
               <label className="ui-transition flex h-[42px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-3 text-sm font-medium text-[color:var(--foreground)]/70 hover:border-[var(--line-strong)]">
                 <Upload className="h-4 w-4" />
-                Choisir un fichier
+                {t("inventory.common.chooseFile")}
                 <input
                   type="file"
                   accept={STOCK_VISUAL_ACCEPT}
@@ -502,11 +504,11 @@ export default function InventoryPrintModal(props: Props) {
           {(visualPreviewUrl || visualUrl) && (
             <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/55">
-                Aperçu
+                {t("inventory.common.preview")}
               </p>
               <StockVisualPreview
                 url={visualPreviewUrl ?? visualUrl}
-                name="Aperçu du document"
+                name={t("inventory.print.previewName")}
                 mode="detail"
               />
             </div>
@@ -521,7 +523,7 @@ export default function InventoryPrintModal(props: Props) {
                   className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Supprimer
+                  {t("inventory.common.delete")}
                 </button>
               )}
             </div>
@@ -532,7 +534,7 @@ export default function InventoryPrintModal(props: Props) {
                 onClick={onClose}
                 className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
               >
-                Annuler
+                {t("inventory.common.cancel")}
               </button>
               <button
                 type="submit"
@@ -540,12 +542,12 @@ export default function InventoryPrintModal(props: Props) {
                 className="ui-transition rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90 disabled:opacity-60"
               >
                 {submitting
-                  ? "Enregistrement..."
+                  ? t("inventory.common.saving")
                   : isEditing
-                    ? "Mettre à jour"
+                    ? t("inventory.common.update")
                     : langRows.length > 1
-                      ? `Créer (${langRows.length} langues)`
-                      : "Créer"}
+                      ? t("inventory.common.createLanguages", { count: langRows.length })
+                      : t("inventory.common.create")}
               </button>
             </div>
           </div>

@@ -1,22 +1,24 @@
 "use client";
 
 import { Check, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 export function ConfirmDeleteModal(props: {
   label: string;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-[0_34px_90px_rgba(20,17,13,0.24)]">
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--danger)_10%,var(--surface))]">
           <Trash2 className="h-6 w-6 text-[var(--danger)]" />
         </div>
-        <h3 className="text-base font-semibold text-[var(--foreground)]">Supprimer cet élément&nbsp;?</h3>
+        <h3 className="text-base font-semibold text-[var(--foreground)]">{t("common.confirmDeleteTitle")}</h3>
         <p className="mt-1.5 text-sm text-[color:var(--foreground)]/65">
-          <span className="font-semibold text-[var(--foreground)]">{props.label}</span> sera définitivement supprimé.
-          Cette action est irréversible.
+          {t("common.confirmDeleteBody", { label: props.label })}
         </p>
         <div className="mt-5 flex gap-2">
           <button
@@ -24,14 +26,14 @@ export function ConfirmDeleteModal(props: {
             onClick={props.onCancel}
             className="ui-transition flex-1 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] py-2.5 text-sm font-semibold text-[var(--foreground)] hover:bg-[var(--surface)]"
           >
-            Annuler
+            {t("common.cancel")}
           </button>
           <button
             type="button"
             onClick={props.onConfirm}
             className="ui-transition ui-btn ui-btn-danger flex-1 rounded-xl py-2.5 text-sm font-semibold shadow-sm"
           >
-            Supprimer
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -81,6 +83,8 @@ export function EntityRow(props: {
   prefix?: React.ReactNode;
   extra?: React.ReactNode;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div
       className={[
@@ -101,7 +105,7 @@ export function EntityRow(props: {
       <button
         type="button"
         onClick={props.onSave}
-        title="Enregistrer"
+        title={t("common.save")}
         className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-[var(--success)] hover:bg-[color-mix(in_srgb,var(--success)_10%,var(--surface))]"
       >
         <Check className="h-3.5 w-3.5" />
@@ -109,7 +113,7 @@ export function EntityRow(props: {
       <button
         type="button"
         onClick={props.onToggle}
-        title={props.isActive ? "Désactiver" : "Activer"}
+        title={props.isActive ? t("common.deactivate") : t("common.activate")}
         className="ui-transition flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/60 hover:bg-[var(--surface)]"
       >
         {props.isActive ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -117,7 +121,7 @@ export function EntityRow(props: {
       <button
         type="button"
         onClick={props.onDelete}
-        title="Supprimer"
+        title={t("common.delete")}
         className="ui-transition ui-btn ui-btn-outline-danger flex h-8 w-8 shrink-0 items-center justify-center rounded-lg !p-0"
       >
         <Trash2 className="h-3.5 w-3.5" />

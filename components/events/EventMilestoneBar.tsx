@@ -3,6 +3,8 @@
 import { buildEventMilestones } from "../../lib/eventMilestones";
 import type { EventRow } from "../../lib/eventTypes";
 import type { Task } from "../../lib/types";
+import { getIntlLocale } from "../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Props = {
   event: EventRow;
@@ -12,13 +14,15 @@ type Props = {
 };
 
 export default function EventMilestoneBar(props: Props) {
+  const { t, locale } = useTranslation();
+  const intlLocale = getIntlLocale(locale);
   const { event, tasks, onFilterMilestone, activeFilterDate } = props;
   const milestones = buildEventMilestones(event.startDate, event.endDate, tasks);
 
   return (
     <div className="ui-surface rounded-[22px] p-5">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/50">
-        Jalons de préparation
+        {t("eventsLegacy.milestone.title")}
       </p>
       <div className="-mx-1 mt-4 overflow-x-auto px-1 pb-1">
         <div className="flex min-w-max gap-2">
@@ -45,14 +49,16 @@ export default function EventMilestoneBar(props: Props) {
               >
                 <p className="text-xs font-bold leading-tight">{m.label}</p>
                 <p className="mt-1 text-[11px] leading-tight opacity-80">
-                  {new Date(`${m.dateIso}T12:00:00`).toLocaleDateString("fr-FR", {
+                  {new Date(`${m.dateIso}T12:00:00`).toLocaleDateString(intlLocale, {
                     day: "numeric",
                     month: "short",
                   })}
                 </p>
                 {m.openTasksDueBy > 0 ? (
                   <p className="mt-1.5 text-[10px] font-semibold leading-tight">
-                    {m.openTasksDueBy} tâche{m.openTasksDueBy > 1 ? "s" : ""}
+                    {m.openTasksDueBy > 1
+                      ? t("eventsLegacy.milestone.taskCount", { count: m.openTasksDueBy })
+                      : t("eventsLegacy.milestone.taskCountOne", { count: m.openTasksDueBy })}
                   </p>
                 ) : null}
               </button>

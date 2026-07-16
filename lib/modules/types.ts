@@ -23,4 +23,6 @@ export type AppModuleDefinition = {
   routePrefixes: readonly string[];
   /** Pré-sélectionné à l'onboarding (recommandé, désactivable). */
   recommended: boolean;
+  /** Visible dans l'UI commerciale (onboarding, nav, settings). */
+  commerciallyAvailable: boolean;
 };

@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import {
   ChevronDown,
   ChevronRight,
@@ -14,7 +15,7 @@ import CompanyAvatar from "../../CompanyAvatar";
 import type { ReferenceRecord } from "../../../lib/referenceData";
 import { adminFilterPillClassFor, adminSolidColorFor, domainTagStyles } from "../../../lib/kanbanStyles";
 import { useColumnVisuals } from "../../../lib/useColumnVisuals";
-import ColumnStatusSelect from "../../ColumnStatusSelect";
+import ColumnStatusSelect from "../dashboard/shared/ColumnStatusSelect";
 import {
   priorities,
   type AdminId,
@@ -39,14 +40,14 @@ function formatElapsed(ms: number): string {
   return `${m}m`;
 }
 
-function projectedWorkSummary(task: Task): string {
+function projectedWorkSummary(task: Task, dateLocale: ReturnType<typeof getDateFnsLocale>): string {
   const slots = task.projectedWork ?? [];
   if (slots.length === 0) return "—";
   const dates = slots.map((s) => s.date).sort();
   const first = dates[0];
   const last = dates[dates.length - 1];
-  if (first === last) return format(new Date(first + "T12:00:00"), "d MMM", { locale: fr });
-  return `${format(new Date(first + "T12:00:00"), "d MMM", { locale: fr })} → ${format(new Date(last + "T12:00:00"), "d MMM", { locale: fr })}`;
+  if (first === last) return format(new Date(first + "T12:00:00"), "d MMM", { locale: dateLocale });
+  return `${format(new Date(first + "T12:00:00"), "d MMM", { locale: dateLocale })} → ${format(new Date(last + "T12:00:00"), "d MMM", { locale: dateLocale })}`;
 }
 
 type V2ListViewProps = {
@@ -67,31 +68,31 @@ type V2ListViewProps = {
 
 type ListColumnDef = {
   id: string;
-  label: string;
+  labelKey?: string;
   width: string;
   sticky?: boolean;
 };
 
-const LIST_COLUMNS: ListColumnDef[] = [
-  { id: "select", label: "", width: "40px" },
-  { id: "item", label: "Élément", width: "minmax(220px, 1.4fr)", sticky: true },
-  { id: "status", label: "Statut", width: "minmax(130px, 0.9fr)" },
-  { id: "priority", label: "Priorité", width: "minmax(110px, 0.7fr)" },
-  { id: "assignees", label: "Assignés", width: "minmax(120px, 0.8fr)" },
-  { id: "deadline", label: "Échéance", width: "minmax(120px, 0.75fr)" },
-  { id: "timeline", label: "Planification", width: "minmax(130px, 0.85fr)" },
-  { id: "company", label: "Société", width: "minmax(130px, 0.85fr)" },
-  { id: "domain", label: "Domaine", width: "minmax(130px, 0.85fr)" },
-  { id: "client", label: "Client", width: "minmax(120px, 0.75fr)" },
-  { id: "budget", label: "Budget", width: "minmax(90px, 0.6fr)" },
-  { id: "event", label: "Événement", width: "minmax(140px, 0.9fr)" },
-  { id: "estimated", label: "Estimation", width: "minmax(100px, 0.65fr)" },
-  { id: "elapsed", label: "Temps passé", width: "minmax(100px, 0.65fr)" },
-  { id: "subtasks", label: "Sous-tâches", width: "minmax(90px, 0.55fr)" },
-  { id: "description", label: "Description", width: "minmax(160px, 1fr)" },
+const LIST_COLUMN_DEFS: ListColumnDef[] = [
+  { id: "select", width: "40px" },
+  { id: "item", labelKey: "dashboard.list.columns.item", width: "minmax(220px, 1.4fr)", sticky: true },
+  { id: "status", labelKey: "dashboard.list.columns.status", width: "minmax(130px, 0.9fr)" },
+  { id: "priority", labelKey: "dashboard.list.columns.priority", width: "minmax(110px, 0.7fr)" },
+  { id: "assignees", labelKey: "dashboard.list.columns.assignees", width: "minmax(120px, 0.8fr)" },
+  { id: "deadline", labelKey: "dashboard.list.columns.deadline", width: "minmax(120px, 0.75fr)" },
+  { id: "timeline", labelKey: "dashboard.list.columns.timeline", width: "minmax(130px, 0.85fr)" },
+  { id: "company", labelKey: "dashboard.list.columns.company", width: "minmax(130px, 0.85fr)" },
+  { id: "domain", labelKey: "dashboard.list.columns.domain", width: "minmax(130px, 0.85fr)" },
+  { id: "client", labelKey: "dashboard.list.columns.client", width: "minmax(120px, 0.75fr)" },
+  { id: "budget", labelKey: "dashboard.list.columns.budget", width: "minmax(90px, 0.6fr)" },
+  { id: "event", labelKey: "dashboard.list.columns.event", width: "minmax(140px, 0.9fr)" },
+  { id: "estimated", labelKey: "dashboard.list.columns.estimated", width: "minmax(100px, 0.65fr)" },
+  { id: "elapsed", labelKey: "dashboard.list.columns.elapsed", width: "minmax(100px, 0.65fr)" },
+  { id: "subtasks", labelKey: "dashboard.list.columns.subtasks", width: "minmax(90px, 0.55fr)" },
+  { id: "description", labelKey: "dashboard.list.columns.description", width: "minmax(160px, 1fr)" },
 ];
 
-const GRID_TEMPLATE = LIST_COLUMNS.map((c) => c.width).join(" ");
+const GRID_TEMPLATE = LIST_COLUMN_DEFS.map((c) => c.width).join(" ");
 
 function StatusCell({
   value,
@@ -112,6 +113,7 @@ function PriorityCell({
   value: Priority;
   onChange: (next: Priority) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <select
       value={value}
@@ -120,7 +122,7 @@ function PriorityCell({
         "w-full cursor-pointer rounded-lg border px-2 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30",
         PRIORITY_STYLES[value],
       ].join(" ")}
-      aria-label="Priorité"
+      aria-label={t("dashboard.list.columns.priority")}
     >
       {priorities.map((p) => (
         <option key={p} value={p}>
@@ -140,6 +142,7 @@ function AssigneesCell({
   admins: AdminId[];
   onSave: (next: AdminId[]) => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
@@ -147,7 +150,7 @@ function AssigneesCell({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex min-h-[32px] w-full items-center gap-1 rounded-lg border border-transparent px-1 py-0.5 hover:border-[var(--line)] hover:bg-[var(--surface-soft)]"
-        aria-label="Assignés"
+        aria-label={t("dashboard.list.columns.assignees")}
       >
         {task.admins.length === 0 ? (
           <span className="text-xs text-[color:var(--foreground)]/40">—</span>
@@ -226,6 +229,8 @@ function ListRow({
   onInlineSave: V2ListViewProps["onInlineSave"];
   onEditTask: (task: Task) => void;
 }) {
+  const { t, locale } = useTranslation();
+  const dateLocale = useMemo(() => getDateFnsLocale(locale), [locale]);
   const companyLogo = companyRecords.find((c) => c.name === task.company)?.logoUrl ?? null;
   const deadlineMs = task.deadline ? new Date(task.deadline + "T23:59:59").getTime() : 0;
   const isOverdue = deadlineMs > 0 && now > deadlineMs && task.column !== "Terminé";
@@ -270,7 +275,7 @@ function ListRow({
           type="button"
           onClick={() => onOpenTask(task.id)}
           className="shrink-0 rounded-md p-1 text-[color:var(--foreground)]/35 opacity-0 transition-opacity hover:bg-[var(--surface-soft)] hover:text-[var(--accent)] group-hover:opacity-100"
-          aria-label="Ouvrir les mises à jour"
+          aria-label={t("dashboard.list.openUpdates")}
         >
           <MessageSquarePlus className="h-3.5 w-3.5" />
         </button>
@@ -313,12 +318,12 @@ function ListRow({
             "w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30",
             isOverdue ? "border-[color-mix(in_srgb,var(--danger)_35%,var(--line))] text-[var(--danger)]" : "",
           ].join(" ")}
-          aria-label="Échéance"
+          aria-label={t("dashboard.list.columns.deadline")}
         />
       </div>
 
-      <div role="cell" className="truncate px-2 py-1 text-xs text-[color:var(--foreground)]/65" title={projectedWorkSummary(task)}>
-        {projectedWorkSummary(task)}
+      <div role="cell" className="truncate px-2 py-1 text-xs text-[color:var(--foreground)]/65" title={projectedWorkSummary(task, dateLocale)}>
+        {projectedWorkSummary(task, dateLocale)}
       </div>
 
       <div role="cell" className="px-2 py-1">
@@ -334,7 +339,7 @@ function ListRow({
             value={task.company}
             onChange={(e) => saveField({ company: e.target.value as Company }, { company: e.target.value })}
             className="min-w-0 flex-1 truncate rounded-lg border border-[var(--line)] bg-[var(--surface)] px-1.5 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
-            aria-label="Société"
+            aria-label={t("dashboard.list.columns.company")}
           >
             {companies.map((c) => (
               <option key={c} value={c}>
@@ -353,7 +358,7 @@ function ListRow({
             "w-full truncate rounded-lg border px-2 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30",
             domainStyle,
           ].join(" ")}
-          aria-label="Domaine"
+          aria-label={t("dashboard.list.columns.domain")}
         >
           {domains.map((d) => (
             <option key={d} value={d}>
@@ -367,14 +372,14 @@ function ListRow({
         <input
           type="text"
           defaultValue={task.clientName}
-          placeholder={task.isClientRequest ? "Demande client" : "—"}
+          placeholder={task.isClientRequest ? t("common.clientRequest") : "—"}
           onBlur={(e) => {
             const clientName = e.target.value.trim();
             if (clientName === (task.clientName ?? "")) return;
             saveField({ clientName }, { client_name: clientName });
           }}
           className="w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
-          aria-label="Client"
+          aria-label={t("dashboard.list.columns.client")}
         />
       </div>
 
@@ -388,7 +393,7 @@ function ListRow({
             saveField({ budget }, { budget });
           }}
           className="w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
-          aria-label="Budget"
+          aria-label={t("dashboard.list.columns.budget")}
         />
       </div>
 
@@ -450,6 +455,7 @@ function AddItemRow({
   groupColumn: ColumnId;
   onQuickAdd: (title: string, column: ColumnId) => void | Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [value, setValue] = useState("");
   return (
     <div
@@ -470,7 +476,7 @@ function AddItemRow({
               setValue("");
             }
           }}
-          placeholder="Ajouter un élément"
+          placeholder={t("dashboard.list.addItem")}
           className="w-full bg-transparent text-sm text-[color:var(--foreground)]/70 placeholder:text-[color:var(--foreground)]/40 focus:outline-none"
         />
       </div>
@@ -495,6 +501,15 @@ export default function V2ListView(props: V2ListViewProps) {
     onEditTask,
   } = props;
 
+  const { t } = useTranslation();
+  const listColumns = useMemo(
+    () =>
+      LIST_COLUMN_DEFS.map((col) => ({
+        ...col,
+        label: col.labelKey ? t(col.labelKey) : "",
+      })),
+    [t],
+  );
   const { visualFor } = useColumnVisuals();
 
   const filterTouchedRef = useRef(false);
@@ -593,7 +608,7 @@ export default function V2ListView(props: V2ListViewProps) {
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
-            Voir
+            {t("dashboard.list.view")}
           </span>
 
           <button
@@ -606,7 +621,7 @@ export default function V2ListView(props: V2ListViewProps) {
                 : "border-[var(--line)] bg-[var(--surface-soft)] text-[color:var(--foreground)]/65 hover:bg-[var(--surface)]",
             ].join(" ")}
           >
-            Tous
+            {t("common.all")}
             <span className="rounded-full bg-current/20 px-1.5 py-0.5 text-[9px]">
               {tasks.length}
             </span>
@@ -643,8 +658,10 @@ export default function V2ListView(props: V2ListViewProps) {
 
         {selectedAdmins.size > 0 ? (
           <p className="text-[11px] text-[color:var(--foreground)]/50">
-            {filteredTasks.length} tâche{filteredTasks.length !== 1 ? "s" : ""} pour{" "}
-            {Array.from(selectedAdmins).join(", ")}
+            {t(
+              filteredTasks.length === 1 ? "dashboard.list.tasksFilteredOne" : "dashboard.list.tasksFilteredMany",
+              { count: filteredTasks.length, names: Array.from(selectedAdmins).join(", ") },
+            )}
           </p>
         ) : null}
       </div>
@@ -657,7 +674,7 @@ export default function V2ListView(props: V2ListViewProps) {
             className="sticky top-0 z-20 grid border-b border-[var(--line)] bg-[var(--surface-soft)] text-[11px] font-bold uppercase tracking-[0.12em] text-[color:var(--foreground)]/50"
             style={{ gridTemplateColumns: GRID_TEMPLATE }}
           >
-            {LIST_COLUMNS.map((col) => (
+            {listColumns.map((col) => (
               <div
                 key={col.id}
                 role="columnheader"
@@ -699,7 +716,9 @@ export default function V2ListView(props: V2ListViewProps) {
                   )}
                   <span>{groupColumn}</span>
                   <span className="rounded-full bg-[color:var(--foreground)]/8 px-2 py-0.5 text-[11px] font-semibold text-[color:var(--foreground)]/55">
-                    {groupTasks.length} élément{groupTasks.length !== 1 ? "s" : ""}
+                    {t(groupTasks.length === 1 ? "dashboard.list.itemsOne" : "dashboard.list.itemsMany", {
+                      count: groupTasks.length,
+                    })}
                   </span>
                   </div>
                 </button>

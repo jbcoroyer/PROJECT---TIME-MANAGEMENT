@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { addDays, format, startOfDay } from "date-fns";
-import { fr } from "date-fns/locale";
 import { CalendarCheck, CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import {
   getPublicAvailableSlots,
@@ -10,6 +9,8 @@ import {
   type PublicAgendaMeta,
 } from "../../../app/actions/agenda";
 import { getBookableDates, slotsForDayLabel } from "../../../lib/agenda/bookingSlots";
+import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { toastError } from "../../../lib/toast";
 
 type PublicBookingFormProps = {
@@ -17,6 +18,8 @@ type PublicBookingFormProps = {
 };
 
 export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
+  const { t, locale } = useTranslation({ preferBrowser: true });
+  const dateLocale = useMemo(() => getDateFnsLocale(locale), [locale]);
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
   const [slots, setSlots] = useState<{ start: string; end: string }[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -81,10 +84,9 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
         <div className="mx-auto max-w-lg">
           <div className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-8 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-[var(--success)]" />
-            <h1 className="mt-3 text-xl font-semibold">Réservation confirmée</h1>
+            <h1 className="mt-3 text-xl font-semibold">{t("agenda.public.confirmed")}</h1>
             <p className="mt-2 text-sm text-[var(--ink-muted)]">
-              Votre créneau avec {meta.appName} est enregistré. Vous recevrez une confirmation à{" "}
-              {guestEmail}.
+              {t("agenda.public.confirmedMessage", { appName: meta.appName, email: guestEmail })}
             </p>
           </div>
         </div>
@@ -104,17 +106,19 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
             <p className="mt-2 text-sm text-[var(--ink-muted)]">{meta.welcomeMessage}</p>
           ) : null}
           <p className="mt-2 text-xs text-[var(--ink-muted)]">
-            Créneaux de {meta.slotDurationMinutes} minutes
+            {t("agenda.public.slotDuration", { minutes: meta.slotDurationMinutes })}
           </p>
         </div>
 
         <section className="ui-surface rounded-2xl p-5">
-          <h2 className="text-sm font-semibold">1. Choisir une date</h2>
+          <h2 className="text-sm font-semibold">{t("agenda.public.stepDate")}</h2>
           <div className="mt-3 flex items-center justify-between gap-2">
             <button type="button" onClick={() => shiftDate(-1)} className="ui-btn ui-btn-ghost h-9 w-9 p-0">
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="text-sm font-medium capitalize">{slotsForDayLabel(selectedDate)}</span>
+            <span className="text-sm font-medium capitalize">
+              {slotsForDayLabel(selectedDate, locale, t("agenda.today"))}
+            </span>
             <button type="button" onClick={() => shiftDate(1)} className="ui-btn ui-btn-ghost h-9 w-9 p-0">
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -134,7 +138,7 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
                       : "border-[var(--line)] text-[var(--ink-muted)]",
                   ].join(" ")}
                 >
-                  <div>{format(date, "EEE", { locale: fr })}</div>
+                  <div>{format(date, "EEE", { locale: dateLocale })}</div>
                   <div className="text-base">{format(date, "d")}</div>
                 </button>
               );
@@ -143,13 +147,13 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
         </section>
 
         <section className="ui-surface rounded-2xl p-5">
-          <h2 className="text-sm font-semibold">2. Choisir un horaire</h2>
+          <h2 className="text-sm font-semibold">{t("agenda.public.stepTime")}</h2>
           {slotsLoading ? (
             <p className="mt-4 flex items-center gap-2 text-sm text-[var(--ink-muted)]">
-              <Loader2 className="h-4 w-4 animate-spin" /> Chargement des créneaux…
+              <Loader2 className="h-4 w-4 animate-spin" /> {t("agenda.public.loadingSlots")}
             </p>
           ) : slots.length === 0 ? (
-            <p className="mt-4 text-sm text-[var(--ink-muted)]">Aucun créneau disponible ce jour-là.</p>
+            <p className="mt-4 text-sm text-[var(--ink-muted)]">{t("agenda.public.noSlots")}</p>
           ) : (
             <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
               {slots.map((slot) => {
@@ -177,13 +181,13 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
 
         {selectedSlot ? (
           <section className="ui-surface space-y-3 rounded-2xl p-5">
-            <h2 className="text-sm font-semibold">3. Vos coordonnées</h2>
+            <h2 className="text-sm font-semibold">{t("agenda.public.stepContact")}</h2>
             <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-              Nom *
+              {t("agenda.public.nameLabel")}
               <input value={guestName} onChange={(e) => setGuestName(e.target.value)} className="ui-input" />
             </label>
             <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-              E-mail *
+              {t("agenda.public.emailLabel")}
               <input
                 type="email"
                 value={guestEmail}
@@ -192,11 +196,11 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
               />
             </label>
             <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-              Téléphone
+              {t("agenda.public.phoneLabel")}
               <input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="ui-input" />
             </label>
             <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-              Objet / message
+              {t("agenda.public.messageLabel")}
               <textarea
                 value={guestMessage}
                 onChange={(e) => setGuestMessage(e.target.value)}
@@ -211,10 +215,10 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
               className="ui-btn ui-btn-primary w-full gap-2"
             >
               <CalendarCheck className="h-4 w-4" />
-              {busy ? "Réservation…" : "Confirmer le rendez-vous"}
+              {busy ? t("agenda.public.booking") : t("agenda.public.confirm")}
             </button>
             <p className="text-center text-xs text-[var(--ink-muted)]">
-              {format(new Date(selectedSlot.start), "EEEE d MMMM · HH:mm", { locale: fr })}
+              {format(new Date(selectedSlot.start), "EEEE d MMMM · HH:mm", { locale: dateLocale })}
             </p>
           </section>
         ) : null}

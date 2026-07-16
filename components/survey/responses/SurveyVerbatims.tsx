@@ -2,19 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { MessageSquareQuote, Search } from "lucide-react";
 import type { Verbatim } from "../../../lib/survey/surveyAnalytics";
-
-function formatDate(iso: string): string {
-  try {
-    return format(new Date(iso), "d MMM yyyy", { locale: fr });
-  } catch {
-    return "";
-  }
-}
+import { useTranslation } from "../../../lib/i18n/useTranslation";
+import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
 
 export default function SurveyVerbatims({ verbatims }: { verbatims: Verbatim[] }) {
+  const { t, locale } = useTranslation();
+  const dateFnsLocale = getDateFnsLocale(locale);
   const [query, setQuery] = useState("");
   const [questionFilter, setQuestionFilter] = useState<string>("all");
 
@@ -37,12 +32,20 @@ export default function SurveyVerbatims({ verbatims }: { verbatims: Verbatim[] }
     });
   }, [verbatims, query, questionFilter]);
 
+  const formatDate = (iso: string): string => {
+    try {
+      return format(new Date(iso), "d MMM yyyy", { locale: dateFnsLocale });
+    } catch {
+      return "";
+    }
+  };
+
   return (
     <section className="ui-surface rounded-2xl p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
           <MessageSquareQuote className="h-4 w-4 text-[color:var(--foreground)]/50" />
-          Verbatims ({filtered.length})
+          {t("survey.verbatims.title", { count: filtered.length })}
         </h3>
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -50,7 +53,7 @@ export default function SurveyVerbatims({ verbatims }: { verbatims: Verbatim[] }
             onChange={(e) => setQuestionFilter(e.target.value)}
             className="ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--foreground)]"
           >
-            <option value="all">Toutes les questions ouvertes</option>
+            <option value="all">{t("survey.verbatims.allQuestions")}</option>
             {questionOptions.map(([id, label]) => (
               <option key={id} value={id}>
                 {label}
@@ -62,7 +65,7 @@ export default function SurveyVerbatims({ verbatims }: { verbatims: Verbatim[] }
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Rechercher…"
+              placeholder={t("survey.verbatims.search")}
               className="ui-focus-ring w-40 bg-transparent text-xs text-[var(--foreground)] placeholder:text-[color:var(--foreground)]/40"
             />
           </div>
@@ -71,7 +74,7 @@ export default function SurveyVerbatims({ verbatims }: { verbatims: Verbatim[] }
 
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-sm text-[color:var(--foreground)]/45">
-          Aucun verbatim pour ces critères.
+          {t("survey.verbatims.empty")}
         </p>
       ) : (
         <ul className="space-y-3">

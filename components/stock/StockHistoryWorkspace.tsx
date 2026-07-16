@@ -5,13 +5,8 @@ import { ArrowDown, ArrowUp, ClipboardList, FolderKanban, UserRound } from "luci
 import StockSectionNav from "../StockSectionNav";
 import type { StockMovement } from "../../lib/stockTypes";
 import { formatCurrency, formatNumber } from "../../lib/stockUtils";
-
-function formatMovementDate(value: string): string {
-  return new Intl.DateTimeFormat("fr-FR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
+import { useTranslation } from "../../lib/i18n/useTranslation";
+import { getIntlLocale } from "../../lib/i18n/dateFnsLocale";
 
 type StockHistoryWorkspaceProps = {
   basePath?: string;
@@ -26,6 +21,14 @@ export default function StockHistoryWorkspace({
   loading,
   searchQuery = "",
 }: StockHistoryWorkspaceProps) {
+  const { t, locale } = useTranslation();
+
+  const formatMovementDate = (value: string) =>
+    new Intl.DateTimeFormat(getIntlLocale(locale), {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(value));
+
   const filteredMovements = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return movements;
@@ -49,11 +52,13 @@ export default function StockHistoryWorkspace({
       <div>
         <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[var(--line-strong)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/75">
           <ClipboardList className="h-3.5 w-3.5" />
-          Historique stock
+          {t("stockLegacy.history.badge")}
         </div>
-        <h1 className="ui-heading text-3xl font-semibold text-[var(--foreground)]">Traçabilité des mouvements</h1>
+        <h1 className="ui-heading text-3xl font-semibold text-[var(--foreground)]">
+          {t("stockLegacy.history.title")}
+        </h1>
         <p className="mt-2 max-w-3xl text-sm text-[color:var(--foreground)]/65">
-          Toutes les entrées et sorties de stock sont listées ici avec la personne, le projet et la raison.
+          {t("stockLegacy.history.subtitle")}
         </p>
       </div>
 
@@ -63,21 +68,21 @@ export default function StockHistoryWorkspace({
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
-              Derniers mouvements
+              {t("stockLegacy.history.recent")}
             </p>
             <p className="mt-1 text-sm text-[color:var(--foreground)]/60">
-              {formatNumber(filteredMovements.length)} mouvement(s) affiché(s)
+              {t("stockLegacy.history.count", { count: formatNumber(filteredMovements.length) })}
             </p>
           </div>
         </div>
 
         {loading ? (
           <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-            Chargement de l&apos;historique...
+            {t("stockLegacy.history.loading")}
           </div>
         ) : filteredMovements.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-            Aucun mouvement enregistré pour le moment.
+            {t("stockLegacy.history.empty")}
           </div>
         ) : (
           <div className="space-y-3">
@@ -95,13 +100,11 @@ export default function StockHistoryWorkspace({
                         <span
                           className={[
                             "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
-                            isOutput
-                              ? "ui-pill ui-pill-warning"
-                              : "ui-pill ui-pill-success",
+                            isOutput ? "ui-pill ui-pill-warning" : "ui-pill ui-pill-success",
                           ].join(" ")}
                         >
                           {isOutput ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />}
-                          {isOutput ? "Sortie" : "Entrée"}
+                          {isOutput ? t("stockLegacy.history.exit") : t("stockLegacy.history.entry")}
                         </span>
                         <h2 className="text-lg font-semibold text-[var(--foreground)]">{movement.itemName}</h2>
                         {movement.itemType && (
@@ -116,8 +119,12 @@ export default function StockHistoryWorkspace({
                           {movement.changeAmount > 0 ? "+" : ""}
                           {formatNumber(movement.changeAmount)}
                         </span>
-                        <span>Qté après mouvement : {formatNumber(movement.newQuantity)}</span>
-                        <span>Valeur : {formatCurrency(totalValue)}</span>
+                        <span>
+                          {t("stockLegacy.history.qtyAfter")} {formatNumber(movement.newQuantity)}
+                        </span>
+                        <span>
+                          {t("stockLegacy.history.value")} {formatCurrency(totalValue)}
+                        </span>
                       </div>
 
                       <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-[color:var(--foreground)]/60">
@@ -127,7 +134,7 @@ export default function StockHistoryWorkspace({
                         </span>
                         <span className="inline-flex items-center gap-1.5">
                           <FolderKanban className="h-4 w-4" />
-                          {movement.projectName ?? "Autre / Aucun projet"}
+                          {movement.projectName ?? t("stockLegacy.history.noProject")}
                         </span>
                         <span>{formatMovementDate(movement.createdAt)}</span>
                       </div>

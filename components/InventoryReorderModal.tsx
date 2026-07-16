@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, FileText, X } from "lucide-react";
 import { isLowStock, type InventoryItem } from "../lib/inventoryTypes";
 import { toastError } from "../lib/toast";
+import { useTranslation } from "../lib/i18n/useTranslation";
 
 type InventoryReorderModalProps = {
   open: boolean;
@@ -13,6 +14,7 @@ type InventoryReorderModalProps = {
 };
 
 export default function InventoryReorderModal(props: InventoryReorderModalProps) {
+  const { t } = useTranslation();
   const { open, item, onClose, onSubmit } = props;
   const [quoteInfo, setQuoteInfo] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -29,7 +31,7 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!quoteInfo.trim()) {
-      toastError("Ajoutez les informations du devis ou de la re-commande.");
+      toastError(t("inventory.reorder.quoteRequired"));
       return;
     }
     setSubmitting(true);
@@ -51,7 +53,7 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
-              Infos
+              {t("inventory.common.preview")}
             </p>
             <h2 className="ui-heading mt-1 text-2xl font-semibold text-[var(--foreground)]">
               {item.name}
@@ -61,7 +63,7 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
             type="button"
             onClick={onClose}
             className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2 text-[color:var(--foreground)]/60 hover:bg-[var(--surface-soft)]"
-            aria-label="Fermer"
+            aria-label={t("inventory.common.close")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -70,13 +72,13 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/45">
-              Quantité actuelle
+              {t("inventory.reorder.currentQty")}
             </p>
             <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{item.quantity}</p>
           </div>
           <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/45">
-              Seuil d&apos;alerte
+              {t("inventory.common.alertThreshold")}
             </p>
             <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{item.alertThreshold}</p>
           </div>
@@ -87,7 +89,7 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
             ].join(" ")}
           >
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/45">
-              Statut
+              {t("eventsLegacy.budget.status")}
             </p>
             <p
               className={[
@@ -96,7 +98,7 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
               ].join(" ")}
             >
               <AlertTriangle className="h-4 w-4" />
-              {lowStock ? "À recommander" : "Stock OK"}
+              {lowStock ? t("inventory.reorder.reorder") : t("inventory.reorder.stockOk")}
             </p>
           </div>
         </div>
@@ -105,13 +107,13 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
           <div className="rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-4">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold text-[color:var(--foreground)]/70">
               <FileText className="h-3.5 w-3.5" />
-              Dernier devis / infos de re-commande
+              {t("inventory.reorder.infoBadge")}
             </div>
             <textarea
               value={quoteInfo}
               onChange={(event) => setQuoteInfo(event.target.value)}
               className="ui-focus-ring min-h-[220px] w-full rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3 text-sm"
-              placeholder="Référence du devis, prix précédent, quantités minimales, nom de l'imprimeur, contact, délais..."
+              placeholder={t("inventory.reorder.placeholder")}
             />
           </div>
 
@@ -121,14 +123,14 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
               onClick={onClose}
               className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
             >
-              Annuler
+              {t("inventory.common.cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="ui-transition rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90 disabled:opacity-60"
             >
-              {submitting ? "Enregistrement..." : "Enregistrer"}
+              {submitting ? t("inventory.common.saving") : t("inventory.reorder.save")}
             </button>
           </div>
         </form>

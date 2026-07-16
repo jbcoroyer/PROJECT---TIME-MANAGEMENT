@@ -8,6 +8,7 @@ import { useEventCoverUrl } from "../../lib/useEventCoverUrl";
 import type { StorageBucket } from "../../lib/storagePaths";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError, toastSuccess } from "../../lib/toast";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 const EVENT_DOCUMENTS_BUCKET = "event-documents" as StorageBucket;
 
@@ -28,6 +29,7 @@ export default function EventCoverImage({
   editable = false,
   onUpdated,
 }: EventCoverImageProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const { url, loading } = useEventCoverUrl(coverImagePath);
   const [uploading, setUploading] = useState(false);
@@ -39,7 +41,7 @@ export default function EventCoverImage({
 
   const handleUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
-      toastError("Choisissez une image (JPEG, PNG, WebP…).");
+      toastError(t("eventsLegacy.cover.imageRequired"));
       return;
     }
     setUploading(true);
@@ -68,7 +70,7 @@ export default function EventCoverImage({
         await supabase.storage.from(EVENT_DOCUMENTS_BUCKET).remove([previousPath]);
       }
 
-      toastSuccess("Image de couverture enregistrée");
+      toastSuccess(t("eventsLegacy.cover.toast.saved"));
       onUpdated?.(upload.path);
     } finally {
       setUploading(false);
@@ -86,7 +88,7 @@ export default function EventCoverImage({
       }
       const supabase = getSupabaseBrowser();
       await supabase.storage.from(EVENT_DOCUMENTS_BUCKET).remove([coverImagePath]);
-      toastSuccess("Image retirée");
+      toastSuccess(t("eventsLegacy.cover.toast.removed"));
       onUpdated?.(null);
     } finally {
       setUploading(false);
@@ -101,7 +103,7 @@ export default function EventCoverImage({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={url!}
-          alt={`Couverture — ${eventName}`}
+          alt={t("eventsLegacy.cover.alt", { name: eventName })}
           className="h-full w-full object-cover"
         />
       ) : (
@@ -112,7 +114,7 @@ export default function EventCoverImage({
             <>
               <ImageIcon className="h-7 w-7 opacity-60" />
               {editable ? (
-                <p className="text-xs font-medium">Ajouter une image de couverture</p>
+                <p className="text-xs font-medium">{t("eventsLegacy.cover.addCover")}</p>
               ) : null}
             </>
           )}
@@ -145,7 +147,7 @@ export default function EventCoverImage({
               ) : (
                 <Upload className="h-3.5 w-3.5" />
               )}
-              {coverImagePath ? "Changer" : "Ajouter"}
+              {coverImagePath ? t("eventsLegacy.cover.change") : t("eventsLegacy.cover.add")}
             </button>
             {coverImagePath ? (
               <button
@@ -155,7 +157,7 @@ export default function EventCoverImage({
                 className="ui-transition inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/40 bg-black/30 px-3 text-xs font-semibold text-white hover:bg-black/45"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                Retirer
+                {t("eventsLegacy.cover.remove")}
               </button>
             ) : null}
           </div>

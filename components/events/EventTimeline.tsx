@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { MapPin, Trash2 } from "lucide-react";
 import EventCoverImage from "./EventCoverImage";
 import type { EventRow } from "../../lib/eventTypes";
 import { computeEventPreparationStats } from "../../lib/eventPreparationStats";
 import type { Task } from "../../lib/types";
 import { formatCurrency } from "../../lib/stockUtils";
+import { getDateFnsLocale } from "../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type EventTimelineProps = {
   events: EventRow[];
@@ -18,12 +19,14 @@ type EventTimelineProps = {
 };
 
 export default function EventTimeline(props: EventTimelineProps) {
+  const { t, locale } = useTranslation();
+  const dateFnsLocale = getDateFnsLocale(locale);
   const { events, tasks = [], onDeleteEvent, eventsBasePath = "/events" } = props;
 
   if (events.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-        Aucun événement planifié. Créez un événement pour l&apos;afficher ici.
+        {t("eventsLegacy.timeline.emptyScheduled")}
       </div>
     );
   }
@@ -33,7 +36,7 @@ export default function EventTimeline(props: EventTimelineProps) {
       {events.map((ev) => {
         const start = new Date(ev.startDate);
         const end = new Date(ev.endDate);
-        const range = `${format(start, "d MMM yyyy", { locale: fr })} → ${format(end, "d MMM yyyy", { locale: fr })}`;
+        const range = `${format(start, "d MMM yyyy", { locale: dateFnsLocale })} → ${format(end, "d MMM yyyy", { locale: dateFnsLocale })}`;
         return (
           <div
             key={ev.id}
@@ -74,7 +77,7 @@ export default function EventTimeline(props: EventTimelineProps) {
                 </p>
               )}
               <p className="mt-4 text-sm text-[color:var(--foreground)]/55">
-                Budget alloué :{" "}
+                {t("eventsLegacy.timeline.budgetAllocated")}{" "}
                 <span className="font-semibold text-[var(--foreground)]">{formatCurrency(ev.allocatedBudget)}</span>
               </p>
               {tasks.length > 0 ? (() => {
@@ -83,7 +86,7 @@ export default function EventTimeline(props: EventTimelineProps) {
                 return (
                   <div className="mt-3">
                     <div className="flex items-center justify-between text-xs text-[color:var(--foreground)]/55">
-                      <span>Préparation</span>
+                      <span>{t("eventsLegacy.timeline.preparation")}</span>
                       <span className="font-semibold text-[var(--foreground)]">{stats.progressPct}%</span>
                     </div>
                     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--surface-soft)]">
@@ -93,7 +96,9 @@ export default function EventTimeline(props: EventTimelineProps) {
                       />
                     </div>
                     {stats.overdueTasks > 0 ? (
-                      <p className="mt-1 text-xs font-semibold text-[var(--danger)]">{stats.overdueTasks} en retard</p>
+                      <p className="mt-1 text-xs font-semibold text-[var(--danger)]">
+                        {t("eventsLegacy.timeline.overdue", { count: stats.overdueTasks })}
+                      </p>
                     ) : null}
                   </div>
                 );
@@ -102,7 +107,7 @@ export default function EventTimeline(props: EventTimelineProps) {
             {onDeleteEvent && (
               <button
                 type="button"
-                title="Supprimer l'événement"
+                title={t("eventsLegacy.timeline.deleteTitle")}
                 className="ui-transition ui-btn ui-btn-outline-danger absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full !p-0 shadow-sm"
                 onClick={(e) => {
                   e.preventDefault();

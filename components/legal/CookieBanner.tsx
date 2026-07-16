@@ -3,6 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 const CONSENT_KEY = "cookie-consent";
 
@@ -15,6 +16,7 @@ function readNeedsConsent(): boolean {
 }
 
 export default function CookieBanner() {
+  const { t } = useTranslation({ preferBrowser: true });
   const [dismissed, setDismissed] = useState(false);
   const needsConsent = useSyncExternalStore(
     () => () => undefined,
@@ -46,17 +48,16 @@ export default function CookieBanner() {
   return (
     <div
       role="dialog"
-      aria-label="Consentement cookies"
+      aria-label={t("legal.cookie.ariaLabel")}
       className="fixed inset-x-0 bottom-0 z-[100] border-t border-[var(--line)] bg-[var(--surface)]/95 p-4 shadow-[var(--shadow-2)] backdrop-blur-md sm:p-5"
     >
       <div className="mx-auto flex max-w-4xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1 pr-2">
-          <p className="text-sm font-semibold text-[var(--foreground)]">Cookies & confidentialité</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{t("legal.cookie.title")}</p>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/65">
-            Nous utilisons des cookies strictement nécessaires au fonctionnement du service (session,
-            préférences) et, avec votre accord, des cookies de mesure d&apos;audience. Consultez notre{" "}
+            {t("legal.cookie.body")}{" "}
             <Link href="/privacy" className="font-medium text-[var(--brand-primary)] hover:underline">
-              politique de confidentialité
+              {t("legal.cookie.privacyLink")}
             </Link>
             .
           </p>
@@ -67,19 +68,15 @@ export default function CookieBanner() {
             onClick={decline}
             className="ui-transition rounded-xl border border-[var(--line)] px-3 py-2 text-sm font-medium text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]"
           >
-            Essentiels uniquement
+            {t("legal.cookie.essentialOnly")}
           </button>
-          <button
-            type="button"
-            onClick={accept}
-            className="ui-btn ui-btn-primary px-4 py-2 text-sm"
-          >
-            Tout accepter
+          <button type="button" onClick={accept} className="ui-btn ui-btn-primary px-4 py-2 text-sm">
+            {t("legal.cookie.acceptAll")}
           </button>
           <button
             type="button"
             onClick={decline}
-            aria-label="Fermer"
+            aria-label={t("legal.cookie.close")}
             className="rounded-lg p-1.5 text-[color:var(--foreground)]/40 hover:bg-[var(--surface-soft)] sm:hidden"
           >
             <X className="h-4 w-4" />

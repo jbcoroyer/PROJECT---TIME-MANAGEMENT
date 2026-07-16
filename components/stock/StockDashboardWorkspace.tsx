@@ -8,6 +8,7 @@ import type { InventoryItem } from "../../lib/inventoryTypes";
 import { inventoryItemValue } from "../../lib/inventoryTypes";
 import type { StockMovement } from "../../lib/stockTypes";
 import { formatCurrency, formatNumber } from "../../lib/stockUtils";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 function isSameMonth(date: Date, reference: Date): boolean {
   return date.getMonth() === reference.getMonth() && date.getFullYear() === reference.getFullYear();
@@ -28,6 +29,8 @@ export default function StockDashboardWorkspace({
   itemsLoading,
   movementsLoading,
 }: StockDashboardWorkspaceProps) {
+  const { t } = useTranslation();
+
   const { totalStockValue, monthOutputCost, chartData } = useMemo(() => {
     const now = new Date();
     const totalStockValue = items.reduce((sum, item) => sum + inventoryItemValue(item), 0);
@@ -38,8 +41,9 @@ export default function StockDashboardWorkspace({
       (sum, movement) => sum + Math.abs(movement.changeAmount) * movement.unitPrice,
       0,
     );
+    const noProjectLabel = t("stockLegacy.dashboard.noProject");
     const costByProject = monthlyOutputs.reduce<Record<string, number>>((acc, movement) => {
-      const label = movement.projectName ?? "Sans projet";
+      const label = movement.projectName ?? noProjectLabel;
       acc[label] = (acc[label] ?? 0) + Math.abs(movement.changeAmount) * movement.unitPrice;
       return acc;
     }, {});
@@ -52,18 +56,20 @@ export default function StockDashboardWorkspace({
       monthOutputCost,
       chartData,
     };
-  }, [items, movements]);
+  }, [items, movements, t]);
 
   return (
     <section className="space-y-6">
       <div>
         <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[var(--line-strong)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/75">
           <BarChart3 className="h-3.5 w-3.5" />
-          Dashboard stock
+          {t("stockLegacy.dashboard.badge")}
         </div>
-        <h1 className="ui-heading text-3xl font-semibold text-[var(--foreground)]">Pilotage du stock</h1>
+        <h1 className="ui-heading text-3xl font-semibold text-[var(--foreground)]">
+          {t("stockLegacy.dashboard.title")}
+        </h1>
         <p className="mt-2 max-w-3xl text-sm text-[color:var(--foreground)]/65">
-          Vue synthétique de la valeur immobilisée, des sorties du mois et de la consommation par projet.
+          {t("stockLegacy.dashboard.subtitle")}
         </p>
       </div>
 
@@ -73,41 +79,41 @@ export default function StockDashboardWorkspace({
         <div className="ui-surface rounded-[24px] p-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold text-[color:var(--foreground)]/65">
             <Euro className="h-3.5 w-3.5" />
-            Valeur totale du stock actuel
+            {t("stockLegacy.dashboard.totalValue")}
           </div>
           <p className="mt-4 text-4xl font-semibold text-[var(--foreground)]">{formatCurrency(totalStockValue)}</p>
           <p className="mt-2 text-sm text-[color:var(--foreground)]/60">
-            {formatNumber(items.length)} article(s) suivis.
+            {t("stockLegacy.dashboard.itemCount", { count: formatNumber(items.length) })}
           </p>
         </div>
 
         <div className="ui-surface rounded-[24px] p-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold text-[color:var(--foreground)]/65">
             <TrendingDown className="h-3.5 w-3.5" />
-            Coût total des articles sortis ce mois-ci
+            {t("stockLegacy.dashboard.monthOutputCost")}
           </div>
           <p className="mt-4 text-4xl font-semibold text-[var(--foreground)]">{formatCurrency(monthOutputCost)}</p>
-          <p className="mt-2 text-sm text-[color:var(--foreground)]/60">
-            Basé sur les sorties imputées dans `stock_movements`.
-          </p>
+          <p className="mt-2 text-sm text-[color:var(--foreground)]/60">{t("stockLegacy.dashboard.monthOutputHint")}</p>
         </div>
       </div>
 
       <div className="ui-surface rounded-[24px] p-5">
         <div className="mb-4">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
-            Valeur consommée par projet
+            {t("stockLegacy.dashboard.chartTitle")}
           </p>
-          <h2 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Répartition des sorties du mois</h2>
+          <h2 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
+            {t("stockLegacy.dashboard.chartSubtitle")}
+          </h2>
         </div>
 
         {itemsLoading || movementsLoading ? (
           <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-16 text-center text-sm text-[color:var(--foreground)]/55">
-            Chargement du dashboard...
+            {t("stockLegacy.dashboard.loading")}
           </div>
         ) : chartData.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-16 text-center text-sm text-[color:var(--foreground)]/55">
-            Aucune sortie de stock enregistrée sur le mois en cours.
+            {t("stockLegacy.dashboard.empty")}
           </div>
         ) : (
           <div className="h-[360px] w-full">

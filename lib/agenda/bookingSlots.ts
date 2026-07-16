@@ -1,4 +1,6 @@
 import { addDays, addMinutes, getDay, isBefore, isSameDay, startOfDay } from "date-fns";
+import { getIntlLocale } from "../i18n/dateFnsLocale";
+import type { AppLocale } from "../i18n/index";
 import type { BookingSlot, WorkDayConfig, WorkHours, WeekdayKey } from "./agendaTypes";
 import { WEEKDAY_KEYS } from "./agendaTypes";
 
@@ -114,8 +116,9 @@ export function isDateBookable(date: Date, workHours: WorkHours): boolean {
   return Boolean(workHours[weekdayKey(date)]?.enabled);
 }
 
-export function slotsForDayLabel(date: Date): string {
+export function slotsForDayLabel(date: Date, locale: AppLocale, todayLabel: string): string {
+  const intlLocale = getIntlLocale(locale);
   return isSameDay(date, new Date())
-    ? "Aujourd'hui"
-    : date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    ? todayLabel
+    : date.toLocaleDateString(intlLocale, { weekday: "long", day: "numeric", month: "long" });
 }

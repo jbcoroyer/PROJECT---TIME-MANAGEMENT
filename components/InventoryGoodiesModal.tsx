@@ -7,6 +7,7 @@ import { uploadStockVisual } from "../lib/stockVisualUpload";
 import { STOCK_VISUAL_ACCEPT, stockVisualFileError } from "../lib/stockVisualUtils";
 import { toastError } from "../lib/toast";
 import StockVisualPreview from "./stock/StockVisualPreview";
+import { useTranslation } from "../lib/i18n/useTranslation";
 
 type Props = {
   open: boolean;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export default function InventoryGoodiesModal(props: Props) {
+  const { t } = useTranslation();
   const { open, initialItem, onClose, onSubmit, onDelete } = props;
   const isEditing = Boolean(initialItem?.id);
 
@@ -116,7 +118,7 @@ export default function InventoryGoodiesModal(props: Props) {
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">Goodies</p>
             <h2 className="ui-heading mt-1 text-2xl font-semibold text-[var(--foreground)]">
-              {isEditing ? "Modifier un goodies" : "Ajouter un goodies"}
+              {isEditing ? t("inventory.goodies.editTitle") : t("inventory.goodies.addTitle")}
             </h2>
           </div>
           <button
@@ -154,7 +156,7 @@ export default function InventoryGoodiesModal(props: Props) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Quantité</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.common.quantity")}</label>
               <input
                 type="number"
                 min="0"
@@ -225,8 +227,8 @@ export default function InventoryGoodiesModal(props: Props) {
 
           {(visualPreviewUrl || visualUrl) && (
             <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/55">Aperçu</p>
-              <StockVisualPreview url={visualPreviewUrl ?? visualUrl} name="Aperçu du goodies" mode="detail" />
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/55">{t("inventory.common.preview")}</p>
+              <StockVisualPreview url={visualPreviewUrl ?? visualUrl} name={t("inventory.goodies.previewName")} mode="detail" />
             </div>
           )}
 
@@ -250,14 +252,14 @@ export default function InventoryGoodiesModal(props: Props) {
                 onClick={onClose}
                 className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
               >
-                Annuler
+                {t("inventory.common.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={submitting}
                 className="ui-transition rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90 disabled:opacity-60"
               >
-                {submitting ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Créer"}
+                {submitting ? t("inventory.common.saving") : isEditing ? t("inventory.common.update") : t("inventory.common.create")}
               </button>
             </div>
           </div>

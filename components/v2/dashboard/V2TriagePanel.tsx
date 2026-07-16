@@ -4,12 +4,14 @@ import { AlertTriangle, Check, Database, Inbox, Sparkles, UserCheck, X } from "l
 import type { IntakeRequest } from "../../../lib/v2/intake";
 import type { Task } from "../../../lib/types";
 import { findDuplicateTasks, suggestAssignee } from "../../../lib/v2/triage";
+import { getIntlLocale } from "../../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
-function formatDeadline(value: string): string {
+function formatDeadline(value: string, locale: string): string {
   if (!value) return "—";
   const parsed = new Date(`${value}T12:00:00`);
   if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString("fr-FR");
+  return parsed.toLocaleDateString(locale);
 }
 
 export default function V2TriagePanel({
@@ -29,6 +31,8 @@ export default function V2TriagePanel({
   onReject: (request: IntakeRequest) => void;
   onOpenTask?: (taskId: string) => void;
 }) {
+  const { t, locale } = useTranslation();
+  const intlLocale = getIntlLocale(locale);
   const pending = requests.filter((r) => r.status === "triage");
   const decided = requests.filter((r) => r.status !== "triage").slice(0, 8);
 
@@ -41,27 +45,27 @@ export default function V2TriagePanel({
               <Inbox className="h-4 w-4" />
             </span>
             <div>
-              <h2 className="text-base font-semibold text-[var(--foreground)]">Triage des demandes</h2>
+              <h2 className="text-base font-semibold text-[var(--foreground)]">{t("dashboard.triage.title")}</h2>
               <p className="text-xs text-[color:var(--foreground)]/55">
-                {pending.length} demande{pending.length !== 1 ? "s" : ""} à qualifier
+                {pending.length === 1
+                  ? t("dashboard.triage.pendingOne", { count: String(pending.length) })
+                  : t("dashboard.triage.pendingMany", { count: String(pending.length) })}
               </p>
             </div>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
             <Database className="h-3.5 w-3.5" />
-            Partagé
+            {t("dashboard.triage.shared")}
           </span>
         </div>
 
         {loading ? (
-          <p className="text-sm text-[color:var(--foreground)]/55">Chargement…</p>
+          <p className="text-sm text-[color:var(--foreground)]/55">{t("common.loading")}</p>
         ) : pending.length === 0 ? (
           <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-10 text-center">
             <Check className="mx-auto h-8 w-8 text-[var(--success)]" />
-            <p className="mt-2 text-sm font-medium text-[var(--foreground)]">Aucune demande en attente</p>
-            <p className="mt-1 text-xs text-[color:var(--foreground)]/55">
-              Les demandes soumises via le portail apparaîtront ici.
-            </p>
+            <p className="mt-2 text-sm font-medium text-[var(--foreground)]">{t("dashboard.triage.emptyTitle")}</p>
+            <p className="mt-1 text-xs text-[color:var(--foreground)]/55">{t("dashboard.triage.emptyBody")}</p>
           </div>
         ) : (
           <ul className="space-y-3">
@@ -89,16 +93,16 @@ export default function V2TriagePanel({
                       ) : null}
                       {request.concern ? (
                         <span className="rounded-full bg-[var(--surface-soft)] px-2 py-0.5 text-[color:var(--foreground)]/60">
-                          Support : {request.concern}
+                          {t("dashboard.triage.support", { value: request.concern })}
                         </span>
                       ) : null}
                       {request.supportFormat ? (
                         <span className="rounded-full bg-[var(--surface-soft)] px-2 py-0.5 text-[color:var(--foreground)]/60">
-                          Format : {request.supportFormat}
+                          {t("dashboard.triage.format", { value: request.supportFormat })}
                         </span>
                       ) : null}
                       <span className="rounded-full border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-2 py-0.5 font-semibold text-[var(--accent)]">
-                        Échéance {formatDeadline(request.deadline)}
+                        {t("dashboard.triage.deadline", { date: formatDeadline(request.deadline, intlLocale) })}
                       </span>
                       {request.requesterName ? (
                         <span className="rounded-full bg-[var(--surface-soft)] px-2 py-0.5 text-[color:var(--foreground)]/60">
@@ -119,7 +123,7 @@ export default function V2TriagePanel({
                     {duplicates.length > 0 ? (
                       <div className="ui-alert ui-alert-warning mt-2 rounded-lg p-2">
                         <p className="flex items-center gap-1 text-[11px] font-semibold text-[var(--warning)]">
-                          <AlertTriangle className="h-3 w-3" /> Doublon possible
+                          <AlertTriangle className="h-3 w-3" /> {t("dashboard.triage.duplicateWarning")}
                         </p>
                         <ul className="mt-1 space-y-0.5">
                           {duplicates.map((d) => (
@@ -143,14 +147,14 @@ export default function V2TriagePanel({
                       onClick={() => onAccept(request)}
                       className="ui-transition inline-flex items-center gap-1.5 rounded-lg border border-[var(--accent)] bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)]"
                     >
-                      <Check className="h-3.5 w-3.5" /> Créer la tâche
+                      <Check className="h-3.5 w-3.5" /> {t("dashboard.triage.createTask")}
                     </button>
                     <button
                       type="button"
                       onClick={() => onReject(request)}
                       className="ui-transition inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--surface)] px-3 py-1.5 text-xs font-semibold text-[color:var(--foreground)]/70 hover:text-[var(--danger)]"
                     >
-                      <X className="h-3.5 w-3.5" /> Rejeter
+                      <X className="h-3.5 w-3.5" /> {t("dashboard.triage.reject")}
                     </button>
                   </div>
                 </div>
@@ -163,7 +167,7 @@ export default function V2TriagePanel({
 
       {decided.length > 0 ? (
         <section className="ui-surface rounded-2xl p-5">
-          <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">Historique récent</h3>
+          <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">{t("dashboard.triage.recentHistory")}</h3>
           <ul className="space-y-1.5">
             {decided.map((request) => (
               <li
@@ -179,7 +183,7 @@ export default function V2TriagePanel({
                       : "bg-[var(--surface-soft)] text-[color:var(--foreground)]/55",
                   ].join(" ")}
                 >
-                  {request.status === "accepted" ? "Acceptée" : "Rejetée"}
+                  {request.status === "accepted" ? t("dashboard.triage.accepted") : t("dashboard.triage.rejected")}
                 </span>
               </li>
             ))}

@@ -11,7 +11,7 @@ import ModuleGlyph from "../modules/ModuleGlyph";
 import OnboardingModulePicker from "./OnboardingModulePicker";
 import {
   DEFAULT_ONBOARDING_MODULES,
-  getModulesByCategory,
+  getCommerciallyAvailableCatalog,
   MODULE_CATEGORY_ORDER,
   toggleModule,
   type AppModuleId,
@@ -38,7 +38,7 @@ function SettingsModuleCatalog({
   showIntro = true,
 }: ModuleCatalogProps) {
   const { t } = useTranslation({ preferBrowser: true });
-  const grouped = getModulesByCategory();
+  const grouped = getCommerciallyAvailableCatalog();
   const [expanded, setExpanded] = useState<AppModuleId | null>(null);
   const enabledCount = value.length;
 

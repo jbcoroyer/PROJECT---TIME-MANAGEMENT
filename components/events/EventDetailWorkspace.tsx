@@ -48,14 +48,10 @@ import { toastError, toastSuccess } from "../../lib/toast";
 import { deleteEvent } from "../../app/actions/events";
 import { completedAtIsoForNewTaskInColumn, completedAtPatchForColumnChange } from "../../lib/completedAt";
 import { markTaskMutatedLocally } from "../../lib/taskMutatedLocally";
+import { useTranslation } from "../../lib/i18n/useTranslation";
+import { getIntlLocale } from "../../lib/i18n/dateFnsLocale";
 
 type Tab = "tasks" | "stock" | "budget" | "documents";
-const EVENT_DETAIL_TABS = [
-  { id: "tasks" as const, label: "Tâches & planning", icon: ClipboardList },
-  { id: "stock" as const, label: "Matériel réservé", icon: Warehouse },
-  { id: "budget" as const, label: "Suivi budgétaire", icon: PiggyBank },
-  { id: "documents" as const, label: "Documents", icon: FileText },
-] as const;
 const EVENT_DOCUMENTS_BUCKET = "event-documents" as StorageBucket;
 
 type ExpenseDb = {
@@ -132,6 +128,14 @@ export default function EventDetailWorkspace({
   kanbanPath = "/dashboard/kanban",
   showRetexNav = false,
 }: EventDetailWorkspaceProps) {
+  const { t, locale } = useTranslation();
+  const intlLocale = getIntlLocale(locale);
+  const EVENT_DETAIL_TABS = [
+    { id: "tasks" as const, label: t("eventsLegacy.detail.tabs.tasks"), icon: ClipboardList },
+    { id: "stock" as const, label: t("eventsLegacy.detail.tabs.stock"), icon: Warehouse },
+    { id: "budget" as const, label: t("eventsLegacy.detail.tabs.budget"), icon: PiggyBank },
+    { id: "documents" as const, label: t("eventsLegacy.detail.tabs.documents"), icon: FileText },
+  ] as const;
   const router = useRouter();
   const id = eventId;
   const { user: currentUser } = useCurrentUser();
@@ -261,7 +265,7 @@ export default function EventDetailWorkspace({
       );
       setDocuments(rows);
     } catch (e) {
-      toastError(getInventoryErrorMessage(e, "Impossible de charger les documents de l'événement."));
+      toastError(getInventoryErrorMessage(e, t("eventsLegacy.detail.toast.loadDocsError")));
     } finally {
       setLoadingDocuments(false);
     }
@@ -353,10 +357,10 @@ export default function EventDetailWorkspace({
       markTaskMutatedLocally(taskId);
       const { error } = await supabase.from("tasks").update(dbPatch).eq("id", taskId);
       if (error) {
-        toastError(getInventoryErrorMessage(error, "Mise à jour impossible."));
+        toastError(getInventoryErrorMessage(error, t("eventsLegacy.detail.toast.updateError")));
         throw error;
       }
-      toastSuccess("Tâche mise à jour");
+      toastSuccess(t("eventsLegacy.detail.toast.taskUpdated"));
       void loadTasks();
     },
     [loadTasks],
@@ -385,15 +389,9 @@ export default function EventDetailWorkspace({
   const handleDeleteEvent = async () => {
     if (!event || !id) return;
     const ok = await confirm({
-      title: `Supprimer l'événement ?`,
-      description: (
-        <>
-          <span className="font-semibold text-[var(--foreground)]">« {event.name} »</span> et{" "}
-          <span className="font-semibold text-[var(--danger)]">toutes ses tâches</span> seront définitivement
-          supprimés. Cette action est irréversible.
-        </>
-      ),
-      confirmLabel: "Supprimer définitivement",
+      title: t("eventsLegacy.detail.deleteTitle"),
+      description: t("eventsLegacy.detail.deleteDescription", { name: event.name }),
+      confirmLabel: t("eventsLegacy.detail.deleteConfirm"),
       variant: "destructive",
     });
     if (!ok) return;
@@ -404,7 +402,7 @@ export default function EventDetailWorkspace({
         toastError(res.error);
         return;
       }
-      toastSuccess("Événement supprimé");
+      toastSuccess(t("eventsLegacy.detail.toast.deleted"));
       router.push(`${eventsBasePath}/dashboard`);
     } finally {
       setDeletingEvent(false);
@@ -433,10 +431,10 @@ export default function EventDetailWorkspace({
           { onConflict: "storage_path" },
         );
       }
-      toastSuccess("Document(s) ajouté(s)");
+      toastSuccess(t("eventsLegacy.detail.toast.docsAdded"));
       await loadDocuments();
     } catch (e) {
-      toastError(getInventoryErrorMessage(e, "Upload impossible."));
+      toastError(getInventoryErrorMessage(e, t("eventsLegacy.detail.uploadError")));
     } finally {
       setUploadingDocuments(false);
     }
@@ -444,32 +442,27 @@ export default function EventDetailWorkspace({
 
   const handleDeleteDocument = async (doc: EventDocument) => {
     const ok = await confirm({
-      title: "Supprimer ce document ?",
-      description: (
-        <>
-          <span className="font-semibold text-[var(--foreground)]">« {doc.name} »</span> sera retiré
-          de l&apos;événement.
-        </>
-      ),
-      confirmLabel: "Supprimer",
+      title: t("eventsLegacy.detail.deleteDocTitle"),
+      description: t("eventsLegacy.detail.deleteDocDescription", { name: doc.name }),
+      confirmLabel: t("survey.common.delete"),
       variant: "destructive",
     });
     if (!ok) return;
     const supabase = getSupabaseBrowser();
     const { error } = await supabase.storage.from(EVENT_DOCUMENTS_BUCKET).remove([doc.path]);
     if (error) {
-      toastError(getInventoryErrorMessage(error, "Suppression impossible."));
+      toastError(getInventoryErrorMessage(error, t("eventsLegacy.detail.deleteDocError")));
       return;
     }
     await supabase.from("event_document_meta").delete().eq("storage_path", doc.path);
-    toastSuccess("Document supprimé");
+    toastSuccess(t("eventsLegacy.detail.toast.docDeleted"));
     await loadDocuments();
   };
 
   const handleCreateEventTask = async () => {
     const title = newTaskTitle.trim();
     if (!id || !title) {
-      toastError("Indiquez un intitulé de tâche.");
+      toastError(t("eventsLegacy.detail.toast.taskTitleRequired"));
       return;
     }
     const assignedName =
@@ -478,7 +471,7 @@ export default function EventDetailWorkspace({
       currentUser?.displayName ??
       "";
     if (!assignedName) {
-      toastError("Ajoutez au moins un collaborateur actif dans Paramètres.");
+      toastError(t("eventsLegacy.detail.toast.addCollaborator"));
       return;
     }
     setCreatingTask(true);
@@ -516,12 +509,12 @@ export default function EventDetailWorkspace({
         .maybeSingle();
       if (error) throw error;
       markTaskMutatedLocally((createdRow as { id?: string } | null)?.id);
-      toastSuccess("Tâche ajoutée");
+      toastSuccess(t("eventsLegacy.detail.toast.taskAdded"));
       setNewTaskTitle("");
       setNewTaskCategory("");
       await loadTasks();
     } catch (e) {
-      toastError(getInventoryErrorMessage(e, "Création de la tâche impossible."));
+      toastError(getInventoryErrorMessage(e, t("eventsLegacy.detail.toast.taskCreateError")));
     } finally {
       setCreatingTask(false);
     }
@@ -539,13 +532,13 @@ export default function EventDetailWorkspace({
           className="ui-transition inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--foreground)]/65 hover:text-[color:var(--foreground)]/75"
         >
           <ArrowLeft className="h-4 w-4" />
-          Retour au hub
+          {t("eventsLegacy.detail.backToHub")}
         </Link>
 
         {loadingEvent ? (
-          <p className="text-sm text-[color:var(--foreground)]/55">Chargement…</p>
+          <p className="text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.detail.loading")}</p>
         ) : !event ? (
-          <p className="text-sm text-[var(--danger)]">Événement introuvable.</p>
+          <p className="text-sm text-[var(--danger)]">{t("eventsLegacy.detail.notFound")}</p>
         ) : (
           <>
             <header className="ui-surface overflow-hidden rounded-[24px]">
@@ -572,7 +565,7 @@ export default function EventDetailWorkspace({
                   className="ui-transition ui-btn ui-btn-outline-danger inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" />
-                  {deletingEvent ? "Suppression…" : "Supprimer l'événement"}
+                  {deletingEvent ? t("eventsLegacy.detail.deleting") : t("eventsLegacy.detail.deleteEvent")}
                 </button>
               </div>
             </header>
@@ -600,24 +593,24 @@ export default function EventDetailWorkspace({
               <div className="space-y-6">
                 <section className="ui-surface rounded-[24px] p-5">
                   <div className="flex flex-col gap-3 border-b border-[var(--line)] pb-4 sm:flex-row sm:items-center sm:justify-between">
-                    <h2 className="text-lg font-semibold text-[var(--foreground)]">Kanban événement</h2>
+                    <h2 className="text-lg font-semibold text-[var(--foreground)]">{t("eventsLegacy.detail.eventKanban")}</h2>
                     <Link
                       href={kanbanPath}
                       className="ui-transition inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 text-xs font-semibold text-[color:var(--foreground)]/70"
                     >
                       <KanbanSquare className="h-4 w-4 text-[var(--accent)]" />
-                      Kanban principal
+                      {t("eventsLegacy.detail.mainKanban")}
                     </Link>
                   </div>
                   {milestoneFilterDate ? (
                     <p className="mt-2 text-xs font-semibold text-[var(--accent)]">
-                      Filtre jalon : échéance ≤ {milestoneFilterDate}{" "}
+                      {t("eventsLegacy.detail.milestoneFilter", { date: milestoneFilterDate })}{" "}
                       <button
                         type="button"
                         className="underline"
                         onClick={() => setMilestoneFilterDate(null)}
                       >
-                        Réinitialiser
+                        {t("dashboard.reset")}
                       </button>
                     </p>
                   ) : null}
@@ -625,7 +618,7 @@ export default function EventDetailWorkspace({
                     <input
                       value={newTaskTitle}
                       onChange={(e) => setNewTaskTitle(e.target.value)}
-                      placeholder="Ajouter une tâche…"
+                      placeholder={t("eventsLegacy.detail.addTaskPlaceholder")}
                       className="ui-focus-ring h-10 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-sm"
                     />
                     <select
@@ -633,7 +626,7 @@ export default function EventDetailWorkspace({
                       onChange={(e) => setNewTaskCategory(e.target.value)}
                       className="ui-focus-ring h-10 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-sm"
                     >
-                      <option value="">Catégorie…</option>
+                      <option value="">{t("eventsLegacy.detail.categoryPlaceholder")}</option>
                       {eventTaskCategories.map((c) => (
                         <option key={c} value={c}>
                           {c}
@@ -646,12 +639,12 @@ export default function EventDetailWorkspace({
                       onClick={() => void handleCreateEventTask()}
                       className="h-10 rounded-lg bg-[var(--foreground)] px-4 text-sm font-semibold text-[var(--accent-contrast)] disabled:opacity-60"
                     >
-                      {creatingTask ? "Ajout…" : "Ajouter"}
+                      {creatingTask ? t("eventsLegacy.detail.adding") : t("eventsLegacy.detail.add")}
                     </button>
                   </div>
                   <div className="mt-4">
                     {tasksLoading ? (
-                      <p className="text-sm text-[color:var(--foreground)]/55">Chargement…</p>
+                      <p className="text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.detail.loading")}</p>
                     ) : (
                       <EventDetailKanban
                         tasks={filteredTasks}
@@ -678,9 +671,9 @@ export default function EventDetailWorkspace({
                 />
                 <EventStockReserve eventId={id} defaultUserName={defaultUserName} />
                 <div className="ui-surface rounded-[24px] p-5">
-                  <h3 className="text-lg font-semibold text-[var(--foreground)]">Sorties de stock imputées</h3>
+                  <h3 className="text-lg font-semibold text-[var(--foreground)]">{t("eventsLegacy.detail.stockOutputs")}</h3>
                   {movements.filter((m) => m.change_amount < 0).length === 0 ? (
-                    <p className="mt-3 text-sm text-[color:var(--foreground)]/55">Aucune sortie pour cet événement.</p>
+                    <p className="mt-3 text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.detail.noStockOutputs")}</p>
                   ) : (
                     <ul className="mt-4 space-y-2">
                       {movements
@@ -730,9 +723,9 @@ export default function EventDetailWorkspace({
               <section className="ui-surface rounded-[24px] p-5">
                 <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <h2 className="text-lg font-semibold text-[var(--foreground)]">Devis &amp; factures</h2>
+                    <h2 className="text-lg font-semibold text-[var(--foreground)]">{t("eventsLegacy.detail.quotesInvoices")}</h2>
                     <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
-                      Pièces jointes et justificatifs liés à l&apos;événement.
+                      {t("eventsLegacy.detail.documentsHint")}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
@@ -749,7 +742,7 @@ export default function EventDetailWorkspace({
                     </select>
                     <label className="ui-transition inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[var(--foreground)] px-4 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90">
                       <Upload className="h-4 w-4 shrink-0" />
-                      {uploadingDocuments ? "Upload…" : "Ajouter"}
+                      {uploadingDocuments ? t("common.uploading") : t("eventsLegacy.detail.add")}
                       <input
                         type="file"
                         multiple
@@ -765,10 +758,10 @@ export default function EventDetailWorkspace({
                   </div>
                 </div>
                 {loadingDocuments ? (
-                  <p className="mt-4 text-sm text-[color:var(--foreground)]/55">Chargement…</p>
+                  <p className="mt-4 text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.detail.loading")}</p>
                 ) : documents.length === 0 ? (
                   <p className="mt-4 text-sm text-[color:var(--foreground)]/55">
-                    Aucun document pour cet événement.
+                    {t("eventsLegacy.detail.noDocuments")}
                   </p>
                 ) : (
                   <ul className="mt-4 space-y-3">
@@ -789,13 +782,13 @@ export default function EventDetailWorkspace({
                             />
                           ) : isPdfDocument(doc.name) ? (
                             <iframe
-                              title={`Prévisualisation ${doc.name}`}
+                              title={t("eventsLegacy.detail.previewDoc", { name: doc.name })}
                               src={`${doc.publicUrl}#toolbar=0&navpanes=0&scrollbar=0`}
                               className="h-full w-full"
                             />
                           ) : (
                             <div className="flex h-full items-center justify-center text-[11px] font-semibold text-[color:var(--foreground)]/50">
-                              Aperçu non disponible
+                              {t("eventsLegacy.detail.previewUnavailable")}
                             </div>
                           )}
                         </div>
@@ -805,7 +798,7 @@ export default function EventDetailWorkspace({
                             {doc.docType}
                           </span>
                           <p className="mt-2 text-xs text-[color:var(--foreground)]/55">
-                            {doc.createdAt ? new Date(doc.createdAt).toLocaleString("fr-FR") : "Date inconnue"} ·{" "}
+                            {doc.createdAt ? new Date(doc.createdAt).toLocaleString(intlLocale) : t("eventsLegacy.detail.unknownDate")} ·{" "}
                             {formatNumber(doc.size / 1024)} Ko
                           </p>
                         </div>
@@ -824,7 +817,7 @@ export default function EventDetailWorkspace({
                             onClick={() => void handleDeleteDocument(doc)}
                             className="ui-transition ui-btn ui-btn-outline-danger rounded-lg px-2 py-1 text-xs font-semibold"
                           >
-                            Supprimer
+                            {t("survey.common.delete")}
                           </button>
                         </div>
                       </li>

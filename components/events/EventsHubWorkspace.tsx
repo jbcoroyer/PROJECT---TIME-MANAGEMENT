@@ -15,6 +15,7 @@ import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { formatCurrency } from "../../lib/stockUtils";
 import { deleteEvent } from "../../app/actions/events";
 import { toastError, toastSuccess } from "../../lib/toast";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type EventsHubWorkspaceProps = {
   eventsBasePath?: string;
@@ -28,13 +29,14 @@ export default function EventsHubWorkspace({
   showRetexNav = false,
 }: EventsHubWorkspaceProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { events, loading: eventsLoading, loadEvents } = useEvents();
   const { tasks, loadTasks } = useTasks();
   const confirm = useConfirm();
   const [createOpen, setCreateOpen] = useState(false);
   const [yearEngaged, setYearEngaged] = useState<number | null>(null);
 
-  const eventTasks = useMemo(() => tasks.filter((t) => Boolean(t.eventId)), [tasks]);
+  const eventTasks = useMemo(() => tasks.filter((task) => Boolean(task.eventId)), [tasks]);
 
   const activeEventsCount = useMemo(
     () => events.filter((e) => e.status !== "Terminé").length,
@@ -43,16 +45,11 @@ export default function EventsHubWorkspace({
 
   const handleDeleteEvent = async (eventId: string) => {
     const ev = events.find((e) => e.id === eventId);
-    const label = ev?.name ?? "cet événement";
+    const label = ev?.name ?? t("eventsLegacy.hub.thisEvent");
     const ok = await confirm({
-      title: "Supprimer cet événement ?",
-      description: (
-        <>
-          <span className="font-semibold text-[var(--foreground)]">« {label} »</span> et toutes ses
-          tâches seront supprimés. Cette action est irréversible.
-        </>
-      ),
-      confirmLabel: "Supprimer définitivement",
+      title: t("eventsLegacy.hub.deleteTitle"),
+      description: t("eventsLegacy.hub.deleteDescription", { name: label }),
+      confirmLabel: t("eventsLegacy.hub.deleteConfirm"),
       variant: "destructive",
     });
     if (!ok) return;
@@ -61,7 +58,7 @@ export default function EventsHubWorkspace({
       toastError(r.error);
       return;
     }
-    toastSuccess("Événement supprimé");
+    toastSuccess(t("eventsLegacy.hub.toast.deleted"));
     void loadEvents();
     void loadTasks();
   };
@@ -122,13 +119,10 @@ export default function EventsHubWorkspace({
         <div>
           <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[var(--line-strong)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/75">
             <CalendarRange className="h-3.5 w-3.5" />
-            Espace événementiel
+            {t("eventsLegacy.hub.badge")}
           </div>
-          <h1 className="ui-heading text-3xl font-semibold text-[var(--foreground)]">Hub événementiel</h1>
-          <p className="mt-2 max-w-2xl text-sm text-[color:var(--foreground)]/65">
-            Vue consolidée : calendrier des événements, charge de travail Kanban (tâches liées) et budget engagé sur
-            l&apos;année.
-          </p>
+          <h1 className="ui-heading text-3xl font-semibold text-[var(--foreground)]">{t("eventsLegacy.hub.title")}</h1>
+          <p className="mt-2 max-w-2xl text-sm text-[color:var(--foreground)]/65">{t("eventsLegacy.hub.subtitle")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -140,7 +134,7 @@ export default function EventsHubWorkspace({
             className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
           >
             <RefreshCcw className="h-4 w-4" />
-            Actualiser
+            {t("eventsLegacy.hub.refresh")}
           </button>
           <button
             type="button"
@@ -148,7 +142,7 @@ export default function EventsHubWorkspace({
             className="ui-transition inline-flex items-center gap-1.5 rounded-xl bg-[var(--foreground)] px-3 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
-            Nouvel événement
+            {t("eventsLegacy.hub.newEvent")}
           </button>
         </div>
       </div>
@@ -159,39 +153,39 @@ export default function EventsHubWorkspace({
         <div className="ui-surface rounded-[24px] p-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold text-[color:var(--foreground)]/65">
             <TrendingUp className="h-3.5 w-3.5" />
-            Événements en cours
+            {t("eventsLegacy.hub.activeEvents")}
           </div>
           <p className="mt-4 text-4xl font-semibold text-[var(--foreground)]">{activeEventsCount}</p>
-          <p className="mt-1 text-sm text-[color:var(--foreground)]/55">Statuts autres que « Terminé »</p>
+          <p className="mt-1 text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.hub.activeEventsHint")}</p>
         </div>
         <div className="ui-surface rounded-[24px] p-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold text-[color:var(--foreground)]/65">
             <Wallet className="h-3.5 w-3.5" />
-            Budget engagé ({new Date().getFullYear()})
+            {t("eventsLegacy.hub.budgetEngaged", { year: new Date().getFullYear() })}
           </div>
           <p className="mt-4 text-4xl font-semibold text-[var(--foreground)]">
             {yearEngaged === null ? "…" : formatCurrency(yearEngaged)}
           </p>
-          <p className="mt-1 text-sm text-[color:var(--foreground)]/55">Dépenses saisies + valorisation des sorties stock</p>
+          <p className="mt-1 text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.hub.budgetEngagedHint")}</p>
         </div>
       </div>
 
       <div>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold text-[var(--foreground)]">Timeline des événements</h2>
-            <p className="text-sm text-[color:var(--foreground)]/55">Cliquez sur une carte pour ouvrir l&apos;espace de travail.</p>
+            <h2 className="text-xl font-semibold text-[var(--foreground)]">{t("eventsLegacy.hub.timelineTitle")}</h2>
+            <p className="text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.hub.timelineHint")}</p>
           </div>
           <Link
             href={kanbanPath}
             className="text-sm font-semibold text-[color:var(--foreground)]/75 hover:underline"
           >
-            Retour au tableau de bord principal
+            {t("eventsLegacy.hub.backToDashboard")}
           </Link>
         </div>
         {eventsLoading ? (
           <div className="rounded-2xl border border-dashed border-[var(--line)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-            Chargement des événements…
+            {t("eventsLegacy.hub.loadingEvents")}
           </div>
         ) : (
           <EventTimeline
@@ -204,10 +198,8 @@ export default function EventsHubWorkspace({
       </div>
 
       <div>
-        <h2 className="mb-2 text-xl font-semibold text-[var(--foreground)]">Charge de travail (tâches événements)</h2>
-        <p className="mb-4 text-sm text-[color:var(--foreground)]/55">
-          Toutes les tâches avec un lien événement apparaissent aussi sur le Kanban principal.
-        </p>
+        <h2 className="mb-2 text-xl font-semibold text-[var(--foreground)]">{t("eventsLegacy.hub.workloadTitle")}</h2>
+        <p className="mb-4 text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.hub.workloadHint")}</p>
         <EventTasksKanban tasks={eventTasks} eventsBasePath={eventsBasePath} />
       </div>
 

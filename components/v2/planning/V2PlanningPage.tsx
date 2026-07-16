@@ -17,7 +17,8 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns";
-import { fr } from "date-fns/locale";
+import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import {
   AlertTriangle,
   CalendarDays,
@@ -58,6 +59,8 @@ const PRIORITY_DOT: Record<string, string> = {
 };
 
 export default function V2PlanningPage() {
+  const { t, locale } = useTranslation();
+  const dateLocale = useMemo(() => getDateFnsLocale(locale), [locale]);
   const { tasks } = useTasks();
   const [view, setView] = useState<ViewId>("retroplanning");
   const [anchor, setAnchor] = useState<Date>(() => new Date());
@@ -75,6 +78,11 @@ export default function V2PlanningPage() {
     const start = startOfWeek(anchor, { weekStartsOn: 1 });
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }, [anchor]);
+
+  const weekdayHeaders = useMemo(() => {
+    const start = startOfWeek(new Date(), { weekStartsOn: 1 });
+    return Array.from({ length: 7 }, (_, i) => format(addDays(start, i), "EEE", { locale: dateLocale }));
+  }, [dateLocale]);
 
   const monthDays = useMemo(() => {
     const start = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 });
@@ -103,42 +111,52 @@ export default function V2PlanningPage() {
 
   const rangeLabel =
     view === "retroplanning"
-      ? `Sem. ${format(retroRangeStart, "I")} – ${format(retroRangeEnd, "I")} · ${format(retroRangeStart, "yyyy")}`
+      ? t("planning.range.retroWeeks", {
+          startWeek: format(retroRangeStart, "I"),
+          endWeek: format(retroRangeEnd, "I"),
+          year: format(retroRangeStart, "yyyy"),
+        })
       : view === "week"
-        ? `Semaine du ${format(weekDays[0], "d MMM", { locale: fr })}`
-        : format(anchor, "MMMM yyyy", { locale: fr });
+        ? t("planning.range.weekOf", {
+            date: format(weekDays[0], "d MMM", { locale: dateLocale }),
+          })
+        : format(anchor, "MMMM yyyy", { locale: dateLocale });
+
+  const viewOptions = useMemo(
+    () =>
+      [
+        { id: "retroplanning" as const, label: t("planning.views.retroplanning"), icon: GanttChartSquare },
+        { id: "week" as const, label: t("planning.views.week"), icon: LayoutGrid },
+        { id: "month" as const, label: t("planning.views.month"), icon: CalendarDays },
+        { id: "workload" as const, label: t("planning.views.workload"), icon: Scale },
+      ] as const,
+    [t],
+  );
 
   return (
       <div className="space-y-5">
         <header className="ui-surface flex flex-wrap items-start justify-between gap-4 rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
           <div>
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-              <CalendarDays className="h-3.5 w-3.5" /> Planning
+              <CalendarDays className="h-3.5 w-3.5" /> {t("planning.badge")}
             </p>
-            <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">Rétroplanning & charge</h1>
-            <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
-              Vue Gantt marketing, semaine, mois et charge — par tâche, personne, domaine ou mode.
-            </p>
+            <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{t("planning.title")}</h1>
+            <p className="mt-1 text-sm text-[color:var(--foreground)]/55">{t("planning.subtitle")}</p>
           </div>
           {conflicts.length > 0 ? (
             <span className="ui-pill ui-pill-danger inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold">
-              <ShieldAlert className="h-4 w-4" /> {conflicts.length} conflit(s)
+              <ShieldAlert className="h-4 w-4" /> {t("planning.conflictsCount", { count: conflicts.length })}
             </span>
           ) : (
             <span className="ui-pill ui-pill-success inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold">
-              Aucun conflit
+              {t("planning.noConflicts")}
             </span>
           )}
         </header>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <nav className="flex items-center gap-1 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-1">
-            {[
-              { id: "retroplanning" as const, label: "Rétroplanning", icon: GanttChartSquare },
-              { id: "week" as const, label: "Semaine", icon: LayoutGrid },
-              { id: "month" as const, label: "Mois", icon: CalendarDays },
-              { id: "workload" as const, label: "Charge", icon: Scale },
-            ].map((v) => {
+            {viewOptions.map((v) => {
               const Icon = v.icon;
               const active = view === v.id;
               return (
@@ -162,7 +180,7 @@ export default function V2PlanningPage() {
               type="button"
               onClick={() => navigate(-1)}
               className="ui-transition flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-soft)]"
-              aria-label="Précédent"
+              aria-label={t("planning.nav.previous")}
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -173,7 +191,7 @@ export default function V2PlanningPage() {
               type="button"
               onClick={() => navigate(1)}
               className="ui-transition flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-soft)]"
-              aria-label="Suivant"
+              aria-label={t("planning.nav.next")}
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -201,20 +219,20 @@ export default function V2PlanningPage() {
                 return (
                   <div key={day.toISOString()} className="rounded-xl border border-[var(--line)] bg-[var(--surface)]">
                     <div className={`rounded-t-xl px-3 py-2 text-center text-xs font-semibold ${today ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "text-[color:var(--foreground)]/60"}`}>
-                      {format(day, "EEE d", { locale: fr })}
+                      {format(day, "EEE d", { locale: dateLocale })}
                     </div>
                     <div className="space-y-1.5 p-2">
                       {dayTasks.length === 0 ? (
                         <p className="py-3 text-center text-[10px] text-[color:var(--foreground)]/35">—</p>
                       ) : (
-                        dayTasks.map((t) => (
-                          <div key={t.id} className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1.5">
+                        dayTasks.map((task) => (
+                          <div key={task.id} className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1.5">
                             <div className="flex items-center gap-1.5">
-                              <span className={`h-2 w-2 shrink-0 rounded-full ${PRIORITY_DOT[t.priority] ?? "bg-slate-400"}`} />
-                              <p className="truncate text-[11px] font-semibold text-[var(--foreground)]">{t.projectName}</p>
+                              <span className={`h-2 w-2 shrink-0 rounded-full ${PRIORITY_DOT[task.priority] ?? "bg-slate-400"}`} />
+                              <p className="truncate text-[11px] font-semibold text-[var(--foreground)]">{task.projectName}</p>
                             </div>
                             <p className="mt-0.5 truncate text-[10px] text-[color:var(--foreground)]/50">
-                              {t.admins[0] ?? "Non assigné"}
+                              {task.admins[0] ?? t("planning.unassigned")}
                             </p>
                           </div>
                         ))
@@ -230,7 +248,7 @@ export default function V2PlanningPage() {
         {view === "month" ? (
           <section className="ui-surface rounded-2xl p-4">
             <div className="grid grid-cols-7 gap-1">
-              {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((d) => (
+              {weekdayHeaders.map((d) => (
                 <div key={d} className="pb-1 text-center text-[11px] font-semibold uppercase text-[color:var(--foreground)]/45">
                   {d}
                 </div>
@@ -271,15 +289,15 @@ export default function V2PlanningPage() {
         {view === "workload" ? (
           <section className="ui-surface overflow-x-auto rounded-2xl p-4">
             {workload.length === 0 ? (
-              <p className="py-8 text-center text-sm text-[color:var(--foreground)]/55">Aucune charge planifiée.</p>
+              <p className="py-8 text-center text-sm text-[color:var(--foreground)]/55">{t("planning.workload.empty")}</p>
             ) : (
               <table className="w-full min-w-[840px] border-collapse text-sm">
                 <thead>
                   <tr>
-                    <th className="px-2 py-2 text-left text-[11px] uppercase text-[color:var(--foreground)]/45">Personne</th>
+                    <th className="px-2 py-2 text-left text-[11px] uppercase text-[color:var(--foreground)]/45">{t("planning.workload.personHeader")}</th>
                     {weekDays.map((day) => (
                       <th key={day.toISOString()} className="px-1 py-2 text-center text-[11px] font-semibold text-[color:var(--foreground)]/55">
-                        {format(day, "EEE d", { locale: fr })}
+                        {format(day, "EEE d", { locale: dateLocale })}
                       </th>
                     ))}
                   </tr>
@@ -308,7 +326,7 @@ export default function V2PlanningPage() {
                                       ? "var(--danger)"
                                       : `color-mix(in srgb, var(--accent) ${Math.round(ratio * 55)}%, var(--surface))`,
                               }}
-                              title={`${load.toFixed(1)} h`}
+                              title={t("planning.workload.hoursTitle", { hours: load.toFixed(1) })}
                             >
                               {load === 0 ? "·" : `${load.toFixed(1)}`}
                             </div>
@@ -326,7 +344,7 @@ export default function V2PlanningPage() {
         {conflicts.length > 0 ? (
           <section className="ui-surface rounded-2xl p-5">
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-[var(--foreground)]">
-              <AlertTriangle className="h-4 w-4 text-[var(--danger)]" /> Conflits &amp; rééquilibrage
+              <AlertTriangle className="h-4 w-4 text-[var(--danger)]" /> {t("planning.conflicts.title")}
             </h2>
             <ul className="space-y-2">
               {conflicts.map((c) => (
@@ -338,7 +356,7 @@ export default function V2PlanningPage() {
                         c.kind === "overload" ? "ui-pill ui-pill-danger" : "ui-pill ui-pill-warning",
                       ].join(" ")}
                     >
-                      {c.kind === "overload" ? "Surcharge" : "Chevauchement"}
+                      {c.kind === "overload" ? t("planning.conflicts.overload") : t("planning.conflicts.overlap")}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-[var(--foreground)]">{c.message}</p>

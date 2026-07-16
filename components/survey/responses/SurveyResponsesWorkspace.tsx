@@ -23,6 +23,7 @@ import { useRealtimeReload } from "../../../lib/useRealtimeReload";
 import { DistributionChart, RatingAveragesChart } from "./SurveyCharts";
 import SurveyResponseList from "./SurveyResponseList";
 import SurveyVerbatims from "./SurveyVerbatims";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 type PeriodPreset = "all" | "30" | "90" | "365";
 type ResponsesTab = "summary" | "individual";
@@ -66,6 +67,7 @@ export default function SurveyResponsesWorkspace({
 }: SurveyResponsesWorkspaceProps) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const confirm = useConfirm();
+  const { t } = useTranslation();
   const { branding } = useBranding();
   const [definition, setDefinition] = useState<SurveyDefinition | null>(null);
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
@@ -121,7 +123,7 @@ export default function SurveyResponsesWorkspace({
       if (responsesResult.error) throw responsesResult.error;
       setResponses((responsesResult.data ?? []).map(mapSurveyResponseRow));
     } catch {
-      toastError("Chargement des réponses impossible.");
+      toastError(t("survey.responses.toast.loadError"));
     } finally {
       setLoading(false);
     }
@@ -169,7 +171,7 @@ export default function SurveyResponsesWorkspace({
 
   const handleExport = () => {
     if (!activeDefinition || filtered.length === 0) {
-      toastError("Aucune réponse à exporter.");
+      toastError(t("survey.responses.toast.exportEmpty"));
       return;
     }
     const csv = surveyResponsesToCsv(filtered, activeDefinition);
@@ -180,14 +182,14 @@ export default function SurveyResponsesWorkspace({
     a.download = `questionnaire-${surveyId}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toastSuccess("Export CSV généré");
+    toastSuccess(t("survey.responses.toast.exportDone"));
   };
 
   const handleDelete = async (responseId: string) => {
     const ok = await confirm({
-      title: "Supprimer cette réponse ?",
-      description: "La réponse sera définitivement supprimée. Cette action est irréversible.",
-      confirmLabel: "Supprimer",
+      title: t("survey.responses.deleteTitle"),
+      description: t("survey.responses.deleteDescription"),
+      confirmLabel: t("survey.common.delete"),
       variant: "destructive",
     });
     if (!ok) return;
@@ -200,7 +202,7 @@ export default function SurveyResponsesWorkspace({
       return;
     }
     setResponses((prev) => prev.filter((r) => r.id !== responseId));
-    toastSuccess("Réponse supprimée");
+    toastSuccess(t("survey.responses.toast.deleted"));
   };
 
   const selectClass =
@@ -215,22 +217,22 @@ export default function SurveyResponsesWorkspace({
             className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Retour au questionnaire
+            {t("survey.responses.back")}
           </Link>
           <p className="ui-kicker mb-1">{branding.appName}</p>
-          <h1 className="ui-display text-2xl text-[var(--foreground)]">Réponses</h1>
+          <h1 className="ui-display text-2xl text-[var(--foreground)]">{t("survey.responses.title")}</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/60">{title}</p>
         </div>
         <button type="button" onClick={handleExport} className="ui-btn ui-btn-secondary gap-2">
           <Download className="h-4 w-4" />
-          Export CSV
+          {t("survey.responses.export")}
         </button>
       </header>
 
       <div className="inline-flex rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1">
         {([
-          { id: "summary", label: "Synthèse", icon: BarChart3 },
-          { id: "individual", label: "Réponses individuelles", icon: ListChecks },
+          { id: "summary", label: t("survey.responses.tabSummary"), icon: BarChart3 },
+          { id: "individual", label: t("survey.responses.tabIndividual"), icon: ListChecks },
         ] as const).map((t) => {
           const Icon = t.icon;
           return (
@@ -254,10 +256,10 @@ export default function SurveyResponsesWorkspace({
 
       <div className="ui-surface flex flex-wrap items-center gap-3 rounded-2xl p-4">
         <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--foreground)]/45">
-          Filtres
+          {t("survey.responses.filters")}
         </span>
         <select value={entity} onChange={(e) => setEntity(e.target.value)} className={selectClass}>
-          <option value="all">Toutes les sociétés</option>
+          <option value="all">{t("survey.responses.allEntities")}</option>
           {entityOptions.map((o) => (
             <option key={o} value={o}>
               {o}
@@ -265,7 +267,7 @@ export default function SurveyResponsesWorkspace({
           ))}
         </select>
         <select value={service} onChange={(e) => setService(e.target.value)} className={selectClass}>
-          <option value="all">Tous les services</option>
+          <option value="all">{t("survey.responses.allServices")}</option>
           {serviceOptions.map((o) => (
             <option key={o} value={o}>
               {o}
@@ -277,7 +279,7 @@ export default function SurveyResponsesWorkspace({
           onChange={(e) => setPrestation(e.target.value)}
           className={selectClass}
         >
-          <option value="all">Toutes les prestations</option>
+          <option value="all">{t("survey.responses.allPrestations")}</option>
           {prestationOptions.map((o) => (
             <option key={o} value={o}>
               {o}
@@ -289,7 +291,7 @@ export default function SurveyResponsesWorkspace({
           onChange={(e) => setPeriod(e.target.value as PeriodPreset)}
           className={selectClass}
         >
-          <option value="all">Toute la période</option>
+          <option value="all">{t("survey.responses.allPeriod")}</option>
           <option value="30">30 derniers jours</option>
           <option value="90">90 derniers jours</option>
           <option value="365">12 derniers mois</option>
@@ -297,21 +299,21 @@ export default function SurveyResponsesWorkspace({
       </div>
 
       {loading ? (
-        <p className="text-sm text-[color:var(--foreground)]/55">Chargement des réponses…</p>
+        <p className="text-sm text-[color:var(--foreground)]/55">{t("survey.responses.loading")}</p>
       ) : responses.length === 0 ? (
         <div className="ui-surface flex flex-col items-center gap-2 rounded-2xl p-12 text-center">
           <Inbox className="h-8 w-8 text-[color:var(--foreground)]/35" />
           <p className="text-sm text-[color:var(--foreground)]/55">
-            Aucune réponse pour le moment. Partagez le lien{" "}
+            {t("survey.responses.empty")}{" "}
             <a
               href={publicPath}
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
             >
-              {publicPath}
-            </a>
-            .
+              {t("survey.responses.emptyLink")}
+            </a>{" "}
+            {t("survey.responses.emptySuffix")}
           </p>
         </div>
       ) : tab === "individual" && activeDefinition ? (
@@ -326,7 +328,7 @@ export default function SurveyResponsesWorkspace({
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <KpiCard
               icon={Users}
-              label="Réponses"
+              label={t("survey.responses.kpiResponses")}
               value={String(filtered.length)}
               accent="bg-[var(--surface-soft)] text-[color:var(--foreground)]/75"
             />
@@ -344,7 +346,7 @@ export default function SurveyResponsesWorkspace({
             />
             <KpiCard
               icon={BarChart3}
-              label="Promoteurs / Détracteurs"
+              label={t("survey.responses.kpiPromoters")}
               value={`${nps.promoters} / ${nps.detractors}`}
               accent="ui-pill ui-pill-warning"
             />
@@ -353,7 +355,7 @@ export default function SurveyResponsesWorkspace({
           <section className="ui-surface rounded-2xl p-5">
             <h3 className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
               <BarChart3 className="h-4 w-4 text-[color:var(--foreground)]/50" />
-              Moyennes par question notée
+              {t("survey.responses.ratingAverages")}
             </h3>
             <RatingAveragesChart stats={ratingStats} />
           </section>

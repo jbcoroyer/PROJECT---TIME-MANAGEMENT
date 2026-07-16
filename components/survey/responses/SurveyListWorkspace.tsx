@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   Building2,
   ChevronRight,
@@ -24,67 +23,75 @@ import {
 } from "../../../app/actions/survey";
 import { useBranding } from "../../../lib/brandingContext";
 import { toastError, toastSuccess } from "../../../lib/toast";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
+import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
 
-function formatDate(iso: string): string {
-  if (!iso) return "—";
-  try {
-    return format(new Date(iso), "d MMM yyyy", { locale: fr });
-  } catch {
-    return iso;
-  }
+type TranslateFn = ReturnType<typeof useTranslation>["t"];
+
+function getAudienceThemes(t: TranslateFn) {
+  return {
+    externe: {
+      label: t("survey.list.groupCollaborators"),
+      subtitle: t("survey.list.companyWide"),
+      icon: Users,
+      border: "border-l-[var(--brand-primary)]",
+      iconBg: "bg-[var(--accent-soft)]",
+      iconColor: "text-[var(--accent-strong)]",
+      badge: "ui-pill ui-pill-brand",
+      accent: "group-hover:text-[var(--accent-strong)]",
+      cardHover:
+        "hover:border-[color-mix(in_srgb,var(--brand-primary)_25%,var(--line))] hover:shadow-[0_8px_30px_-12px_rgba(20,17,13,0.12)]",
+    },
+    interne: {
+      label: t("survey.list.commTeam"),
+      subtitle: t("survey.list.commTeamSubtitle"),
+      icon: Building2,
+      border: "border-l-[var(--line-strong)]",
+      iconBg: "bg-[var(--surface-soft)]",
+      iconColor: "text-[color:var(--foreground)]/75",
+      badge: "ui-pill ui-pill-neutral",
+      accent: "group-hover:text-[color:var(--foreground)]/85",
+      cardHover: "hover:border-[var(--line-strong)] hover:shadow-[0_8px_30px_-12px_rgba(20,17,13,0.1)]",
+    },
+    general: {
+      label: t("survey.list.custom"),
+      subtitle: t("survey.list.customSubtitle"),
+      icon: Sparkles,
+      border: "border-l-[color-mix(in_srgb,var(--warning)_50%,var(--line))]",
+      iconBg: "bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface))]",
+      iconColor: "text-[var(--warning)]",
+      badge: "ui-pill ui-pill-neutral",
+      accent: "group-hover:text-[var(--warning)]",
+      cardHover:
+        "hover:border-[color-mix(in_srgb,var(--warning)_25%,var(--line))] hover:shadow-[0_8px_30px_-12px_rgba(20,17,13,0.1)]",
+    },
+  } satisfies Record<
+    SurveyAudience,
+    {
+      label: string;
+      subtitle: string;
+      icon: typeof Users;
+      border: string;
+      iconBg: string;
+      iconColor: string;
+      badge: string;
+      accent: string;
+      cardHover: string;
+    }
+  >;
 }
 
-const AUDIENCE_THEMES: Record<
-  SurveyAudience,
-  {
-    label: string;
-    subtitle: string;
-    icon: typeof Users;
-    border: string;
-    iconBg: string;
-    iconColor: string;
-    badge: string;
-    accent: string;
-    cardHover: string;
-  }
-> = {
-  externe: {
-    label: "Collaborateurs groupe",
-    subtitle: "Diffusé à l'échelle de l'entreprise",
-    icon: Users,
-    border: "border-l-[var(--brand-primary)]",
-    iconBg: "bg-[var(--accent-soft)]",
-    iconColor: "text-[var(--accent-strong)]",
-    badge: "ui-pill ui-pill-brand",
-    accent: "group-hover:text-[var(--accent-strong)]",
-    cardHover: "hover:border-[color-mix(in_srgb,var(--brand-primary)_25%,var(--line))] hover:shadow-[0_8px_30px_-12px_rgba(20,17,13,0.12)]",
-  },
-  interne: {
-    label: "Équipe Communication",
-    subtitle: "Réservé aux membres du service",
-    icon: Building2,
-    border: "border-l-[var(--line-strong)]",
-    iconBg: "bg-[var(--surface-soft)]",
-    iconColor: "text-[color:var(--foreground)]/75",
-    badge: "ui-pill ui-pill-neutral",
-    accent: "group-hover:text-[color:var(--foreground)]/85",
-    cardHover: "hover:border-[var(--line-strong)] hover:shadow-[0_8px_30px_-12px_rgba(20,17,13,0.1)]",
-  },
-  general: {
-    label: "Personnalisé",
-    subtitle: "Questionnaire sur mesure",
-    icon: Sparkles,
-    border: "border-l-[color-mix(in_srgb,var(--warning)_50%,var(--line))]",
-    iconBg: "bg-[color-mix(in_srgb,var(--warning)_8%,var(--surface))]",
-    iconColor: "text-[var(--warning)]",
-    badge: "ui-pill ui-pill-neutral",
-    accent: "group-hover:text-[var(--warning)]",
-    cardHover: "hover:border-[color-mix(in_srgb,var(--warning)_25%,var(--line))] hover:shadow-[0_8px_30px_-12px_rgba(20,17,13,0.1)]",
-  },
-};
-
-function SurveyCard({ survey }: { survey: SurveyListItem }) {
-  const theme = AUDIENCE_THEMES[survey.audience];
+function SurveyCard({
+  survey,
+  formatDate,
+  t,
+}: {
+  survey: SurveyListItem;
+  formatDate: (iso: string) => string;
+  t: TranslateFn;
+}) {
+  const themes = getAudienceThemes(t);
+  const theme = themes[survey.audience];
   const Icon = theme.icon;
 
   return (
@@ -123,7 +130,7 @@ function SurveyCard({ survey }: { survey: SurveyListItem }) {
                 : "bg-[var(--surface-soft)] text-[color:var(--foreground)]/55",
             ].join(" ")}
           >
-            {survey.status === "active" ? "Actif" : "Brouillon"}
+            {survey.status === "active" ? t("survey.list.active") : t("survey.list.draft")}
           </span>
         </div>
       </div>
@@ -147,21 +154,21 @@ function SurveyCard({ survey }: { survey: SurveyListItem }) {
       <div className="mt-4 flex flex-wrap gap-2">
         <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
           <MessageSquare className="h-3 w-3" />
-          {survey.questionCount} question{survey.questionCount !== 1 ? "s" : ""}
+          {t("survey.list.questionCount", { count: survey.questionCount })}
         </span>
         <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
           <Layers className="h-3 w-3" />
-          {survey.stepCount} écran{survey.stepCount !== 1 ? "s" : ""}
+          {t("survey.list.screens", { count: survey.stepCount })}
         </span>
         <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
           <Users className="h-3 w-3" />
-          {survey.responseCount} réponse{survey.responseCount !== 1 ? "s" : ""}
+          {t("survey.list.responses", { count: survey.responseCount })}
         </span>
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-2 border-t border-[var(--line)] pt-3">
         <p className="min-w-0 truncate text-[11px] text-[color:var(--foreground)]/45">
-          Créé le {formatDate(survey.createdAt)}
+          {t("survey.list.createdOn", { date: formatDate(survey.createdAt) })}
         </p>
         <div className="flex shrink-0 items-center gap-1">
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[color:var(--foreground)]/50">
@@ -176,6 +183,8 @@ function SurveyCard({ survey }: { survey: SurveyListItem }) {
 }
 
 export default function SurveyListWorkspace() {
+  const { t, locale } = useTranslation();
+  const dateFnsLocale = getDateFnsLocale(locale);
   const router = useRouter();
   const { branding } = useBranding();
   const [surveys, setSurveys] = useState<SurveyListItem[]>([]);
@@ -183,6 +192,18 @@ export default function SurveyListWorkspace() {
   const [creatingOpen, setCreatingOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const formatDate = useCallback(
+    (iso: string): string => {
+      if (!iso) return "—";
+      try {
+        return format(new Date(iso), "d MMM yyyy", { locale: dateFnsLocale });
+      } catch {
+        return iso;
+      }
+    },
+    [dateFnsLocale],
+  );
 
   const load = useCallback(async () => {
     try {
@@ -202,7 +223,7 @@ export default function SurveyListWorkspace() {
   const handleCreate = async () => {
     const title = newTitle.trim();
     if (!title) {
-      toastError("Merci de saisir un titre.");
+      toastError(t("survey.hub.titleEmpty"));
       return;
     }
     setSubmitting(true);
@@ -212,20 +233,19 @@ export default function SurveyListWorkspace() {
       toastError(result.error);
       return;
     }
-    toastSuccess("Questionnaire créé.");
+    toastSuccess(t("survey.list.toast.created"));
     router.push(`/questionnaire/reponses/${result.surveyId}`);
   };
+
+  const audienceThemes = getAudienceThemes(t);
 
   return (
     <div className="space-y-5">
       <header className="ui-surface flex flex-wrap items-start justify-between gap-4 rounded-2xl p-5">
         <div>
           <p className="ui-kicker mb-1">{branding.appName}</p>
-          <h1 className="ui-display text-2xl text-[var(--foreground)]">Questionnaires</h1>
-          <p className="mt-1 text-sm text-[color:var(--foreground)]/60">
-            Chaque carte est codée par couleur selon son public cible : collaborateurs du groupe,
-            équipe interne, ou questionnaire personnalisé.
-          </p>
+          <h1 className="ui-display text-2xl text-[var(--foreground)]">{t("survey.list.title")}</h1>
+          <p className="mt-1 text-sm text-[color:var(--foreground)]/60">{t("survey.list.cardHint")}</p>
         </div>
         <button
           type="button"
@@ -233,14 +253,14 @@ export default function SurveyListWorkspace() {
           className="ui-btn ui-btn-primary gap-2"
         >
           {creatingOpen ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {creatingOpen ? "Annuler" : "Nouveau questionnaire"}
+          {creatingOpen ? t("survey.common.cancel") : t("survey.list.newSurvey")}
         </button>
       </header>
 
       {creatingOpen ? (
         <div className="ui-surface space-y-3 rounded-2xl p-5">
           <label className="flex flex-col gap-1 text-xs font-semibold text-[color:var(--foreground)]/55">
-            Titre du nouveau questionnaire
+            {t("survey.list.newTitleLabel")}
             <input
               autoFocus
               value={newTitle}
@@ -248,7 +268,7 @@ export default function SurveyListWorkspace() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") void handleCreate();
               }}
-              placeholder="Ex. Questionnaire d'étonnement 2026"
+              placeholder={t("survey.list.placeholder")}
               className="ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm font-normal text-[var(--foreground)]"
             />
           </label>
@@ -260,7 +280,7 @@ export default function SurveyListWorkspace() {
               className="ui-btn ui-btn-primary gap-2"
             >
               <Plus className="h-4 w-4" />
-              {submitting ? "Création…" : "Créer et configurer"}
+              {submitting ? t("survey.list.creating") : t("survey.list.createAndConfigure")}
             </button>
           </div>
         </div>
@@ -269,7 +289,7 @@ export default function SurveyListWorkspace() {
       {!loading && surveys.length > 0 ? (
         <div className="flex flex-wrap gap-3">
           {(["externe", "interne", "general"] as const).map((audience) => {
-            const theme = AUDIENCE_THEMES[audience];
+            const theme = audienceThemes[audience];
             if (!surveys.some((s) => s.audience === audience)) return null;
             return (
               <span
@@ -288,15 +308,15 @@ export default function SurveyListWorkspace() {
       ) : null}
 
       {loading ? (
-        <p className="text-sm text-[color:var(--foreground)]/55">Chargement des questionnaires…</p>
+        <p className="text-sm text-[color:var(--foreground)]/55">{t("survey.list.loading")}</p>
       ) : surveys.length === 0 ? (
         <div className="ui-surface rounded-2xl p-8 text-center text-sm text-[color:var(--foreground)]/55">
-          Aucun questionnaire pour le moment. Créez-en un avec le bouton ci-dessus.
+          {t("survey.list.empty")}
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {surveys.map((survey) => (
-            <SurveyCard key={survey.id} survey={survey} />
+            <SurveyCard key={survey.id} survey={survey} formatDate={formatDate} t={t} />
           ))}
         </div>
       )}

@@ -5,7 +5,7 @@ import { Check, Info, X } from "lucide-react";
 import ModuleGlyph from "../modules/ModuleGlyph";
 import {
   DEFAULT_ONBOARDING_MODULES,
-  MODULE_DISPLAY_ORDER,
+  getCommerciallyAvailableModules,
   MODULE_REGISTRY,
   toggleModule,
   type AppModuleId,
@@ -35,7 +35,7 @@ export default function OnboardingModulePicker({ value, onChange }: OnboardingMo
     <div className="ob-grid-picker">
       <p className="text-sm leading-relaxed text-[var(--ink-muted)]">{t("setup.step3Intro")}</p>
       <div className="ob-grid-picker__grid">
-        {MODULE_DISPLAY_ORDER.map((moduleId) => {
+        {getCommerciallyAvailableModules().map((moduleId) => {
           const selected = value.includes(moduleId);
           const mod = MODULE_REGISTRY[moduleId];
           const name = t(`modules.${moduleId}.name`);

@@ -8,6 +8,7 @@ import FirstTaskTutorial from "../onboarding/FirstTaskTutorial";
 import BoardExplorationTutorial from "../onboarding/BoardExplorationTutorial";
 import ModuleDiscoveryHub from "../onboarding/ModuleDiscoveryHub";
 import ModuleMiniTour from "../onboarding/ModuleMiniTour";
+import GamificationPanel from "../gamification/GamificationPanel";
 import { FirstTaskTutorialProvider } from "../../lib/onboarding/firstTaskTutorialContext";
 import { ExplorationTutorialProvider } from "../../lib/onboarding/explorationTutorialContext";
 import { GamificationProvider, useGamificationOptional } from "../../lib/gamification/gamificationContext";
@@ -62,6 +63,7 @@ export default function V2AppLayout({ children }: { children: ReactNode }) {
           <V2ShellSlotsProvider>
             <V2AppShellWithSlots>{children}</V2AppShellWithSlots>
             <OnboardingOverlays />
+            <GamificationPanel />
           </V2ShellSlotsProvider>
         </FirstTaskTutorialProvider>
       </ExplorationTutorialProvider>

@@ -9,6 +9,7 @@ import { syncAdminColorAssignments } from "../../lib/adminColorAssignments";
 import { adminSolidColorFor, getAdminColorPaletteSize } from "../../lib/kanbanStyles";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError, toastSuccess } from "../../lib/toast";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 import type { AdminId } from "../../lib/types";
 import { ConfirmDeleteModal, EntityRow, SettingsSection } from "./settingsShared";
 
@@ -21,6 +22,7 @@ type TeamMemberRow = {
 };
 
 export default function TeamSettingsSection() {
+  const { t } = useTranslation();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<TeamMemberRow[]>([]);
@@ -39,7 +41,7 @@ export default function TeamSettingsSection() {
       .select("id, display_name, is_active, sort_order, avatar_url")
       .order("sort_order");
     if (error) {
-      toastError(`Chargement impossible : ${error.message}`);
+      toastError(t("settings.team.loadError", { message: error.message }));
       setLoading(false);
       return;
     }
@@ -47,7 +49,7 @@ export default function TeamSettingsSection() {
     setMembers(rows);
     setDraftNames(Object.fromEntries(rows.map((r) => [r.id, r.display_name])));
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, t]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -69,10 +71,10 @@ export default function TeamSettingsSection() {
     try {
       const result = await inviteTeamMember({ email: inviteEmail, role: inviteRole });
       if (!result.ok) throw new Error(result.error);
-      toastSuccess("Invitation envoyée.");
+      toastSuccess(t("settings.team.inviteSent"));
       setInviteEmail("");
     } catch (err) {
-      toastError(err instanceof Error ? err.message : "Erreur d'invitation");
+      toastError(err instanceof Error ? err.message : t("settings.team.inviteError"));
     } finally {
       setInviteBusy(false);
     }
@@ -83,12 +85,12 @@ export default function TeamSettingsSection() {
     if (!trimmed) return;
     const { error } = await supabase.from("team_members").insert({ display_name: trimmed, is_active: true });
     if (error) {
-      toastError(`Ajout impossible : ${error.message}`);
+      toastError(t("settings.team.addError", { message: error.message }));
       return;
     }
     setNewMemberName("");
     await loadMembers();
-    toastSuccess("Collaborateur ajouté.");
+    toastSuccess(t("settings.team.memberAdded"));
   }
 
   return (
@@ -110,19 +112,18 @@ export default function TeamSettingsSection() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="max-w-xl">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--brand-primary)]">
-                  Équipe
+                  {t("settings.team.kicker")}
                 </p>
                 <h2 className="mt-1 text-xl font-semibold text-[var(--foreground)] sm:text-2xl">
-                  Invitez vos collaborateurs
+                  {t("settings.team.inviteTitle")}
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-[color:var(--foreground)]/65">
-                  Partagez votre espace de travail par e-mail. Vos collègues reçoivent un lien pour créer leur
-                  mot de passe et accéder aux mêmes projets, tableaux et modules.
+                  {t("settings.team.inviteBody")}
                 </p>
               </div>
               <div className="rounded-xl bg-[var(--surface-soft)] px-4 py-3 text-center">
                 <p className="text-2xl font-bold text-[var(--foreground)]">{activeCount}</p>
-                <p className="text-xs text-[color:var(--foreground)]/55">actifs</p>
+                <p className="text-xs text-[color:var(--foreground)]/55">{t("settings.team.activeCount")}</p>
               </div>
             </div>
           </div>
@@ -131,7 +132,7 @@ export default function TeamSettingsSection() {
             <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
               <div>
                 <label htmlFor="team-invite-email" className="mb-1.5 block text-sm font-medium text-[var(--foreground)]">
-                  Adresse e-mail
+                  {t("settings.team.emailLabel")}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--foreground)]/35" />
@@ -141,14 +142,14 @@ export default function TeamSettingsSection() {
                     required
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="collegue@entreprise.com"
+                    placeholder={t("settings.team.emailPlaceholder")}
                     className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] py-2.5 pl-10 pr-4 text-sm"
                   />
                 </div>
               </div>
               <div>
                 <label htmlFor="team-invite-role" className="mb-1.5 block text-sm font-medium text-[var(--foreground)]">
-                  Rôle
+                  {t("settings.team.roleLabel")}
                 </label>
                 <select
                   id="team-invite-role"
@@ -156,13 +157,13 @@ export default function TeamSettingsSection() {
                   onChange={(e) => setInviteRole(e.target.value as "user" | "admin")}
                   className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm sm:min-w-[10rem]"
                 >
-                  <option value="user">Utilisateur</option>
-                  <option value="admin">Administrateur</option>
+                  <option value="user">{t("settings.team.roleUser")}</option>
+                  <option value="admin">{t("settings.team.roleAdmin")}</option>
                 </select>
               </div>
               <button type="submit" disabled={inviteBusy} className="ui-btn ui-btn-primary gap-2 px-5 py-2.5 text-sm">
                 <UserPlus className="h-4 w-4" />
-                {inviteBusy ? "Envoi…" : "Inviter"}
+                {inviteBusy ? t("settings.team.inviting") : t("settings.team.invite")}
               </button>
             </div>
           </form>
@@ -170,14 +171,12 @@ export default function TeamSettingsSection() {
 
         <SettingsSection
           icon={Users}
-          title="Membres de l'équipe"
-          subtitle="Profils utilisables dans les formulaires, assignations et filtres."
-          badge={loading ? "…" : `${activeCount} actifs`}
+          title={t("settings.team.membersTitle")}
+          subtitle={t("settings.team.membersSubtitle")}
+          badge={loading ? "…" : `${activeCount} ${t("settings.team.activeCount")}`}
         >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-[color:var(--foreground)]/60">
-              Ajoutez ou renommez les collaborateurs déjà présents dans votre espace.
-            </p>
+            <p className="text-sm text-[color:var(--foreground)]/60">{t("settings.team.membersHint")}</p>
             <button
               type="button"
               onClick={() => void loadMembers()}
@@ -185,7 +184,7 @@ export default function TeamSettingsSection() {
               className="ui-transition inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 py-1.5 text-xs font-semibold text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)] disabled:opacity-40"
             >
               <RefreshCw className={["h-3.5 w-3.5", loading ? "animate-spin" : ""].join(" ")} />
-              Rafraîchir
+              {t("common.refresh")}
             </button>
           </div>
 
@@ -196,7 +195,7 @@ export default function TeamSettingsSection() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") void addMember(newMemberName);
               }}
-              placeholder="Prénom Nom"
+              placeholder={t("settings.team.namePlaceholder")}
               className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
             />
             <button
@@ -205,7 +204,7 @@ export default function TeamSettingsSection() {
               className="ui-transition flex shrink-0 items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface)]"
             >
               <Plus className="h-4 w-4" />
-              Ajouter
+              {t("settings.team.add")}
             </button>
           </div>
 
@@ -226,11 +225,11 @@ export default function TeamSettingsSection() {
                       .update({ display_name: nextName })
                       .eq("id", row.id);
                     if (error) {
-                      toastError("Modification impossible.");
+                      toastError(t("settings.team.updateError"));
                       return;
                     }
                     await loadMembers();
-                    toastSuccess("Collaborateur mis à jour.");
+                    toastSuccess(t("settings.team.memberUpdated"));
                   }}
                   onToggle={async () => {
                     const { error } = await supabase
@@ -238,11 +237,11 @@ export default function TeamSettingsSection() {
                       .update({ is_active: !row.is_active })
                       .eq("id", row.id);
                     if (error) {
-                      toastError("Mise à jour impossible.");
+                      toastError(t("settings.team.toggleError"));
                       return;
                     }
                     await loadMembers();
-                    toastSuccess(row.is_active ? "Désactivé." : "Activé.");
+                    toastSuccess(row.is_active ? t("settings.team.memberDisabled") : t("settings.team.memberEnabled"));
                   }}
                   onDelete={() =>
                     setPendingDelete({
@@ -250,17 +249,17 @@ export default function TeamSettingsSection() {
                       onConfirm: async () => {
                         const { error } = await supabase.from("team_members").delete().eq("id", row.id);
                         if (error) {
-                          toastError(`Suppression impossible : ${error.message}`);
+                          toastError(t("settings.team.deleteError", { message: error.message }));
                           return;
                         }
                         await loadMembers();
-                        toastSuccess("Collaborateur supprimé.");
+                        toastSuccess(t("settings.team.memberDeleted"));
                       },
                     })
                   }
                   prefix={
                     <div className="flex shrink-0 items-center gap-2">
-                      <label className="group relative cursor-pointer" title="Changer la photo">
+                      <label className="group relative cursor-pointer" title={t("settings.team.changePhoto")}>
                         <AdminAvatar admin={row.display_name as AdminId} size="md" avatarUrl={row.avatar_url ?? null} />
                         <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition group-hover:opacity-100">
                           <ImageIcon className="h-3 w-3 text-white" />
@@ -278,7 +277,7 @@ export default function TeamSettingsSection() {
                             formData.set("file", file);
                             const upload = await uploadOrgAsset(formData, "member-avatars", relativePath);
                             if (!upload.ok) {
-                              toastError(`Upload impossible : ${upload.error}`);
+                              toastError(t("settings.team.uploadError", { error: upload.error }));
                               return;
                             }
                             const { error: dbErr } = await supabase
@@ -286,11 +285,11 @@ export default function TeamSettingsSection() {
                               .update({ avatar_url: upload.path })
                               .eq("id", row.id);
                             if (dbErr) {
-                              toastError("Impossible de sauvegarder l'avatar.");
+                              toastError(t("settings.team.avatarSaveError"));
                               return;
                             }
                             await loadMembers();
-                            toastSuccess("Photo mise à jour !");
+                            toastSuccess(t("settings.team.avatarUpdated"));
                             e.target.value = "";
                           }}
                         />
@@ -299,7 +298,7 @@ export default function TeamSettingsSection() {
                         <span
                           className="h-3 w-3 shrink-0 rounded-full border border-white shadow-sm"
                           style={{ backgroundColor: color }}
-                          title={`Couleur : ${color}`}
+                          title={t("settings.team.colorTitle", { color })}
                         />
                       ) : null}
                     </div>
@@ -309,9 +308,7 @@ export default function TeamSettingsSection() {
             })}
           </div>
 
-          <p className="mt-3 text-[11px] text-[color:var(--foreground)]/45">
-            Les couleurs sont assignées automatiquement selon l&apos;ordre des collaborateurs.
-          </p>
+          <p className="mt-3 text-[11px] text-[color:var(--foreground)]/45">{t("settings.team.colorsHint")}</p>
         </SettingsSection>
       </section>
     </>

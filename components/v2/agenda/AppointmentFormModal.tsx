@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { X } from "lucide-react";
 import {
@@ -9,6 +9,8 @@ import {
   type CreateAppointmentInput,
 } from "../../../app/actions/agenda";
 import type { AgendaAppointment } from "../../../lib/agenda/agendaTypes";
+import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { useReferenceData } from "../../../lib/useReferenceData";
 import { toastError, toastSuccess } from "../../../lib/toast";
 
@@ -68,6 +70,8 @@ function AppointmentFormBody({
   onClose,
   onSaved,
 }: Omit<AppointmentFormModalProps, "open">) {
+  const { t, locale } = useTranslation();
+  const dateLocale = useMemo(() => getDateFnsLocale(locale), [locale]);
   const { admins } = useReferenceData();
   const initial = buildInitialFormState(editing, initialStart, initialEnd);
   const [title, setTitle] = useState(initial.title);
@@ -108,7 +112,7 @@ function AppointmentFormBody({
       toastError(result.error);
       return;
     }
-    toastSuccess(editing ? "Rendez-vous mis à jour." : "Rendez-vous créé.");
+    toastSuccess(editing ? t("agenda.form.toast.updated") : t("agenda.form.toast.created"));
     onSaved();
     onClose();
   };
@@ -117,7 +121,7 @@ function AppointmentFormBody({
     <>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[var(--foreground)]">
-          {editing ? "Modifier le rendez-vous" : "Nouveau rendez-vous"}
+          {editing ? t("agenda.form.editTitle") : t("agenda.form.newTitle")}
         </h2>
         <button type="button" onClick={onClose} className="ui-btn ui-btn-ghost h-8 w-8 p-0">
           <X className="h-4 w-4" />
@@ -126,13 +130,13 @@ function AppointmentFormBody({
 
       <div className="space-y-3">
         <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-          Titre *
+          {t("agenda.form.titleLabel")}
           <input value={title} onChange={(e) => setTitle(e.target.value)} className="ui-input" />
         </label>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            Début *
+            {t("agenda.form.startLabel")}
             <input
               type="datetime-local"
               value={startsAt}
@@ -141,7 +145,7 @@ function AppointmentFormBody({
             />
           </label>
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            Fin *
+            {t("agenda.form.endLabel")}
             <input
               type="datetime-local"
               value={endsAt}
@@ -152,9 +156,9 @@ function AppointmentFormBody({
         </div>
 
         <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-          Hôte / responsable
+          {t("agenda.form.hostLabel")}
           <select value={hostId} onChange={(e) => setHostId(e.target.value)} className="ui-input">
-            <option value="">Non assigné</option>
+            <option value="">{t("agenda.form.unassigned")}</option>
             {admins.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
@@ -165,11 +169,11 @@ function AppointmentFormBody({
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            Invité
+            {t("agenda.form.guestLabel")}
             <input value={guestName} onChange={(e) => setGuestName(e.target.value)} className="ui-input" />
           </label>
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            E-mail
+            {t("agenda.form.emailLabel")}
             <input
               type="email"
               value={guestEmail}
@@ -180,12 +184,12 @@ function AppointmentFormBody({
         </div>
 
         <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-          Téléphone
+          {t("agenda.form.phoneLabel")}
           <input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="ui-input" />
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-          Message / objet
+          {t("agenda.form.messageLabel")}
           <textarea
             value={guestMessage}
             onChange={(e) => setGuestMessage(e.target.value)}
@@ -195,19 +199,19 @@ function AppointmentFormBody({
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-          Lieu
+          {t("agenda.form.locationLabel")}
           <input value={location} onChange={(e) => setLocation(e.target.value)} className="ui-input" />
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-          Lien visio
+          {t("agenda.form.videoLinkLabel")}
           <input value={meetingUrl} onChange={(e) => setMeetingUrl(e.target.value)} className="ui-input" />
         </label>
       </div>
 
       <div className="mt-5 flex justify-end gap-2">
         <button type="button" onClick={onClose} className="ui-btn ui-btn-secondary">
-          Annuler
+          {t("agenda.form.cancel")}
         </button>
         <button
           type="button"
@@ -215,13 +219,13 @@ function AppointmentFormBody({
           disabled={busy || !title.trim()}
           className="ui-btn ui-btn-primary"
         >
-          {busy ? "Enregistrement…" : editing ? "Enregistrer" : "Créer le RDV"}
+          {busy ? t("agenda.form.saving") : editing ? t("agenda.form.save") : t("agenda.form.create")}
         </button>
       </div>
 
       {startsAt && endsAt ? (
         <p className="mt-2 text-center text-[11px] text-[var(--ink-muted)]">
-          {format(new Date(startsAt), "d MMM yyyy · HH:mm")} →{" "}
+          {format(new Date(startsAt), "d MMM yyyy · HH:mm", { locale: dateLocale })} →{" "}
           {format(new Date(endsAt), "HH:mm")}
         </p>
       ) : null}

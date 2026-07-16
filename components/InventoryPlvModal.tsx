@@ -7,6 +7,7 @@ import { uploadStockVisual } from "../lib/stockVisualUpload";
 import { STOCK_VISUAL_ACCEPT, stockVisualFileError } from "../lib/stockVisualUtils";
 import { toastError } from "../lib/toast";
 import StockVisualPreview from "./stock/StockVisualPreview";
+import { useTranslation } from "../lib/i18n/useTranslation";
 
 type Props = {
   open: boolean;
@@ -20,6 +21,7 @@ type Props = {
 const OTHER_TYPE = "__autre__";
 
 export default function InventoryPlvModal(props: Props) {
+  const { t } = useTranslation();
   const { open, initialItem, allItems, onClose, onSubmit, onDelete } = props;
   const isEditing = Boolean(initialItem?.id);
   const typeOptions = useMemo(
@@ -78,12 +80,12 @@ export default function InventoryPlvModal(props: Props) {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!name.trim()) {
-      toastError("Le nom est obligatoire.");
+      toastError(t("inventory.plv.nameRequired"));
       return;
     }
     const resolvedType = (typeSelect === OTHER_TYPE ? customType : typeSelect).trim();
     if (!resolvedType) {
-      toastError("Le type de PLV est obligatoire.");
+      toastError(t("inventory.plv.typeRequired"));
       return;
     }
 
@@ -93,7 +95,7 @@ export default function InventoryPlvModal(props: Props) {
       if (visualFile) {
         const { path, url, error } = await uploadStockVisual(visualFile, "plv");
         if (error || !path) {
-          toastError(`Upload impossible : ${error}`);
+          toastError(t("inventory.plv.uploadError", { error: error ?? "" }));
           return;
         }
         if (url) setVisualPreviewUrl(url);
@@ -126,16 +128,16 @@ export default function InventoryPlvModal(props: Props) {
       <div className="ui-surface max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[28px] p-6">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">PLV</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">{t("inventory.plv.badge")}</p>
             <h2 className="ui-heading mt-1 text-2xl font-semibold text-[var(--foreground)]">
-              {isEditing ? "Modifier un support PLV" : "Ajouter un support PLV"}
+              {isEditing ? t("inventory.plv.editTitle") : t("inventory.plv.addTitle")}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2 text-[color:var(--foreground)]/60 hover:bg-[var(--surface-soft)]"
-            aria-label="Fermer"
+            aria-label={t("inventory.common.close")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -144,7 +146,7 @@ export default function InventoryPlvModal(props: Props) {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Type de support</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.plv.supportType")}</label>
               <select
                 value={typeSelect}
                 onChange={(event) => setTypeSelect(event.target.value)}
@@ -155,28 +157,28 @@ export default function InventoryPlvModal(props: Props) {
                     {typeName}
                   </option>
                 ))}
-                <option value={OTHER_TYPE}>Autre (saisie libre)…</option>
+                <option value={OTHER_TYPE}>{t("inventory.plv.otherOption")}</option>
               </select>
               {typeSelect === OTHER_TYPE && (
                 <input
                   value={customType}
                   onChange={(event) => setCustomType(event.target.value)}
                   className="ui-focus-ring w-full rounded-xl border border-[var(--line)]/85 bg-[var(--surface-soft)] px-3 py-2.5 text-sm"
-                  placeholder="Nouveau type — il sera proposé dans la liste la prochaine fois"
+                  placeholder={t("inventory.plv.customTypePlaceholder")}
                 />
               )}
             </div>
             <div className="md:col-span-2">
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Nom</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.plv.name")}</label>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm"
-                placeholder="Nom exact du visuel"
+                placeholder={t("inventory.plv.namePlaceholder")}
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Quantité</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.plv.quantity")}</label>
               <input
                 type="number"
                 min="0"
@@ -186,7 +188,7 @@ export default function InventoryPlvModal(props: Props) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Seuil d&apos;alerte</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.common.alertThreshold")}</label>
               <input
                 type="number"
                 min="0"
@@ -196,7 +198,7 @@ export default function InventoryPlvModal(props: Props) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Prix unitaire</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.common.unitPrice")}</label>
               <input
                 type="number"
                 min="0"
@@ -207,7 +209,7 @@ export default function InventoryPlvModal(props: Props) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">URL image ou PDF (optionnel)</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.plv.visualUrlOptional")}</label>
               <input
                 value={visualUrl}
                 onChange={(event) => setVisualUrl(event.target.value)}
@@ -216,10 +218,10 @@ export default function InventoryPlvModal(props: Props) {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Importer une image ou un PDF</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("inventory.plv.uploadLabel")}</label>
               <label className="ui-transition flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-3 py-4 text-sm font-medium text-[color:var(--foreground)]/70 hover:border-[var(--line-strong)]">
                 <Upload className="h-4 w-4" />
-                Choisir un fichier
+                {t("inventory.plv.chooseFile")}
                 <input
                   type="file"
                   accept={STOCK_VISUAL_ACCEPT}
@@ -243,8 +245,8 @@ export default function InventoryPlvModal(props: Props) {
 
           {(visualPreviewUrl || visualUrl) && (
             <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/55">Aperçu visuel</p>
-              <StockVisualPreview url={visualPreviewUrl ?? visualUrl} name="Aperçu du visuel PLV" mode="detail" />
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/55">{t("inventory.plv.visualPreviewLabel")}</p>
+              <StockVisualPreview url={visualPreviewUrl ?? visualUrl} name={t("inventory.plv.previewName")} mode="detail" />
             </div>
           )}
 
@@ -257,7 +259,7 @@ export default function InventoryPlvModal(props: Props) {
                   className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Supprimer
+                  {t("inventory.common.delete")}
                 </button>
               )}
             </div>
@@ -267,7 +269,7 @@ export default function InventoryPlvModal(props: Props) {
                 onClick={onClose}
                 className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
               >
-                Annuler
+                {t("inventory.common.cancel")}
               </button>
               <button
                 type="submit"
@@ -275,7 +277,7 @@ export default function InventoryPlvModal(props: Props) {
                 className="ui-transition inline-flex items-center gap-2 rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90 disabled:opacity-60"
               >
                 <ImageIcon className="h-4 w-4" />
-                {submitting ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Créer"}
+                {submitting ? t("inventory.common.saving") : isEditing ? t("inventory.common.update") : t("inventory.common.create")}
               </button>
             </div>
           </div>

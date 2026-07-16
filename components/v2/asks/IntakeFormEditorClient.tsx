@@ -3,6 +3,7 @@
 import SurveyEditorWorkspace from "../../survey/responses/SurveyEditorWorkspace";
 import { saveIntakeFormDefinition } from "../../../app/actions/intakeForm";
 import type { SurveyDefinition } from "../../../lib/survey/surveyTypes";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 type IntakeFormEditorClientProps = {
   formId: string;
@@ -15,6 +16,8 @@ export default function IntakeFormEditorClient({
   title,
   initialDefinition,
 }: IntakeFormEditorClientProps) {
+  const { t } = useTranslation();
+
   return (
     <SurveyEditorWorkspace
       formId={formId}
@@ -22,8 +25,8 @@ export default function IntakeFormEditorClient({
       initialDefinition={initialDefinition}
       onSave={(definition) => saveIntakeFormDefinition(formId, definition)}
       backHref="/asks"
-      backLabel="Retour à l'espace demandes"
-      successMessage="Formulaire enregistré."
+      backLabel={t("asks.editor.backLabel")}
+      successMessage={t("asks.editor.saveSuccess")}
       showPrestationRules={false}
     />
   );

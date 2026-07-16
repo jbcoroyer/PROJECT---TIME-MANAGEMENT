@@ -2,6 +2,7 @@
 
 import { Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type RatingScaleProps = {
   min: number;
@@ -9,21 +10,9 @@ type RatingScaleProps = {
   value: number | undefined;
   onChange: (value: number) => void;
   labels?: { min: string; max: string };
-  /** "nps" force l'affichage en pastilles numérotées colorées. */
   variant?: "auto" | "stars" | "numbers";
 };
 
-/** Emoji réactif selon la note (ratio 0→1). */
-function reactionFor(value: number, min: number, max: number): { emoji: string; text: string } {
-  const ratio = (value - min) / Math.max(1, max - min);
-  if (ratio < 0.2) return { emoji: "😞", text: "Aïe, on note ça." };
-  if (ratio < 0.4) return { emoji: "😕", text: "On peut mieux faire." };
-  if (ratio < 0.6) return { emoji: "😐", text: "Correct, sans plus." };
-  if (ratio < 0.8) return { emoji: "🙂", text: "Plutôt bien !" };
-  return { emoji: "🤩", text: "Au top, merci !" };
-}
-
-/** Couleur d'une pastille NPS/numérique selon la position dans l'échelle. */
 function pillColor(index: number, count: number, active: boolean): string {
   if (!active) {
     return "border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/60 hover:border-[var(--line-strong)]";
@@ -42,11 +31,21 @@ export default function RatingScale({
   labels,
   variant = "auto",
 }: RatingScaleProps) {
+  const { t } = useTranslation();
   const useStars = variant === "stars" || (variant === "auto" && max - min + 1 <= 5);
   const values: number[] = [];
   for (let v = min; v <= max; v += 1) values.push(v);
 
-  const reaction = value != null ? reactionFor(value, min, max) : null;
+  const reactionFor = (rated: number): { emoji: string; text: string } => {
+    const ratio = (rated - min) / Math.max(1, max - min);
+    if (ratio < 0.2) return { emoji: "😞", text: t("survey.rating.low") };
+    if (ratio < 0.4) return { emoji: "😕", text: t("survey.rating.midLow") };
+    if (ratio < 0.6) return { emoji: "😐", text: t("survey.rating.mid") };
+    if (ratio < 0.8) return { emoji: "🙂", text: t("survey.rating.high") };
+    return { emoji: "🤩", text: t("survey.rating.top") };
+  };
+
+  const reaction = value != null ? reactionFor(value) : null;
 
   return (
     <div className="space-y-3">
@@ -61,7 +60,7 @@ export default function RatingScale({
                 whileTap={{ scale: 0.85 }}
                 whileHover={{ scale: 1.12 }}
                 onClick={() => onChange(v)}
-                aria-label={`Note ${v} sur ${max}`}
+                aria-label={`${v}/${max}`}
                 aria-pressed={value === v}
                 className="ui-focus-ring rounded-full p-1"
               >
@@ -86,7 +85,7 @@ export default function RatingScale({
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.06 }}
               onClick={() => onChange(v)}
-              aria-label={`Note ${v}`}
+              aria-label={`${v}`}
               aria-pressed={value === v}
               className={[
                 "ui-focus-ring flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-bold tabular-nums transition-colors",

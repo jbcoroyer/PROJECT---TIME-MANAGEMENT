@@ -1,20 +1,28 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { AppMark } from "../AppBrand";
+import LocalePicker from "../i18n/LocalePicker";
 import SetupWizard from "./SetupWizard";
 import { brandingStyleVars } from "../../lib/branding";
 import { useBranding } from "../../lib/brandingContext";
 import { useCurrentUser } from "../../lib/useCurrentUser";
+import { detectBrowserLocale, resolveLocale, type AppLocale } from "../../lib/i18n";
+import { readStoredLocale, writeStoredLocale } from "../../lib/i18n/localeStorage";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import "./setup-onboarding.css";
 
 export default function SetupPageContent() {
-  const { t } = useTranslation({ preferBrowser: true });
+  const [locale, setLocale] = useState<AppLocale>(() => readStoredLocale() ?? detectBrowserLocale());
+  const { t } = useTranslation({ preferBrowser: true, localeOverride: locale });
   const { branding, loading: brandingLoading } = useBranding();
   const { user, loading: userLoading } = useCurrentUser();
   const primary = branding.primaryColor || "oklch(0.6 0.19 45)";
   const [previewAccent, setPreviewAccent] = useState(primary);
+
+  useEffect(() => {
+    writeStoredLocale(locale);
+  }, [locale]);
 
   const ready = !brandingLoading && !userLoading && Boolean(user?.organizationId ?? branding.organizationId);
 
@@ -38,9 +46,19 @@ export default function SetupPageContent() {
     >
       <div className="setup-shell relative z-[1] mx-auto w-full max-w-[620px]">
         <header className="setup-header mb-8 sm:mb-10">
-          <div className="mb-6 flex items-center gap-3">
-            <AppMark className="h-10 w-10" />
-            <span className="ui-kicker">{t("setup.title")}</span>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <AppMark className="h-10 w-10" />
+              <span className="ui-kicker">{t("setup.title")}</span>
+            </div>
+            <LocalePicker
+              id="setup-locale-preview"
+              value={locale}
+              onChange={(next) => setLocale(resolveLocale(next))}
+              label={t("setup.chooseLanguage")}
+              hint={t("setup.chooseLanguageHint")}
+              className="ui-input w-full max-w-[220px] text-sm sm:w-auto"
+            />
           </div>
 
           <h1 className="ui-display text-[1.75rem] font-bold leading-[1.15] tracking-tight text-[var(--foreground)] sm:text-[2rem]">
@@ -65,7 +83,11 @@ export default function SetupPageContent() {
           </ol>
         </header>
 
-        <SetupWizard onAccentChange={setPreviewAccent} />
+        <SetupWizard
+          onAccentChange={setPreviewAccent}
+          localeOverride={locale}
+          onLocaleChange={(next) => setLocale(resolveLocale(next))}
+        />
       </div>
     </div>
   );
