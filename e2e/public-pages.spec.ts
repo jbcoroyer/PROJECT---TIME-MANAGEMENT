@@ -8,13 +8,9 @@ test.describe("Pages publiques", () => {
 
   test("affiche la page tarifs", async ({ page }) => {
     await page.goto("/pricing");
-    await expect(page.getByRole("heading", { name: /L'offre qui colle/i })).toBeVisible();
-
-    for (const plan of ["Gratuit", "Starter", "Pro"] as const) {
-      const heading = page.getByRole("heading", { name: plan, exact: true });
-      await heading.scrollIntoViewIfNeeded();
-      await expect(heading).toBeVisible();
-    }
+    await expect(page.getByRole("heading", { name: /Un seul prix/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Abonnement WorkSpace/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Essayer .* jours gratuits/i })).toBeVisible();
   });
 
   test("health check répond ok", async ({ request }) => {
