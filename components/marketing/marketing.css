@@ -111,6 +111,43 @@
   margin-block: -0.06em;
 }
 
+/* Halo hero qui suit la souris */
+.mkt-mouse-glow {
+  --gx: 72%;
+  --gy: 28%;
+  z-index: 0;
+}
+
+.mkt-mouse-glow__blob {
+  position: absolute;
+  left: var(--gx);
+  top: var(--gy);
+  width: min(720px, 72vw);
+  height: min(720px, 72vw);
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, oklch(0.82 0.12 55 / 0.55), oklch(0.78 0.1 45 / 0.18) 42%, transparent 68%);
+  filter: blur(72px);
+  will-change: left, top;
+}
+
+.mkt-mouse-glow__blob--soft {
+  width: min(980px, 90vw);
+  height: min(980px, 90vw);
+  background: radial-gradient(circle, oklch(0.86 0.08 70 / 0.28), transparent 62%);
+  filter: blur(100px);
+  opacity: 0.9;
+  /* Décalage léger pour un rendu plus organique */
+  translate: -42% -58%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-mouse-glow__blob,
+  .mkt-mouse-glow__blob--soft {
+    will-change: auto;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .mkt-hero-kicker {
     animation: at-fade 1s 0.1s both;

@@ -3,6 +3,7 @@ import { AppMark, AppWordmark } from "../AppBrand";
 import ModuleGlyph from "../modules/ModuleGlyph";
 import ScrollReveal from "./ScrollReveal";
 import LandingPricingSection from "./LandingPricingSection";
+import HeroMouseGlow from "./HeroMouseGlow";
 import {
   FLOOR_INCLUDED_SEATS,
   MONTHLY_FLOOR_EUR,
@@ -177,8 +178,8 @@ export default function LandingPage() {
 
       <main className="relative z-[5]">
         <section className="relative px-6 pb-[90px] pt-[110px] sm:px-10">
-          <div className="ui-hero-halo ui-hero-halo--orange absolute -right-[120px] -top-[180px] h-[700px] w-[700px]" aria-hidden />
-          <div className="relative mx-auto max-w-[1280px]">
+          <HeroMouseGlow />
+          <div className="relative z-[1] mx-auto max-w-[1280px]">
             <div className="mkt-hero-kicker flex items-center gap-3.5">
               <span className="ui-kicker text-[12px] tracking-[0.18em]">
                 Un espace de travail sur mesure pour vos projets.
