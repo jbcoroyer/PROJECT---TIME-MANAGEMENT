@@ -130,7 +130,7 @@ export async function completeInitialSetup(
       ...patch,
       appName,
       appShortName: patch.appShortName?.trim() || appName,
-      tagline: patch.tagline?.trim() ?? "",
+      tagline: "",
       isConfigured: true,
     },
     access.organizationId,

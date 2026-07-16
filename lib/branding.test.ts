@@ -20,7 +20,7 @@ describe("mergeBranding", () => {
       }),
     );
     expect(branding.appName).toBe("Acme Hub");
-    expect(branding.tagline).toBe("Équipe marketing");
+    expect(branding.tagline).toBe("");
     expect(branding.primaryColor).toBe("#ff00aa");
     expect(branding.isConfigured).toBe(true);
   });

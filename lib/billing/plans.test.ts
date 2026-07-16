@@ -79,6 +79,14 @@ describe("billing plans", () => {
     expect(calculateMonthlyPriceCents(12)).toBe(2400);
   });
 
+  it("résume l'offre unique", async () => {
+    const { singlePlanPricingSummary, PRICE_PER_SEAT_EUR, MONTHLY_FLOOR_EUR } = await import("./plans");
+    expect(PRICE_PER_SEAT_EUR).toBe(2);
+    expect(MONTHLY_FLOOR_EUR).toBe(10);
+    expect(singlePlanPricingSummary()).toContain("2 €");
+    expect(singlePlanPricingSummary()).toContain("10 €");
+  });
+
   it("mappe les statuts Stripe", () => {
     expect(mapStripeSubscriptionStatus("past_due")).toBe("past_due");
     expect(mapStripeSubscriptionStatus("incomplete_expired")).toBe("canceled");

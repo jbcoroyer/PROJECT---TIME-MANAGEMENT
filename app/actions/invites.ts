@@ -27,7 +27,6 @@ export type InviteWelcomeContext =
       needsOnboarding: true;
       email: string;
       workspaceName: string;
-      workspaceTagline: string;
       inviterName: string;
       organizationId: string;
       teamMemberId: string | null;
@@ -128,7 +127,7 @@ export async function getInviteWelcomeContext(): Promise<InviteWelcomeContext> {
       const { data: settings } = await admin
         .from("app_settings")
         .select(
-          "organization_id, app_name, enabled_modules, is_configured, primary_color, locale, timezone, tagline, mark_url",
+          "organization_id, app_name, enabled_modules, is_configured, primary_color, locale, timezone, mark_url",
         )
         .eq("organization_id", orgId)
         .maybeSingle();
@@ -154,7 +153,7 @@ export async function getInviteWelcomeContext(): Promise<InviteWelcomeContext> {
 
   const { data: settings } = await admin
     .from("app_settings")
-    .select("app_name, tagline")
+    .select("app_name")
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -163,7 +162,6 @@ export async function getInviteWelcomeContext(): Promise<InviteWelcomeContext> {
     (settings?.app_name as string | undefined)?.trim() ||
     (meta.workspace_name as string | undefined)?.trim() ||
     "votre espace";
-  const workspaceTagline = (settings?.tagline as string | undefined)?.trim() || "";
   const inviterName = (meta.invited_by_name as string | undefined)?.trim() || "Un administrateur";
   const member = (profile?.team_members as { job_title?: string | null } | null) ?? null;
   const suggested = splitDisplayName(profile?.display_name as string | undefined);
@@ -173,7 +171,6 @@ export async function getInviteWelcomeContext(): Promise<InviteWelcomeContext> {
     needsOnboarding: true,
     email: user.email ?? "",
     workspaceName,
-    workspaceTagline,
     inviterName,
     organizationId,
     teamMemberId: (profile?.team_member_id as string | null) ?? null,

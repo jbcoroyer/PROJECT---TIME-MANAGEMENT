@@ -5,12 +5,15 @@ import Link from "next/link";
 import { AtelierMark } from "../AtelierMark";
 import { AppWordmark } from "../AppBrand";
 import { useBranding } from "../../lib/brandingContext";
-import { TRIAL_DAYS } from "../../lib/billing/plans";
+import { FLOOR_INCLUDED_SEATS, MONTHLY_FLOOR_EUR, PRICE_PER_SEAT_EUR, TRIAL_DAYS } from "../../lib/billing/plans";
 import "../marketing/marketing.css";
 
 const PROOF_POINTS = [
   { num: "01", text: "11 modules inclus — activez ceux dont vous avez besoin" },
-  { num: "02", text: "2 € par utilisateur/mois, minimum 10 €/mois" },
+  {
+    num: "02",
+    text: `${PRICE_PER_SEAT_EUR} € par utilisateur/mois, minimum ${MONTHLY_FLOOR_EUR} €/mois (jusqu'à ${FLOOR_INCLUDED_SEATS})`,
+  },
   { num: "03", text: `${TRIAL_DAYS} jours d'essai complet, sans carte bancaire` },
 ];
 

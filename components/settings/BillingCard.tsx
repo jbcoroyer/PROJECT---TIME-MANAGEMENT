@@ -4,10 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import { CreditCard, ExternalLink, Loader2, Check } from "lucide-react";
 import {
   FLOOR_INCLUDED_SEATS,
-  MONTHLY_FLOOR_CENTS,
-  PRICE_PER_SEAT_CENTS,
+  MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_EUR,
   SINGLE_PLAN_FEATURES,
   formatMonthlyPriceEur,
+  singlePlanPricingSummary,
 } from "../../lib/billing/plans";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { toastError, toastSuccess } from "../../lib/toast";
@@ -108,8 +109,8 @@ export default function BillingCard() {
   const onActive = billing.plan === "active";
   const trialExpired = onTrial && billing.trialDaysLeft !== null && billing.trialDaysLeft <= 0;
   const monthlyLabel = formatMonthlyPriceEur(billing.memberCount);
-  const floorEur = (MONTHLY_FLOOR_CENTS / 100).toFixed(0);
-  const seatEur = (PRICE_PER_SEAT_CENTS / 100).toFixed(0);
+  const floorEur = String(MONTHLY_FLOOR_EUR);
+  const seatEur = String(PRICE_PER_SEAT_EUR);
 
   return (
     <div className="space-y-4">
@@ -130,7 +131,9 @@ export default function BillingCard() {
             )}
             <p className="mt-2 text-sm text-[color:var(--foreground)]/70">
               {billing.memberCount} collaborateur{billing.memberCount > 1 ? "s" : ""} · {monthlyLabel}/mois
-              {billing.memberCount <= FLOOR_INCLUDED_SEATS ? ` (plancher ${floorEur} €)` : ` (${seatEur} €/pers.)`}
+              {billing.memberCount <= FLOOR_INCLUDED_SEATS
+                ? ` (plancher ${floorEur} €)`
+                : ` (${seatEur} €/pers.)`}
             </p>
             {!billing.accessAllowed && (
               <p className="mt-2 text-sm font-medium text-[var(--danger)]">{t("settings.billing.accessSuspended")}</p>
@@ -161,8 +164,7 @@ export default function BillingCard() {
             <h3 className="font-semibold text-[var(--foreground)]">Abonnement unique — tout inclus</h3>
           </div>
           <p className="mt-2 text-sm text-[color:var(--foreground)]/65">
-            {seatEur} € par utilisateur et par mois, minimum {floorEur} €/mois (jusqu&apos;à {FLOOR_INCLUDED_SEATS}{" "}
-            collaborateurs). Après l&apos;essai, un abonnement est requis.
+            {singlePlanPricingSummary()}. Après l&apos;essai, un abonnement est requis.
           </p>
           <ul className="mt-3 space-y-1.5">
             {SINGLE_PLAN_FEATURES.map((feature) => (

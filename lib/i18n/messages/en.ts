@@ -44,8 +44,6 @@ export const en: MessageTree = {
     step4Intro: "You can change these settings later in Settings.",
     appName: "Application name",
     appNamePlaceholder: "e.g. My team, Acme Agency…",
-    tagline: "Tagline (optional)",
-    taglinePlaceholder: "e.g. Project and communication management",
     primaryColor: "Primary color",
     moreColors: "+ more colors",
     selectedColor: "Selected color: {name}",
@@ -182,7 +180,8 @@ export const en: MessageTree = {
     gdprDeleteAccount: "Delete my account",
     gdprDeleting: "Deleting…",
     billingTitle: "Billing",
-    billingSubtitle: "Single plan: €2/user/month (€10 min). 14-day trial, no card required.",
+    billingSubtitle:
+      "Single plan: €2/user/month (€10 min up to 5 people). 14-day trial, no card required.",
     outlookTitle: "Outlook 365 calendar",
     outlookSubtitle: "Sync your scheduled tasks to your Microsoft Outlook calendar.",
     billing: {
@@ -207,7 +206,7 @@ export const en: MessageTree = {
   billingGate: {
     trialExpiredTitle: "Your free trial has ended",
     trialExpiredBody:
-      "Subscribe to keep using the app. €2 per user per month, €10/month minimum.",
+      "Subscribe to keep using the app: €2 per user per month, €10/month minimum (up to 5 people). Everything included.",
     subscriptionInactiveTitle: "Inactive subscription",
     subscriptionInactiveBody: "Your subscription is suspended or canceled. Reactivate it to continue.",
     accessSuspendedTitle: "Access suspended",

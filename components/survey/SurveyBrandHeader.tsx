@@ -11,7 +11,6 @@ type SurveyBrandHeaderProps = {
 export default function SurveyBrandHeader({ variant = "header" }: SurveyBrandHeaderProps) {
   const { branding } = useBranding();
   const isHero = variant === "hero";
-  const tagline = branding.tagline.trim();
 
   if (isHero) {
     return (
@@ -21,14 +20,6 @@ export default function SurveyBrandHeader({ variant = "header" }: SurveyBrandHea
           className="text-[var(--foreground)]"
           aria-label={branding.appName}
         />
-        {tagline ? (
-          <>
-            <div className="hidden h-12 w-px bg-[var(--line)] sm:block" aria-hidden />
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/50">
-              {tagline}
-            </p>
-          </>
-        ) : null}
       </div>
     );
   }
@@ -40,11 +31,6 @@ export default function SurveyBrandHeader({ variant = "header" }: SurveyBrandHea
         <p className="text-lg font-bold leading-none tracking-tight text-[var(--foreground)]">
           {branding.appName}
         </p>
-        {tagline ? (
-          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/50">
-            {tagline}
-          </p>
-        ) : null}
       </div>
     </div>
   );

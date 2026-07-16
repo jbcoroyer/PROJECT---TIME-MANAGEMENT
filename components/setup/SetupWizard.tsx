@@ -17,7 +17,8 @@ import { detectAccentFromFile } from "../../lib/detectLogoAccentColor";
 import ModuleCatalog from "./ModuleCatalog";
 import { brandingStyleVars } from "../../lib/branding";
 import { useBranding } from "../../lib/brandingContext";
-import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
+import { LOCALE_OPTIONS, detectBrowserLocale, resolveLocale, type AppLocale } from "../../lib/i18n";
+import { readStoredLocale } from "../../lib/i18n/localeStorage";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
 import { useCurrentUser } from "../../lib/useCurrentUser";
@@ -54,23 +55,24 @@ function initialAppName(brandingName: string): string {
 
 type SetupWizardProps = {
   onAccentChange?: (hex: string) => void;
+  localeOverride?: AppLocale;
+  onLocaleChange?: (locale: AppLocale) => void;
 };
 
-export default function SetupWizard({ onAccentChange }: SetupWizardProps) {
+export default function SetupWizard({ onAccentChange, localeOverride, onLocaleChange }: SetupWizardProps) {
   const router = useRouter();
   const { branding, reload, patchBranding } = useBranding();
   const { user } = useCurrentUser();
-  const { t } = useTranslation({ preferBrowser: true });
+  const { t } = useTranslation({ preferBrowser: true, localeOverride });
 
   const [step, setStep] = useState<Step>(1);
   const [appName, setAppName] = useState(() => initialAppName(branding.appName));
-  const [tagline, setTagline] = useState(branding.tagline);
   const [primaryColor, setPrimaryColor] = useState(branding.primaryColor);
   const [markStoragePath, setMarkStoragePath] = useState<string | null>(branding.markUrl);
   const [markPreviewUrl, setMarkPreviewUrl] = useState<string | null>(branding.markUrl);
   const [timezone, setTimezone] = useState(branding.timezone);
   const [sector, setSector] = useState(branding.sector ?? "");
-  const [locale, setLocale] = useState<AppLocale>(resolveLocale(branding.locale));
+  const [locale, setLocale] = useState<AppLocale>(() => readStoredLocale() ?? detectBrowserLocale());
   const [enabledModules, setEnabledModules] = useState<AppModuleId[]>([...DEFAULT_ONBOARDING_MODULES]);
   const [markUploading, setMarkUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -88,10 +90,13 @@ export default function SetupWizard({ onAccentChange }: SetupWizardProps) {
         const hex = normalizeHexColor(branding.primaryColor) || branding.primaryColor;
         setPrimaryColor(isPresetColor(hex) ? hex : findClosestPresetHex(hex));
       }
-      if (branding.tagline && !tagline.trim()) setTagline(branding.tagline);
       setHydratedFromBranding(true);
     });
-  }, [appName, branding, hydratedFromBranding, tagline]);
+  }, [appName, branding, hydratedFromBranding]);
+
+  useEffect(() => {
+    if (localeOverride) setLocale(resolveLocale(localeOverride));
+  }, [localeOverride]);
 
   useEffect(() => {
     onAccentChange?.(normalizeHexColor(primaryColor) || primaryColor);
@@ -151,7 +156,7 @@ export default function SetupWizard({ onAccentChange }: SetupWizardProps) {
     const result = await completeInitialSetup({
       appName: name,
       appShortName: name,
-      tagline: tagline.trim(),
+      tagline: "",
       primaryColor: normalizeHexColor(primaryColor) || primaryColor,
       markUrl: markStoragePath,
       timezone,
@@ -172,7 +177,7 @@ export default function SetupWizard({ onAccentChange }: SetupWizardProps) {
       enabledModules,
       appName: name,
       appShortName: name,
-      tagline: tagline.trim(),
+      tagline: "",
       primaryColor: normalizeHexColor(primaryColor) || primaryColor,
       markUrl: markStoragePath,
       timezone,
@@ -239,13 +244,6 @@ export default function SetupWizard({ onAccentChange }: SetupWizardProps) {
                 required
                 autoFocus
               />
-              <Field
-                id="setup-tagline"
-                label={t("setup.tagline")}
-                value={tagline}
-                onChange={setTagline}
-                placeholder={t("setup.taglinePlaceholder")}
-              />
             </div>
           )}
 
@@ -301,9 +299,6 @@ export default function SetupWizard({ onAccentChange }: SetupWizardProps) {
                 </div>
                 <div className="min-w-0">
                   <p className="app-wordmark ui-display text-xl text-[var(--foreground)]">{previewName}</p>
-                  {tagline.trim() ? (
-                    <p className="mt-1 text-sm text-[var(--ink-muted)]">{tagline.trim()}</p>
-                  ) : null}
                 </div>
               </div>
 
@@ -333,7 +328,11 @@ export default function SetupWizard({ onAccentChange }: SetupWizardProps) {
                   <select
                     id="setup-locale"
                     value={locale}
-                    onChange={(e) => setLocale(resolveLocale(e.target.value))}
+                    onChange={(e) => {
+                      const next = resolveLocale(e.target.value);
+                      setLocale(next);
+                      onLocaleChange?.(next);
+                    }}
                     className="ui-input ui-focus-ring w-full"
                   >
                     {LOCALE_OPTIONS.map((opt) => (

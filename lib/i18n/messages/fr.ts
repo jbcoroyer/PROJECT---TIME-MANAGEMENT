@@ -46,8 +46,6 @@ export const fr: MessageTree = {
     step4Intro: "Ces réglages peuvent être modifiés plus tard dans les paramètres.",
     appName: "Nom de l'application",
     appNamePlaceholder: "Ex. Mon équipe, Agence Dupont…",
-    tagline: "Slogan (facultatif)",
-    taglinePlaceholder: "Ex. Pilotage des projets et de la communication",
     primaryColor: "Couleur principale",
     moreColors: "+ de couleurs",
     selectedColor: "Couleur sélectionnée : {name}",
@@ -187,7 +185,7 @@ export const fr: MessageTree = {
     gdprDeleting: "Suppression…",
     billingTitle: "Facturation",
     billingSubtitle:
-      "Abonnement unique : 2 €/utilisateur/mois (min. 10 €). Essai 14 jours sans carte.",
+      "Abonnement unique : 2 €/utilisateur/mois (min. 10 € jusqu'à 5 personnes). Essai 14 jours sans carte.",
     outlookTitle: "Agenda Outlook 365",
     outlookSubtitle: "Synchronisez vos tâches planifiées vers votre agenda Microsoft Outlook.",
     billing: {
@@ -212,7 +210,7 @@ export const fr: MessageTree = {
   billingGate: {
     trialExpiredTitle: "Votre essai gratuit est terminé",
     trialExpiredBody:
-      "Abonnez-vous pour continuer à utiliser l'application. 2 € par utilisateur et par mois, minimum 10 €/mois.",
+      "Abonnez-vous pour continuer : 2 € par utilisateur et par mois, minimum 10 €/mois (jusqu'à 5 personnes). Tout inclus.",
     subscriptionInactiveTitle: "Abonnement inactif",
     subscriptionInactiveBody: "Votre abonnement est suspendu ou résilié. Réactivez-le pour continuer.",
     accessSuspendedTitle: "Accès suspendu",

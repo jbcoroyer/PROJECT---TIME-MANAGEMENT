@@ -21,6 +21,10 @@ export const SINGLE_PLAN_FEATURES = [
   "Support par e-mail",
 ] as const;
 
+/** Montants affichés (entiers en euros). */
+export const PRICE_PER_SEAT_EUR = PRICE_PER_SEAT_CENTS / 100;
+export const MONTHLY_FLOOR_EUR = MONTHLY_FLOOR_CENTS / 100;
+
 export function calculateMonthlyPriceCents(activeMemberCount: number): number {
   const seats = Math.max(0, activeMemberCount);
   return Math.max(MONTHLY_FLOOR_CENTS, seats * PRICE_PER_SEAT_CENTS);
@@ -34,6 +38,11 @@ export function formatMonthlyPriceEur(activeMemberCount: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(euros);
+}
+
+/** Résumé court pour SEO, emails et messages UI. */
+export function singlePlanPricingSummary(): string {
+  return `${PRICE_PER_SEAT_EUR} € par utilisateur et par mois, minimum ${MONTHLY_FLOOR_EUR} €/mois (jusqu'à ${FLOOR_INCLUDED_SEATS} personnes)`;
 }
 
 export function isTrialExpired(trialEndsAt: string | null): boolean {

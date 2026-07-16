@@ -3,16 +3,18 @@
 import Link from "next/link";
 import {
   FLOOR_INCLUDED_SEATS,
-  MONTHLY_FLOOR_CENTS,
-  PRICE_PER_SEAT_CENTS,
+  MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_EUR,
   TRIAL_DAYS,
+  formatMonthlyPriceEur,
 } from "../../lib/billing/plans";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 
+const EXAMPLE_SEATS = 8;
+
 export default function LandingPricingSection() {
   const { t } = useTranslation({ preferBrowser: true });
-  const floorEur = MONTHLY_FLOOR_CENTS / 100;
-  const seatEur = PRICE_PER_SEAT_CENTS / 100;
+  const examplePrice = formatMonthlyPriceEur(EXAMPLE_SEATS);
 
   return (
     <div
@@ -27,7 +29,7 @@ export default function LandingPricingSection() {
           </p>
         </div>
         <span className="ui-display text-[34px] text-[var(--ink)]">
-          {seatEur} €
+          {PRICE_PER_SEAT_EUR} €
           <span className="text-[15px] text-[rgba(26,22,17,0.5)]">/user/mois</span>
         </span>
       </div>
@@ -35,13 +37,15 @@ export default function LandingPricingSection() {
       <div className="relative bg-[var(--ink)] px-[30px] py-[30px]">
         <div className="flex items-baseline justify-between gap-4">
           <div>
-            <p className="ui-display text-[23px] text-[var(--background)]">Plancher {floorEur} €/mois</p>
+            <p className="ui-display text-[23px] text-[var(--background)]">
+              Plancher {MONTHLY_FLOOR_EUR} €/mois
+            </p>
             <p className="mt-1 text-[13.5px] text-[rgba(246,241,231,0.55)]">
               Jusqu&apos;à {FLOOR_INCLUDED_SEATS} collaborateurs inclus
             </p>
           </div>
           <span className="ui-display text-[34px] text-[var(--background)]">
-            {floorEur} €
+            {MONTHLY_FLOOR_EUR} €
             <span className="text-[15px] text-[rgba(246,241,231,0.5)]">/mois min.</span>
           </span>
         </div>
@@ -50,11 +54,15 @@ export default function LandingPricingSection() {
       <div className="flex items-baseline justify-between gap-4 border-b border-[rgba(26,22,17,0.12)] px-[30px] py-[26px]">
         <div>
           <p className="ui-display text-[23px] text-[var(--ink)]">Au-delà</p>
-          <p className="mt-1 text-[13.5px] text-[rgba(26,22,17,0.55)]">{seatEur} € × nombre d&apos;utilisateurs</p>
+          <p className="mt-1 text-[13.5px] text-[rgba(26,22,17,0.55)]">
+            {PRICE_PER_SEAT_EUR} € × nombre d&apos;utilisateurs
+          </p>
         </div>
         <span className="ui-display text-[34px] text-[var(--ink)]">
-          16 €
-          <span className="text-[15px] text-[rgba(26,22,17,0.5)]">/mois pour 8 pers.</span>
+          {examplePrice.replace(/\s/g, "\u00a0")}
+          <span className="text-[15px] text-[rgba(26,22,17,0.5)]">
+            /mois pour {EXAMPLE_SEATS} pers.
+          </span>
         </span>
       </div>
 

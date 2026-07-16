@@ -7,7 +7,6 @@ import { Briefcase, Camera, User, UserRound } from "lucide-react";
 import { completeInviteProfile, type InviteWelcomeContext } from "../../app/actions/invites";
 import { uploadOrgAsset } from "../../app/actions/storage";
 import { AppMark } from "../AppBrand";
-import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError, toastSuccess } from "../../lib/toast";
@@ -19,7 +18,6 @@ type InviteAcceptScreenProps = {
 export default function InviteAcceptScreen({ context }: InviteAcceptScreenProps) {
   const router = useRouter();
   const supabase = getSupabaseBrowser();
-  const { branding } = useBranding();
   const { t } = useTranslation({ preferBrowser: true });
 
   const [firstName, setFirstName] = useState(context.suggestedFirstName);
@@ -120,11 +118,6 @@ export default function InviteAcceptScreen({ context }: InviteAcceptScreenProps)
           <p className="ui-display mt-1 text-xl font-semibold text-[var(--foreground)]">
             {context.workspaceName}
           </p>
-          {context.workspaceTagline ? (
-            <p className="mt-1 text-sm text-[color:var(--foreground)]/60">{context.workspaceTagline}</p>
-          ) : branding.tagline.trim() ? (
-            <p className="mt-1 text-sm text-[color:var(--foreground)]/60">{branding.tagline}</p>
-          ) : null}
           <p className="mt-3 text-xs text-[color:var(--foreground)]/50">
             {t("invite.connectedAs", { email: context.email })}
           </p>

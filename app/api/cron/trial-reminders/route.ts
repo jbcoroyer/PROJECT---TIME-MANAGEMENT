@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { internalApiUnauthorized, verifyInternalApiSecret } from "../../../../lib/server/internalApiAuth";
-import { daysLeftInTrial, TRIAL_DAYS } from "../../../../lib/billing/plans";
+import { daysLeftInTrial, TRIAL_DAYS, singlePlanPricingSummary } from "../../../../lib/billing/plans";
 import { listTrialingOrganizations } from "../../../../lib/server/billingOrg";
 import { listOrganizationAdminEmails } from "../../../../lib/server/orgMembers";
 import { sendTransactionalEmail } from "../../../../lib/server/email";
@@ -15,7 +15,7 @@ function trialReminderHtml(orgName: string, daysLeft: number): string {
   return `
     <p>Bonjour,</p>
     <p>${urgency}</p>
-    <p>Pour l'espace <strong>${orgName}</strong> : souscrivez à l'abonnement unique (2&nbsp;€/utilisateur/mois, min. 10&nbsp;€) pour continuer après l'essai ({TRIAL_DAYS} jours gratuits, sans carte).</p>
+    <p>Pour l'espace <strong>${orgName}</strong> : souscrivez à l'abonnement unique (${singlePlanPricingSummary()}) pour continuer après l'essai (${TRIAL_DAYS} jours gratuits, sans carte).</p>
     <p><a href="${process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "http://localhost:3000"}/pricing">Voir les tarifs</a></p>
   `;
 }

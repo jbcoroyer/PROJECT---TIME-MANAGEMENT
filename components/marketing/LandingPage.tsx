@@ -3,7 +3,12 @@ import { AppMark, AppWordmark } from "../AppBrand";
 import ModuleGlyph from "../modules/ModuleGlyph";
 import ScrollReveal from "./ScrollReveal";
 import LandingPricingSection from "./LandingPricingSection";
-import { TRIAL_DAYS } from "../../lib/billing/plans";
+import {
+  FLOOR_INCLUDED_SEATS,
+  MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_EUR,
+  TRIAL_DAYS,
+} from "../../lib/billing/plans";
 import { LANDING_MODULE_ORDER } from "../../lib/modules/moduleGlyphs";
 import type { AppModuleId } from "../../lib/modules";
 import "./marketing.css";
@@ -58,7 +63,7 @@ const MODULE_COPY: Record<AppModuleId, { title: string; desc: string }> = {
 const HERO_STATS = [
   { value: "11", label: "Modules inclus" },
   { value: `${TRIAL_DAYS} j`, label: "Essai complet, sans CB" },
-  { value: "2€", label: "Par utilisateur / mois" },
+  { value: `${PRICE_PER_SEAT_EUR}€`, label: "Par utilisateur / mois" },
 ];
 
 const MARQUEE_WORDS = [
@@ -78,7 +83,10 @@ const MARQUEE_WORDS = [
 
 const WHY_POINTS = [
   { num: "01", text: "Tout inclus : les 11 modules, IA, Outlook et alertes" },
-  { num: "02", text: "2 € par utilisateur / mois, minimum 10 € (jusqu’à 5 personnes)" },
+  {
+    num: "02",
+    text: `${PRICE_PER_SEAT_EUR} € par utilisateur / mois, minimum ${MONTHLY_FLOOR_EUR} € (jusqu’à ${FLOOR_INCLUDED_SEATS} personnes)`,
+  },
   { num: "03", text: "Invitez vos collègues — la facture suit le nombre de sièges" },
   { num: "04", text: `Essai complet de ${TRIAL_DAYS} jours, sans carte bancaire` },
 ];
@@ -136,8 +144,8 @@ export default function LandingPage() {
             </h1>
             <div className="mt-11 flex flex-wrap items-end justify-between gap-10">
               <p className="mkt-hero-sub max-w-[440px] text-lg leading-relaxed text-[var(--ink-muted)]">
-                Kanban, planning, événements, réseaux sociaux, stock — un seul abonnement, tout inclus.
-                2&nbsp;€ par utilisateur / mois, minimum 10&nbsp;€.
+                Kanban, planning, événements, réseaux sociaux, stock — un seul abonnement, tout inclus.{" "}
+                {PRICE_PER_SEAT_EUR}&nbsp;€ par utilisateur / mois, minimum {MONTHLY_FLOOR_EUR}&nbsp;€.
               </p>
               <div className="mkt-hero-cta flex flex-wrap items-center gap-[18px]">
                 <Link href="/signup" className="mkt-cta-primary px-8 py-[17px] text-base">

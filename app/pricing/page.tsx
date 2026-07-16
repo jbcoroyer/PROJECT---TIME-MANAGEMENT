@@ -1,9 +1,9 @@
 import PricingPageContent from "../../components/marketing/PricingPageContent";
+import { TRIAL_DAYS, singlePlanPricingSummary } from "../../lib/billing/plans";
 
 export const metadata = {
   title: "Tarifs",
-  description:
-    "Un seul abonnement : 2 € par utilisateur et par mois, minimum 10 €/mois, tout inclus. Essai gratuit 14 jours sans carte.",
+  description: `Un seul abonnement : ${singlePlanPricingSummary()}, tout inclus. Essai gratuit ${TRIAL_DAYS} jours sans carte.`,
 };
 
 export default function PricingPage() {

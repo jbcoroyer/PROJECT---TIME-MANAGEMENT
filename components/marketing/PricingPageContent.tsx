@@ -7,21 +7,22 @@ import LegalFooter from "../../components/legal/LegalFooter";
 import ScrollReveal from "../../components/marketing/ScrollReveal";
 import {
   FLOOR_INCLUDED_SEATS,
-  MONTHLY_FLOOR_CENTS,
-  PRICE_PER_SEAT_CENTS,
+  MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_EUR,
   SINGLE_PLAN_FEATURES,
   TRIAL_DAYS,
   calculateMonthlyPriceCents,
   formatMonthlyPriceEur,
+  singlePlanPricingSummary,
 } from "../../lib/billing/plans";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import "../../components/marketing/marketing.css";
 
+const EXAMPLE_SIZES = [1, 5, 6, 12] as const;
+
 export default function PricingPageContent() {
   const { t } = useTranslation({ preferBrowser: true });
   const [simulatorSeats, setSimulatorSeats] = useState(8);
-  const floorEur = MONTHLY_FLOOR_CENTS / 100;
-  const seatEur = PRICE_PER_SEAT_CENTS / 100;
   const simulatedPrice = formatMonthlyPriceEur(simulatorSeats);
 
   return (
@@ -56,8 +57,8 @@ export default function PricingPageContent() {
             <em className="text-[var(--accent)] italic">tout inclus</em>
           </h1>
           <p className="mt-6 max-w-[560px] text-lg leading-relaxed text-[var(--ink-muted)]">
-            {seatEur} € par utilisateur et par mois, minimum {floorEur} €/mois (jusqu&apos;à {FLOOR_INCLUDED_SEATS}{" "}
-            personnes). Essai gratuit de {TRIAL_DAYS} jours, sans carte bancaire.
+            {singlePlanPricingSummary()}. Essai gratuit de {TRIAL_DAYS} jours, sans carte bancaire.
+            Après l&apos;essai, un abonnement actif est requis.
           </p>
         </div>
 
@@ -66,13 +67,13 @@ export default function PricingPageContent() {
             <span className="mkt-pricing-card__badge">✦ Tout inclus</span>
             <span className="mkt-pricing-card__kicker">Offre unique</span>
             <p className="mkt-pricing-card__price">
-              {seatEur} €
+              {PRICE_PER_SEAT_EUR} €
               <span className="mkt-pricing-card__price-suffix">/utilisateur/mois</span>
             </p>
             <h2 className="mkt-pricing-card__name">Abonnement WorkSpace</h2>
             <p className="mkt-pricing-card__desc">
-              Tous les modules, toutes les intégrations, sans palier caché. Le minimum de {floorEur} €/mois couvre
-              jusqu&apos;à {FLOOR_INCLUDED_SEATS} collaborateurs.
+              Tous les modules, toutes les intégrations, sans palier caché. Le minimum de{" "}
+              {MONTHLY_FLOOR_EUR} €/mois couvre jusqu&apos;à {FLOOR_INCLUDED_SEATS} collaborateurs.
             </p>
             <ul className="mkt-pricing-card__features">
               {SINGLE_PLAN_FEATURES.map((feature) => (
@@ -88,6 +89,34 @@ export default function PricingPageContent() {
               Essayer {TRIAL_DAYS} jours gratuits <span className="font-[family-name:var(--font-mono)]">→</span>
             </Link>
           </article>
+        </ScrollReveal>
+
+        <ScrollReveal delay={80} className="mt-12 max-w-3xl">
+          <h2 className="ui-display text-xl text-[var(--ink)]">Comment ça se calcule</h2>
+          <p className="mt-2 text-sm text-[var(--ink-muted)]">
+            Facturation = max({MONTHLY_FLOOR_EUR}&nbsp;€, nombre d&apos;utilisateurs × {PRICE_PER_SEAT_EUR}
+            &nbsp;€). La quantité Stripe suit le nombre de membres actifs.
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {EXAMPLE_SIZES.map((seats) => {
+              const price = formatMonthlyPriceEur(seats);
+              const atFloor = seats <= FLOOR_INCLUDED_SEATS;
+              return (
+                <div
+                  key={seats}
+                  className="rounded-[18px] border border-[rgba(26,22,17,0.15)] bg-[var(--surface)] px-4 py-4"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(26,22,17,0.45)]">
+                    {seats} pers.
+                  </p>
+                  <p className="ui-display mt-2 text-2xl text-[var(--ink)]">{price}</p>
+                  <p className="mt-1 text-xs text-[rgba(26,22,17,0.5)]">
+                    {atFloor ? `plancher ${MONTHLY_FLOOR_EUR} €` : `${seats} × ${PRICE_PER_SEAT_EUR} €`}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </ScrollReveal>
 
         <ScrollReveal delay={120} className="mt-12 max-w-xl">
@@ -113,7 +142,7 @@ export default function PricingPageContent() {
               <strong>{simulatedPrice}</strong>/mois
             </p>
             <p className="mt-1 text-xs text-[rgba(26,22,17,0.5)]">
-              Calcul : max({floorEur} €, {simulatorSeats} × {seatEur} €) ={" "}
+              Calcul : max({MONTHLY_FLOOR_EUR} €, {simulatorSeats} × {PRICE_PER_SEAT_EUR} €) ={" "}
               {(calculateMonthlyPriceCents(simulatorSeats) / 100).toFixed(0)} €
             </p>
           </div>
@@ -126,7 +155,8 @@ export default function PricingPageContent() {
                 Prêt à centraliser votre équipe ?
               </h2>
               <p className="mt-3.5 text-[15px] text-[rgba(246,241,231,0.6)]">
-                {TRIAL_DAYS} jours pour tout tester. Aucune carte requise.
+                {TRIAL_DAYS} jours pour tout tester. Aucune carte requise. Ensuite :{" "}
+                {PRICE_PER_SEAT_EUR}&nbsp;€/utilisateur/mois (min. {MONTHLY_FLOOR_EUR}&nbsp;€).
               </p>
             </div>
             <Link
