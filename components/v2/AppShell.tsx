@@ -125,14 +125,11 @@ export default function V2AppShell({
 
   const allowedModules = branding.enabledModules;
 
-  const items = [
-    ...NAV_ITEMS.filter((item) => {
-      if (item.adminOnly && !isAdmin) return false;
-      if (!item.moduleId) return true;
-      return isModuleEnabled(allowedModules, item.moduleId);
-    }),
-    settingsNavItem,
-  ];
+  const moduleItems = NAV_ITEMS.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (!item.moduleId) return true;
+    return isModuleEnabled(allowedModules, item.moduleId);
+  });
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -165,6 +162,8 @@ export default function V2AppShell({
       .join(" ");
 
   const dashboardHref = "/dashboard/kanban";
+  const settingsActive = isNavActive(settingsNavItem.href, pathname);
+  const settingsLabel = t(settingsNavItem.labelKey);
 
   const brandBlock = (options?: { onClick?: () => void; className?: string }) => (
     <Link
@@ -181,6 +180,17 @@ export default function V2AppShell({
     </Link>
   );
 
+  const settingsLink = (onNavClick?: () => void) => (
+    <Link
+      href={settingsNavItem.href}
+      onClick={onNavClick}
+      className={navLinkClass(settingsActive)}
+    >
+      <Settings2 className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+      <span>{settingsLabel}</span>
+    </Link>
+  );
+
   const sidebarContent = (options?: { onNavClick?: () => void; hideBrand?: boolean }) => (
     <>
       {!options?.hideBrand ? brandBlock({ onClick: options?.onNavClick }) : null}
@@ -189,8 +199,9 @@ export default function V2AppShell({
           "min-h-0 flex-1 space-y-px overflow-y-auto overscroll-contain",
           options?.hideBrand ? "mt-0" : "mt-[34px]",
         ].join(" ")}
+        aria-label="Modules"
       >
-        {items.map((item, index) => {
+        {moduleItems.map((item, index) => {
           const active = isNavActive(item.href, pathname);
           const num = String(index + 1).padStart(2, "0");
           const unvisited = !active && showDiscoveryBadge(item.moduleId);
@@ -222,7 +233,8 @@ export default function V2AppShell({
           );
         })}
       </nav>
-      <div className="mt-4 space-y-2 border-t border-[rgba(246,241,231,0.15)] pt-4">
+      <div className="mt-4 shrink-0 space-y-2 border-t border-[rgba(246,241,231,0.15)] pt-4">
+        {settingsLink(options?.onNavClick)}
         {userLoading ? (
           <div className="h-[52px] animate-pulse rounded-xl bg-[rgba(246,241,231,0.08)]" aria-hidden />
         ) : isGuest ? (

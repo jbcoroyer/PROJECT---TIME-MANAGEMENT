@@ -28,6 +28,7 @@ export const NAV_ITEMS: NavItemDefinition[] = [
 ];
 
 export function isNavActive(href: string, pathname: string): boolean {
+  if (href === "/settings") return pathname === "/settings" || pathname.startsWith("/settings/");
   if (href === "/events/dashboard") return pathname.startsWith("/events");
   if (href === "/asks") {
     return pathname === "/asks" || pathname.startsWith("/asks/");
