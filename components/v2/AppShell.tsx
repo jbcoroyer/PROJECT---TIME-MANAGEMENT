@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Settings2, X } from "lucide-react";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
-import { getCommerciallyAvailableModules, isModuleEnabled } from "../../lib/modules";
+import { isModuleEnabled } from "../../lib/modules";
 import { isNavActive, NAV_ITEMS } from "../../lib/navigation";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { useGamificationOptional } from "../../lib/gamification/gamificationContext";
@@ -124,13 +124,11 @@ export default function V2AppShell({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const allowedModules = branding.enabledModules;
-  const commercialModuleIds = new Set(getCommerciallyAvailableModules());
 
   const items = [
     ...NAV_ITEMS.filter((item) => {
       if (item.adminOnly && !isAdmin) return false;
       if (!item.moduleId) return true;
-      if (!commercialModuleIds.has(item.moduleId)) return false;
       return isModuleEnabled(allowedModules, item.moduleId);
     }),
     settingsNavItem,
