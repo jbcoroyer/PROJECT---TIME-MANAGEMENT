@@ -231,6 +231,17 @@ export const en: MessageTree = {
       kicker: "Pricing",
     },
   },
+  dashboard: {
+    tabs: {
+      todo: "My tasks",
+      kanban: "Kanban board",
+      list: "List view",
+      calendar: "Calendar",
+      workload: "Team workload",
+      analytics: "Analytics",
+      archives: "Archives",
+    },
+  },
   nav: {
     dashboard: "Dashboard",
     asks: "Request space",

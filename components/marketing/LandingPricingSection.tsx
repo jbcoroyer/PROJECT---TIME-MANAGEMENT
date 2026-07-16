@@ -25,7 +25,7 @@ export default function LandingPricingSection() {
         <div>
           <p className="ui-display text-[23px] text-[var(--ink)]">Un seul prix</p>
           <p className="mt-1 text-[13.5px] text-[rgba(26,22,17,0.55)]">
-            Tout inclus · essai {TRIAL_DAYS} jours sans CB
+            11 modules · IA · Outlook · Slack/Teams · essai {TRIAL_DAYS} j sans CB
           </p>
         </div>
         <span className="ui-display text-[34px] text-[var(--ink)]">

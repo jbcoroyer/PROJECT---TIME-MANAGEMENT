@@ -20,6 +20,52 @@ import "../../components/marketing/marketing.css";
 
 const EXAMPLE_SIZES = [1, 5, 6, 12] as const;
 
+const INCLUDED_VALUE = [
+  {
+    title: "Pilotage & projets",
+    body: "Kanban multi-vues, charge équipe, archives et rétroplanning Gantt pour livrer à temps.",
+  },
+  {
+    title: "Demandes & agenda",
+    body: "Formulaire client public, triage vers tâches, agenda avec réservation de créneaux.",
+  },
+  {
+    title: "Production com'",
+    body: "Événements (régie, budget, RETEX), calendrier social avec validation, DAM et stock PLV.",
+  },
+  {
+    title: "Feedback & stratégie",
+    body: "Boîte à idées, enquêtes multi-étapes, OKR d’équipe — du signal au suivi.",
+  },
+  {
+    title: "IA & intégrations",
+    body: "Assistant IA pour reformuler et recycler, sync Outlook 365, alertes Slack / Teams.",
+  },
+  {
+    title: "Votre espace",
+    body: "Logo, couleurs, modules activables, invitations illimitées — la facture suit les sièges actifs.",
+  },
+] as const;
+
+const FAQ_ITEMS = [
+  {
+    q: "Y a-t-il plusieurs formules ?",
+    a: "Non. Un seul abonnement : tous les modules et intégrations sont inclus. Vous payez uniquement au nombre d’utilisateurs.",
+  },
+  {
+    q: "Que se passe-t-il pendant l’essai ?",
+    a: `Pendant ${TRIAL_DAYS} jours, vous avez accès à toute la plateforme sans carte bancaire. Ensuite, un abonnement actif est requis pour continuer.`,
+  },
+  {
+    q: "Comment évolue la facture si j’ajoute quelqu’un ?",
+    a: `Jusqu’à ${FLOOR_INCLUDED_SEATS} personnes, vous restez au plancher de ${MONTHLY_FLOOR_EUR} €/mois. Au-delà, chaque siège supplémentaire coûte ${PRICE_PER_SEAT_EUR} €/mois.`,
+  },
+  {
+    q: "Les modules sont-ils facturés séparément ?",
+    a: "Non. Kanban, demandes, planning, events, social, stock, DAM, idées, OKR, enquêtes et agenda sont dans le même prix.",
+  },
+] as const;
+
 export default function PricingPageContent() {
   const { t } = useTranslation({ preferBrowser: true });
   const [simulatorSeats, setSimulatorSeats] = useState(8);
@@ -91,6 +137,30 @@ export default function PricingPageContent() {
           </article>
         </ScrollReveal>
 
+        <ScrollReveal delay={40} className="mt-16 max-w-3xl">
+          <h2 className="ui-display text-[clamp(1.6rem,2.5vw,2rem)] text-[var(--ink)]">
+            Ce que vous débloquez
+          </h2>
+          <p className="mt-3 text-[15px] leading-relaxed text-[var(--ink-muted)]">
+            Un abonnement = toute la plateforme. Pas de modules payants séparément, pas de plafond
+            artificiel sur les fonctionnalités.
+          </p>
+          <div className="mt-8 grid grid-cols-1 gap-0 border-t border-[rgba(26,22,17,0.18)] sm:grid-cols-2">
+            {INCLUDED_VALUE.map((item, index) => (
+              <div
+                key={item.title}
+                className={[
+                  "border-b border-[rgba(26,22,17,0.12)] py-6 sm:px-5",
+                  index % 2 === 0 ? "sm:border-r sm:border-[rgba(26,22,17,0.12)] sm:pl-0" : "",
+                ].join(" ")}
+              >
+                <h3 className="ui-display text-lg text-[var(--ink)]">{item.title}</h3>
+                <p className="mt-2 text-[14px] leading-relaxed text-[rgba(26,22,17,0.65)]">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </ScrollReveal>
+
         <ScrollReveal delay={80} className="mt-12 max-w-3xl">
           <h2 className="ui-display text-xl text-[var(--ink)]">Comment ça se calcule</h2>
           <p className="mt-2 text-sm text-[var(--ink-muted)]">
@@ -145,6 +215,18 @@ export default function PricingPageContent() {
               Calcul : max({MONTHLY_FLOOR_EUR} €, {simulatorSeats} × {PRICE_PER_SEAT_EUR} €) ={" "}
               {(calculateMonthlyPriceCents(simulatorSeats) / 100).toFixed(0)} €
             </p>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal delay={160} className="mt-16 max-w-3xl">
+          <h2 className="ui-display text-xl text-[var(--ink)]">Questions fréquentes</h2>
+          <div className="mt-6 border-t border-[rgba(26,22,17,0.18)]">
+            {FAQ_ITEMS.map((item) => (
+              <div key={item.q} className="border-b border-[rgba(26,22,17,0.12)] py-5">
+                <h3 className="text-[15px] font-semibold text-[var(--ink)]">{item.q}</h3>
+                <p className="mt-2 text-[14.5px] leading-relaxed text-[rgba(26,22,17,0.65)]">{item.a}</p>
+              </div>
+            ))}
           </div>
         </ScrollReveal>
 

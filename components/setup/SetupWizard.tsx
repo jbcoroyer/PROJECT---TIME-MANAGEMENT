@@ -94,9 +94,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
     });
   }, [appName, branding, hydratedFromBranding]);
 
-  useEffect(() => {
-    if (localeOverride) setLocale(resolveLocale(localeOverride));
-  }, [localeOverride]);
+  const selectedLocale = localeOverride ? resolveLocale(localeOverride) : locale;
 
   useEffect(() => {
     onAccentChange?.(normalizeHexColor(primaryColor) || primaryColor);
@@ -161,7 +159,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
       markUrl: markStoragePath,
       timezone,
       sector: sector.trim() || null,
-      locale,
+      locale: selectedLocale,
       isConfigured: true,
       enabledModules,
     });
@@ -182,7 +180,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
       markUrl: markStoragePath,
       timezone,
       sector: sector.trim() || null,
-      locale,
+      locale: selectedLocale,
       organizationId,
     });
 
@@ -327,7 +325,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
                   </label>
                   <select
                     id="setup-locale"
-                    value={locale}
+                    value={selectedLocale}
                     onChange={(e) => {
                       const next = resolveLocale(e.target.value);
                       setLocale(next);

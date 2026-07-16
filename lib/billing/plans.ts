@@ -14,11 +14,12 @@ export const FLOOR_INCLUDED_SEATS = 5;
 export const TEAM_WORKLOAD_MIN_MEMBERS = 2;
 
 export const SINGLE_PLAN_FEATURES = [
-  "Les 11 modules — sans restriction",
-  "Assistant IA, Outlook & alertes Slack / Teams",
-  "Vue charge équipe (dès 2 collaborateurs)",
-  "Personnalisation (logo & couleurs)",
-  "Support par e-mail",
+  "Les 11 modules — Kanban, planning, events, social, stock…",
+  "Espace demandes client + triage vers tâches",
+  "Agenda avec réservation publique de créneaux",
+  "Assistant IA, sync Outlook et alertes Slack / Teams",
+  "Bibliothèque de fichiers, enquêtes et objectifs d'équipe",
+  "Personnalisation (logo & couleurs) + invitations illimitées",
 ] as const;
 
 /** Montants affichés (entiers en euros). */

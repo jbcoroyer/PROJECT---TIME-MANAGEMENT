@@ -53,7 +53,7 @@ export default function AdminSettingsPanel() {
       return;
     }
     setAdmins((data ?? []) as TeamMemberRow[]);
-  }, [supabase]);
+  }, [supabase, t]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {

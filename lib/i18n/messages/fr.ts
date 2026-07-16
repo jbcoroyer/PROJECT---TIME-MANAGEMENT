@@ -235,6 +235,17 @@ export const fr: MessageTree = {
       kicker: "Tarifs",
     },
   },
+  dashboard: {
+    tabs: {
+      todo: "Mes tâches",
+      kanban: "Tableau Kanban",
+      list: "Vue liste",
+      calendar: "Calendrier",
+      workload: "Charge équipe",
+      analytics: "Analytics",
+      archives: "Archives",
+    },
+  },
   nav: {
     dashboard: "Tableau de bord",
     asks: "Espace demandes",
