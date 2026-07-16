@@ -63,7 +63,7 @@ function cardStyle(rect: Rect, position: TutorialSpotlightProps["cardPosition"])
     }
   }
 
-  if (position === "top" || position === "auto") {
+  if (position === "top") {
     return {
       ...base,
       top: Math.max(16, rect.top - gap - 180),
