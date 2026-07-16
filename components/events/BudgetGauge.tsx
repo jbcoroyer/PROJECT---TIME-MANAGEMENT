@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCurrency } from "../../lib/stockUtils";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type BudgetGaugeProps = {
   allocated: number;
@@ -9,7 +10,8 @@ type BudgetGaugeProps = {
 };
 
 export default function BudgetGauge(props: BudgetGaugeProps) {
-  const { allocated, consumed, label = "Budget" } = props;
+  const { t } = useTranslation();
+  const { allocated, consumed, label = t("eventsLegacy.timeline.budget") } = props;
   const over = allocated > 0 ? consumed > allocated : consumed > 0;
   const ratio = allocated > 0 ? consumed / allocated : consumed > 0 ? 1 : 0;
   const pct = Math.min(100, Math.max(0, ratio * 100));
@@ -28,7 +30,7 @@ export default function BudgetGauge(props: BudgetGaugeProps) {
         </div>
         {over && (
           <span className="ui-pill ui-pill-danger px-3 py-1 text-xs font-semibold">
-            Dépassement
+            {t("eventsLegacy.gauge.overBudget")}
           </span>
         )}
       </div>
@@ -43,8 +45,8 @@ export default function BudgetGauge(props: BudgetGaugeProps) {
       </div>
       <p className="text-xs text-[color:var(--foreground)]/55">
         {allocated > 0
-          ? `${pct.toFixed(0)} % du budget alloué utilisé`
-          : "Aucun budget alloué : la jauge reflète uniquement les coûts constatés."}
+          ? t("eventsLegacy.gauge.used", { pct: pct.toFixed(0) })
+          : t("eventsLegacy.gauge.noBudget")}
       </p>
     </div>
   );

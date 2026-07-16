@@ -6,6 +6,7 @@ import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useInventory, getInventoryErrorMessage } from "../../lib/useInventory";
 import { formatInventorySelectOptionLabel } from "../../lib/stockUtils";
 import { toastError, toastSuccess } from "../../lib/toast";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 export type MaterialNeedRow = {
   id: string;
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export default function EventMaterialNeeds(props: Props) {
+  const { t } = useTranslation();
   const { eventId, defaultUserName, onStockChanged } = props;
   const { items, loading: invLoading, recordMovement } = useInventory();
   const [needs, setNeeds] = useState<MaterialNeedRow[]>([]);
@@ -49,7 +51,7 @@ export default function EventMaterialNeeds(props: Props) {
           return {
             id: String(row.id),
             inventoryItemId: String(row.inventory_item_id),
-            itemName: inv?.name ?? "Article",
+            itemName: inv?.name ?? t("eventsLegacy.material.itemFallback"),
             quantityNeeded: Number(row.quantity_needed ?? 0) || 0,
             quantityFulfilled: Number(row.quantity_fulfilled ?? 0) || 0,
             notes: String(row.notes ?? ""),
@@ -57,12 +59,12 @@ export default function EventMaterialNeeds(props: Props) {
         }),
       );
     } catch (e) {
-      toastError(getInventoryErrorMessage(e, "Liste de besoins indisponible."));
+      toastError(getInventoryErrorMessage(e, t("eventsLegacy.material.listError")));
       setNeeds([]);
     } finally {
       setLoading(false);
     }
-  }, [eventId]);
+  }, [eventId, t]);
 
   useEffect(() => {
     void load();
@@ -70,7 +72,7 @@ export default function EventMaterialNeeds(props: Props) {
 
   const addNeed = async () => {
     if (!itemId) {
-      toastError("Choisissez un article.");
+      toastError(t("eventsLegacy.material.chooseItem"));
       return;
     }
     const n = Math.max(1, Math.round(Number(qty) || 1));
@@ -88,7 +90,7 @@ export default function EventMaterialNeeds(props: Props) {
       toastError(error.message);
       return;
     }
-    toastSuccess("Besoin enregistré");
+    toastSuccess(t("eventsLegacy.material.toast.saved"));
     setItemId("");
     setQty("1");
     await load();
@@ -97,12 +99,12 @@ export default function EventMaterialNeeds(props: Props) {
   const fulfillNeed = async (need: MaterialNeedRow) => {
     const remaining = need.quantityNeeded - need.quantityFulfilled;
     if (remaining <= 0) {
-      toastError("Besoin déjà couvert.");
+      toastError(t("eventsLegacy.material.toast.alreadyCovered"));
       return;
     }
     const inv = items.find((i) => i.id === need.inventoryItemId);
     if (inv && remaining > inv.quantity) {
-      toastError("Stock insuffisant.");
+      toastError(t("eventsLegacy.material.insufficientStock"));
       return;
     }
     setSubmitting(true);
@@ -112,7 +114,7 @@ export default function EventMaterialNeeds(props: Props) {
         changeAmount: -remaining,
         projectId: null,
         eventId,
-        reason: `Événement — ${need.itemName}`,
+        reason: t("eventsLegacy.material.exitReason", { item: need.itemName }),
         userName: defaultUserName,
       });
       const supabase = getSupabaseBrowser();
@@ -120,11 +122,11 @@ export default function EventMaterialNeeds(props: Props) {
         .from("event_material_needs")
         .update({ quantity_fulfilled: need.quantityNeeded })
         .eq("id", need.id);
-      toastSuccess("Sortie stock enregistrée");
+      toastSuccess(t("eventsLegacy.material.toast.exitRecorded"));
       onStockChanged();
       await load();
     } catch (e) {
-      toastError(getInventoryErrorMessage(e, "Sortie impossible."));
+      toastError(getInventoryErrorMessage(e, t("eventsLegacy.material.exitError")));
     } finally {
       setSubmitting(false);
     }
@@ -133,7 +135,7 @@ export default function EventMaterialNeeds(props: Props) {
   const returnToStock = async (need: MaterialNeedRow) => {
     const qtyReturn = need.quantityFulfilled;
     if (qtyReturn <= 0) {
-      toastError("Aucune quantité à retourner.");
+      toastError(t("eventsLegacy.material.toast.nothingToReturn"));
       return;
     }
     setSubmitting(true);
@@ -143,7 +145,7 @@ export default function EventMaterialNeeds(props: Props) {
         changeAmount: qtyReturn,
         projectId: null,
         eventId,
-        reason: `Retour événement — ${need.itemName}`,
+        reason: t("eventsLegacy.material.returnReason", { item: need.itemName }),
         userName: defaultUserName,
       });
       const supabase = getSupabaseBrowser();
@@ -151,11 +153,11 @@ export default function EventMaterialNeeds(props: Props) {
         .from("event_material_needs")
         .update({ quantity_fulfilled: 0 })
         .eq("id", need.id);
-      toastSuccess("Retour stock enregistré");
+      toastSuccess(t("eventsLegacy.material.toast.returnRecorded"));
       onStockChanged();
       await load();
     } catch (e) {
-      toastError(getInventoryErrorMessage(e, "Retour impossible."));
+      toastError(getInventoryErrorMessage(e, t("eventsLegacy.material.returnError")));
     } finally {
       setSubmitting(false);
     }
@@ -171,10 +173,10 @@ export default function EventMaterialNeeds(props: Props) {
       <div className="ui-surface rounded-[22px] p-5">
         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold text-[color:var(--foreground)]/65">
           <Package className="h-3.5 w-3.5" />
-          Besoins matériel ({pendingCount} en attente)
+          {t("eventsLegacy.material.badge", { count: pendingCount })}
         </div>
         <p className="mt-3 text-sm text-[color:var(--foreground)]/60">
-          Déclarez les besoins matériel avant la sortie stock.
+          {t("eventsLegacy.material.hint")}
         </p>
 
         <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_100px_auto]">
@@ -184,10 +186,10 @@ export default function EventMaterialNeeds(props: Props) {
             disabled={invLoading}
             className="ui-focus-ring h-10 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 text-sm"
           >
-            <option value="">Article…</option>
+            <option value="">{t("eventsLegacy.material.itemPlaceholder")}</option>
             {items.map((i) => (
               <option key={i.id} value={i.id}>
-                {formatInventorySelectOptionLabel(i)} ({i.quantity} dispo)
+                {formatInventorySelectOptionLabel(i)} ({t("eventsLegacy.material.available", { qty: i.quantity })})
               </option>
             ))}
           </select>
@@ -203,14 +205,14 @@ export default function EventMaterialNeeds(props: Props) {
             onClick={() => void addNeed()}
             className="h-10 rounded-xl bg-[var(--foreground)] px-4 text-sm font-semibold text-[var(--accent-contrast)]"
           >
-            Ajouter
+            {t("eventsLegacy.material.add")}
           </button>
         </div>
 
         {loading ? (
-          <p className="mt-4 text-sm text-[color:var(--foreground)]/55">Chargement…</p>
+          <p className="mt-4 text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.material.loading")}</p>
         ) : needs.length === 0 ? (
-          <p className="mt-4 text-sm text-[color:var(--foreground)]/55">Aucun besoin déclaré.</p>
+          <p className="mt-4 text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.material.empty")}</p>
         ) : (
           <ul className="mt-4 space-y-2">
             {needs.map((n) => {
@@ -226,7 +228,7 @@ export default function EventMaterialNeeds(props: Props) {
                       {n.quantityFulfilled}/{n.quantityNeeded}
                     </span>
                     {ok ? (
-                      <span className="ml-2 text-xs font-semibold text-[var(--success)]">OK</span>
+                      <span className="ml-2 text-xs font-semibold text-[var(--success)]">{t("eventsLegacy.material.ok")}</span>
                     ) : null}
                   </div>
                   <div className="flex gap-2">
@@ -237,7 +239,7 @@ export default function EventMaterialNeeds(props: Props) {
                         onClick={() => void fulfillNeed(n)}
                         className="rounded-lg bg-[var(--foreground)] px-2 py-1 text-xs font-semibold text-[var(--accent-contrast)]"
                       >
-                        Sortir stock
+                        {t("eventsLegacy.material.fulfill")}
                       </button>
                     ) : (
                       <button
@@ -247,7 +249,7 @@ export default function EventMaterialNeeds(props: Props) {
                         className="ui-transition inline-flex items-center gap-1 rounded-lg border border-[var(--line)] px-2 py-1 text-xs font-semibold"
                       >
                         <RotateCcw className="h-3 w-3" />
-                        Retour
+                        {t("eventsLegacy.material.return")}
                       </button>
                     )}
                   </div>

@@ -44,6 +44,7 @@ import {
 import type { Question, QuestionType, SurveyDefinition } from "../../../lib/survey/surveyTypes";
 import { toastError, toastSuccess } from "../../../lib/toast";
 import { useConfirm } from "../../ui/ConfirmDialog";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 type SaveDefinitionResult = { ok: true } | { ok: false; error: string };
 
@@ -56,24 +57,6 @@ type SurveyEditorWorkspaceProps = {
   backLabel?: string;
   successMessage?: string;
   showPrestationRules?: boolean;
-};
-
-const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
-  { value: "single", label: "Choix unique" },
-  { value: "multiple", label: "Choix multiple" },
-  { value: "rating", label: "Note (étoiles / échelle)" },
-  { value: "nps", label: "Recommandation (NPS 0-10)" },
-  { value: "open", label: "Texte libre (long)" },
-  { value: "text", label: "Champ court" },
-];
-
-const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
-  single: "Choix unique",
-  multiple: "Choix multiple",
-  rating: "Note",
-  nps: "NPS",
-  open: "Texte libre",
-  text: "Champ court",
 };
 
 const inputClass =
@@ -155,11 +138,38 @@ export default function SurveyEditorWorkspace({
   initialDefinition,
   onSave,
   backHref,
-  backLabel = "Retour",
-  successMessage = "Formulaire enregistré.",
+  backLabel,
+  successMessage,
   showPrestationRules = true,
 }: SurveyEditorWorkspaceProps) {
+  const { t } = useTranslation();
   const confirm = useConfirm();
+  const resolvedBackLabel = backLabel ?? t("survey.common.back");
+  const resolvedSuccessMessage = successMessage ?? t("survey.editor.successDefault");
+
+  const questionTypes = useMemo(
+    (): { value: QuestionType; label: string }[] => [
+      { value: "single", label: t("survey.editor.types.single") },
+      { value: "multiple", label: t("survey.editor.types.multiple") },
+      { value: "rating", label: t("survey.editor.types.rating") },
+      { value: "nps", label: t("survey.editor.types.nps") },
+      { value: "open", label: t("survey.editor.types.open") },
+      { value: "text", label: t("survey.editor.types.text") },
+    ],
+    [t],
+  );
+
+  const questionTypeLabel = useMemo(
+    (): Record<QuestionType, string> => ({
+      single: t("survey.editor.typesShort.single"),
+      multiple: t("survey.editor.typesShort.multiple"),
+      rating: t("survey.editor.typesShort.rating"),
+      nps: t("survey.editor.typesShort.nps"),
+      open: t("survey.editor.typesShort.open"),
+      text: t("survey.editor.typesShort.text"),
+    }),
+    [t],
+  );
   const [intro, setIntro] = useState(() => ({ ...initialDefinition.intro }));
   const [sections, setSections] = useState<EditorSection[]>(() =>
     buildEditorSections(initialDefinition),
@@ -332,7 +342,7 @@ export default function SurveyEditorWorkspace({
         const copy: Question = {
           ...source,
           id: generateQuestionId(),
-          label: `${source.label} (copie)`,
+          label: `${source.label}${t("survey.editor.copySuffix")}`,
         };
         const next = [...s.questions];
         next.splice(questionIndex + 1, 0, copy);
@@ -343,9 +353,9 @@ export default function SurveyEditorWorkspace({
 
   const removeQuestion = async (sectionIndex: number, questionIndex: number) => {
     const ok = await confirm({
-      title: "Supprimer cette question ?",
-      description: "La question sera retirée du questionnaire.",
-      confirmLabel: "Supprimer",
+      title: t("survey.editor.deleteQuestionTitle"),
+      description: t("survey.editor.deleteQuestionDescription"),
+      confirmLabel: t("survey.common.delete"),
       variant: "destructive",
     });
     if (!ok) return;
@@ -371,7 +381,7 @@ export default function SurveyEditorWorkspace({
       ...prev,
       {
         key: `section-${Date.now()}`,
-        title: `Section ${prev.length + 1}`,
+        title: t("survey.editor.sectionDefault", { n: prev.length + 1 }),
         subtitle: "",
         questions: [],
       },
@@ -380,9 +390,9 @@ export default function SurveyEditorWorkspace({
 
   const removeSection = async (sectionIndex: number) => {
     const ok = await confirm({
-      title: "Supprimer cet écran ?",
-      description: "L'écran et toutes ses questions seront supprimés.",
-      confirmLabel: "Supprimer",
+      title: t("survey.editor.deleteScreenTitle"),
+      description: t("survey.editor.deleteScreenDescription"),
+      confirmLabel: t("survey.common.delete"),
       variant: "destructive",
     });
     if (!ok) return;
@@ -414,7 +424,7 @@ export default function SurveyEditorWorkspace({
           ...s,
           questions: s.questions.map((q, qi) =>
             qi === questionIndex
-              ? { ...q, options: [...(q.options ?? []), `Option ${(q.options?.length ?? 0) + 1}`] }
+              ? { ...q, options: [...(q.options ?? []), t("survey.editor.optionDefault", { n: (q.options?.length ?? 0) + 1 })] }
               : q,
           ),
         };
@@ -441,7 +451,7 @@ export default function SurveyEditorWorkspace({
   const handleSave = async () => {
     const hasEmptyLabel = sections.some((s) => s.questions.some((q) => !q.label.trim()));
     if (hasEmptyLabel) {
-      toastError("Chaque question doit avoir un intitulé.");
+      toastError(t("survey.editor.labelRequired"));
       return;
     }
     setSaving(true);
@@ -452,7 +462,7 @@ export default function SurveyEditorWorkspace({
       toastError(result.error);
       return;
     }
-    toastSuccess(successMessage);
+    toastSuccess(resolvedSuccessMessage);
   };
 
   const totalQuestions = sections.reduce((sum, s) => sum + s.questions.length, 0);
@@ -466,12 +476,12 @@ export default function SurveyEditorWorkspace({
             className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            {backLabel}
+            {resolvedBackLabel}
           </Link>
-          <h1 className="ui-display text-2xl text-[var(--foreground)]">Éditeur de formulaire</h1>
+          <h1 className="ui-display text-2xl text-[var(--foreground)]">{t("survey.editor.title")}</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/60">
-            {title} · {sections.length} écran{sections.length !== 1 ? "s" : ""} ·{" "}
-            {totalQuestions} question{totalQuestions !== 1 ? "s" : ""}
+            {title} · {t("survey.editor.screenCount", { count: sections.length })} ·{" "}
+            {t("survey.editor.questionCount", { count: totalQuestions })}
           </p>
         </div>
         <button
@@ -481,14 +491,14 @@ export default function SurveyEditorWorkspace({
           className="ui-btn ui-btn-primary gap-2"
         >
           <Save className="h-4 w-4" />
-          {saving ? "Enregistrement…" : "Enregistrer"}
+          {saving ? t("survey.common.saving") : t("survey.common.save")}
         </button>
       </header>
 
       <section className="ui-surface space-y-4 rounded-2xl p-5">
-        <h2 className="text-sm font-semibold text-[var(--foreground)]">Écran d&apos;accueil</h2>
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">{t("survey.editor.welcomeScreen")}</h2>
         <label className={labelClass}>
-          Titre d&apos;accueil
+          {t("survey.editor.introTitle")}
           <input
             value={intro.title}
             onChange={(e) => setIntro((prev) => ({ ...prev, title: e.target.value }))}
@@ -496,7 +506,7 @@ export default function SurveyEditorWorkspace({
           />
         </label>
         <label className={labelClass}>
-          Sous-titre
+          {t("survey.editor.introSubtitleLabel")}
           <textarea
             value={intro.subtitle}
             onChange={(e) => setIntro((prev) => ({ ...prev, subtitle: e.target.value }))}
@@ -508,8 +518,7 @@ export default function SurveyEditorWorkspace({
 
       <p className="flex items-center gap-1.5 text-xs text-[color:var(--foreground)]/50">
         <GripVertical className="h-3.5 w-3.5" />
-        Glissez les questions par leur poignée pour les réordonner, y compris d&apos;un écran à
-        l&apos;autre.
+        {t("survey.editor.dragHint")}
       </p>
 
       <DndContext
@@ -524,18 +533,18 @@ export default function SurveyEditorWorkspace({
             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--line)] pb-4">
               <div className="flex-1 space-y-2">
                 <span className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--foreground)]/40">
-                  Écran {sectionIndex + 1}
+                  {t("survey.editor.screenLabel", { n: sectionIndex + 1 })}
                 </span>
                 <input
                   value={section.title}
                   onChange={(e) => mutateSection(sectionIndex, { title: e.target.value })}
-                  placeholder="Titre de l'écran"
+                  placeholder={t("survey.editor.screenTitlePlaceholder")}
                   className={`${inputClass} font-semibold`}
                 />
                 <input
                   value={section.subtitle}
                   onChange={(e) => mutateSection(sectionIndex, { subtitle: e.target.value })}
-                  placeholder="Sous-titre (facultatif)"
+                  placeholder={t("survey.editor.screenSubtitlePlaceholder")}
                   className={inputClass}
                 />
               </div>
@@ -545,7 +554,7 @@ export default function SurveyEditorWorkspace({
                   onClick={() => moveSection(sectionIndex, -1)}
                   disabled={sectionIndex === 0}
                   className="ui-btn ui-btn-ghost h-8 w-8 p-0 disabled:opacity-30"
-                  aria-label="Monter l'écran"
+                  aria-label={t("survey.editor.moveScreenUp")}
                 >
                   <ChevronUp className="h-4 w-4" />
                 </button>
@@ -554,7 +563,7 @@ export default function SurveyEditorWorkspace({
                   onClick={() => moveSection(sectionIndex, 1)}
                   disabled={sectionIndex === sections.length - 1}
                   className="ui-btn ui-btn-ghost h-8 w-8 p-0 disabled:opacity-30"
-                  aria-label="Descendre l'écran"
+                  aria-label={t("survey.editor.moveScreenDown")}
                 >
                   <ChevronDown className="h-4 w-4" />
                 </button>
@@ -562,7 +571,7 @@ export default function SurveyEditorWorkspace({
                   type="button"
                   onClick={() => void removeSection(sectionIndex)}
                   className="ui-btn ui-btn-ghost h-8 w-8 p-0 text-[var(--danger)]"
-                  aria-label="Supprimer l'écran"
+                  aria-label={t("survey.editor.deleteScreen")}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -576,7 +585,7 @@ export default function SurveyEditorWorkspace({
               <SectionDropZone id={section.key}>
                 {section.questions.length === 0 ? (
                   <p className="rounded-xl border border-dashed border-[var(--line)] py-6 text-center text-xs text-[color:var(--foreground)]/40">
-                    Aucune question. Ajoutez-en une ci-dessous ou glissez-en une ici.
+                    {t("survey.editor.emptySection")}
                   </p>
                 ) : null}
                 {section.questions.map((question, questionIndex) => (
@@ -588,7 +597,7 @@ export default function SurveyEditorWorkspace({
                             <button
                               type="button"
                               className={handleClass}
-                              aria-label="Déplacer la question"
+                              aria-label={t("survey.editor.moveQuestion")}
                               {...handleProps}
                             >
                               <GripVertical className="h-4 w-4" />
@@ -604,9 +613,9 @@ export default function SurveyEditorWorkspace({
                               }
                               className="ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)]"
                             >
-                              {QUESTION_TYPES.map((t) => (
-                                <option key={t.value} value={t.value}>
-                                  {t.label}
+                              {questionTypes.map((qt) => (
+                                <option key={qt.value} value={qt.value}>
+                                  {qt.label}
                                 </option>
                               ))}
                             </select>
@@ -616,7 +625,7 @@ export default function SurveyEditorWorkspace({
                               type="button"
                               onClick={() => duplicateQuestion(sectionIndex, questionIndex)}
                               className="ui-btn ui-btn-ghost h-8 w-8 p-0"
-                              aria-label="Dupliquer la question"
+                              aria-label={t("survey.editor.duplicateQuestionAria")}
                             >
                               <Copy className="h-4 w-4" />
                             </button>
@@ -624,7 +633,7 @@ export default function SurveyEditorWorkspace({
                               type="button"
                               onClick={() => void removeQuestion(sectionIndex, questionIndex)}
                               className="ui-btn ui-btn-ghost h-8 w-8 p-0 text-[var(--danger)]"
-                              aria-label="Supprimer la question"
+                              aria-label={t("survey.editor.deleteQuestion")}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -632,7 +641,7 @@ export default function SurveyEditorWorkspace({
                         </div>
 
                         <label className={labelClass}>
-                          Intitulé de la question
+                          {t("survey.editor.questionLabel")}
                           <input
                             value={question.label}
                             onChange={(e) =>
@@ -643,7 +652,7 @@ export default function SurveyEditorWorkspace({
                         </label>
 
                         <label className={labelClass}>
-                          Précision (facultatif)
+                          {t("survey.editor.helpOptional")}
                           <input
                             value={question.help ?? ""}
                             onChange={(e) =>
@@ -658,7 +667,7 @@ export default function SurveyEditorWorkspace({
                         {(question.type === "single" || question.type === "multiple") && (
                           <div className="space-y-2">
                             <span className="text-xs font-semibold text-[color:var(--foreground)]/55">
-                              Options de réponse
+                              {t("survey.editor.answerOptions")}
                             </span>
                             <DndContext
                               sensors={sensors}
@@ -682,7 +691,7 @@ export default function SurveyEditorWorkspace({
                                           <button
                                             type="button"
                                             className={handleClass}
-                                            aria-label="Déplacer l'option"
+                                            aria-label={t("survey.editor.moveOption")}
                                             {...optHandleProps}
                                           >
                                             <GripVertical className="h-3.5 w-3.5" />
@@ -705,7 +714,7 @@ export default function SurveyEditorWorkspace({
                                               removeOption(sectionIndex, questionIndex, optIndex)
                                             }
                                             className="ui-btn ui-btn-ghost h-9 w-9 shrink-0 p-0 text-[var(--danger)]"
-                                            aria-label="Supprimer l'option"
+                                            aria-label={t("survey.editor.deleteOption")}
                                           >
                                             <Trash2 className="h-3.5 w-3.5" />
                                           </button>
@@ -722,7 +731,7 @@ export default function SurveyEditorWorkspace({
                               className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
                             >
                               <Plus className="h-3.5 w-3.5" />
-                              Ajouter une option
+                              {t("survey.editor.addOption")}
                             </button>
                           </div>
                         )}
@@ -730,7 +739,7 @@ export default function SurveyEditorWorkspace({
                         {(question.type === "rating" || question.type === "nps") && (
                           <div className="flex flex-wrap gap-3">
                             <label className={labelClass}>
-                              Minimum
+                              {t("survey.editor.minimum")}
                               <input
                                 type="number"
                                 value={question.scale?.min ?? 0}
@@ -746,7 +755,7 @@ export default function SurveyEditorWorkspace({
                               />
                             </label>
                             <label className={labelClass}>
-                              Maximum
+                              {t("survey.editor.maximum")}
                               <input
                                 type="number"
                                 value={question.scale?.max ?? 5}
@@ -766,7 +775,7 @@ export default function SurveyEditorWorkspace({
 
                         {(question.type === "open" || question.type === "text") && (
                           <label className={labelClass}>
-                            Placeholder (facultatif)
+                            {t("survey.editor.placeholderOptional")}
                             <input
                               value={question.placeholder ?? ""}
                               onChange={(e) =>
@@ -791,12 +800,12 @@ export default function SurveyEditorWorkspace({
                               }
                               className="ui-focus-ring h-4 w-4 rounded border-[var(--line)]"
                             />
-                            Obligatoire
+                            {t("survey.editor.required")}
                           </label>
 
                           {showPrestationRules && prestationOptions.length > 0 && question.id !== "q4" ? (
                             <label className="inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--foreground)]/55">
-                              Afficher si prestation
+                              {t("survey.editor.showIfPrestation")}
                               <select
                                 value={question.showIfPrestation ?? ""}
                                 onChange={(e) =>
@@ -806,7 +815,7 @@ export default function SurveyEditorWorkspace({
                                 }
                                 className="ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs text-[var(--foreground)]"
                               >
-                                <option value="">Toujours</option>
+                                <option value="">{t("survey.editor.always")}</option>
                                 {prestationOptions.map((opt) => (
                                   <option key={opt} value={opt}>
                                     {opt}
@@ -829,7 +838,7 @@ export default function SurveyEditorWorkspace({
               className="ui-btn ui-btn-secondary w-full justify-center gap-2 text-xs"
             >
               <Plus className="h-4 w-4" />
-              Ajouter une question
+              {t("survey.editor.addQuestion")}
             </button>
           </section>
         ))}
@@ -840,10 +849,10 @@ export default function SurveyEditorWorkspace({
               <GripVertical className="h-4 w-4 text-[color:var(--foreground)]/40" />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-[var(--foreground)]">
-                  {activeQuestion.label || "Question"}
+                  {activeQuestion.label || t("survey.editor.questionFallback")}
                 </p>
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--foreground)]/45">
-                  {QUESTION_TYPE_LABEL[activeQuestion.type]}
+                  {questionTypeLabel[activeQuestion.type]}
                 </p>
               </div>
             </div>
@@ -857,7 +866,7 @@ export default function SurveyEditorWorkspace({
         className="ui-btn ui-btn-secondary w-full justify-center gap-2"
       >
         <Plus className="h-4 w-4" />
-        Ajouter un écran
+        {t("survey.editor.addScreen")}
       </button>
     </div>
   );

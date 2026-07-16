@@ -10,6 +10,8 @@ import { expenseCategories, type EventRow } from "../../lib/eventTypes";
 import { saveEventBudgetPosts } from "../../app/actions/events";
 import { formatCurrency } from "../../lib/stockUtils";
 import { toastError, toastSuccess } from "../../lib/toast";
+import { getIntlLocale } from "../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 export type ExpenseListRow = {
   id: string;
@@ -44,6 +46,8 @@ type Props = {
 };
 
 export default function EventBudgetSection(props: Props) {
+  const { t, locale } = useTranslation();
+  const intlLocale = getIntlLocale(locale);
   const {
     event,
     expenses,
@@ -77,7 +81,7 @@ export default function EventBudgetSection(props: Props) {
         toastError(r.error);
         return;
       }
-      toastSuccess("Enveloppes enregistrées");
+      toastSuccess(t("eventsLegacy.budget.toast.envelopesSaved"));
       onEventUpdated();
     } finally {
       setSavingPosts(false);
@@ -94,7 +98,7 @@ export default function EventBudgetSection(props: Props) {
             onClick={() => setExpenseOpen(true)}
             className="ui-transition rounded-xl bg-[var(--foreground)] px-4 py-2.5 text-sm font-semibold text-[var(--accent-contrast)]"
           >
-            Ajouter une dépense
+            {t("eventsLegacy.budget.addExpense")}
           </button>
           {event.status !== "Terminé" ? (
             <button
@@ -103,14 +107,14 @@ export default function EventBudgetSection(props: Props) {
               className="ui-transition inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-2.5 text-sm font-semibold"
             >
               <FileCheck className="h-4 w-4" />
-              Clôturer l&apos;événement
+              {t("eventsLegacy.closure.closeEvent")}
             </button>
           ) : null}
         </div>
         {event.closureRecap ? (
           <div className="ui-alert ui-alert-success mt-4 rounded-xl px-4 py-3 text-sm">
-            Clôturé le{" "}
-            {new Date(event.closureRecap.closedAt).toLocaleDateString("fr-FR")} — écart budget{" "}
+            {t("eventsLegacy.budget.closedOn")}{" "}
+            {new Date(event.closureRecap.closedAt).toLocaleDateString(intlLocale)} —{" "}
             {formatCurrency(event.closureRecap.consumedTotal - event.closureRecap.allocatedBudget)}
             {event.closureRecap.notes ? (
               <p className="mt-2 text-[color-mix(in_srgb,var(--success)_85%,var(--foreground))]">{event.closureRecap.notes}</p>
@@ -120,9 +124,9 @@ export default function EventBudgetSection(props: Props) {
       </div>
 
       <div className="ui-surface rounded-[24px] p-5">
-        <h3 className="text-lg font-semibold text-[var(--foreground)]">Enveloppes budgétaires</h3>
+        <h3 className="text-lg font-semibold text-[var(--foreground)]">{t("eventsLegacy.budget.envelopesTitle")}</h3>
         <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
-          Plafond par poste (alerte visuelle si dépassement).
+          {t("eventsLegacy.budget.envelopesHint")}
         </p>
         <ul className="mt-4 space-y-3">
           {expenseCategories.map((post) => {
@@ -171,22 +175,22 @@ export default function EventBudgetSection(props: Props) {
           onClick={() => void savePosts()}
           className="ui-transition mt-4 rounded-xl border border-[var(--line)] px-4 py-2 text-sm font-semibold"
         >
-          {savingPosts ? "Enregistrement…" : "Enregistrer les enveloppes"}
+          {savingPosts ? t("eventsLegacy.budget.savingEnvelopes") : t("eventsLegacy.budget.saveEnvelopes")}
         </button>
       </div>
 
       <div className="ui-surface rounded-[24px] p-5">
-        <h3 className="text-lg font-semibold text-[var(--foreground)]">Détail des coûts</h3>
+        <h3 className="text-lg font-semibold text-[var(--foreground)]">{t("eventsLegacy.budget.costDetail")}</h3>
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-[var(--line)] text-left text-xs uppercase tracking-[0.12em] text-[color:var(--foreground)]/45">
-                <th className="px-3 py-2">Libellé</th>
-                <th className="px-3 py-2">Devis</th>
-                <th className="px-3 py-2">Engagé</th>
-                <th className="px-3 py-2">Payé</th>
-                <th className="px-3 py-2">Poste</th>
-                <th className="px-3 py-2">Statut</th>
+                <th className="px-3 py-2">{t("eventsLegacy.budget.label")}</th>
+                <th className="px-3 py-2">{t("eventsLegacy.budget.quoted")}</th>
+                <th className="px-3 py-2">{t("eventsLegacy.budget.committed")}</th>
+                <th className="px-3 py-2">{t("eventsLegacy.budget.paid")}</th>
+                <th className="px-3 py-2">{t("eventsLegacy.budget.post")}</th>
+                <th className="px-3 py-2">{t("eventsLegacy.budget.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -209,7 +213,7 @@ export default function EventBudgetSection(props: Props) {
                   <td colSpan={3} className="px-3 py-2">
                     {formatCurrency(m.cost)}
                   </td>
-                  <td className="px-3 py-2">Matériel</td>
+                  <td className="px-3 py-2">{t("eventsLegacy.budget.material")}</td>
                   <td className="px-3 py-2">stock</td>
                 </tr>
               ))}

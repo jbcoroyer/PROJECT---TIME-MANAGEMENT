@@ -3,6 +3,7 @@
 import SurveyEditorWorkspace from "./SurveyEditorWorkspace";
 import { saveSurveyDefinition } from "../../../app/actions/survey";
 import type { SurveyDefinition } from "../../../lib/survey/surveyTypes";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 type SurveyEditorClientProps = {
   surveyId: string;
@@ -17,8 +18,10 @@ export default function SurveyEditorClient({
   title,
   initialDefinition,
   backHref,
-  backLabel = "Retour au questionnaire",
+  backLabel,
 }: SurveyEditorClientProps) {
+  const { t } = useTranslation();
+
   return (
     <SurveyEditorWorkspace
       formId={surveyId}
@@ -26,8 +29,8 @@ export default function SurveyEditorClient({
       initialDefinition={initialDefinition}
       onSave={(definition) => saveSurveyDefinition(surveyId, definition)}
       backHref={backHref}
-      backLabel={backLabel}
-      successMessage="Questionnaire enregistré."
+      backLabel={backLabel ?? t("survey.editor.back")}
+      successMessage={t("survey.editor.successQuestionnaire")}
     />
   );
 }

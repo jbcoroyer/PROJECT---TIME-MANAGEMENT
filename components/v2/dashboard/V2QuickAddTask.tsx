@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type RefObject } from "react";
 import { CornerDownLeft, Loader2, Plus } from "lucide-react";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 export default function V2QuickAddTask({
   inputRef,
@@ -16,6 +17,7 @@ export default function V2QuickAddTask({
   prefill?: string;
   onPrefillApplied?: () => void;
 }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
 
   useEffect(() => {
@@ -55,12 +57,12 @@ export default function V2QuickAddTask({
         value={title}
         onChange={(event) => setTitle(event.target.value)}
         disabled={disabled || busy}
-        placeholder="Ajouter une tâche en 3 secondes…"
-        aria-label="Création rapide de tâche"
+        placeholder={t("dashboard.quickAdd.placeholder")}
+        aria-label={t("dashboard.quickAdd.ariaLabel")}
         className="w-full bg-transparent text-sm text-[var(--foreground)] placeholder:text-[color:var(--foreground)]/45 focus:outline-none disabled:opacity-60"
       />
       <kbd className="hidden shrink-0 items-center gap-1 rounded-md border border-[var(--line)] bg-[var(--surface-soft)] px-1.5 py-0.5 text-[10px] text-[color:var(--foreground)]/55 sm:inline-flex">
-        <CornerDownLeft className="h-3 w-3" /> Entrée
+        <CornerDownLeft className="h-3 w-3" /> {t("dashboard.enter")}
       </kbd>
     </form>
   );

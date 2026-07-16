@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, Copy, ExternalLink, Link2, PauseCircle, PlayCircle } from "lucide-react";
 import { updateAgendaSettings, type UpdateAgendaSettingsInput } from "../../../app/actions/agenda";
 import type { AgendaSettings } from "../../../lib/agenda/agendaTypes";
-import { WEEKDAY_LABELS, type WeekdayKey } from "../../../lib/agenda/agendaTypes";
+import type { WeekdayKey } from "../../../lib/agenda/agendaTypes";
+import { createDisplayLabelHelpers } from "../../../lib/i18n/displayLabels";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { toastError, toastSuccess } from "../../../lib/toast";
 
 type AgendaBookingPanelProps = {
@@ -13,6 +15,8 @@ type AgendaBookingPanelProps = {
 };
 
 export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookingPanelProps) {
+  const { t, locale } = useTranslation();
+  const labels = useMemo(() => createDisplayLabelHelpers(locale), [locale]);
   const [draft, setDraft] = useState(settings);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -76,7 +80,7 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
       toastError(result.error);
       return;
     }
-    toastSuccess("Paramètres de réservation enregistrés.");
+    toastSuccess(t("agenda.booking.toast.settingsSaved"));
     onUpdated();
   };
 
@@ -84,10 +88,10 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
     try {
       await navigator.clipboard.writeText(publicUrl);
       setCopied(true);
-      toastSuccess("Lien copié.");
+      toastSuccess(t("agenda.booking.toast.linkCopied"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toastError("Copie impossible.");
+      toastError(t("agenda.booking.toast.copyFailed"));
     }
   };
 
@@ -96,17 +100,18 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
       <section className="ui-surface rounded-2xl p-5">
         <div className="flex items-center gap-2 text-[var(--accent)]">
           <Link2 className="h-4 w-4" />
-          <h2 className="text-sm font-semibold uppercase tracking-[0.1em]">Page de réservation publique</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.1em]">
+            {t("agenda.booking.publicPage.title")}
+          </h2>
         </div>
         <p className="mt-2 text-sm text-[var(--ink-muted)]">
-          Partagez ce lien pour permettre à vos clients de réserver un créneau en autonomie. Les RDV
-          apparaissent automatiquement dans votre calendrier.
+          {t("agenda.booking.publicPage.description")}
         </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input readOnly value={publicUrl} className="ui-input flex-1 font-mono text-xs" />
           <button type="button" onClick={() => void copyLink()} className="ui-btn ui-btn-secondary gap-2">
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Copié" : "Copier"}
+            {copied ? t("agenda.booking.publicPage.copied") : t("agenda.booking.publicPage.copy")}
           </button>
           <a
             href={settings.publicPath}
@@ -115,7 +120,7 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
             className="ui-btn ui-btn-primary gap-2"
           >
             <ExternalLink className="h-4 w-4" />
-            Aperçu
+            {t("agenda.booking.publicPage.preview")}
           </a>
         </div>
         <button
@@ -127,21 +132,23 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
         >
           {draft.status === "active" ? (
             <>
-              <PauseCircle className="h-4 w-4" /> Mettre en pause les réservations
+              <PauseCircle className="h-4 w-4" /> {t("agenda.booking.publicPage.pause")}
             </>
           ) : (
             <>
-              <PlayCircle className="h-4 w-4" /> Réactiver les réservations
+              <PlayCircle className="h-4 w-4" /> {t("agenda.booking.publicPage.resume")}
             </>
           )}
         </button>
       </section>
 
       <section className="ui-surface space-y-4 rounded-2xl p-5">
-        <h2 className="text-sm font-semibold text-[var(--foreground)]">Paramètres</h2>
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">
+          {t("agenda.booking.settings.title")}
+        </h2>
 
         <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-          Titre public
+          {t("agenda.booking.settings.publicTitle")}
           <input
             value={draft.title}
             onChange={(e) => patch({ title: e.target.value })}
@@ -150,7 +157,7 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
         </label>
 
         <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-          Message d&apos;accueil
+          {t("agenda.booking.settings.welcomeMessage")}
           <textarea
             value={draft.welcomeMessage}
             onChange={(e) => patch({ welcomeMessage: e.target.value })}
@@ -161,7 +168,7 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            Durée créneau (min)
+            {t("agenda.booking.settings.slotDuration")}
             <input
               type="number"
               min={15}
@@ -173,7 +180,7 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
             />
           </label>
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            Tampon (min)
+            {t("agenda.booking.settings.buffer")}
             <input
               type="number"
               min={0}
@@ -184,7 +191,7 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
             />
           </label>
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            Horizon (jours)
+            {t("agenda.booking.settings.horizon")}
             <input
               type="number"
               min={7}
@@ -195,7 +202,7 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
             />
           </label>
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            Préavis min. (h)
+            {t("agenda.booking.settings.minNotice")}
             <input
               type="number"
               min={0}
@@ -214,12 +221,14 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
             onChange={(e) => patch({ autoConfirm: e.target.checked })}
             className="h-4 w-4 rounded border-[var(--line)]"
           />
-          Confirmer automatiquement les réservations en ligne
+          {t("agenda.booking.settings.autoConfirm")}
         </label>
       </section>
 
       <section className="ui-surface space-y-3 rounded-2xl p-5">
-        <h2 className="text-sm font-semibold text-[var(--foreground)]">Disponibilités hebdomadaires</h2>
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">
+          {t("agenda.booking.settings.weeklyAvailability")}
+        </h2>
         {(["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as WeekdayKey[]).map((key) => {
           const day = draft.workHours[key];
           return (
@@ -230,7 +239,7 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
                   checked={day.enabled}
                   onChange={(e) => updateDay(key, "enabled", e.target.checked)}
                 />
-                {WEEKDAY_LABELS[key]}
+                {labels.agendaWeekday(key)}
               </label>
               <input
                 type="time"
@@ -258,7 +267,7 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
         disabled={saving}
         className="ui-btn ui-btn-primary"
       >
-        {saving ? "Enregistrement…" : "Enregistrer les paramètres"}
+        {saving ? t("agenda.booking.settings.saving") : t("agenda.booking.settings.save")}
       </button>
     </div>
   );

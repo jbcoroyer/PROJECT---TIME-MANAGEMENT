@@ -15,10 +15,12 @@ import { resolveColumnRefs } from "../../../lib/v2/boardColumns";
 import { useIntakeRequests, type IntakeRequest } from "../../../lib/v2/intake";
 import { buildTaskDraftFromRequest, type IntakeTaskDraft } from "../../../lib/v2/intakeMapping";
 import { toastSuccess, toastError } from "../../../lib/toast";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import V2TriagePanel from "../dashboard/V2TriagePanel";
 import IntakeTaskMappingModal from "../dashboard/IntakeTaskMappingModal";
 
 export default function AsksTriageWorkspace() {
+  const { t } = useTranslation();
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const { tasks, setTasks } = useTasks();
@@ -45,18 +47,22 @@ export default function AsksTriageWorkspace() {
     async (payload: Record<string, unknown>) => {
       const { data, error } = await supabase.from("tasks").insert(payload).select().single();
       if (error || !data) {
-        toastError(`Création impossible : ${error?.message ?? "erreur inconnue"}`);
+        toastError(
+          t("asks.triage.toast.taskCreateFailed", {
+            message: error?.message ?? t("asks.triage.toast.unknownError"),
+          }),
+        );
         return null;
       }
       const created = mapTaskRow(data);
       markTaskMutatedLocally(created.id);
       setTasks((prev) => {
-        const cleaned = prev.filter((t) => t.id !== created.id);
+        const cleaned = prev.filter((task) => task.id !== created.id);
         return [...cleaned, created];
       });
       return created;
     },
-    [setTasks, supabase],
+    [setTasks, supabase, t],
   );
 
   const handleAcceptRequest = useCallback(
@@ -79,7 +85,7 @@ export default function AsksTriageWorkspace() {
       if (!mappingRequest || mappingBusy) return;
       setMappingBusy(true);
       try {
-        const column = (columnIds[0] as ColumnId) ?? "À faire";
+        const column = (columnIds[0] as ColumnId) ?? (t("asks.triage.defaultColumn") as ColumnId);
         const created = await insertTaskRow({
           project_name: normalizeProjectName(mapped.projectName),
           company: mapped.company,
@@ -110,12 +116,12 @@ export default function AsksTriageWorkspace() {
         });
         setMappingRequest(null);
         setMappingDraft(null);
-        toastSuccess("Demande convertie en tâche");
+        toastSuccess(t("asks.triage.toast.converted"));
       } finally {
         setMappingBusy(false);
       }
     },
-    [columnIds, columnRecords, insertTaskRow, mappingBusy, mappingRequest, updateIntakeRequest],
+    [columnIds, columnRecords, insertTaskRow, mappingBusy, mappingRequest, t, updateIntakeRequest],
   );
 
   const handleRejectRequest = useCallback(

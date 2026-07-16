@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Minus, Plus, X } from "lucide-react";
 import type { InventoryItem } from "../lib/inventoryTypes";
 import type { StockProject } from "../lib/stockTypes";
 import { toastError } from "../lib/toast";
+import { useTranslation } from "../lib/i18n/useTranslation";
 
 type StockMovementModalProps = {
   open: boolean;
@@ -23,6 +24,7 @@ type StockMovementModalProps = {
 
 export default function StockMovementModal(props: StockMovementModalProps) {
   const { open, item, mode, projects, defaultUserName, onClose, onSubmit } = props;
+  const { t } = useTranslation();
   const [quantity, setQuantity] = useState("");
   const [projectId, setProjectId] = useState("__none__");
   const [reason, setReason] = useState("");
@@ -37,7 +39,7 @@ export default function StockMovementModal(props: StockMovementModalProps) {
     setUserName(defaultUserName ?? "");
   }, [defaultUserName, open, mode, item]);
 
-  const title = mode === "add" ? "Entrée de stock" : "Sortie de stock";
+  const title = mode === "add" ? t("stockLegacy.movement.entry") : t("stockLegacy.movement.exit");
   const Icon = mode === "add" ? ArrowUp : ArrowDown;
   const buttonIcon = mode === "add" ? Plus : Minus;
   const accentClass = mode === "add" ? "text-[var(--success)]" : "text-[var(--warning)]";
@@ -47,9 +49,9 @@ export default function StockMovementModal(props: StockMovementModalProps) {
   const helperText = useMemo(() => {
     if (!item) return "";
     return mode === "add"
-      ? `Quantité actuelle : ${item.quantity}.`
-      : `Quantité actuelle : ${item.quantity}. Vous pouvez retirer jusqu'à ${item.quantity}.`;
-  }, [item, mode]);
+      ? t("stockLegacy.movement.currentQty", { qty: item.quantity })
+      : t("stockLegacy.movement.currentQtyMax", { qty: item.quantity, max: item.quantity });
+  }, [item, mode, t]);
 
   if (!open || !item) return null;
 
@@ -58,18 +60,18 @@ export default function StockMovementModal(props: StockMovementModalProps) {
 
     const absoluteAmount = Math.max(0, Math.round(Number(quantity) || 0));
     if (absoluteAmount <= 0) {
-      toastError("Saisissez une quantité supérieure à 0.");
+      toastError(t("stockLegacy.movement.toast.qtyRequired"));
       return;
     }
 
     if (mode === "remove" && absoluteAmount > item.quantity) {
-      toastError("Impossible de retirer plus que la quantité disponible.");
+      toastError(t("stockLegacy.movement.toast.qtyExceeded"));
       return;
     }
 
     const trimmedUserName = userName.trim();
     if (!trimmedUserName) {
-      toastError("Indiquez qui effectue le mouvement.");
+      toastError(t("stockLegacy.movement.toast.userRequired"));
       return;
     }
 
@@ -97,18 +99,16 @@ export default function StockMovementModal(props: StockMovementModalProps) {
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
-              Mouvement de stock
+              {t("stockLegacy.movement.badge")}
             </p>
-            <h2 className="ui-heading mt-1 text-2xl font-semibold text-[var(--foreground)]">
-              {title}
-            </h2>
+            <h2 className="ui-heading mt-1 text-2xl font-semibold text-[var(--foreground)]">{title}</h2>
             <p className="mt-2 text-sm text-[color:var(--foreground)]/60">{item.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2 text-[color:var(--foreground)]/60 hover:bg-[var(--surface-soft)]"
-            aria-label="Fermer"
+            aria-label={t("inventory.common.close")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -125,7 +125,7 @@ export default function StockMovementModal(props: StockMovementModalProps) {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                Combien d&apos;articles {mode === "add" ? "ajouter" : "retirer"} ?
+                {mode === "add" ? t("stockLegacy.movement.howManyAdd") : t("stockLegacy.movement.howManyRemove")}
               </label>
               <input
                 type="number"
@@ -139,26 +139,26 @@ export default function StockMovementModal(props: StockMovementModalProps) {
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                Qui êtes-vous ?
+                {t("stockLegacy.movement.who")}
               </label>
               <input
                 value={userName}
                 onChange={(event) => setUserName(event.target.value)}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm"
-                placeholder="Votre nom"
+                placeholder={t("stockLegacy.movement.yourName")}
               />
             </div>
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                Pour quel projet ?
+                {t("stockLegacy.movement.project")}
               </label>
               <select
                 value={projectId}
                 onChange={(event) => setProjectId(event.target.value)}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm"
               >
-                <option value="__none__">Autre / Aucun</option>
+                <option value="__none__">{t("stockLegacy.movement.noProject")}</option>
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
@@ -169,13 +169,17 @@ export default function StockMovementModal(props: StockMovementModalProps) {
 
             <div>
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                Raison
+                {t("stockLegacy.movement.reason")}
               </label>
               <input
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm"
-                placeholder={mode === "add" ? "Ex. Réassort fournisseur" : "Ex. Dotation événement, perte, don client"}
+                placeholder={
+                  mode === "add"
+                    ? t("stockLegacy.movement.reasonAddPlaceholder")
+                    : t("stockLegacy.movement.reasonRemovePlaceholder")
+                }
               />
             </div>
           </div>
@@ -186,15 +190,22 @@ export default function StockMovementModal(props: StockMovementModalProps) {
               onClick={onClose}
               className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
             >
-              Annuler
+              {t("inventory.common.cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className={["ui-transition inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-60", buttonClass].join(" ")}
+              className={[
+                "ui-transition inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-60",
+                buttonClass,
+              ].join(" ")}
             >
               {buttonIcon === Plus ? <Plus className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
-              {submitting ? "Enregistrement..." : mode === "add" ? "Valider l'entrée" : "Valider la sortie"}
+              {submitting
+                ? t("inventory.common.saving")
+                : mode === "add"
+                  ? t("stockLegacy.movement.validateEntry")
+                  : t("stockLegacy.movement.validateExit")}
             </button>
           </div>
         </form>

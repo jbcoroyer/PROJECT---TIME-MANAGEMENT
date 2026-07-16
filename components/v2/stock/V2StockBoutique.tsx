@@ -50,92 +50,27 @@ import { formatCurrency, formatNumber } from "../../../lib/stockUtils";
 import { uploadStockVisual } from "../../../lib/stockVisualUpload";
 import { isPdfFile, isPdfUrl, STOCK_VISUAL_ACCEPT, stockVisualFileError } from "../../../lib/stockVisualUtils";
 import { useBranding } from "../../../lib/brandingContext";
+import { getIntlLocale } from "../../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { getPrintSpeciesVisual } from "../../../lib/printSpeciesStyles";
-import { printSpeciesLabel, type PrintSpeciesOption } from "../../../lib/taxonomies";
-import { decodePrintItemType, type PrintSpeciesValue } from "../../../lib/printSpecies";
-
-type CategoryFilter = "all" | InventoryCategory;
-type SpeciesFilter = "all" | PrintSpeciesValue;
-type SortKey = "name" | "quantity" | "value" | "alert";
-type ViewMode = "grid" | "list";
-
-type DisplaySection = {
-  id: string;
-  title: string | null;
-  chipClass?: string;
-  items: InventoryItem[];
-};
-
-const CATEGORY_META: Record<
-  InventoryCategory,
-  { label: string; icon: typeof Package; gradient: string; chip: string }
-> = {
-  Print: {
-    label: "Print",
-    icon: FileText,
-    gradient: "from-[var(--surface-soft)] via-[var(--surface)] to-white",
-    chip: "ui-pill ui-pill-neutral",
-  },
-  Goodies: {
-    label: "Goodies",
-    icon: Gift,
-    gradient: "from-[color-mix(in_srgb,var(--brand-primary)_6%,var(--surface))] via-[var(--surface)] to-white",
-    chip: "ui-pill ui-pill-brand",
-  },
-  PLV: {
-    label: "PLV",
-    icon: ImageIcon,
-    gradient: "from-[var(--surface-soft)] via-[var(--surface)] to-white",
-    chip: "ui-pill ui-pill-neutral",
-  },
-};
-
-function getPrintMeta(item: InventoryItem, options: PrintSpeciesOption[]) {
-  const decoded = decodePrintItemType(item.itemType ?? "");
-  const visual = getPrintSpeciesVisual(options, decoded.species);
-  return {
-    docType: decoded.docType,
-    species: decoded.species,
-    speciesLabel: printSpeciesLabel(options, decoded.species),
-    chipClass: visual.badgeClass,
-  };
-}
-
-function stockGauge(item: InventoryItem): { pct: number; tone: "ok" | "warn" | "low" } {
-  const low = isLowStock(item);
-  if (low) return { pct: item.quantity <= 0 ? 6 : 22, tone: "low" };
-  if (item.alertThreshold > 0) {
-    const ratio = item.quantity / (item.alertThreshold * 2);
-    if (ratio <= 0.75) return { pct: Math.max(40, Math.min(70, ratio * 100)), tone: "warn" };
-    return { pct: Math.min(100, ratio * 100), tone: "ok" };
-  }
-  return { pct: 100, tone: "ok" };
-}
-
-const GAUGE_TONE: Record<"ok" | "warn" | "low", string> = {
-  ok: "bg-[var(--success)]",
-  warn: "bg-[var(--warning)]",
-  low: "bg-[var(--danger)]",
-};
-
-function itemSubtitle(item: InventoryItem, printSpeciesOptions: PrintSpeciesOption[]): string {
-  if (item.category === "Print") {
-    const { docType } = getPrintMeta(item, printSpeciesOptions);
-    const lang = item.language?.trim();
-    return lang ? `${docType} · ${lang}` : docType;
-  }
-  return item.itemType || CATEGORY_META[item.category].label;
-}
-
-function itemSearchHaystack(item: InventoryItem, printSpeciesOptions: PrintSpeciesOption[]): string {
-  if (item.category === "Print") {
-    const { docType, speciesLabel } = getPrintMeta(item, printSpeciesOptions);
-    return [item.name, docType, speciesLabel, item.language, item.lastQuoteInfo].filter(Boolean).join(" ");
-  }
-  return [item.name, item.itemType, item.lastQuoteInfo].filter(Boolean).join(" ");
-}
+import { printSpeciesLabel } from "../../../lib/taxonomies";
+import {
+  CATEGORY_META,
+  GAUGE_TONE,
+  getPrintMeta,
+  itemSearchHaystack,
+  itemSubtitle,
+  stockGauge,
+  type CategoryFilter,
+  type DisplaySection,
+  type SortKey,
+  type SpeciesFilter,
+  type ViewMode,
+} from "./stockBoutiqueUtils";
 
 export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: string }) {
+  const { t, locale } = useTranslation();
+  const intlLocale = useMemo(() => getIntlLocale(locale), [locale]);
   const { branding } = useBranding();
   const printSpeciesOptions = branding.printSpecies;
   const { user: currentUser } = useCurrentUser();
@@ -172,6 +107,25 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
   const [movementItem, setMovementItem] = useState<InventoryItem | null>(null);
   const [movementMode, setMovementMode] = useState<"add" | "remove">("remove");
   const [photoUploading, setPhotoUploading] = useState(false);
+
+  const categoryLabel = (category: InventoryCategory) => {
+    const keys: Record<InventoryCategory, string> = {
+      Print: "stock.boutique.category.print",
+      Goodies: "stock.boutique.category.goodies",
+      PLV: "stock.boutique.category.plv",
+    };
+    return t(keys[category]);
+  };
+
+  const sortOptions: { key: SortKey; label: string }[] = useMemo(
+    () => [
+      { key: "alert", label: t("stock.boutique.sort.alert") },
+      { key: "name", label: t("stock.boutique.sort.name") },
+      { key: "quantity", label: t("stock.boutique.sort.quantity") },
+      { key: "value", label: t("stock.boutique.sort.value") },
+    ],
+    [t],
+  );
 
   const detail = useMemo(
     () => (detailItem ? items.find((it) => it.id === detailItem.id) ?? detailItem : null),
@@ -224,14 +178,14 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           const la = isLowStock(a) ? 0 : 1;
           const lb = isLowStock(b) ? 0 : 1;
           if (la !== lb) return la - lb;
-          return a.name.localeCompare(b.name, "fr");
+          return a.name.localeCompare(b.name, intlLocale);
         }
         default:
-          return a.name.localeCompare(b.name, "fr");
+          return a.name.localeCompare(b.name, intlLocale);
       }
     });
     return sorted;
-  }, [items, searchQuery, categoryFilter, speciesFilter, alertOnly, sortKey, printSpeciesOptions]);
+  }, [items, searchQuery, categoryFilter, speciesFilter, alertOnly, sortKey, printSpeciesOptions, intlLocale]);
 
   const displaySections = useMemo((): DisplaySection[] => {
     const groupBySpecies =
@@ -262,7 +216,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       if (goodies.length > 0) {
         sections.push({
           id: "goodies",
-          title: "Goodies",
+          title: t("stock.boutique.category.goodies"),
           chipClass: CATEGORY_META.Goodies.chip,
           items: goodies,
         });
@@ -270,7 +224,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       if (plv.length > 0) {
         sections.push({
           id: "plv",
-          title: "PLV",
+          title: t("stock.boutique.category.plv"),
           chipClass: CATEGORY_META.PLV.chip,
           items: plv,
         });
@@ -278,7 +232,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     }
 
     return sections.length > 0 ? sections : [{ id: "all", title: null, items: visibleItems }];
-  }, [visibleItems, showSpeciesFilters, speciesFilter, printSpeciesOptions]);
+  }, [visibleItems, showSpeciesFilters, speciesFilter, printSpeciesOptions, t]);
 
   const openCreate = (category: InventoryCategory) => {
     setEditingItem(null);
@@ -306,13 +260,13 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       if (draft.id) {
         const { id, ...payload } = draft;
         await updateItem(id, payload);
-        toastSuccess("Article mis à jour");
+        toastSuccess(t("stock.boutique.toast.itemUpdated"));
         return;
       }
       await createItem(draft);
-      toastSuccess("Article créé");
+      toastSuccess(t("stock.boutique.toast.itemCreated"));
     } catch (error) {
-      toastError(getInventoryErrorMessage(error, "Impossible d'enregistrer l'article."));
+      toastError(getInventoryErrorMessage(error, t("stock.boutique.toast.saveItemError")));
     }
   };
 
@@ -321,38 +275,32 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       for (const draft of drafts) await createItem(draft);
       toastSuccess(
         drafts.length > 1
-          ? `${drafts.length} références créées pour ce document (une par langue).`
-          : "Article créé",
+          ? t("stock.boutique.toast.multipleItemsCreated", { count: drafts.length })
+          : t("stock.boutique.toast.itemCreated"),
       );
     } catch (error) {
-      toastError(getInventoryErrorMessage(error, "Impossible d'enregistrer les articles."));
+      toastError(getInventoryErrorMessage(error, t("stock.boutique.toast.saveItemsError")));
     }
   };
 
   const handleDeleteItem = async (item: InventoryItem) => {
     const confirmed = await confirm({
-      title: "Supprimer cet article ?",
-      description: (
-        <>
-          L&apos;article{" "}
-          <span className="font-semibold text-[var(--foreground)]">« {item.name} »</span> sera retiré du
-          stock. Cette action est irréversible.
-        </>
-      ),
-      confirmLabel: "Supprimer",
+      title: t("stock.boutique.delete.title"),
+      description: t("stock.boutique.delete.description", { name: item.name }),
+      confirmLabel: t("common.delete"),
       variant: "destructive",
     });
     if (!confirmed) return;
     try {
       await deleteItem(item.id);
-      toastSuccess("Article supprimé");
+      toastSuccess(t("stock.boutique.toast.itemDeleted"));
       setPrintModalOpen(false);
       setGoodiesModalOpen(false);
       setPlvModalOpen(false);
       setEditingItem(null);
       setDetailItem(null);
     } catch (error) {
-      toastError(getInventoryErrorMessage(error, "Impossible de supprimer l'article."));
+      toastError(getInventoryErrorMessage(error, t("stock.boutique.toast.deleteItemError")));
     }
   };
 
@@ -368,9 +316,13 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         reason: payload.reason,
         userName: payload.userName,
       });
-      toastSuccess(payload.changeAmount > 0 ? "Entrée de stock enregistrée" : "Sortie de stock enregistrée");
+      toastSuccess(
+        payload.changeAmount > 0
+          ? t("stock.boutique.toast.stockEntryRecorded")
+          : t("stock.boutique.toast.stockExitRecorded"),
+      );
     } catch (error) {
-      toastError(getInventoryErrorMessage(error, "Impossible d'enregistrer le mouvement de stock."));
+      toastError(getInventoryErrorMessage(error, t("stock.boutique.toast.movementError")));
     }
   };
 
@@ -378,9 +330,9 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     if (!reorderItem) return;
     try {
       await updateLastQuoteInfo(reorderItem.id, value);
-      toastSuccess("Informations enregistrées");
+      toastSuccess(t("stock.boutique.toast.infoSaved"));
     } catch (error) {
-      toastError(getInventoryErrorMessage(error, "Impossible d'enregistrer les informations."));
+      toastError(getInventoryErrorMessage(error, t("stock.boutique.toast.infoSaveError")));
     }
   };
 
@@ -407,7 +359,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     try {
       const { path, error } = await uploadStockVisual(file, visualUploadFolder(detail.category));
       if (error || !path) {
-        toastError(error ? `Upload impossible : ${error}` : "Upload impossible.");
+        toastError(error ? t("stock.boutique.toast.uploadFailedWithError", { error }) : t("stock.boutique.toast.uploadFailed"));
         return;
       }
       await updateItem(detail.id, {
@@ -420,9 +372,9 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         language: detail.language,
         visualUrl: path,
       });
-      toastSuccess(isPdfFile(file) ? "PDF enregistré" : "Photo enregistrée");
+      toastSuccess(isPdfFile(file) ? t("stock.boutique.toast.pdfSaved") : t("stock.boutique.toast.photoSaved"));
     } catch (err) {
-      toastError(getInventoryErrorMessage(err, "Impossible d'enregistrer la photo."));
+      toastError(getInventoryErrorMessage(err, t("stock.boutique.toast.photoSaveError")));
     } finally {
       setPhotoUploading(false);
       if (photoInputRef.current) photoInputRef.current.value = "";
@@ -456,7 +408,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               className="ui-transition absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-[var(--foreground)]/55 py-2 text-xs font-semibold text-white hover:bg-[var(--foreground)]/70"
             >
               <Upload className="h-3.5 w-3.5" />
-              {isPdf ? "Remplacer le PDF" : "Changer la photo"}
+              {isPdf ? t("stock.boutique.visual.replacePdf") : t("stock.boutique.visual.changePhoto")}
             </button>
             {!isPdf ? (
               <button
@@ -464,7 +416,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                 onClick={() => setLightbox({ url: item.visualUrl!, name: item.name })}
                 className="ui-transition absolute bottom-10 left-3 rounded-lg border border-[var(--line)] bg-[var(--surface)]/90 px-2.5 py-1.5 text-[11px] font-semibold text-[color:var(--foreground)]/75 backdrop-blur hover:bg-[var(--surface)]"
               >
-                Agrandir
+                {t("stock.boutique.actions.enlarge")}
               </button>
             ) : null}
           </div>
@@ -474,12 +426,12 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
             disabled={photoUploading}
             onClick={() => photoInputRef.current?.click()}
             className={`flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br ${meta.gradient}`}
-            title="Ajouter une image ou un PDF"
+            title={t("stock.boutique.visual.addVisualTitle")}
           >
             <Icon className="h-12 w-12 text-[color:var(--foreground)]/25" />
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)]/90 px-3 py-1.5 text-xs font-semibold text-[color:var(--foreground)]/70 shadow-sm">
               <Upload className="h-3.5 w-3.5" />
-              Image ou PDF
+              {t("stock.boutique.visual.imageOrPdf")}
             </span>
           </button>
         )}
@@ -504,7 +456,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
             setLightbox({ url: item.visualUrl!, name: item.name });
           }}
           className={`group/vis relative ${height} w-full overflow-hidden bg-white`}
-          title={isPdfUrl(item.visualUrl) ? "Ouvrir le PDF" : "Agrandir le visuel"}
+          title={isPdfUrl(item.visualUrl) ? t("stock.boutique.visual.openPdf") : t("stock.boutique.visual.enlargeVisual")}
         >
           <StockVisualPreview url={item.visualUrl} name={item.name} mode="thumb" />
         </button>
@@ -532,7 +484,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         ].join(" ")}
       >
         {low ? <AlertTriangle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-        {low ? "À recommander" : "En stock"}
+        {low ? t("stock.boutique.status.reorder") : t("stock.boutique.status.inStock")}
       </span>
     );
   };
@@ -548,7 +500,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         className="ui-transition ui-btn ui-btn-outline-success inline-flex flex-1 items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
       >
         <Plus className="h-3.5 w-3.5" />
-        Entrée
+        {t("stock.boutique.actions.entry")}
       </button>
       <button
         type="button"
@@ -559,7 +511,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         className="ui-transition ui-btn ui-btn-outline-warning inline-flex flex-1 items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
       >
         <Minus className="h-3.5 w-3.5" />
-        Sortie
+        {t("stock.boutique.actions.exit")}
       </button>
     </div>
   );
@@ -581,7 +533,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
             className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.chip}`}
           >
             <Icon className="h-3 w-3" />
-            {meta.label}
+            {categoryLabel(item.category)}
           </span>
           {printMeta && printMeta.species !== "general" ? (
             <span
@@ -603,15 +555,15 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           <div className="flex items-end justify-between">
             <div>
               <p className="text-2xl font-semibold leading-none text-[var(--foreground)]">
-                {formatNumber(item.quantity)}
+                {formatNumber(item.quantity, intlLocale)}
               </p>
               <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-[color:var(--foreground)]/45">
-                en stock
+                {t("stock.boutique.card.inStock")}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm font-semibold text-[var(--foreground)]">{formatCurrency(item.unitPrice)}</p>
-              <p className="mt-0.5 text-[11px] text-[color:var(--foreground)]/45">l&apos;unité</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">{formatCurrency(item.unitPrice, intlLocale)}</p>
+              <p className="mt-0.5 text-[11px] text-[color:var(--foreground)]/45">{t("stock.boutique.card.perUnit")}</p>
             </div>
           </div>
 
@@ -642,7 +594,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           <div className="flex flex-wrap items-center gap-2">
             <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${meta.chip}`}>
               <Icon className="h-3 w-3" />
-              {meta.label}
+              {categoryLabel(item.category)}
             </span>
             {printMeta && printMeta.species !== "general" ? (
               <span
@@ -657,12 +609,12 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           <p className="line-clamp-1 text-xs text-[color:var(--foreground)]/55">{itemSubtitle(item, printSpeciesOptions)}</p>
         </div>
         <div className="hidden shrink-0 text-right sm:block">
-          <p className="text-lg font-semibold text-[var(--foreground)]">{formatNumber(item.quantity)}</p>
-          <p className="text-[11px] text-[color:var(--foreground)]/45">unités</p>
+          <p className="text-lg font-semibold text-[var(--foreground)]">{formatNumber(item.quantity, intlLocale)}</p>
+          <p className="text-[11px] text-[color:var(--foreground)]/45">{t("stock.boutique.card.units")}</p>
         </div>
         <div className="hidden w-28 shrink-0 text-right md:block">
-          <p className="text-sm font-semibold text-[var(--foreground)]">{formatCurrency(inventoryItemValue(item))}</p>
-          <p className="text-[11px] text-[color:var(--foreground)]/45">valeur</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{formatCurrency(inventoryItemValue(item), intlLocale)}</p>
+          <p className="text-[11px] text-[color:var(--foreground)]/45">{t("stock.boutique.card.value")}</p>
         </div>
         <div className="w-[180px] shrink-0" onClick={(e) => e.stopPropagation()}>
           {quickActions(item)}
@@ -699,7 +651,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                   {section.title}
                 </span>
                 <span className="text-sm text-[color:var(--foreground)]/50">
-                  {formatNumber(section.items.length)} réf.
+                  {t("stock.boutique.card.refsCount", { count: formatNumber(section.items.length, intlLocale) })}
                 </span>
                 <div className="h-px flex-1 bg-[var(--line)]" />
               </div>
@@ -717,13 +669,6 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     );
   };
 
-  const sortOptions: { key: SortKey; label: string }[] = [
-    { key: "alert", label: "Alertes d'abord" },
-    { key: "name", label: "Nom (A→Z)" },
-    { key: "quantity", label: "Quantité" },
-    { key: "value", label: "Valeur" },
-  ];
-
   return (
     <div className="space-y-6">
       {/* En-tête + KPIs */}
@@ -732,28 +677,27 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line-strong)] bg-[var(--surface)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/70">
               <Sparkles className="h-3.5 w-3.5" />
-              Boutique interne
+              {t("stock.boutique.badge")}
             </div>
             <h1 className="ui-heading mt-3 text-3xl font-semibold text-[var(--foreground)]">
-              Stock &amp; matériel
+              {t("stock.boutique.title")}
             </h1>
             <p className="mt-2 max-w-xl text-sm text-[color:var(--foreground)]/60">
-              Parcourez le catalogue Print, Goodies et PLV comme une boutique. Cliquez sur un article pour
-              le prévisualiser et gérer les entrées / sorties.
+              {t("stock.boutique.subtitle")}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3">
               <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/45">
-                <Wallet className="h-3.5 w-3.5" /> Valeur
+                <Wallet className="h-3.5 w-3.5" /> {t("stock.boutique.kpi.value")}
               </div>
-              <p className="mt-1.5 text-xl font-semibold text-[var(--foreground)]">{formatCurrency(totalValue)}</p>
+              <p className="mt-1.5 text-xl font-semibold text-[var(--foreground)]">{formatCurrency(totalValue, intlLocale)}</p>
             </div>
             <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3">
               <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/45">
-                <Package className="h-3.5 w-3.5" /> Réf.
+                <Package className="h-3.5 w-3.5" /> {t("stock.boutique.kpi.refs")}
               </div>
-              <p className="mt-1.5 text-xl font-semibold text-[var(--foreground)]">{formatNumber(items.length)}</p>
+              <p className="mt-1.5 text-xl font-semibold text-[var(--foreground)]">{formatNumber(items.length, intlLocale)}</p>
             </div>
             <button
               type="button"
@@ -774,7 +718,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                   alertCount > 0 ? "text-[var(--danger)]" : "text-[color:var(--foreground)]/45",
                 ].join(" ")}
               >
-                <AlertTriangle className="h-3.5 w-3.5" /> Alertes
+                <AlertTriangle className="h-3.5 w-3.5" /> {t("stock.boutique.kpi.alerts")}
               </div>
               <p
                 className={[
@@ -782,7 +726,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                   alertCount > 0 ? "text-[var(--danger)]" : "text-[var(--foreground)]",
                 ].join(" ")}
               >
-                {formatNumber(alertCount)}
+                {formatNumber(alertCount, intlLocale)}
               </p>
             </button>
           </div>
@@ -796,8 +740,8 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
             <Search className="h-4 w-4 text-[color:var(--foreground)]/45" />
             <input
               type="text"
-              placeholder="Rechercher un article, un type, une langue…"
-              aria-label="Recherche stock"
+              placeholder={t("stock.boutique.search.placeholder")}
+              aria-label={t("stock.boutique.search.ariaLabel")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="ui-focus-ring w-full bg-transparent text-sm text-[var(--foreground)] placeholder:text-[color:var(--foreground)]/45 focus:outline-none"
@@ -808,8 +752,8 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               type="button"
               onClick={() => void loadItems().catch(() => undefined)}
               className="ui-transition inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]"
-              title="Actualiser"
-              aria-label="Actualiser"
+              title={t("stock.boutique.toolbar.refresh")}
+              aria-label={t("stock.boutique.toolbar.refresh")}
             >
               <RefreshCcw className="h-4 w-4" />
             </button>
@@ -817,7 +761,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as SortKey)}
-                aria-label="Trier"
+                aria-label={t("stock.boutique.toolbar.sort")}
                 className="ui-focus-ring h-10 appearance-none rounded-xl border border-[var(--line)] bg-[var(--surface)] pl-9 pr-8 text-sm font-medium text-[color:var(--foreground)]/80 hover:bg-[var(--surface-soft)]"
               >
                 {sortOptions.map((o) => (
@@ -839,8 +783,8 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                     ? "bg-[var(--accent)] text-[var(--accent-contrast)]"
                     : "text-[color:var(--foreground)]/55 hover:bg-[var(--surface-soft)]",
                 ].join(" ")}
-                title="Vue grille"
-                aria-label="Vue grille"
+                title={t("stock.boutique.toolbar.viewGrid")}
+                aria-label={t("stock.boutique.toolbar.viewGrid")}
               >
                 <LayoutGrid className="h-4 w-4" />
               </button>
@@ -853,8 +797,8 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                     ? "bg-[var(--accent)] text-[var(--accent-contrast)]"
                     : "text-[color:var(--foreground)]/55 hover:bg-[var(--surface-soft)]",
                 ].join(" ")}
-                title="Vue liste"
-                aria-label="Vue liste"
+                title={t("stock.boutique.toolbar.viewList")}
+                aria-label={t("stock.boutique.toolbar.viewList")}
               >
                 <Rows3 className="h-4 w-4" />
               </button>
@@ -868,14 +812,14 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
             className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
           >
             <ClipboardList className="h-4 w-4" />
-            Historique
+            {t("stock.boutique.toolbar.history")}
           </Link>
           <Link
             href={`${basePath}/dashboard`}
             className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
           >
             <BarChart3 className="h-4 w-4" />
-            Dashboard
+            {t("stock.boutique.toolbar.dashboard")}
           </Link>
           <div className="relative">
             <button
@@ -884,7 +828,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               className="ui-transition inline-flex items-center gap-1.5 rounded-xl bg-[var(--foreground)] px-3.5 py-2 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90"
             >
               <Plus className="h-4 w-4" />
-              Ajouter
+              {t("stock.boutique.toolbar.add")}
               <ChevronDown className="h-3.5 w-3.5 opacity-70" />
             </button>
             {addMenuOpen ? (
@@ -910,7 +854,11 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                         <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg ${meta.chip}`}>
                           <Icon className="h-4 w-4" />
                         </span>
-                        {cat === "Print" ? "Document print" : cat === "PLV" ? "Support PLV" : "Goodies"}
+                        {cat === "Print"
+                          ? t("stock.boutique.addMenu.printDocument")
+                          : cat === "PLV"
+                            ? t("stock.boutique.addMenu.plvSupport")
+                            : t("stock.boutique.category.goodies")}
                       </button>
                     );
                   })}
@@ -925,7 +873,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       <div className="flex flex-wrap items-center gap-2">
         {(["all", ...inventoryCategories] as CategoryFilter[]).map((cat) => {
           const active = categoryFilter === cat;
-          const label = cat === "all" ? "Tout" : CATEGORY_META[cat as InventoryCategory].label;
+          const label = cat === "all" ? t("stock.boutique.filters.all") : categoryLabel(cat as InventoryCategory);
           return (
             <button
               key={cat}
@@ -948,7 +896,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                   active ? "bg-white/25" : "bg-[var(--surface-soft)] text-[color:var(--foreground)]/60",
                 ].join(" ")}
               >
-                {formatNumber(categoryCounts[cat])}
+                {formatNumber(categoryCounts[cat], intlLocale)}
               </span>
             </button>
           );
@@ -964,18 +912,18 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           ].join(" ")}
         >
           <AlertTriangle className="h-3.5 w-3.5" />
-          Alertes seulement
+          {t("stock.boutique.filters.alertsOnly")}
         </button>
       </div>
 
       {showSpeciesFilters && speciesCounts.all > 0 ? (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)]/60 p-3">
           <span className="px-1 text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/45">
-            Espèce
+            {t("stock.boutique.filters.species")}
           </span>
           {(["all", ...printSpeciesOptions.map((o) => o.value)] as SpeciesFilter[]).map((sp) => {
             const active = speciesFilter === sp;
-            const label = sp === "all" ? "Toutes" : printSpeciesLabel(printSpeciesOptions, sp);
+            const label = sp === "all" ? t("stock.boutique.filters.allSpecies") : printSpeciesLabel(printSpeciesOptions, sp);
             const count = speciesCounts[sp];
             const speciesChip =
               sp === "all" ? "" : getPrintSpeciesVisual(printSpeciesOptions, sp).badgeClass;
@@ -1003,7 +951,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                     active && sp === "all" ? "bg-white/25" : "bg-black/5",
                   ].join(" ")}
                 >
-                  {formatNumber(count)}
+                  {formatNumber(count, intlLocale)}
                 </span>
               </button>
             );
@@ -1024,11 +972,11 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       ) : visibleItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-6 py-20 text-center">
           <Package className="h-10 w-10 text-[color:var(--foreground)]/30" />
-          <p className="mt-4 text-base font-semibold text-[var(--foreground)]">Aucun article à afficher</p>
+          <p className="mt-4 text-base font-semibold text-[var(--foreground)]">{t("stock.boutique.empty.title")}</p>
           <p className="mt-1 max-w-sm text-sm text-[color:var(--foreground)]/55">
             {searchQuery || alertOnly || categoryFilter !== "all" || speciesFilter !== "all"
-              ? "Aucun résultat pour ces filtres. Essayez d'élargir votre recherche."
-              : "Commencez par ajouter un document, un goodies ou un support PLV."}
+              ? t("stock.boutique.empty.filtered")
+              : t("stock.boutique.empty.initial")}
           </p>
         </div>
       ) : (
@@ -1040,7 +988,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         <div className="fixed inset-0 z-[130]" role="dialog" aria-modal="true">
           <button
             type="button"
-            aria-label="Fermer"
+            aria-label={t("stock.boutique.close")}
             className="absolute inset-0 bg-[var(--foreground)]/30 backdrop-blur-sm"
             onClick={() => setDetailItem(null)}
           />
@@ -1051,14 +999,14 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                 type="button"
                 onClick={() => setDetailItem(null)}
                 className="ui-transition absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)]/90 text-[color:var(--foreground)]/70 backdrop-blur hover:bg-[var(--surface)]"
-                aria-label="Fermer"
+                aria-label={t("stock.boutique.close")}
               >
                 <X className="h-4 w-4" />
               </button>
               <span
                 className={`absolute left-4 top-4 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${CATEGORY_META[detail.category].chip}`}
               >
-                {CATEGORY_META[detail.category].label}
+                {categoryLabel(detail.category)}
               </span>
             </div>
 
@@ -1091,34 +1039,34 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/45">
-                    Quantité
+                    {t("stock.boutique.detail.quantity")}
                   </p>
                   <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
-                    {formatNumber(detail.quantity)}
+                    {formatNumber(detail.quantity, intlLocale)}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/45">
-                    Valeur totale
+                    {t("stock.boutique.detail.totalValue")}
                   </p>
                   <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
-                    {formatCurrency(inventoryItemValue(detail))}
+                    {formatCurrency(inventoryItemValue(detail), intlLocale)}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[var(--line)] px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/45">
-                    Prix unitaire
+                    {t("stock.boutique.detail.unitPrice")}
                   </p>
                   <p className="mt-1 text-base font-semibold text-[var(--foreground)]">
-                    {formatCurrency(detail.unitPrice)}
+                    {formatCurrency(detail.unitPrice, intlLocale)}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[var(--line)] px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/45">
-                    Seuil d&apos;alerte
+                    {t("stock.boutique.detail.alertThreshold")}
                   </p>
                   <p className="mt-1 text-base font-semibold text-[var(--foreground)]">
-                    {formatNumber(detail.alertThreshold)}
+                    {formatNumber(detail.alertThreshold, intlLocale)}
                   </p>
                 </div>
               </div>
@@ -1126,7 +1074,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               {detail.lastQuoteInfo ? (
                 <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--foreground)]/45">
-                    Dernier devis / infos
+                    {t("stock.boutique.detail.lastQuote")}
                   </p>
                   <p className="mt-1 text-sm text-[color:var(--foreground)]/75">{detail.lastQuoteInfo}</p>
                 </div>
@@ -1139,7 +1087,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                   className="ui-transition ui-btn ui-btn-outline-success inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold"
                 >
                   <Plus className="h-4 w-4" />
-                  Entrée
+                  {t("stock.boutique.actions.entry")}
                 </button>
                 <button
                   type="button"
@@ -1147,7 +1095,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                   className="ui-transition ui-btn ui-btn-outline-warning inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold"
                 >
                   <Minus className="h-4 w-4" />
-                  Sortie
+                  {t("stock.boutique.actions.exit")}
                 </button>
               </div>
 
@@ -1158,21 +1106,21 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                   className="ui-transition inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2.5 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface)]"
                 >
                   <Pencil className="h-4 w-4" />
-                  Modifier
+                  {t("stock.boutique.actions.edit")}
                 </button>
                 <button
                   type="button"
                   onClick={() => openReorder(detail)}
                   className="ui-transition inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2.5 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface)]"
                 >
-                  Infos / devis
+                  {t("stock.boutique.actions.quoteInfo")}
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleDeleteItem(detail)}
                   className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center justify-center gap-1 rounded-xl px-3 py-2.5 text-sm font-semibold"
-                  aria-label="Supprimer"
-                  title="Supprimer"
+                  aria-label={t("stock.boutique.actions.delete")}
+                  title={t("stock.boutique.actions.delete")}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -1194,7 +1142,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
               type="button"
               onClick={() => setLightbox(null)}
               className="ui-transition absolute right-3 top-3 z-10 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-2 text-[color:var(--foreground)]/70 hover:bg-[var(--surface)]"
-              aria-label="Fermer le visuel"
+              aria-label={t("stock.boutique.visual.closeVisual")}
             >
               <X className="h-4 w-4" />
             </button>

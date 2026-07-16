@@ -14,6 +14,7 @@ import {
 } from "@dnd-kit/core";
 import type { ColumnId, Task } from "../../lib/types";
 import { defaultColumns } from "../../lib/types";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Props = {
   tasks: Task[];
@@ -21,7 +22,12 @@ type Props = {
   onPlanning?: (task: Task) => void;
 };
 
-function DraggableCard(props: { task: Task; onPlanning?: (task: Task) => void }) {
+function DraggableCard(props: {
+  task: Task;
+  onPlanning?: (task: Task) => void;
+  deadlineLabel: (date: string) => string;
+  planningLabel: string;
+}) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: props.task.id,
   });
@@ -45,7 +51,9 @@ function DraggableCard(props: { task: Task; onPlanning?: (task: Task) => void })
         <p className="mt-0.5 text-[10px] text-[color:var(--foreground)]/50">{props.task.eventCategory}</p>
       ) : null}
       {props.task.deadline ? (
-        <p className="mt-1 text-[10px] text-[color:var(--foreground)]/45">Échéance {props.task.deadline}</p>
+        <p className="mt-1 text-[10px] text-[color:var(--foreground)]/45">
+          {props.deadlineLabel(props.task.deadline)}
+        </p>
       ) : null}
       {props.onPlanning ? (
         <button
@@ -56,7 +64,7 @@ function DraggableCard(props: { task: Task; onPlanning?: (task: Task) => void })
           }}
           className="mt-2 text-[10px] font-semibold text-[var(--accent)] hover:underline"
         >
-          Planning
+          {props.planningLabel}
         </button>
       ) : null}
     </div>
@@ -84,30 +92,33 @@ function DroppableCol(props: { id: string; title: string; children: React.ReactN
 }
 
 export default function EventDetailKanban(props: Props) {
+  const { t } = useTranslation();
   const { tasks, onMoveTask, onPlanning } = props;
   const [activeId, setActiveId] = useState<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const deadlineLabel = (date: string) => t("eventsLegacy.detailKanban.deadline", { date });
+  const planningLabel = t("eventsLegacy.detailKanban.planning");
 
   const byColumn = useMemo(() => {
     const map: Record<string, Task[]> = {};
     for (const col of defaultColumns) map[col] = [];
-    for (const t of tasks) {
-      const col = defaultColumns.includes(t.column as (typeof defaultColumns)[number])
-        ? t.column
+    for (const task of tasks) {
+      const col = defaultColumns.includes(task.column as (typeof defaultColumns)[number])
+        ? task.column
         : defaultColumns[0];
-      map[col].push(t);
+      map[col].push(task);
     }
     return map;
   }, [tasks]);
 
-  const activeTask = activeId ? tasks.find((t) => t.id === activeId) : null;
+  const activeTask = activeId ? tasks.find((task) => task.id === activeId) : null;
 
   const onDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id));
   const onDragEnd = (e: DragEndEvent) => {
     setActiveId(null);
     const col = e.over?.id;
     if (!col || !activeId) return;
-    const task = tasks.find((t) => t.id === activeId);
+    const task = tasks.find((item) => item.id === activeId);
     if (!task || task.column === col) return;
     onMoveTask(activeId, col as ColumnId);
   };
@@ -115,7 +126,7 @@ export default function EventDetailKanban(props: Props) {
   if (tasks.length === 0) {
     return (
       <p className="text-sm text-[color:var(--foreground)]/55">
-        Aucune tâche. Utilisez le formulaire ci-dessus ou un modèle à la création.
+        {t("eventsLegacy.detailKanban.empty")}
       </p>
     );
   }
@@ -125,8 +136,14 @@ export default function EventDetailKanban(props: Props) {
       <div className="flex gap-3 overflow-x-auto pb-2">
         {defaultColumns.map((col) => (
           <DroppableCol key={col} id={col} title={col}>
-            {(byColumn[col] ?? []).map((t) => (
-              <DraggableCard key={t.id} task={t} onPlanning={onPlanning} />
+            {(byColumn[col] ?? []).map((task) => (
+              <DraggableCard
+                key={task.id}
+                task={task}
+                onPlanning={onPlanning}
+                deadlineLabel={deadlineLabel}
+                planningLabel={planningLabel}
+              />
             ))}
           </DroppableCol>
         ))}

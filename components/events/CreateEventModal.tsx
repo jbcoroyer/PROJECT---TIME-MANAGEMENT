@@ -5,6 +5,7 @@ import { Copy, X } from "lucide-react";
 import { createEventWithTasks, duplicateEvent } from "../../app/actions/events";
 import { eventStatuses, type EventRow, type EventStatus } from "../../lib/eventTypes";
 import { toastError, toastSuccess } from "../../lib/toast";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type CreateEventModalProps = {
   open: boolean;
@@ -14,6 +15,7 @@ type CreateEventModalProps = {
 };
 
 export default function CreateEventModal(props: CreateEventModalProps) {
+  const { t } = useTranslation();
   const { open, onClose, onCreated, existingEvents = [] } = props;
   const [mode, setMode] = useState<"new" | "duplicate">("new");
   const [name, setName] = useState("");
@@ -45,19 +47,19 @@ export default function CreateEventModal(props: CreateEventModalProps) {
     e.preventDefault();
     if (submitLockRef.current || submitting) return;
     if (!name.trim() && mode === "new") {
-      toastError("Indiquez le nom de l'événement.");
+      toastError(t("eventsLegacy.create.toast.nameRequired"));
       return;
     }
     if (!startDate || !endDate) {
-      toastError("Indiquez les dates de début et de fin.");
+      toastError(t("eventsLegacy.create.toast.datesRequired"));
       return;
     }
     if (new Date(endDate) < new Date(startDate)) {
-      toastError("La date de fin doit être après la date de début.");
+      toastError(t("eventsLegacy.create.toast.endAfterStart"));
       return;
     }
     if (mode === "duplicate" && !sourceEventId) {
-      toastError("Choisissez un événement à dupliquer.");
+      toastError(t("eventsLegacy.create.toast.sourceRequired"));
       return;
     }
 
@@ -67,7 +69,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
       if (mode === "duplicate") {
         const result = await duplicateEvent({
           sourceEventId,
-          name: name.trim() || "Événement (copie)",
+          name: name.trim() || t("eventsLegacy.create.copyName"),
           startDate,
           endDate,
           copyTasks,
@@ -76,7 +78,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
           toastError(result.error);
           return;
         }
-        toastSuccess("Événement dupliqué");
+        toastSuccess(t("eventsLegacy.create.toast.duplicated"));
         onCreated(result.eventId);
         resetForm();
         onClose();
@@ -95,7 +97,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
         toastError(result.error);
         return;
       }
-      toastSuccess("Événement créé");
+      toastSuccess(t("eventsLegacy.create.toast.created"));
       onCreated(result.eventId);
       resetForm();
       onClose();
@@ -119,13 +121,18 @@ export default function CreateEventModal(props: CreateEventModalProps) {
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
-              {mode === "duplicate" ? "Dupliquer" : "Nouvel événement"}
+              {mode === "duplicate" ? t("eventsLegacy.create.duplicate") : t("eventsLegacy.create.newEvent")}
             </p>
             <h2 className="ui-heading mt-1 text-2xl font-semibold text-[var(--foreground)]">
-              {mode === "duplicate" ? "Créer à partir d'un événement" : "Créer un événement"}
+              {mode === "duplicate" ? t("eventsLegacy.create.fromExisting") : t("eventsLegacy.create.createEvent")}
             </h2>
           </div>
-          <button type="button" onClick={onClose} className="rounded-xl border border-[var(--line)] p-2" aria-label="Fermer">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-[var(--line)] p-2"
+            aria-label={t("eventsLegacy.create.close")}
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -139,7 +146,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
               mode === "new" ? "bg-[var(--foreground)] text-[var(--accent-contrast)]" : "",
             ].join(" ")}
           >
-            Nouveau
+            {t("eventsLegacy.create.new")}
           </button>
           <button
             type="button"
@@ -150,7 +157,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
             ].join(" ")}
           >
             <Copy className="h-3.5 w-3.5" />
-            Dupliquer
+            {t("eventsLegacy.create.duplicate")}
           </button>
         </div>
 
@@ -159,14 +166,14 @@ export default function CreateEventModal(props: CreateEventModalProps) {
             <>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                  Événement source
+                  {t("eventsLegacy.create.sourceEvent")}
                 </label>
                 <select
                   value={sourceEventId}
                   onChange={(e) => setSourceEventId(e.target.value)}
                   className="ui-focus-ring w-full rounded-xl border border-[var(--line)] px-3 py-2.5 text-sm"
                 >
-                  <option value="">Choisir…</option>
+                  <option value="">{t("eventsLegacy.create.choose")}</option>
                   {duplicateSources.map((ev) => (
                     <option key={ev.id} value={ev.id}>
                       {ev.name} ({ev.startDate})
@@ -175,39 +182,45 @@ export default function CreateEventModal(props: CreateEventModalProps) {
                 </select>
               </div>
               <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={copyTasks}
-                  onChange={(e) => setCopyTasks(e.target.checked)}
-                />
-                Recopier les tâches (échéances recalées)
+                <input type="checkbox" checked={copyTasks} onChange={(e) => setCopyTasks(e.target.checked)} />
+                {t("eventsLegacy.create.copyTasks")}
               </label>
             </>
           ) : null}
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Nom de l&apos;événement</label>
+            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
+              {t("eventsLegacy.create.eventName")}
+            </label>
             <input
               value={name}
               onChange={(ev) => setName(ev.target.value)}
               className="ui-focus-ring w-full rounded-xl border border-[var(--line)] px-3 py-2.5 text-sm"
-              placeholder={mode === "duplicate" ? "Laisser vide = nom + (copie)" : "Ex. Conférence annuelle 2026"}
+              placeholder={
+                mode === "duplicate"
+                  ? t("eventsLegacy.create.namePlaceholderDuplicate")
+                  : t("eventsLegacy.create.namePlaceholderNew")
+              }
             />
           </div>
           {mode === "new" ? (
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Lieu</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
+                {t("eventsLegacy.create.location")}
+              </label>
               <input
                 value={location}
                 onChange={(ev) => setLocation(ev.target.value)}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] px-3 py-2.5 text-sm"
-                placeholder="Adresse, salle, visio…"
+                placeholder={t("eventsLegacy.create.locationPlaceholder")}
               />
             </div>
           ) : null}
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Début</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
+                {t("eventsLegacy.create.start")}
+              </label>
               <input
                 type="date"
                 value={startDate}
@@ -216,7 +229,9 @@ export default function CreateEventModal(props: CreateEventModalProps) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Fin</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
+                {t("eventsLegacy.create.end")}
+              </label>
               <input
                 type="date"
                 value={endDate}
@@ -228,7 +243,9 @@ export default function CreateEventModal(props: CreateEventModalProps) {
           {mode === "new" ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Statut</label>
+                <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
+                  {t("eventsLegacy.create.status")}
+                </label>
                 <select
                   value={status}
                   onChange={(ev) => setStatus(ev.target.value as EventStatus)}
@@ -242,7 +259,9 @@ export default function CreateEventModal(props: CreateEventModalProps) {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Budget (€)</label>
+                <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
+                  {t("eventsLegacy.create.budget")}
+                </label>
                 <input
                   type="number"
                   min="0"
@@ -255,15 +274,23 @@ export default function CreateEventModal(props: CreateEventModalProps) {
             </div>
           ) : null}
           <div className="flex justify-end gap-2 border-t border-[var(--line)] pt-4">
-            <button type="button" onClick={onClose} className="rounded-xl border border-[var(--line)] px-4 py-2 text-sm font-semibold">
-              Annuler
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-[var(--line)] px-4 py-2 text-sm font-semibold"
+            >
+              {t("eventsLegacy.create.cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] disabled:opacity-60"
             >
-              {submitting ? "Création…" : mode === "duplicate" ? "Dupliquer" : "Créer"}
+              {submitting
+                ? t("eventsLegacy.create.creating")
+                : mode === "duplicate"
+                  ? t("eventsLegacy.create.duplicate")
+                  : t("eventsLegacy.create.create")}
             </button>
           </div>
         </form>

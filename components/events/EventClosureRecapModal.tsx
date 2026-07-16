@@ -6,6 +6,7 @@ import { closeEventWithRecap } from "../../app/actions/events";
 import type { EventClosureRecap, EventRow } from "../../lib/eventTypes";
 import { formatCurrency } from "../../lib/stockUtils";
 import { toastError, toastSuccess } from "../../lib/toast";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Props = {
   open: boolean;
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export default function EventClosureRecapModal(props: Props) {
+  const { t } = useTranslation();
   const { open, event, consumedTotal, expenseTotal, stockTotal, taskProgressPct, onClose, onClosed } =
     props;
   const [notes, setNotes] = useState("");
@@ -46,7 +48,7 @@ export default function EventClosureRecapModal(props: Props) {
         toastError(r.error);
         return;
       }
-      toastSuccess("Événement clôturé");
+      toastSuccess(t("eventsLegacy.closure.toast.closed"));
       onClosed();
     } finally {
       setSubmitting(false);
@@ -61,51 +63,53 @@ export default function EventClosureRecapModal(props: Props) {
     >
       <div className="ui-surface max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[28px] p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Clôture &amp; récapitulatif</h2>
-          <button type="button" onClick={onClose} className="rounded-xl border border-[var(--line)] p-2">
+          <h2 className="text-lg font-semibold">{t("eventsLegacy.closure.title")}</h2>
+          <button type="button" onClick={onClose} className="rounded-xl border border-[var(--line)] p-2" aria-label={t("survey.common.close")}>
             <X className="h-4 w-4" />
           </button>
         </div>
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-[color:var(--foreground)]/60">Budget alloué</dt>
+            <dt className="text-[color:var(--foreground)]/60">{t("eventsLegacy.closure.allocatedBudget")}</dt>
             <dd className="font-semibold">{formatCurrency(event.allocatedBudget)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-[color:var(--foreground)]/60">Total consommé</dt>
+            <dt className="text-[color:var(--foreground)]/60">{t("eventsLegacy.closure.consumedTotal")}</dt>
             <dd className="font-semibold">{formatCurrency(consumedTotal)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-[color:var(--foreground)]/60">Dépenses</dt>
+            <dt className="text-[color:var(--foreground)]/60">{t("eventsLegacy.closure.expenses")}</dt>
             <dd>{formatCurrency(expenseTotal)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-[color:var(--foreground)]/60">Stock valorisé</dt>
+            <dt className="text-[color:var(--foreground)]/60">{t("eventsLegacy.closure.stockValue")}</dt>
             <dd>{formatCurrency(stockTotal)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-[color:var(--foreground)]/60">Tâches terminées</dt>
+            <dt className="text-[color:var(--foreground)]/60">{t("eventsLegacy.closure.tasksDone")}</dt>
             <dd>{taskProgressPct} %</dd>
           </div>
           <div className="flex justify-between border-t border-[var(--line)] pt-2">
-            <dt className="font-medium">Écart</dt>
+            <dt className="font-medium">{t("eventsLegacy.closure.variance")}</dt>
             <dd className={delta > 0 ? "font-semibold text-[var(--danger)]" : "font-semibold text-[var(--success)]"}>
               {delta > 0 ? "+" : ""}
               {formatCurrency(delta)}
             </dd>
           </div>
         </dl>
-        <label className="mt-4 block text-xs font-semibold text-[color:var(--foreground)]/65">RETEX (optionnel)</label>
+        <label className="mt-4 block text-xs font-semibold text-[color:var(--foreground)]/65">
+          {t("eventsLegacy.closure.retexOptional")}
+        </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           className="ui-focus-ring mt-1 w-full rounded-xl border border-[var(--line)] px-3 py-2 text-sm"
-          placeholder="Points forts, incidents, pistes pour la prochaine édition…"
+          placeholder={t("eventsLegacy.closure.placeholder")}
         />
         <div className="mt-6 flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-xl border border-[var(--line)] px-4 py-2 text-sm font-semibold">
-            Annuler
+            {t("eventsLegacy.closure.cancel")}
           </button>
           <button
             type="button"
@@ -113,7 +117,7 @@ export default function EventClosureRecapModal(props: Props) {
             onClick={() => void handleSubmit()}
             className="rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)]"
           >
-            {submitting ? "Clôture…" : "Clôturer l'événement"}
+            {submitting ? t("eventsLegacy.closure.closing") : t("eventsLegacy.closure.closeEvent")}
           </button>
         </div>
       </div>

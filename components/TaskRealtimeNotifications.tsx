@@ -9,13 +9,9 @@ import { wasTaskMutatedLocally } from "../lib/taskMutatedLocally";
 import type { InAppNotificationInput } from "../lib/inAppNotificationTypes";
 import { inAppNotificationStorageKey } from "../lib/storageKeys";
 import { DONE_COLUMN_NAME } from "../lib/workflowConstants";
+import { useTranslation } from "../lib/i18n/useTranslation";
 
 type Push = (input: InAppNotificationInput) => void;
-
-function projectName(row: Record<string, unknown>): string {
-  const n = row.project_name;
-  return typeof n === "string" && n.trim() ? n.trim() : "Tâche";
-}
 
 function dedupeKey(parts: string[]) {
   return inAppNotificationStorageKey(parts);
@@ -50,20 +46,29 @@ function rememberDedupe(key: string) {
 
 export default function TaskRealtimeNotifications(props: { pushNotification: Push }) {
   const { pushNotification } = props;
+  const { t } = useTranslation();
   const { user, loading } = useCurrentUser();
   const supabase = getSupabaseBrowser();
   const pushRef = useRef(pushNotification);
   const userRef = useRef(user);
+  const tRef = useRef(t);
   const realtimeWarnedRef = useRef(false);
   const realtimeReadyAtRef = useRef(0);
 
-  // Refs synchronisées via effect (jamais mutées pendant le render)
   useEffect(() => {
     pushRef.current = pushNotification;
   }, [pushNotification]);
   useEffect(() => {
     userRef.current = user;
   }, [user]);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
+  const projectName = (row: Record<string, unknown>) => {
+    const n = row.project_name;
+    return typeof n === "string" && n.trim() ? n.trim() : tRef.current("notifications.taskFallback");
+  };
 
   useEffect(() => {
     if (loading || !user) return;
@@ -101,8 +106,8 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
             if (shouldDedupe(dk, 15_000)) return;
             rememberDedupe(dk);
             pushRef.current({
-              title: "Nouvelle tâche",
-              body: `« ${name} » vous concerne.`,
+              title: tRef.current("notifications.newTask"),
+              body: tRef.current("notifications.concernsYou", { name }),
               href: kanbanHref(taskId),
             });
             return;
@@ -126,8 +131,8 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
               if (shouldDedupe(dk, 15_000)) return;
               rememberDedupe(dk);
               pushRef.current({
-                title: "Ajout au projet",
-                body: `Vous suivez désormais « ${projectName(newRow)} ».`,
+                title: tRef.current("notifications.addedToProject"),
+                body: tRef.current("notifications.nowFollowing", { name: projectName(newRow) }),
                 href: kanbanHref(taskId),
               });
               return;
@@ -144,8 +149,8 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
               } else {
                 rememberDedupe(dk);
                 const label = newDeadline
-                  ? `Nouvelle échéance : ${newDeadline.slice(0, 10)}`
-                  : "Échéance retirée";
+                  ? tRef.current("notifications.newDeadline", { date: newDeadline.slice(0, 10) })
+                  : tRef.current("notifications.deadlineRemoved");
                 pushRef.current({
                   title: `« ${projectName(newRow)} »`,
                   body: label,
@@ -163,8 +168,11 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
               if (!shouldDedupe(dk, 8000)) {
                 rememberDedupe(dk);
                 pushRef.current({
-                  title: "Tâche déplacée",
-                  body: `« ${projectName(newRow)} » → ${newCol}`,
+                  title: tRef.current("notifications.taskMoved"),
+                  body: tRef.current("notifications.movedTo", {
+                    name: projectName(newRow),
+                    column: newCol,
+                  }),
                   href: kanbanHref(taskId),
                 });
               }
@@ -185,10 +193,10 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
           realtimeWarnedRef.current = true;
           const detail = err?.message ? String(err.message) : "";
           pushRef.current({
-            title: "Notifications temps réel",
+            title: tRef.current("notifications.realtimeTitle"),
             body: detail
-              ? `Connexion interrompue : ${detail}. Vérifiez la réplication Realtime sur la table « tasks » (Supabase).`
-              : "Impossible de recevoir les alertes Kanban en direct. Activez Realtime pour « tasks » et contrôlez les politiques RLS.",
+              ? tRef.current("notifications.realtimeDisconnected", { detail })
+              : tRef.current("notifications.realtimeUnavailable"),
           });
         }
       });
@@ -227,16 +235,17 @@ export default function TaskRealtimeNotifications(props: { pushNotification: Pus
         const delta = daysFromTodayUtc(d);
         let title: string | null = null;
         let body: string | null = null;
+        const name = projectName(row);
 
         if (delta < 0) {
-          title = "Échéance dépassée";
-          body = `« ${projectName(row)} » était prévue le ${d}.`;
+          title = tRef.current("notifications.overdue");
+          body = tRef.current("notifications.overdueBody", { name, date: d });
         } else if (delta === 0) {
-          title = "Échéance aujourd'hui";
-          body = `« ${projectName(row)} ».`;
+          title = tRef.current("notifications.dueToday");
+          body = tRef.current("notifications.dueTodayBody", { name });
         } else if (delta === 1) {
-          title = "Échéance demain";
-          body = `« ${projectName(row)} » (${d}).`;
+          title = tRef.current("notifications.dueTomorrow");
+          body = tRef.current("notifications.dueTomorrowBody", { name, date: d });
         }
 
         if (!title || !body) continue;

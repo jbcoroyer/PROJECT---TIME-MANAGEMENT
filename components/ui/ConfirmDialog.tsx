@@ -12,6 +12,7 @@ import {
 import { createPortal } from "react-dom";
 import { AlertTriangle, Trash2, X } from "lucide-react";
 import { useIsClient } from "../../lib/useIsClient";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 export type ConfirmOptions = {
   /** Titre principal de la boîte de dialogue. */
@@ -53,7 +54,7 @@ const ConfirmContext = createContext<ConfirmContextValue | null>(null);
 export function useConfirm(): ConfirmContextValue {
   const ctx = useContext(ConfirmContext);
   if (!ctx) {
-    throw new Error("useConfirm doit être utilisé à l'intérieur de <ConfirmDialogProvider>.");
+    throw new Error("useConfirm must be used inside <ConfirmDialogProvider>.");
   }
   return ctx;
 }
@@ -65,6 +66,7 @@ type PendingConfirm = {
 };
 
 export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [pending, setPending] = useState<PendingConfirm | null>(null);
   const mounted = useIsClient();
   const nextIdRef = useRef(0);
@@ -141,7 +143,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
               type="button"
               onClick={() => close(false)}
               className="ui-transition rounded-lg p-1.5 text-[color:var(--foreground)]/55 hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]"
-              aria-label="Fermer"
+              aria-label={t("confirmDialog.close")}
             >
               <X className="h-4 w-4" />
             </button>
@@ -163,7 +165,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
               onClick={() => close(false)}
               className="ui-transition flex-1 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] py-2.5 text-sm font-semibold text-[var(--foreground)] hover:bg-[var(--surface)]"
             >
-              {pending.options.cancelLabel ?? "Annuler"}
+              {pending.options.cancelLabel ?? t("confirmDialog.cancel")}
             </button>
             <button
               type="button"
@@ -171,7 +173,8 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
               onClick={() => close(true)}
               className={`ui-transition flex-1 rounded-xl py-2.5 text-sm font-semibold shadow-sm ${confirmButton}`}
             >
-              {pending.options.confirmLabel ?? (variant === "destructive" ? "Supprimer" : "Confirmer")}
+              {pending.options.confirmLabel ??
+                (variant === "destructive" ? t("confirmDialog.delete") : t("confirmDialog.confirm"))}
             </button>
           </div>
         </div>

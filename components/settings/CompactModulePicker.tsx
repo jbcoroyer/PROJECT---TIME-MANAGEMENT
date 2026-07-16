@@ -5,7 +5,7 @@ import { Plus, RotateCcw, Search, X } from "lucide-react";
 import ModuleGlyph from "../modules/ModuleGlyph";
 import {
   DEFAULT_ONBOARDING_MODULES,
-  getModulesByCategory,
+  getCommerciallyAvailableCatalog,
   MODULE_CATEGORY_ORDER,
   MODULE_REGISTRY,
   toggleModule,
@@ -33,7 +33,7 @@ export default function CompactModulePicker({
   const [query, setQuery] = useState("");
 
   const availableToAdd = useMemo(() => {
-    const grouped = getModulesByCategory();
+    const grouped = getCommerciallyAvailableCatalog();
     const inactive: AppModuleId[] = [];
     for (const category of MODULE_CATEGORY_ORDER) {
       for (const mod of grouped[category]) {

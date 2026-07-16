@@ -6,6 +6,7 @@ import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { expenseCategories, expenseStatuses, type ExpenseStatus } from "../../lib/eventTypes";
 import { toastError, toastSuccess } from "../../lib/toast";
 import { getInventoryErrorMessage } from "../../lib/useInventory";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type ExpenseModalProps = {
   open: boolean;
@@ -16,6 +17,7 @@ type ExpenseModalProps = {
 };
 
 export default function ExpenseModal(props: ExpenseModalProps) {
+  const { t } = useTranslation();
   const { open, eventId, onClose, onSaved } = props;
   const [title, setTitle] = useState("");
   const [quoted, setQuoted] = useState("");
@@ -33,7 +35,7 @@ export default function ExpenseModal(props: ExpenseModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      toastError("Indiquez un libellé.");
+      toastError(t("eventsLegacy.expense.toast.labelRequired"));
       return;
     }
     const q = parseAmount(quoted);
@@ -56,7 +58,7 @@ export default function ExpenseModal(props: ExpenseModalProps) {
         budget_post: budgetPost,
       });
       if (error) throw error;
-      toastSuccess("Dépense enregistrée");
+      toastSuccess(t("eventsLegacy.expense.toast.saved"));
       setTitle("");
       setQuoted("");
       setCommitted("");
@@ -67,7 +69,7 @@ export default function ExpenseModal(props: ExpenseModalProps) {
       onSaved();
       onClose();
     } catch (err) {
-      toastError(getInventoryErrorMessage(err, "Impossible d'enregistrer la dépense."));
+      toastError(getInventoryErrorMessage(err, t("eventsLegacy.expense.toast.saveError")));
     } finally {
       setSubmitting(false);
     }
@@ -81,14 +83,14 @@ export default function ExpenseModal(props: ExpenseModalProps) {
     >
       <div className="ui-surface w-full max-w-lg rounded-[28px] p-6">
         <div className="mb-4 flex items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Ajouter une dépense</h2>
-          <button type="button" onClick={onClose} className="rounded-xl border border-[var(--line)] p-2" aria-label="Fermer">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">{t("eventsLegacy.expense.title")}</h2>
+          <button type="button" onClick={onClose} className="rounded-xl border border-[var(--line)] p-2" aria-label={t("survey.common.close")}>
             <X className="h-4 w-4" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Libellé</label>
+            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.expense.label")}</label>
             <input
               value={title}
               onChange={(ev) => setTitle(ev.target.value)}
@@ -97,7 +99,7 @@ export default function ExpenseModal(props: ExpenseModalProps) {
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Devis (€)</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.expense.quoted")}</label>
               <input
                 type="number"
                 min="0"
@@ -108,7 +110,7 @@ export default function ExpenseModal(props: ExpenseModalProps) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Engagé (€)</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.expense.committed")}</label>
               <input
                 type="number"
                 min="0"
@@ -119,7 +121,7 @@ export default function ExpenseModal(props: ExpenseModalProps) {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Payé (€)</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.expense.paid")}</label>
               <input
                 type="number"
                 min="0"
@@ -132,7 +134,7 @@ export default function ExpenseModal(props: ExpenseModalProps) {
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Catégorie</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.expense.category")}</label>
               <select
                 value={category}
                 onChange={(ev) => {
@@ -149,7 +151,7 @@ export default function ExpenseModal(props: ExpenseModalProps) {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Poste budget</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.expense.budgetPost")}</label>
               <select
                 value={budgetPost}
                 onChange={(ev) => setBudgetPost(ev.target.value)}
@@ -163,7 +165,7 @@ export default function ExpenseModal(props: ExpenseModalProps) {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Statut</label>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.expense.status")}</label>
               <select
                 value={status}
                 onChange={(ev) => setStatus(ev.target.value as ExpenseStatus)}
@@ -179,14 +181,14 @@ export default function ExpenseModal(props: ExpenseModalProps) {
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="rounded-xl border border-[var(--line)] px-4 py-2 text-sm font-semibold">
-              Annuler
+              {t("eventsLegacy.expense.cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] disabled:opacity-60"
             >
-              {submitting ? "Enregistrement…" : "Enregistrer"}
+              {submitting ? t("eventsLegacy.expense.saving") : t("eventsLegacy.expense.save")}
             </button>
           </div>
         </form>

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { priorities, type Priority } from "../../../lib/types";
 import type { IntakeTaskDraft } from "../../../lib/v2/intakeMapping";
+import { createDisplayLabelHelpers } from "../../../lib/i18n/displayLabels";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 export default function IntakeTaskMappingModal({
   open,
@@ -22,6 +24,8 @@ export default function IntakeTaskMappingModal({
   onClose: () => void;
   onConfirm: (mapped: IntakeTaskDraft) => void;
 }) {
+  const { t, locale } = useTranslation();
+  const labels = useMemo(() => createDisplayLabelHelpers(locale), [locale]);
   const [form, setForm] = useState<IntakeTaskDraft | null>(draft);
 
   useEffect(() => {
@@ -42,19 +46,17 @@ export default function IntakeTaskMappingModal({
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">Créer la tâche depuis la demande</h2>
-            <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
-              Renseignez le budget, la charge estimée et la priorité avant de créer la tâche dans le Kanban.
-            </p>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">{t("dashboard.intake.title")}</h2>
+            <p className="mt-1 text-sm text-[color:var(--foreground)]/55">{t("dashboard.intake.subtitle")}</p>
           </div>
-          <button type="button" onClick={onClose} className="ui-transition rounded-lg p-1.5 text-[color:var(--foreground)]/50 hover:bg-[var(--surface-soft)]" aria-label="Fermer">
+          <button type="button" onClick={onClose} className="ui-transition rounded-lg p-1.5 text-[color:var(--foreground)]/50 hover:bg-[var(--surface-soft)]" aria-label={t("dashboard.close")}>
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <div className="space-y-3">
           <label className="block">
-            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Titre de la tâche</span>
+            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.taskTitle")}</span>
             <input
               value={form.projectName}
               onChange={(e) => set("projectName", e.target.value)}
@@ -63,7 +65,7 @@ export default function IntakeTaskMappingModal({
           </label>
 
           <label className="block">
-            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Domaine</span>
+            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.domain")}</span>
             <select
               value={form.domain}
               onChange={(e) => set("domain", e.target.value)}
@@ -79,7 +81,7 @@ export default function IntakeTaskMappingModal({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
-              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Échéance *</span>
+              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.deadline")}</span>
               <input
                 type="date"
                 required
@@ -89,7 +91,7 @@ export default function IntakeTaskMappingModal({
               />
             </label>
             <label className="block">
-              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Priorité</span>
+              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.priority")}</span>
               <select
                 value={form.priority}
                 onChange={(e) => set("priority", e.target.value as Priority)}
@@ -97,7 +99,7 @@ export default function IntakeTaskMappingModal({
               >
                 {priorities.map((p) => (
                   <option key={p} value={p}>
-                    {p}
+                    {labels.priority(p)}
                   </option>
                 ))}
               </select>
@@ -105,13 +107,13 @@ export default function IntakeTaskMappingModal({
           </div>
 
           <label className="block">
-            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Assigné(s)</span>
+            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.assignees")}</span>
             <select
               value={form.admins[0] ?? ""}
               onChange={(e) => set("admins", e.target.value ? [e.target.value] : [])}
               className="ui-focus-ring mt-1 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
             >
-              <option value="">Non assigné</option>
+              <option value="">{t("dashboard.intake.unassigned")}</option>
               {admins.map((a) => (
                 <option key={a} value={a}>
                   {a}
@@ -122,16 +124,16 @@ export default function IntakeTaskMappingModal({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
-              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Budget</span>
+              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.budget")}</span>
               <input
                 value={form.budget}
                 onChange={(e) => set("budget", e.target.value)}
-                placeholder="Ex. 2 500 €"
+                placeholder={t("dashboard.intake.budgetPlaceholder")}
                 className="ui-focus-ring mt-1 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
               />
             </label>
             <label className="block">
-              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Charge estimée (heures)</span>
+              <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.estimatedHours")}</span>
               <input
                 type="number"
                 min={0}
@@ -144,7 +146,7 @@ export default function IntakeTaskMappingModal({
           </div>
 
           <label className="block">
-            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Client / demandeur</span>
+            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.client")}</span>
             <input
               value={form.clientName}
               onChange={(e) => set("clientName", e.target.value)}
@@ -153,7 +155,7 @@ export default function IntakeTaskMappingModal({
           </label>
 
           <label className="block">
-            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">Description</span>
+            <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.description")}</span>
             <textarea
               rows={5}
               value={form.description}
@@ -169,7 +171,7 @@ export default function IntakeTaskMappingModal({
             onClick={onClose}
             className="ui-transition rounded-xl border border-[var(--line-strong)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]"
           >
-            Annuler
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -177,7 +179,7 @@ export default function IntakeTaskMappingModal({
             onClick={() => onConfirm(form)}
             className="ui-transition rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)] disabled:opacity-50"
           >
-            {busy ? "Création…" : "Créer la tâche"}
+            {busy ? t("dashboard.intake.creating") : t("dashboard.intake.createTask")}
           </button>
         </div>
       </div>

@@ -1,6 +1,9 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { AppMark, AppWordmark } from "../AppBrand";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type LegalDocumentProps = {
   title: string;
@@ -9,6 +12,8 @@ type LegalDocumentProps = {
 };
 
 export default function LegalDocument({ title, lastUpdated, children }: LegalDocumentProps) {
+  const { t } = useTranslation({ preferBrowser: true });
+
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <header className="border-b border-[var(--line)] bg-[var(--surface)]/80 backdrop-blur-sm">
@@ -19,13 +24,13 @@ export default function LegalDocument({ title, lastUpdated, children }: LegalDoc
           </Link>
           <nav className="flex flex-wrap items-center gap-3 text-sm">
             <Link href="/privacy" className="text-[color:var(--foreground)]/60 hover:text-[var(--foreground)]">
-              Confidentialité
+              {t("legal.document.privacy")}
             </Link>
             <Link href="/terms" className="text-[color:var(--foreground)]/60 hover:text-[var(--foreground)]">
-              CGU
+              {t("legal.document.terms")}
             </Link>
             <Link href="/legal" className="text-[color:var(--foreground)]/60 hover:text-[var(--foreground)]">
-              Mentions légales
+              {t("legal.document.legal")}
             </Link>
           </nav>
         </div>
@@ -34,7 +39,7 @@ export default function LegalDocument({ title, lastUpdated, children }: LegalDoc
       <main className="mx-auto max-w-3xl px-4 py-10">
         <h1 className="text-2xl font-bold text-[var(--foreground)]">{title}</h1>
         <p className="mt-2 text-sm text-[color:var(--foreground)]/50">
-          Dernière mise à jour : {lastUpdated}
+          {t("legal.document.lastUpdated")} {lastUpdated}
         </p>
         <article className="prose-legal mt-8 space-y-6 text-sm leading-relaxed text-[color:var(--foreground)]/80">
           {children}

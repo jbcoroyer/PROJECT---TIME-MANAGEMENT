@@ -1,15 +1,15 @@
 import type { InventoryItem } from "./inventoryTypes";
 
-export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("fr-FR", {
+export function formatCurrency(value: number, locale = "fr-FR"): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: 2,
   }).format(value);
 }
 
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat("fr-FR").format(value);
+export function formatNumber(value: number, locale = "fr-FR"): string {
+  return new Intl.NumberFormat(locale).format(value);
 }
 
 /** Liste déroulante stock (ex. événements) : inclut la langue pour les documents Print. */

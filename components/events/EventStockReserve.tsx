@@ -5,6 +5,7 @@ import { Package } from "lucide-react";
 import { getInventoryErrorMessage, useInventory } from "../../lib/useInventory";
 import { toastError, toastSuccess } from "../../lib/toast";
 import { formatInventorySelectOptionLabel } from "../../lib/stockUtils";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type EventStockReserveProps = {
   eventId: string;
@@ -12,13 +13,18 @@ type EventStockReserveProps = {
 };
 
 export default function EventStockReserve(props: EventStockReserveProps) {
+  const { t } = useTranslation();
   const { eventId, defaultUserName } = props;
   const { items, loading, recordMovement } = useInventory();
   const [itemId, setItemId] = useState<string>("");
   const [qty, setQty] = useState("1");
-  const [reason, setReason] = useState("Réservation événement");
+  const [reason, setReason] = useState("");
   const [userName, setUserName] = useState(defaultUserName);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setReason(t("eventsLegacy.stock.defaultReason"));
+  }, [t]);
 
   useEffect(() => {
     setUserName(defaultUserName);
@@ -29,16 +35,16 @@ export default function EventStockReserve(props: EventStockReserveProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!itemId) {
-      toastError("Choisissez un article en stock.");
+      toastError(t("eventsLegacy.stock.toast.chooseItem"));
       return;
     }
     const n = Math.max(1, Math.round(Number(qty) || 0));
     if (!userName.trim()) {
-      toastError("Indiquez votre nom.");
+      toastError(t("eventsLegacy.stock.toast.nameRequired"));
       return;
     }
     if (selected && n > selected.quantity) {
-      toastError("Quantité supérieure au stock disponible.");
+      toastError(t("eventsLegacy.stock.toast.quantityExceeded"));
       return;
     }
     setSubmitting(true);
@@ -48,13 +54,13 @@ export default function EventStockReserve(props: EventStockReserveProps) {
         changeAmount: -n,
         projectId: null,
         eventId,
-        reason: reason.trim() || "Sortie stock événement",
+        reason: reason.trim() || t("eventsLegacy.stock.defaultExitReason"),
         userName: userName.trim(),
       });
-      toastSuccess("Sortie de stock imputée à l'événement");
+      toastSuccess(t("eventsLegacy.stock.toast.success"));
       setQty("1");
     } catch (err) {
-      toastError(getInventoryErrorMessage(err, "Mouvement impossible."));
+      toastError(getInventoryErrorMessage(err, t("eventsLegacy.stock.toast.error")));
     } finally {
       setSubmitting(false);
     }
@@ -64,23 +70,23 @@ export default function EventStockReserve(props: EventStockReserveProps) {
     <div className="rounded-[22px] border border-[var(--line)] bg-[var(--surface)] p-5">
       <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-1 text-xs font-semibold text-[color:var(--foreground)]/65">
         <Package className="h-3.5 w-3.5" />
-        Réserver du matériel (sortie stock)
+        {t("eventsLegacy.stock.reserveTitle")}
       </div>
       <p className="mb-4 text-sm text-[color:var(--foreground)]/60">
-        Chaque sortie est enregistrée dans l&apos;historique stock et valorisée pour le budget événement (prix unitaire au moment du mouvement).
+        {t("eventsLegacy.stock.reserveDescription")}
       </p>
       {loading ? (
-        <p className="text-sm text-[color:var(--foreground)]/55">Chargement du stock…</p>
+        <p className="text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.stock.loading")}</p>
       ) : (
         <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
-            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Article</label>
+            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.stock.item")}</label>
             <select
               value={itemId}
               onChange={(ev) => setItemId(ev.target.value)}
               className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2.5 text-sm"
             >
-              <option value="">— Sélectionner —</option>
+              <option value="">{t("eventsLegacy.stock.selectPlaceholder")}</option>
               {items.map((it) => (
                 <option key={it.id} value={it.id}>
                   {formatInventorySelectOptionLabel(it)}
@@ -89,7 +95,7 @@ export default function EventStockReserve(props: EventStockReserveProps) {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Quantité à sortir</label>
+            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.stock.quantity")}</label>
             <input
               type="number"
               min="1"
@@ -99,7 +105,7 @@ export default function EventStockReserve(props: EventStockReserveProps) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Réalisé par</label>
+            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.stock.performedBy")}</label>
             <input
               value={userName}
               onChange={(ev) => setUserName(ev.target.value)}
@@ -107,7 +113,7 @@ export default function EventStockReserve(props: EventStockReserveProps) {
             />
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">Commentaire</label>
+            <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">{t("eventsLegacy.stock.comment")}</label>
             <input
               value={reason}
               onChange={(ev) => setReason(ev.target.value)}
@@ -120,7 +126,7 @@ export default function EventStockReserve(props: EventStockReserveProps) {
               disabled={submitting || !itemId}
               className="ui-transition rounded-xl bg-[var(--foreground)] px-4 py-2.5 text-sm font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90 disabled:opacity-50"
             >
-              {submitting ? "Enregistrement…" : "Enregistrer la sortie"}
+              {submitting ? t("eventsLegacy.stock.submitting") : t("eventsLegacy.stock.submit")}
             </button>
           </div>
         </form>

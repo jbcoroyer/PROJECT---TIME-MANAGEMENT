@@ -11,10 +11,12 @@ import {
   YAxis,
 } from "recharts";
 import type { ChoiceDistribution, RatingStat } from "../../../lib/survey/surveyAnalytics";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 const ACCENT = "#bc5a3c";
 
 export function RatingAveragesChart({ stats }: { stats: RatingStat[] }) {
+  const { t } = useTranslation();
   const data = stats
     .filter((s) => s.average != null)
     .map((s) => ({
@@ -24,7 +26,7 @@ export function RatingAveragesChart({ stats }: { stats: RatingStat[] }) {
     }));
 
   if (data.length === 0) {
-    return <p className="text-sm text-[color:var(--foreground)]/55">Aucune note pour ces filtres.</p>;
+    return <p className="text-sm text-[color:var(--foreground)]/55">{t("survey.charts.noRatings")}</p>;
   }
 
   return (
@@ -42,7 +44,7 @@ export function RatingAveragesChart({ stats }: { stats: RatingStat[] }) {
           <Tooltip
             formatter={(value: unknown, _name: unknown, item: unknown) => {
               const payload = (item as { payload?: { max?: number } })?.payload;
-              return [`${value} / ${payload?.max ?? ""}`, "Moyenne"];
+              return [`${value} / ${payload?.max ?? ""}`, t("survey.charts.average")];
             }}
           />
           <Bar dataKey="note" fill={ACCENT} radius={[0, 4, 4, 0]} />
@@ -53,6 +55,7 @@ export function RatingAveragesChart({ stats }: { stats: RatingStat[] }) {
 }
 
 export function DistributionChart({ distribution }: { distribution: ChoiceDistribution }) {
+  const { t } = useTranslation();
   const data = distribution.entries
     .filter((e) => e.count > 0)
     .map((e) => ({
@@ -61,7 +64,7 @@ export function DistributionChart({ distribution }: { distribution: ChoiceDistri
     }));
 
   if (data.length === 0) {
-    return <p className="text-sm text-[color:var(--foreground)]/55">Aucune réponse.</p>;
+    return <p className="text-sm text-[color:var(--foreground)]/55">{t("survey.charts.noResponses")}</p>;
   }
 
   return (
@@ -72,7 +75,7 @@ export function DistributionChart({ distribution }: { distribution: ChoiceDistri
           <XAxis dataKey="name" angle={-30} textAnchor="end" height={56} tick={{ fontSize: 10 }} />
           <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={28} />
           <Tooltip />
-          <Bar dataKey="count" name="Réponses" radius={[4, 4, 0, 0]}>
+          <Bar dataKey="count" name={t("survey.responses.chartResponses")} radius={[4, 4, 0, 0]}>
             {data.map((entry, i) => (
               <Cell key={entry.name} fill={i % 2 === 0 ? ACCENT : "#9e4830"} />
             ))}

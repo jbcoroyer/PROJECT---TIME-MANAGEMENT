@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Sparkles } from "lucide-react";
 import SectionNav from "../ui/SectionNav";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type EventsSectionNavProps = {
   basePath?: string;
@@ -10,6 +11,7 @@ type EventsSectionNavProps = {
 };
 
 export default function EventsSectionNav({ basePath = "/events", showRetex = false }: EventsSectionNavProps) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const dashboardHref = `${basePath}/dashboard`;
   const retexHref = `${basePath}/retex`;
@@ -22,15 +24,11 @@ export default function EventsSectionNav({ basePath = "/events", showRetex = fal
         : "";
 
   const items = [
-    { href: dashboardHref, label: "Hub événementiel", icon: LayoutDashboard },
+    { href: dashboardHref, label: t("eventsLegacy.nav.hub"), icon: LayoutDashboard },
     ...(showRetex ? [{ href: retexHref, label: "RETEX", icon: Sparkles }] : []),
   ];
 
   return (
-    <SectionNav
-      items={items}
-      activeHref={activeHref}
-      ariaLabel="Navigation événements"
-    />
+    <SectionNav items={items} activeHref={activeHref} ariaLabel={t("eventsLegacy.nav.ariaLabel")} />
   );
 }

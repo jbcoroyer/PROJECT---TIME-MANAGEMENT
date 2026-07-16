@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { ProjectedWorkItem, Task } from "../../lib/types";
 import { computeSlotHours, HALF_HOUR_OPTIONS } from "../../lib/projectedWorkUtils";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Props = {
   open: boolean;
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export default function EventTaskPlanningModal(props: Props) {
+  const { t } = useTranslation();
   const { open, task, onClose, onSave } = props;
   const [items, setItems] = useState<ProjectedWorkItem[]>([]);
   const [saving, setSaving] = useState(false);
@@ -37,7 +39,7 @@ export default function EventTaskPlanningModal(props: Props) {
       await onSave(normalized);
       onClose();
     } catch {
-      /* erreur déjà signalée par la page */
+      /* error already surfaced by parent */
     } finally {
       setSaving(false);
     }
@@ -45,17 +47,17 @@ export default function EventTaskPlanningModal(props: Props) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <button type="button" className="absolute inset-0 bg-slate-950/40" aria-label="Fermer" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-slate-950/40" aria-label={t("survey.common.close")} onClick={onClose} />
       <div className="relative z-10 flex max-h-[min(90vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-xl">
         <div className="flex items-start justify-between gap-3 border-b border-[var(--line)] px-4 py-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/50">Créneaux calendrier</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/50">{t("eventsLegacy.taskPlanning.title")}</p>
             <p className="mt-0.5 truncate text-sm font-semibold text-[var(--foreground)]">{task.projectName}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer le planning"
+            aria-label={t("eventsLegacy.taskPlanning.closeAria")}
             className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-1.5 text-[color:var(--foreground)]/60 hover:bg-[var(--surface)]"
           >
             <X className="h-4 w-4" aria-hidden />
@@ -72,7 +74,7 @@ export default function EventTaskPlanningModal(props: Props) {
               className="inline-flex items-center gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-xs font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
             >
               <Plus className="h-3.5 w-3.5" />
-              Jour (durée)
+              {t("eventsLegacy.taskPlanning.dayDuration")}
             </button>
             <button
               type="button"
@@ -90,12 +92,12 @@ export default function EventTaskPlanningModal(props: Props) {
               className="inline-flex items-center gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-xs font-semibold text-[color:var(--foreground)]/70 hover:bg-[var(--surface)]"
             >
               <Plus className="h-3.5 w-3.5" />
-              Créneau horaire
+              {t("eventsLegacy.taskPlanning.timeSlot")}
             </button>
           </div>
 
           {items.length === 0 ? (
-            <p className="text-xs text-[color:var(--foreground)]/45">Aucun créneau. Ajoutez une journée ou un créneau.</p>
+            <p className="text-xs text-[color:var(--foreground)]/45">{t("eventsLegacy.taskPlanning.empty")}</p>
           ) : (
             <div className="space-y-2">
               {items.map((slot, index) => {
@@ -133,7 +135,7 @@ export default function EventTaskPlanningModal(props: Props) {
                           />
                         </label>
                         <span className="rounded-md border border-[var(--line)]/85 bg-[var(--surface-soft)] px-2 py-0.5 text-[10px] font-medium text-[color:var(--foreground)]/75">
-                          Journée
+                          {t("eventsLegacy.taskPlanning.allDay")}
                         </span>
                       </>
                     ) : (
@@ -179,7 +181,7 @@ export default function EventTaskPlanningModal(props: Props) {
                       onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}
                       className="ml-auto rounded-md px-2 py-1 text-[var(--danger)] hover:bg-[color-mix(in_srgb,var(--danger)_8%,var(--surface))]"
                     >
-                      Supprimer
+                      {t("eventsLegacy.taskPlanning.delete")}
                     </button>
                   </div>
                 );
@@ -194,7 +196,7 @@ export default function EventTaskPlanningModal(props: Props) {
             onClick={onClose}
             className="rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm font-semibold text-[color:var(--foreground)]/70 hover:bg-[var(--surface)]"
           >
-            Annuler
+            {t("eventsLegacy.taskPlanning.cancel")}
           </button>
           <button
             type="button"
@@ -202,7 +204,7 @@ export default function EventTaskPlanningModal(props: Props) {
             onClick={() => void handleSubmit()}
             className="rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:opacity-90 disabled:opacity-60"
           >
-            {saving ? "Enregistrement…" : "Enregistrer"}
+            {saving ? t("eventsLegacy.taskPlanning.saving") : t("eventsLegacy.taskPlanning.save")}
           </button>
         </div>
       </div>

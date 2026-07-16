@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Copy, Database, HardDrive, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { repurposeContent, type AiBackend } from "../../../lib/v2/aiClient";
 import { toastError, toastSuccess } from "../../../lib/toast";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 const NETWORK_OPTIONS = ["LinkedIn", "Instagram", "Facebook", "X"];
 
@@ -14,6 +15,7 @@ export default function RepurposePanel({
   initialSource?: string;
   onUseVariant?: (network: string, text: string) => void;
 }) {
+  const { t } = useTranslation();
   const [source, setSource] = useState(initialSource);
   const [selected, setSelected] = useState<string[]>(["LinkedIn", "Instagram", "Facebook"]);
   const [variants, setVariants] = useState<Record<string, string>>({});
@@ -34,7 +36,7 @@ export default function RepurposePanel({
       setVariants(result.variants);
       setBackend(result.backend);
     } catch {
-      toastError("Génération impossible. Réessayez.");
+      toastError(t("social.toast.generateError"));
     } finally {
       setBusy(false);
     }
@@ -43,9 +45,9 @@ export default function RepurposePanel({
   const copy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toastSuccess("Copié");
+      toastSuccess(t("social.toast.copied"));
     } catch {
-      toastError("Copie impossible");
+      toastError(t("social.toast.copyError"));
     }
   };
 
@@ -57,16 +59,16 @@ export default function RepurposePanel({
             <Wand2 className="h-4 w-4" />
           </span>
           <div>
-            <h2 className="text-base font-semibold text-[var(--foreground)]">Repurposing IA</h2>
+            <h2 className="text-base font-semibold text-[var(--foreground)]">{t("social.repurpose.title")}</h2>
             <p className="text-xs text-[color:var(--foreground)]/55">
-              Un contenu source → une variante adaptée par réseau.
+              {t("social.repurpose.subtitle")}
             </p>
           </div>
         </div>
         {backend ? (
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
             {backend === "openrouter" ? <Database className="h-3.5 w-3.5" /> : <HardDrive className="h-3.5 w-3.5" />}
-            {backend === "openrouter" ? "IA OpenRouter" : "Génération locale"}
+            {backend === "openrouter" ? t("social.repurpose.backendOpenrouter") : t("social.repurpose.backendLocal")}
           </span>
         ) : null}
       </div>
@@ -75,7 +77,7 @@ export default function RepurposePanel({
         value={source}
         onChange={(e) => setSource(e.target.value)}
         rows={4}
-        placeholder="Collez un article, un communiqué ou une idée de post…"
+        placeholder={t("social.repurpose.sourcePlaceholder")}
         className="ui-focus-ring mt-4 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]"
       />
 
@@ -106,7 +108,7 @@ export default function RepurposePanel({
           className="ui-transition ml-auto inline-flex items-center gap-2 rounded-lg border border-[var(--accent)] bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)] disabled:opacity-50"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          Générer
+          {t("social.repurpose.generate")}
         </button>
       </div>
 
@@ -121,7 +123,7 @@ export default function RepurposePanel({
                     type="button"
                     onClick={() => void copy(text)}
                     className="ui-transition rounded-md border border-[var(--line)] p-1 text-[color:var(--foreground)]/55 hover:text-[var(--foreground)]"
-                    aria-label="Copier"
+                    aria-label={t("social.repurpose.copyAria")}
                   >
                     <Copy className="h-3.5 w-3.5" />
                   </button>
@@ -131,7 +133,7 @@ export default function RepurposePanel({
                       onClick={() => onUseVariant(network, text)}
                       className="ui-transition rounded-md border border-[var(--accent)] px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)] hover:bg-[var(--accent-soft)]"
                     >
-                      Utiliser
+                      {t("social.repurpose.use")}
                     </button>
                   ) : null}
                 </div>

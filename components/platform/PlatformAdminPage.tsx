@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import { Building2, Loader2, RefreshCw, Shield } from "lucide-react";
 import { listPlatformOrganizations, type PlatformOrgRow } from "../../app/actions/platform";
 import { BILLING_STATUS_LABELS, PLAN_LABELS, type BillingStatus, type OrgPlan } from "../../lib/billing/plans";
+import { getIntlLocale } from "../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 import { toastError } from "../../lib/toast";
 
 export default function PlatformAdminPage() {
+  const { t, locale } = useTranslation();
   const [rows, setRows] = useState<PlatformOrgRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +20,7 @@ export default function PlatformAdminPage() {
       if (!result.ok) throw new Error(result.error);
       setRows(result.organizations);
     } catch (err) {
-      toastError(err instanceof Error ? err.message : "Chargement impossible");
+      toastError(err instanceof Error ? err.message : t("platform.loadError"));
     } finally {
       setLoading(false);
     }
@@ -33,14 +36,12 @@ export default function PlatformAdminPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--foreground)]/45">
-              Administration plateforme
+              {t("platform.kicker")}
             </p>
             <h1 className="ui-display mt-1 text-2xl font-bold text-[var(--foreground)] sm:text-3xl">
-              Organisations
+              {t("platform.title")}
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-[color:var(--foreground)]/60">
-              Vue support : statuts billing, plans et nombre de membres.
-            </p>
+            <p className="mt-2 max-w-2xl text-sm text-[color:var(--foreground)]/60">{t("platform.subtitle")}</p>
           </div>
           <button
             type="button"
@@ -49,7 +50,7 @@ export default function PlatformAdminPage() {
             className="ui-transition inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm font-semibold disabled:opacity-60"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            Actualiser
+            {t("platform.refresh")}
           </button>
         </div>
       </header>
@@ -59,11 +60,11 @@ export default function PlatformAdminPage() {
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-[var(--line)] bg-[var(--surface-soft)]/60 text-xs uppercase tracking-wide text-[color:var(--foreground)]/50">
               <tr>
-                <th className="px-4 py-3 font-semibold">Organisation</th>
-                <th className="px-4 py-3 font-semibold">Plan</th>
-                <th className="px-4 py-3 font-semibold">Billing</th>
-                <th className="px-4 py-3 font-semibold">Membres</th>
-                <th className="px-4 py-3 font-semibold">Fin essai</th>
+                <th className="px-4 py-3 font-semibold">{t("platform.colOrganization")}</th>
+                <th className="px-4 py-3 font-semibold">{t("platform.colPlan")}</th>
+                <th className="px-4 py-3 font-semibold">{t("platform.colBilling")}</th>
+                <th className="px-4 py-3 font-semibold">{t("platform.colMembers")}</th>
+                <th className="px-4 py-3 font-semibold">{t("platform.colTrialEnd")}</th>
               </tr>
             </thead>
             <tbody>
@@ -76,7 +77,7 @@ export default function PlatformAdminPage() {
               ) : rows.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-[color:var(--foreground)]/50">
-                    Aucune organisation.
+                    {t("platform.empty")}
                   </td>
                 </tr>
               ) : (
@@ -97,7 +98,9 @@ export default function PlatformAdminPage() {
                     </td>
                     <td className="px-4 py-3">{row.memberCount}</td>
                     <td className="px-4 py-3 text-[color:var(--foreground)]/60">
-                      {row.trialEndsAt ? new Date(row.trialEndsAt).toLocaleDateString("fr-FR") : "—"}
+                      {row.trialEndsAt
+                        ? new Date(row.trialEndsAt).toLocaleDateString(getIntlLocale(locale))
+                        : "—"}
                     </td>
                   </tr>
                 ))
@@ -109,7 +112,7 @@ export default function PlatformAdminPage() {
 
       <p className="flex items-center gap-2 text-xs text-[color:var(--foreground)]/45">
         <Shield className="h-3.5 w-3.5" />
-        Accès restreint via `PLATFORM_ADMIN_EMAILS`.
+        {t("platform.restricted")}
       </p>
     </div>
   );

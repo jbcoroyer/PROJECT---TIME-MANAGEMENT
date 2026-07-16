@@ -12,6 +12,7 @@ import { useReferenceData } from "../../lib/useReferenceData";
 import { useBranding } from "../../lib/brandingContext";
 import QuestionField from "./QuestionField";
 import SurveyBrandHeader from "./SurveyBrandHeader";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type Phase = "intro" | "form" | "done";
 
@@ -28,6 +29,7 @@ function isAnswered(question: Question, value: SurveyAnswers[string]): boolean {
 }
 
 export default function SurveyForm({ surveyId }: SurveyFormProps) {
+  const { t } = useTranslation();
   const { companies } = useReferenceData();
   const { branding } = useBranding();
   const [definition, setDefinition] = useState<SurveyDefinition | null>(null);
@@ -105,7 +107,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
   const goNext = () => {
     if (!definition) return;
     if (!currentStepValid) {
-      toastError("Merci de répondre aux questions obligatoires (*) avant de continuer.");
+      toastError(t("survey.form.requiredError"));
       return;
     }
     if (isLastStep) {
@@ -164,7 +166,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
     return (
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-12">
         <SurveyBrandHeader />
-        <p className="mt-8 text-sm text-[color:var(--foreground)]/55">Chargement du questionnaire…</p>
+        <p className="mt-8 text-sm text-[color:var(--foreground)]/55">{t("survey.form.loading")}</p>
       </div>
     );
   }
@@ -193,7 +195,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
               {definition.intro.subtitle}
             </p>
             <p className="mt-2 text-sm text-[color:var(--foreground)]/45">
-              ⏱️ Environ {definition.intro.estimatedMinutes} minutes · {totalSteps} étapes
+              ⏱️ {t("survey.form.introDuration", { minutes: definition.intro.estimatedMinutes, steps: totalSteps })}
             </p>
             <button
               type="button"
@@ -203,7 +205,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
               }}
               className="ui-btn ui-btn-primary mt-8 w-full justify-center gap-2 py-3.5 text-base sm:w-auto sm:px-8"
             >
-              Commencer
+              {t("survey.form.start")}
               <ArrowRight className="h-5 w-5" />
             </button>
           </motion.section>
@@ -220,7 +222,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
             <div className="mb-6">
               <div className="mb-2 flex items-center justify-between text-xs font-semibold text-[color:var(--foreground)]/50">
                 <span>
-                  Étape {safeIndex + 1} sur {totalSteps}
+                  {t("survey.form.stepProgress", { current: safeIndex + 1, total: totalSteps })}
                 </span>
                 <span>{progress}%</span>
               </div>
@@ -273,7 +275,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
                 className="ui-btn ui-btn-ghost gap-2 disabled:opacity-40"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Retour
+                {t("survey.form.back")}
               </button>
               <button
                 type="button"
@@ -283,12 +285,12 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
               >
                 {isLastStep ? (
                   <>
-                    {submitting ? "Envoi…" : "Envoyer mes réponses"}
+                    {submitting ? t("survey.form.submitting") : t("survey.form.submit")}
                     <Send className="h-4 w-4" />
                   </>
                 ) : (
                   <>
-                    Continuer
+                    {t("survey.form.continue")}
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
@@ -314,11 +316,10 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
               <CheckCircle2 className="h-10 w-10" strokeWidth={1.75} />
             </motion.div>
             <h1 className="ui-display text-3xl font-semibold text-[var(--foreground)]">
-              {firstName ? `Merci ${firstName} !` : "Merci beaucoup !"}
+              {firstName ? t("survey.form.thankYouName", { name: firstName }) : t("survey.form.thankYouGeneric")}
             </h1>
             <p className="mt-3 max-w-md text-base leading-relaxed text-[color:var(--foreground)]/65">
-              Vos réponses ont bien été enregistrées. Elles vont directement aider {branding.appName} à
-              progresser. On vous en est très reconnaissants !
+              {t("survey.form.thankYouBody", { appName: branding.appName })}
             </p>
             <div className="mt-8 flex justify-center opacity-80">
               <SurveyBrandHeader variant="header" />

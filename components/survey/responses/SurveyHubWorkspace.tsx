@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import {
   ArrowLeft,
   BarChart3,
@@ -16,15 +15,8 @@ import {
 } from "lucide-react";
 import { renameSurvey, type SurveyMeta } from "../../../app/actions/survey";
 import { toastError, toastSuccess } from "../../../lib/toast";
-
-function formatDate(iso: string): string {
-  if (!iso) return "—";
-  try {
-    return format(new Date(iso), "d MMM yyyy", { locale: fr });
-  } catch {
-    return iso;
-  }
-}
+import { useTranslation } from "../../../lib/i18n/useTranslation";
+import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
 
 type SurveyHubWorkspaceProps = {
   meta: SurveyMeta;
@@ -32,6 +24,8 @@ type SurveyHubWorkspaceProps = {
 };
 
 export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWorkspaceProps) {
+  const { t, locale } = useTranslation();
+  const dateFnsLocale = getDateFnsLocale(locale);
   const router = useRouter();
   const [editingName, setEditingName] = useState(false);
   const [title, setTitle] = useState(meta.title);
@@ -42,10 +36,19 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
       ? `${window.location.origin}${meta.publicPath}`
       : meta.publicPath;
 
+  const formatDate = (iso: string): string => {
+    if (!iso) return "—";
+    try {
+      return format(new Date(iso), "d MMM yyyy", { locale: dateFnsLocale });
+    } catch {
+      return iso;
+    }
+  };
+
   const handleRename = async () => {
     const clean = title.trim();
     if (!clean) {
-      toastError("Le titre ne peut pas être vide.");
+      toastError(t("survey.hub.titleEmpty"));
       return;
     }
     if (clean === meta.title) {
@@ -59,31 +62,31 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
       toastError(result.error);
       return;
     }
-    toastSuccess("Questionnaire renommé.");
+    toastSuccess(t("survey.hub.renamed"));
     setEditingName(false);
     router.refresh();
   };
 
   const actions = [
     {
-      title: "Ouvrir le formulaire",
-      description: "Consulter ou partager le lien public du questionnaire.",
+      title: t("survey.hub.openForm"),
+      description: t("survey.hub.openFormDescription"),
       href: meta.publicPath,
       external: true,
       icon: ExternalLink,
       className: "ui-btn-secondary",
     },
     {
-      title: "Éditer les questions",
-      description: "Ajouter, supprimer et réordonner les questions et réponses.",
+      title: t("survey.hub.cards.edit.title"),
+      description: t("survey.hub.cards.edit.description"),
       href: `/questionnaire/reponses/${meta.id}/edit`,
       external: false,
       icon: Pencil,
       className: "ui-btn-secondary",
     },
     {
-      title: "Voir les réponses",
-      description: "Consulter les statistiques, graphiques et verbatims.",
+      title: t("survey.hub.cards.responses.title"),
+      description: t("survey.hub.cards.responses.description"),
       href: `/questionnaire/reponses/${meta.id}/reponses`,
       external: false,
       icon: BarChart3,
@@ -99,7 +102,7 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
           className="mb-3 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Retour à la liste
+          {t("survey.hub.backToList")}
         </Link>
         <div className="flex items-start gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent)]/10 text-[var(--accent)]">
@@ -128,7 +131,7 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
                   className="ui-btn ui-btn-primary h-9 gap-1.5 px-3 text-xs"
                 >
                   <Check className="h-4 w-4" />
-                  {saving ? "…" : "Enregistrer"}
+                  {saving ? "…" : t("survey.common.save")}
                 </button>
                 <button
                   type="button"
@@ -137,7 +140,7 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
                     setEditingName(false);
                   }}
                   className="ui-btn ui-btn-ghost h-9 w-9 p-0"
-                  aria-label="Annuler"
+                  aria-label={t("survey.common.cancel")}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -153,7 +156,7 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
                       : "bg-[var(--surface-soft)] text-[color:var(--foreground)]/55",
                   ].join(" ")}
                 >
-                  {meta.status === "active" ? "Actif" : "Brouillon"}
+                  {meta.status === "active" ? t("survey.list.active") : t("survey.list.draft")}
                 </span>
                 <button
                   type="button"
@@ -161,7 +164,7 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
                   className="ui-btn ui-btn-ghost h-8 gap-1.5 px-2.5 text-xs"
                 >
                   <Pencil className="h-3.5 w-3.5" />
-                  Renommer
+                  {t("survey.hub.rename")}
                 </button>
               </div>
             )}
@@ -169,11 +172,10 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
               <p className="mt-1 text-sm text-[color:var(--foreground)]/60">{meta.description}</p>
             ) : null}
             <p className="mt-2 text-xs text-[color:var(--foreground)]/45">
-              Créé le {formatDate(meta.createdAt)} · {responseCount} réponse
-              {responseCount !== 1 ? "s" : ""}
+              {t("survey.hub.createdMeta", { date: formatDate(meta.createdAt), count: responseCount })}
             </p>
             <p className="mt-1 text-xs text-[color:var(--foreground)]/45">
-              Lien public :{" "}
+              {t("survey.hub.publicLink")}{" "}
               <span className="font-mono text-[color:var(--foreground)]/70">{publicUrl}</span>
             </p>
           </div>
@@ -195,7 +197,7 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
                 </p>
               </div>
               <span className={`ui-btn w-full justify-center gap-2 text-xs ${action.className}`}>
-                Choisir
+                {t("survey.hub.choose")}
                 <Icon className="h-3.5 w-3.5" />
               </span>
             </div>

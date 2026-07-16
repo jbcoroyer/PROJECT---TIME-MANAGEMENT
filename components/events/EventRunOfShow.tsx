@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError, toastSuccess } from "../../lib/toast";
 import { getInventoryErrorMessage } from "../../lib/useInventory";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 
 export type RunSlotRow = {
   id: string;
@@ -35,6 +36,7 @@ function mapRow(raw: Record<string, unknown>): RunSlotRow {
 }
 
 export default function EventRunOfShow(props: Props) {
+  const { t } = useTranslation();
   const { eventId, startDate, endDate } = props;
   const [slots, setSlots] = useState<RunSlotRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,12 +54,12 @@ export default function EventRunOfShow(props: Props) {
       if (error) throw error;
       setSlots(((data ?? []) as Record<string, unknown>[]).map(mapRow));
     } catch (e) {
-      toastError(getInventoryErrorMessage(e, "Feuille de route indisponible (migration appliquée ?)."));
+      toastError(getInventoryErrorMessage(e, t("eventsLegacy.runOfShow.loadError")));
       setSlots([]);
     } finally {
       setLoading(false);
     }
-  }, [eventId]);
+  }, [eventId, t]);
 
   useEffect(() => {
     void load();
@@ -70,7 +72,7 @@ export default function EventRunOfShow(props: Props) {
       slot_date: startDate,
       start_time: "08:00",
       end_time: "10:00",
-      title: "Nouveau créneau",
+      title: t("eventsLegacy.runOfShow.newSlot"),
       notes: "",
       sort_order: slots.length,
     });
@@ -78,7 +80,7 @@ export default function EventRunOfShow(props: Props) {
       toastError(error.message);
       return;
     }
-    toastSuccess("Créneau ajouté");
+    toastSuccess(t("eventsLegacy.runOfShow.toast.slotAdded"));
     await load();
   };
 
@@ -117,9 +119,9 @@ export default function EventRunOfShow(props: Props) {
     <div className="ui-surface rounded-[24px] p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Feuille de route</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">{t("eventsLegacy.runOfShow.title")}</h2>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
-            Planning jour par jour de l&apos;événement ({daysBetween.length} jour(s)).
+            {t("eventsLegacy.runOfShow.subtitle", { count: daysBetween.length })}
           </p>
         </div>
         <button
@@ -128,15 +130,15 @@ export default function EventRunOfShow(props: Props) {
           className="ui-transition inline-flex items-center gap-1.5 rounded-xl bg-[var(--foreground)] px-3 py-2 text-sm font-semibold text-[var(--accent-contrast)]"
         >
           <Plus className="h-4 w-4" />
-          Créneau
+          {t("eventsLegacy.runOfShow.slot")}
         </button>
       </div>
 
       {loading ? (
-        <p className="mt-4 text-sm text-[color:var(--foreground)]/55">Chargement…</p>
+        <p className="mt-4 text-sm text-[color:var(--foreground)]/55">{t("eventsLegacy.runOfShow.loading")}</p>
       ) : slots.length === 0 ? (
         <p className="mt-4 text-sm text-[color:var(--foreground)]/55">
-          Aucun créneau. Ajoutez montage, ouverture, permanence, démontage…
+          {t("eventsLegacy.runOfShow.empty")}
         </p>
       ) : (
         <ul className="mt-4 space-y-3">
@@ -175,13 +177,13 @@ export default function EventRunOfShow(props: Props) {
                 type="button"
                 onClick={() => void removeSlot(slot.id)}
                 className="ui-transition ui-btn ui-btn-outline-danger rounded-lg p-2"
-                aria-label="Supprimer"
+                aria-label={t("eventsLegacy.runOfShow.delete")}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
               <input
                 value={slot.notes}
-                placeholder="Notes"
+                placeholder={t("eventsLegacy.runOfShow.notes")}
                 onChange={(e) => setSlots((prev) => prev.map((s) => (s.id === slot.id ? { ...s, notes: e.target.value } : s)))}
                 onBlur={(e) => void updateSlot(slot.id, { notes: e.target.value.trim() })}
                 className="ui-focus-ring md:col-span-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs"

@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { format, isSameISOWeek } from "date-fns";
-import { fr } from "date-fns/locale";
+import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
+import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { CalendarRange, Layers, Tag, Users } from "lucide-react";
 import type { Task } from "../../../lib/types";
 import AdminAvatar from "../../AdminAvatar";
@@ -24,11 +25,11 @@ type RetroplanningGanttProps = {
   title?: string;
 };
 
-const GROUP_OPTIONS: { id: RetroplanningGroupBy; label: string; icon: typeof Users }[] = [
-  { id: "tasks", label: "Tâches", icon: CalendarRange },
-  { id: "person", label: "Par personne", icon: Users },
-  { id: "domain", label: "Par domaine", icon: Layers },
-  { id: "mode", label: "Par mode", icon: Tag },
+const GROUP_OPTION_IDS: { id: RetroplanningGroupBy; labelKey: string; icon: typeof Users }[] = [
+  { id: "tasks", labelKey: "planning.gantt.group.tasks", icon: CalendarRange },
+  { id: "person", labelKey: "planning.gantt.group.person", icon: Users },
+  { id: "domain", labelKey: "planning.gantt.group.domain", icon: Layers },
+  { id: "mode", labelKey: "planning.gantt.group.mode", icon: Tag },
 ];
 
 export function RetroplanningGroupToggle({
@@ -38,9 +39,11 @@ export function RetroplanningGroupToggle({
   value: RetroplanningGroupBy;
   onChange: (v: RetroplanningGroupBy) => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-wrap gap-1 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-1">
-      {GROUP_OPTIONS.map(({ id, label, icon: Icon }) => (
+      {GROUP_OPTION_IDS.map(({ id, labelKey, icon: Icon }) => (
         <button
           key={id}
           type="button"
@@ -53,7 +56,7 @@ export function RetroplanningGroupToggle({
           ].join(" ")}
         >
           <Icon className="h-3.5 w-3.5" />
-          {label}
+          {t(labelKey)}
         </button>
       ))}
     </div>
@@ -65,8 +68,12 @@ export default function RetroplanningGantt({
   rangeStart,
   rangeEnd,
   groupBy,
-  title = "Rétroplanning détaillé",
+  title,
 }: RetroplanningGanttProps) {
+  const { t, locale } = useTranslation();
+  const dateLocale = useMemo(() => getDateFnsLocale(locale), [locale]);
+  const displayTitle = title ?? t("planning.gantt.defaultTitle");
+
   const bars = useMemo(() => buildGanttBars(tasks, groupBy), [tasks, groupBy]);
   const groups = useMemo(() => buildGanttGroups(bars, groupBy), [bars, groupBy]);
   const weeks = useMemo(() => buildWeekColumns(rangeStart, rangeEnd), [rangeStart, rangeEnd]);
@@ -81,10 +88,8 @@ export default function RetroplanningGantt({
     return (
       <section className="ui-surface rounded-2xl p-10 text-center">
         <CalendarRange className="mx-auto h-10 w-10 text-[var(--accent)]" />
-        <h3 className="mt-3 text-base font-semibold text-[var(--foreground)]">Aucune tâche datée</h3>
-        <p className="mt-1 text-sm text-[var(--ink-muted)]">
-          Ajoutez des échéances ou des créneaux planifiés sur vos tâches pour alimenter le rétroplanning.
-        </p>
+        <h3 className="mt-3 text-base font-semibold text-[var(--foreground)]">{t("planning.gantt.empty.title")}</h3>
+        <p className="mt-1 text-sm text-[var(--ink-muted)]">{t("planning.gantt.empty.body")}</p>
       </section>
     );
   }
@@ -93,9 +98,9 @@ export default function RetroplanningGantt({
     <section className="ui-surface overflow-hidden rounded-2xl border border-[var(--line)]">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--line)] bg-[var(--surface-soft)] px-5 py-4">
         <div>
-          <h2 className="text-base font-semibold text-[var(--foreground)]">{title}</h2>
+          <h2 className="text-base font-semibold text-[var(--foreground)]">{displayTitle}</h2>
           <p className="mt-0.5 text-xs text-[var(--ink-muted)]">
-            {format(rangeStart, "d MMM", { locale: fr })} → {format(rangeEnd, "d MMM yyyy", { locale: fr })}
+            {format(rangeStart, "d MMM", { locale: dateLocale })} → {format(rangeEnd, "d MMM yyyy", { locale: dateLocale })}
           </p>
         </div>
         {legend.length > 0 ? (
@@ -118,11 +123,10 @@ export default function RetroplanningGantt({
 
       <div className="overflow-x-auto">
         <div className="min-w-[960px]">
-          {/* En-tête semaines */}
           <div className="sticky top-0 z-20 flex border-b border-[var(--line)] bg-[var(--surface)]">
             <div className="sticky left-0 z-30 w-[260px] shrink-0 border-r border-[var(--line)] bg-[var(--surface)] px-4 py-3">
               <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--ink-muted)]">
-                Tâches
+                {t("planning.gantt.columnHeader")}
               </span>
             </div>
             <div className="relative flex flex-1">
@@ -141,7 +145,7 @@ export default function RetroplanningGantt({
                       {week.label}
                     </p>
                     <p className="text-[9px] text-[var(--ink-muted)]">
-                      {format(week.weekStart, "d MMM", { locale: fr })}
+                      {format(week.weekStart, "d MMM", { locale: dateLocale })}
                     </p>
                   </div>
                 );
@@ -150,13 +154,12 @@ export default function RetroplanningGantt({
                 <div
                   className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-[var(--foreground)]"
                   style={{ left: `${todayPct}%` }}
-                  title="Aujourd'hui"
+                  title={t("planning.gantt.today")}
                 />
               ) : null}
             </div>
           </div>
 
-          {/* Groupes et barres */}
           {groups.map((group) => (
             <div key={group.id}>
               {groups.length > 1 || groupBy !== "tasks" ? (
@@ -208,7 +211,6 @@ export default function RetroplanningGantt({
                     </div>
 
                     <div className="relative flex flex-1 items-center py-2.5">
-                      {/* Grille verticale */}
                       <div className="absolute inset-0 flex">
                         {weeks.map((week, idx) => (
                           <div
@@ -237,11 +239,11 @@ export default function RetroplanningGantt({
                             background: `linear-gradient(135deg, ${bar.color}, color-mix(in srgb, ${bar.color} 75%, black))`,
                             minWidth: "2.5rem",
                           }}
-                          title={`${format(bar.start, "d MMM", { locale: fr })} → ${format(bar.end, "d MMM yyyy", { locale: fr })}`}
+                          title={`${format(bar.start, "d MMM", { locale: dateLocale })} → ${format(bar.end, "d MMM yyyy", { locale: dateLocale })}`}
                         >
                           <div className="flex h-full items-center">
                             <span className="truncate text-[10px] font-semibold text-white drop-shadow-sm">
-                              {format(bar.start, "d/MM", { locale: fr })}–{format(bar.end, "d/MM", { locale: fr })}
+                              {format(bar.start, "d/MM", { locale: dateLocale })}–{format(bar.end, "d/MM", { locale: dateLocale })}
                             </span>
                           </div>
                         </div>
@@ -256,7 +258,7 @@ export default function RetroplanningGantt({
       </div>
 
       <div className="border-t border-[var(--line)] bg-[var(--surface-soft)] px-5 py-2.5 text-center text-[10px] text-[var(--ink-muted)]">
-        Semaines · ligne verticale = aujourd&apos;hui · barres = durée planifiée (créneaux ou échéance)
+        {t("planning.gantt.footer")}
       </div>
     </section>
   );

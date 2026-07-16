@@ -10,6 +10,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/dashboard/kanban",
     routePrefixes: ["/dashboard"],
     recommended: true,
+    commerciallyAvailable: true,
   },
   asks: {
     id: "asks",
@@ -17,6 +18,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/asks",
     routePrefixes: ["/asks"],
     recommended: false,
+    commerciallyAvailable: true,
   },
   workspace: {
     id: "workspace",
@@ -24,6 +26,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/agenda",
     routePrefixes: ["/agenda", "/todo"],
     recommended: true,
+    commerciallyAvailable: true,
   },
   planning: {
     id: "planning",
@@ -31,6 +34,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/planning",
     routePrefixes: ["/planning"],
     recommended: false,
+    commerciallyAvailable: true,
   },
   events: {
     id: "events",
@@ -38,6 +42,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/events/dashboard",
     routePrefixes: ["/events"],
     recommended: false,
+    commerciallyAvailable: true,
   },
   social: {
     id: "social",
@@ -45,6 +50,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/social",
     routePrefixes: ["/social"],
     recommended: false,
+    commerciallyAvailable: false,
   },
   dam: {
     id: "dam",
@@ -52,6 +58,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/dam",
     routePrefixes: ["/dam"],
     recommended: false,
+    commerciallyAvailable: false,
   },
   stock: {
     id: "stock",
@@ -59,6 +66,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/stock",
     routePrefixes: ["/stock"],
     recommended: false,
+    commerciallyAvailable: true,
   },
   ideas: {
     id: "ideas",
@@ -66,6 +74,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/ideas",
     routePrefixes: ["/ideas"],
     recommended: false,
+    commerciallyAvailable: true,
   },
   okr: {
     id: "okr",
@@ -73,6 +82,7 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/okr",
     routePrefixes: ["/okr"],
     recommended: false,
+    commerciallyAvailable: true,
   },
   surveys: {
     id: "surveys",
@@ -80,24 +90,30 @@ export const MODULE_REGISTRY: Record<AppModuleId, AppModuleDefinition> = {
     defaultRoute: "/questionnaire/reponses",
     routePrefixes: ["/questionnaire/reponses"],
     recommended: false,
+    commerciallyAvailable: true,
   },
 };
 
 export const ALL_MODULE_IDS = Object.keys(MODULE_REGISTRY) as AppModuleId[];
 
-/** Ordre d'affichage du catalogue et de la navigation. */
+/** Ordre d'affichage du catalogue commercial (onboarding, settings). */
 export const MODULE_DISPLAY_ORDER: AppModuleId[] = [
   "dashboard",
   "workspace",
   "asks",
   "planning",
   "events",
-  "social",
-  "dam",
   "stock",
   "ideas",
   "okr",
   "surveys",
+];
+
+/** Ordre pour la résolution de routes — inclut les modules hors catalogue commercial. */
+const ROUTE_RESOLUTION_ORDER: AppModuleId[] = [
+  ...MODULE_DISPLAY_ORDER,
+  "social",
+  "dam",
 ];
 
 export const MODULE_CATEGORY_ORDER: ModuleCategory[] = [
@@ -107,9 +123,9 @@ export const MODULE_CATEGORY_ORDER: ModuleCategory[] = [
   "strategy",
 ];
 
-/** Modules pré-cochés à l'onboarding (recommandés). */
-export const DEFAULT_ONBOARDING_MODULES: AppModuleId[] = ALL_MODULE_IDS.filter(
-  (id) => MODULE_REGISTRY[id].recommended,
+/** Modules pré-cochés à l'onboarding (recommandés, catalogue commercial). */
+export const DEFAULT_ONBOARDING_MODULES: AppModuleId[] = MODULE_DISPLAY_ORDER.filter(
+  (id) => MODULE_REGISTRY[id].recommended && MODULE_REGISTRY[id].commerciallyAvailable,
 );
 
 /** Priorité pour la redirection après connexion / setup. */
@@ -119,9 +135,7 @@ const LANDING_PRIORITY: AppModuleId[] = [
   "asks",
   "planning",
   "events",
-  "social",
   "stock",
-  "dam",
   "ideas",
   "okr",
   "surveys",
@@ -167,12 +181,26 @@ export function getModulesByCategory(): Record<ModuleCategory, AppModuleDefiniti
   return grouped;
 }
 
+export function getCommerciallyAvailableModules(): AppModuleId[] {
+  return ALL_MODULE_IDS.filter((id) => MODULE_REGISTRY[id].commerciallyAvailable);
+}
+
+export function getCommerciallyAvailableCatalog(): Record<ModuleCategory, AppModuleDefinition[]> {
+  const grouped = getModulesByCategory();
+  return Object.fromEntries(
+    MODULE_CATEGORY_ORDER.map((category) => [
+      category,
+      grouped[category].filter((mod) => mod.commerciallyAvailable),
+    ]),
+  ) as Record<ModuleCategory, AppModuleDefinition[]>;
+}
+
 export function resolveModuleForPath(pathname: string): AppModuleId | null {
   const path = pathname.split("?")[0] ?? pathname;
 
   if (path === "/dashboard/triage") return "asks";
 
-  for (const id of MODULE_DISPLAY_ORDER) {
+  for (const id of ROUTE_RESOLUTION_ORDER) {
     const mod = MODULE_REGISTRY[id];
     if (mod.routePrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
       return id;
