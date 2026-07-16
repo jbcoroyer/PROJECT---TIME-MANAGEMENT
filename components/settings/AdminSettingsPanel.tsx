@@ -4,13 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Archive,
   CalendarClock,
-  CreditCard,
+  Globe,
   ImageIcon,
   UserCircle2,
 } from "lucide-react";
 import AdminAvatar from "../AdminAvatar";
 import OutlookConnectionCard from "../OutlookConnectionCard";
-import BillingCard from "./BillingCard";
 import { AppMark } from "../AppBrand";
 import { useBranding } from "../../lib/brandingContext";
 import { updateBranding } from "../../app/actions/branding";
@@ -18,7 +17,10 @@ import { useCurrentUser } from "../../lib/useCurrentUser";
 import { adminSolidColorFor } from "../../lib/kanbanStyles";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError, toastSuccess } from "../../lib/toast";
-import { LOCALE_OPTIONS, resolveLocale, type AppLocale } from "../../lib/i18n";
+import { resolveLocale } from "../../lib/i18n";
+import { writeStoredLocale } from "../../lib/i18n/localeStorage";
+import { useTranslation } from "../../lib/i18n/useTranslation";
+import LocalePicker from "../i18n/LocalePicker";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
 import { uploadOrgAsset } from "../../app/actions/storage";
 import { SettingsSection } from "./settingsShared";
@@ -31,6 +33,7 @@ type TeamMemberRow = {
 
 export default function AdminSettingsPanel() {
   const { user: currentUser, reload: reloadUser } = useCurrentUser();
+  const { t } = useTranslation();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const { branding, reload: reloadBranding } = useBranding();
 
@@ -46,7 +49,7 @@ export default function AdminSettingsPanel() {
       .select("id, display_name, is_active")
       .order("sort_order");
     if (error) {
-      toastError(`Chargement des profils impossible : ${error.message}`);
+      toastError(t("settings.profileLoadError", { message: error.message }));
       return;
     }
     setAdmins((data ?? []) as TeamMemberRow[]);
@@ -69,38 +72,55 @@ export default function AdminSettingsPanel() {
       .update({ team_member_id: resolvedProfileMemberId, display_name: member?.display_name ?? null })
       .eq("id", currentUser.id);
     if (error) {
-      toastError("Impossible de mettre à jour votre profil.");
+      toastError(t("settings.profileUpdateError"));
       setSavingProfile(false);
       return;
     }
     reloadUser();
-    toastSuccess("Profil mis à jour !");
+    toastSuccess(t("settings.profileUpdated"));
     setSavingProfile(false);
   }
 
   return (
     <section id="settings-organisation" className="scroll-mt-24 space-y-4">
       <SettingsSection
-        icon={CreditCard}
-        title="Facturation"
-        subtitle="Abonnement unique : 2 €/utilisateur/mois (min. 10 €). Essai 14 jours sans carte."
-      >
-        <BillingCard />
-      </SettingsSection>
-
-      <SettingsSection
         id="settings-outlook"
         icon={CalendarClock}
-        title="Agenda Outlook 365"
-        subtitle="Synchronisez vos tâches planifiées vers votre agenda Microsoft Outlook."
+        title={t("settings.outlookTitle")}
+        subtitle={t("settings.outlookSubtitle")}
       >
         <OutlookConnectionCard />
       </SettingsSection>
 
       <SettingsSection
+        icon={Globe}
+        title={t("settings.locale")}
+        subtitle={t("settings.localeHint")}
+      >
+        <LocalePicker
+          id="app-locale"
+          value={resolveLocale(branding.locale)}
+          disabled={localeSaving}
+          onChange={async (next) => {
+            setLocaleSaving(true);
+            const result = await updateBranding({ locale: next });
+            if (!result.ok) {
+              toastError(result.error);
+              setLocaleSaving(false);
+              return;
+            }
+            writeStoredLocale(next);
+            await reloadBranding();
+            toastSuccess(t("settings.localeSaved"));
+            setLocaleSaving(false);
+          }}
+        />
+      </SettingsSection>
+
+      <SettingsSection
         icon={ImageIcon}
-        title="Identité visuelle"
-        subtitle={`Logo affiché dans la barre latérale et sur la page de connexion (${branding.appName}).`}
+        title={t("settings.brandingTitle")}
+        subtitle={t("settings.brandingSubtitle", { name: branding.appName })}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <div className="flex shrink-0 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-4">
@@ -116,16 +136,11 @@ export default function AdminSettingsPanel() {
             )}
           </div>
           <div className="min-w-0 flex-1 space-y-3">
-            <p className="text-sm text-[color:var(--foreground)]/70">
-              Par défaut, un logo neutre est utilisé. Vous pouvez envoyer une image personnalisée (PNG, WebP,
-              JPG ou SVG), ou définir{" "}
-              <code className="rounded bg-[var(--surface-soft)] px-1 text-xs">NEXT_PUBLIC_APP_MARK_SRC</code>{" "}
-              dans l&apos;environnement.
-            </p>
+            <p className="text-sm text-[color:var(--foreground)]/70">{t("settings.brandingDefaultHint")}</p>
             <div className="flex flex-wrap items-center gap-2">
               <label className="ui-transition inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/80 hover:bg-[var(--surface)]">
                 <ImageIcon className="h-4 w-4" />
-                {markUploading ? "Envoi…" : "Choisir une image"}
+                {markUploading ? t("settings.brandingUploading") : t("settings.brandingChooseImage")}
                 <input
                   type="file"
                   accept="image/png,image/webp,image/jpeg,image/gif,image/svg+xml"
@@ -137,7 +152,7 @@ export default function AdminSettingsPanel() {
                     const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
                     const allowed = ["png", "webp", "jpg", "jpeg", "gif", "svg"];
                     if (!allowed.includes(ext)) {
-                      toastError("Utilisez PNG, WebP, JPG, GIF ou SVG.");
+                      toastError(t("settings.brandingInvalidFormat"));
                       e.target.value = "";
                       return;
                     }
@@ -147,20 +162,20 @@ export default function AdminSettingsPanel() {
                     formData.set("file", file);
                     const upload = await uploadOrgAsset(formData, APP_MARK_STORAGE_BUCKET, relativePath);
                     if (!upload.ok) {
-                      toastError(`Envoi impossible : ${upload.error}`);
+                      toastError(t("settings.brandingUploadError", { error: upload.error }));
                       setMarkUploading(false);
                       e.target.value = "";
                       return;
                     }
                     const result = await updateBranding({ markUrl: upload.path });
                     if (!result.ok) {
-                      toastError(`Enregistrement impossible : ${result.error}`);
+                      toastError(t("settings.brandingSaveError", { error: result.error }));
                       setMarkUploading(false);
                       e.target.value = "";
                       return;
                     }
                     await reloadBranding();
-                    toastSuccess("Logo mis à jour.");
+                    toastSuccess(t("settings.brandingUpdated"));
                     setMarkUploading(false);
                     e.target.value = "";
                   }}
@@ -174,52 +189,19 @@ export default function AdminSettingsPanel() {
                     setMarkUploading(true);
                     const result = await updateBranding({ markUrl: null });
                     if (!result.ok) {
-                      toastError(`Réinitialisation impossible : ${result.error}`);
+                      toastError(t("settings.brandingResetError", { error: result.error }));
                       setMarkUploading(false);
                       return;
                     }
                     await reloadBranding();
-                    toastSuccess("Logo réinitialisé.");
+                    toastSuccess(t("settings.brandingResetDone"));
                     setMarkUploading(false);
                   }}
                   className="ui-transition rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)] disabled:opacity-50"
                 >
-                  Réinitialiser
+                  {t("settings.brandingReset")}
                 </button>
               ) : null}
-            </div>
-            <div className="border-t border-[var(--line)] pt-4">
-              <label htmlFor="app-locale" className="mb-1.5 block text-sm font-semibold">
-                Langue de l&apos;interface
-              </label>
-              <p className="mb-2 text-xs text-[color:var(--foreground)]/55">
-                Français ou anglais pour la connexion, l&apos;installation et les écrans traduits.
-              </p>
-              <select
-                id="app-locale"
-                value={resolveLocale(branding.locale)}
-                disabled={localeSaving}
-                onChange={async (e) => {
-                  const next = resolveLocale(e.target.value) as AppLocale;
-                  setLocaleSaving(true);
-                  const result = await updateBranding({ locale: next });
-                  if (!result.ok) {
-                    toastError(result.error);
-                    setLocaleSaving(false);
-                    return;
-                  }
-                  await reloadBranding();
-                  toastSuccess("Langue enregistrée.");
-                  setLocaleSaving(false);
-                }}
-                className="ui-input max-w-xs"
-              >
-                {LOCALE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         </div>
@@ -227,8 +209,8 @@ export default function AdminSettingsPanel() {
 
       <SettingsSection
         icon={UserCircle2}
-        title="Mon profil"
-        subtitle="Liez votre compte à un membre de l'équipe pour personnaliser votre expérience."
+        title={t("settings.profileTitle")}
+        subtitle={t("settings.profileSubtitle")}
       >
         {currentUser ? (
           <div className="space-y-4">
@@ -238,7 +220,7 @@ export default function AdminSettingsPanel() {
               ) : null}
               <div>
                 <p className="text-sm font-semibold text-[var(--foreground)]">
-                  {currentUser.teamMemberName ?? currentUser.displayName ?? "Profil non configuré"}
+                  {currentUser.teamMemberName ?? currentUser.displayName ?? t("settings.profileNotConfigured")}
                 </p>
                 <p className="text-xs text-[color:var(--foreground)]/55">{currentUser.email}</p>
               </div>
@@ -273,7 +255,7 @@ export default function AdminSettingsPanel() {
                   disabled={!(profileMemberId || currentUser.teamMemberId) || savingProfile}
                   className="ui-transition rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:-translate-y-0.5 hover:opacity-90 disabled:opacity-50"
                 >
-                  {savingProfile ? "…" : "Enregistrer"}
+                  {savingProfile ? t("common.saving") : t("common.save")}
                 </button>
               </div>
             </div>

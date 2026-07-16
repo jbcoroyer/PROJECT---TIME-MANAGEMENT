@@ -2,8 +2,9 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Layers, SlidersHorizontal, Users } from "lucide-react";
+import { CreditCard, Layers, SlidersHorizontal, Users } from "lucide-react";
 import AdminSettingsPanel from "../../settings/AdminSettingsPanel";
+import BillingSettingsSection from "../../settings/BillingSettingsSection";
 import ModulesSettingsSection from "../../settings/ModulesSettingsSection";
 import TeamSettingsSection from "../../settings/TeamSettingsSection";
 import UpgradeProBanner from "../../settings/UpgradeProBanner";
@@ -13,7 +14,7 @@ import SignOutSection from "../../settings/SignOutSection";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { useCurrentUser } from "../../../lib/useCurrentUser";
 
-type SettingsTab = "team" | "modules" | "organisation";
+type SettingsTab = "billing" | "team" | "modules" | "organisation";
 
 const ALL_TABS: {
   id: SettingsTab;
@@ -21,22 +22,25 @@ const ALL_TABS: {
   labelKey: string;
   adminOnly?: boolean;
 }[] = [
+  { id: "billing", icon: CreditCard, labelKey: "settings.tabs.billing", adminOnly: true },
   { id: "team", icon: Users, labelKey: "settings.tabs.team", adminOnly: true },
   { id: "modules", icon: Layers, labelKey: "settings.tabs.modules" },
   { id: "organisation", icon: SlidersHorizontal, labelKey: "settings.tabs.organisation", adminOnly: true },
 ];
 
 const SECTION_ANCHORS: Record<string, string> = {
+  billing: "settings-billing",
   team: "settings-team",
   modules: "settings-modules",
   outlook: "settings-outlook",
 };
 
 function tabForSection(section: string | null, isAdmin: boolean): SettingsTab {
+  if (section === "billing" || section === "pricing") return "billing";
   if (section === "outlook") return "organisation";
   if (section === "team") return "team";
   if (section === "modules") return "modules";
-  return isAdmin ? "team" : "modules";
+  return isAdmin ? "billing" : "modules";
 }
 
 function V2SettingsPageContent() {
@@ -46,7 +50,7 @@ function V2SettingsPageContent() {
   const { user } = useCurrentUser();
   const isAdmin = Boolean(user?.isAdmin);
   const sectionTab = section ? tabForSection(section, isAdmin) : null;
-  const defaultTab: SettingsTab = isAdmin ? "team" : "modules";
+  const defaultTab: SettingsTab = isAdmin ? "billing" : "modules";
   const [manualTab, setManualTab] = useState<SettingsTab | null>(null);
   const tab = sectionTab ?? manualTab ?? defaultTab;
 
@@ -62,7 +66,10 @@ function V2SettingsPageContent() {
       document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
-    const timer = window.setTimeout(scrollToAnchor, section === "outlook" || section === "modules" ? 120 : 0);
+    const timer = window.setTimeout(
+      scrollToAnchor,
+      section === "outlook" || section === "modules" || section === "billing" ? 120 : 0,
+    );
     return () => window.clearTimeout(timer);
   }, [section, activeTab]);
 
@@ -89,6 +96,7 @@ function V2SettingsPageContent() {
       <nav className="flex flex-wrap gap-2" aria-label={t("settings.tabsLabel")}>
         {tabs.map(({ id, icon: Icon, labelKey }) => {
           const active = activeTab === id;
+          const isBilling = id === "billing";
           return (
             <button
               key={id}
@@ -99,8 +107,12 @@ function V2SettingsPageContent() {
               className={[
                 "ui-transition inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold",
                 active
-                  ? "border-[color:var(--brand-primary)]/30 bg-[color:var(--brand-primary)]/10 text-[var(--brand-primary)]"
-                  : "border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/70 hover:border-[var(--line-strong)] hover:bg-[var(--surface-soft)]",
+                  ? isBilling
+                    ? "border-[color:var(--accent)]/40 bg-[color:var(--accent)]/12 text-[var(--foreground)]"
+                    : "border-[color:var(--brand-primary)]/30 bg-[color:var(--brand-primary)]/10 text-[var(--brand-primary)]"
+                  : isBilling
+                    ? "border-[color:var(--accent)]/25 bg-[color:var(--accent)]/6 text-[var(--foreground)] hover:border-[color:var(--accent)]/40"
+                    : "border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/70 hover:border-[var(--line-strong)] hover:bg-[var(--surface-soft)]",
               ].join(" ")}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -110,6 +122,7 @@ function V2SettingsPageContent() {
         })}
       </nav>
 
+      {activeTab === "billing" && isAdmin ? <BillingSettingsSection /> : null}
       {activeTab === "team" && isAdmin ? <TeamSettingsSection /> : null}
       {activeTab === "modules" ? <ModulesSettingsSection /> : null}
       {activeTab === "organisation" && isAdmin ? (
