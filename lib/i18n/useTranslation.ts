@@ -19,10 +19,12 @@ type UseTranslationOptions = {
 
 export function useTranslation(options?: UseTranslationOptions) {
   const { branding, loading } = useBranding();
+  const preferBrowser = options?.preferBrowser;
+  const localeOverride = options?.localeOverride;
 
   const locale: AppLocale = useMemo(() => {
-    if (options?.localeOverride) return resolveLocale(options.localeOverride);
-    if (options?.preferBrowser) {
+    if (localeOverride) return resolveLocale(localeOverride);
+    if (preferBrowser) {
       const stored = readStoredLocale();
       if (stored) return stored;
       if (!branding.isConfigured && !loading) return detectBrowserLocale();
@@ -32,8 +34,8 @@ export function useTranslation(options?: UseTranslationOptions) {
     branding.isConfigured,
     branding.locale,
     loading,
-    options?.localeOverride,
-    options?.preferBrowser,
+    localeOverride,
+    preferBrowser,
   ]);
 
   const translate = useMemo(() => createTranslator(locale), [locale]);
