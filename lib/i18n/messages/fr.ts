@@ -837,6 +837,7 @@ const frCore: MessageTree = {
     },
     spotlight: {
       quest: "Quête {current} / {total}",
+      dragHandle: "Déplacer le panneau de quête",
       clickTitle: "Ouvrez le formulaire de création",
       clickBody: "Cliquez sur le bouton « Nouvelle tâche » en surbrillance pour découvrir comment structurer un projet.",
       fillTitle: "Donnez vie à votre projet",

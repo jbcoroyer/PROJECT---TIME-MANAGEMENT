@@ -46,6 +46,10 @@
   position: fixed;
   z-index: 152;
   width: min(22rem, calc(100vw - 2rem));
+  max-height: min(
+    calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    32rem
+  );
   border-radius: 1.25rem;
   border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
   background: linear-gradient(
@@ -53,11 +57,67 @@
     color-mix(in srgb, var(--surface) 96%, var(--accent) 4%) 0%,
     var(--surface) 55%
   );
-  padding: 1.1rem 1.15rem 1rem;
   box-shadow:
     0 24px 60px rgba(12, 10, 8, 0.28),
     0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.first-task-tutorial__card--dragging {
+  cursor: grabbing;
+  user-select: none;
+  box-shadow:
+    0 28px 70px rgba(12, 10, 8, 0.34),
+    0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.first-task-tutorial__card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  flex-shrink: 0;
+  padding: 0.85rem 0.95rem 0.35rem;
+  cursor: grab;
+  touch-action: none;
+}
+
+.first-task-tutorial__card-header:active {
+  cursor: grabbing;
+}
+
+.first-task-tutorial__card-grip {
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--foreground) 35%, transparent);
+}
+
+.first-task-tutorial__card-header-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.first-task-tutorial__card-header-content > h3 {
+  margin-top: 0.5rem;
+}
+
+.first-task-tutorial__card-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 1rem;
+}
+
+.first-task-tutorial__card-footer {
+  flex-shrink: 0;
+  padding: 0.35rem 1rem 0.95rem;
+  border-top: 1px solid color-mix(in srgb, var(--foreground) 6%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, var(--accent) 8%);
 }
 
 .first-task-tutorial__xp-bar {
@@ -127,13 +187,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem;
+  padding: max(1.25rem, env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px))
+    max(1.25rem, env(safe-area-inset-bottom, 0px)) max(1.25rem, env(safe-area-inset-left, 0px));
   background: rgba(8, 10, 18, 0.72);
   backdrop-filter: blur(6px);
+  overflow-y: auto;
 }
 
 .first-task-tutorial__welcome-card {
   width: min(28rem, 100%);
+  max-height: min(
+    calc(100dvh - 2.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    40rem
+  );
+  overflow-y: auto;
   border-radius: 1.5rem;
   border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
   background: linear-gradient(
@@ -216,10 +283,14 @@
 
 .first-task-tutorial__mini-tour-float {
   position: fixed;
-  right: 1rem;
-  bottom: 1rem;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
   z-index: 155;
   max-width: min(22rem, calc(100vw - 2rem));
+  max-height: min(
+    calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    32rem
+  );
 }
 
 .first-task-tutorial__mini-tour-card {

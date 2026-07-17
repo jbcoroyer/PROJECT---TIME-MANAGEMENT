@@ -829,6 +829,7 @@ const enCore: MessageTree = {
     },
     spotlight: {
       quest: "Quest {current} / {total}",
+      dragHandle: "Move quest panel",
       clickTitle: "Open the creation form",
       clickBody: "Click the highlighted « New task » button to see how to structure a project.",
       fillTitle: "Bring your project to life",

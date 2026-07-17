@@ -7,6 +7,7 @@ import { useTranslation } from "../../lib/i18n/useTranslation";
 import { useExplorationTutorialOptional } from "../../lib/onboarding/explorationTutorialContext";
 import { MODULE_TOUR_DEFINITIONS } from "../../lib/onboarding/moduleTutorialConfig";
 import TutorialSpotlight from "./TutorialSpotlight";
+import TutorialDraggableCard from "./TutorialDraggableCard";
 import "./first-task-tutorial.css";
 
 export default function ModuleMiniTour() {
@@ -79,9 +80,13 @@ export default function ModuleMiniTour() {
 
   if (step.floating || !step.targetSelector) {
     return (
-      <div className="first-task-tutorial__mini-tour-float" role="dialog" aria-modal="true">
-        <div className="first-task-tutorial__card first-task-tutorial__mini-tour-card">{cardContent}</div>
-      </div>
+      <TutorialDraggableCard
+        className="first-task-tutorial__mini-tour-card"
+        storageKey="tutorial-mini-tour-card-position"
+        defaultPlacement="bottom-right"
+      >
+        {cardContent}
+      </TutorialDraggableCard>
     );
   }
 

@@ -833,6 +833,7 @@ const esOverrides: MessageTree = {
     },
     spotlight: {
       quest: "Misión {current} / {total}",
+      dragHandle: "Mover el panel de misión",
       clickTitle: "Abre el formulario de creación",
       clickBody: "Haz clic en el botón « Nueva tarea » resaltado para ver cómo estructurar un proyecto.",
       fillTitle: "Da vida a tu proyecto",

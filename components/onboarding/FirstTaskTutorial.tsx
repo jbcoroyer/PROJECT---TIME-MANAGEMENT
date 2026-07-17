@@ -349,7 +349,7 @@ export default function FirstTaskTutorial() {
           targetSelector='[data-tutorial="new-task-modal"]'
           visible
           padding={12}
-          cardPosition="bottom-right"
+          cardPosition="auto"
         >
           <span className="first-task-tutorial__badge">
             <Sparkles className="h-3 w-3" aria-hidden />
@@ -434,7 +434,7 @@ export default function FirstTaskTutorial() {
           targetSelector='[data-tutorial="list-view-panel"]'
           visible
           padding={8}
-          cardPosition="bottom-right"
+          cardPosition="auto"
         >
           <span className="first-task-tutorial__badge">
             <Sparkles className="h-3 w-3" aria-hidden />
@@ -527,7 +527,7 @@ export default function FirstTaskTutorial() {
           targetSelector='[data-tutorial="calendar-view-panel"]'
           visible
           padding={8}
-          cardPosition="bottom-right"
+          cardPosition="auto"
         >
           <span className="first-task-tutorial__badge">
             <Sparkles className="h-3 w-3" aria-hidden />
@@ -579,7 +579,7 @@ export default function FirstTaskTutorial() {
             targetSelector='[data-tutorial="calendar-event-modal"]'
             visible
             padding={12}
-            cardPosition="bottom-right"
+            cardPosition="auto"
           >
             <span className="first-task-tutorial__badge">
               <Sparkles className="h-3 w-3" aria-hidden />
