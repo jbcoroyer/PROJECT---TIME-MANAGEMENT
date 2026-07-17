@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { priceIdForPlan } from "../../../../lib/billing/plans";
+import { priceIdForPlan, type BillingInterval } from "../../../../lib/billing/plans";
 import { getOrganizationBilling, updateOrganizationBilling } from "../../../../lib/server/billingOrg";
 import { countOrganizationMembers } from "../../../../lib/server/orgMembers";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
@@ -20,9 +20,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Accès réservé aux administrateurs." }, { status: 403 });
     }
 
-    const priceId = priceIdForPlan();
+    const body = (await request.json().catch(() => ({}))) as { interval?: string };
+    const interval: BillingInterval = body.interval === "year" ? "year" : "month";
+
+    const priceId = priceIdForPlan(interval);
     if (!priceId) {
-      return NextResponse.json({ error: "Tarif Stripe non configuré." }, { status: 503 });
+      return NextResponse.json(
+        {
+          error:
+            interval === "year"
+              ? "Tarif annuel Stripe non configuré."
+              : "Tarif Stripe non configuré.",
+        },
+        { status: 503 },
+      );
     }
 
     const org = await getOrganizationBilling(ctx.organizationId);
@@ -53,9 +64,9 @@ export async function POST(request: Request) {
       success_url: `${base}/billing?billing=success`,
       cancel_url: `${base}/billing?billing=cancel`,
       client_reference_id: org.id,
-      metadata: { organization_id: org.id },
+      metadata: { organization_id: org.id, billing_interval: interval },
       subscription_data: {
-        metadata: { organization_id: org.id },
+        metadata: { organization_id: org.id, billing_interval: interval },
       },
       allow_promotion_codes: true,
     });

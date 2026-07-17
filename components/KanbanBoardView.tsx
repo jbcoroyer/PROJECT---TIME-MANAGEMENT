@@ -971,7 +971,7 @@ export default function KanbanBoardView(props: {
       </section>
 
       {deleteTarget ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="ui-modal-overlay">
           <div className="w-full max-w-md rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-xl">
             <h3 className="text-lg font-semibold text-[var(--foreground)]">Supprimer la colonne</h3>
             <p className="mt-2 text-sm text-[color:var(--foreground)]/70">

@@ -49,7 +49,7 @@ export default function CookieBanner() {
     <div
       role="dialog"
       aria-label={t("legal.cookie.ariaLabel")}
-      className="fixed inset-x-0 bottom-0 z-[100] border-t border-[var(--line)] bg-[var(--surface)]/95 p-4 shadow-[var(--shadow-2)] backdrop-blur-md sm:p-5"
+      className="ui-popup-panel fixed inset-x-3 bottom-3 z-[var(--z-overlay)] rounded-2xl p-4 sm:inset-x-auto sm:bottom-5 sm:left-1/2 sm:w-full sm:max-w-4xl sm:-translate-x-1/2 sm:p-5"
     >
       <div className="mx-auto flex max-w-4xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1 pr-2">

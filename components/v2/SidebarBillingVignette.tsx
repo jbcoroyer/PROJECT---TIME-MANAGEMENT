@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
 import {
+  ANNUAL_FLOOR_EUR,
   MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_ANNUAL_EUR,
   PRICE_PER_SEAT_EUR,
   TRIAL_DAYS,
 } from "../../lib/billing/plans";
@@ -67,6 +69,7 @@ export default function SidebarBillingVignette({ onNavigate }: SidebarBillingVig
               {t("nav.billing.activeBody", {
                 count: memberCount,
                 floor: MONTHLY_FLOOR_EUR,
+                annualFloor: ANNUAL_FLOOR_EUR,
               })}
             </p>
             <span className="ui-sidebar-billing__link mt-2.5 inline-flex items-center gap-1 text-[11px] font-semibold">
@@ -86,8 +89,18 @@ export default function SidebarBillingVignette({ onNavigate }: SidebarBillingVig
       : t("nav.billing.trialTitle", { days });
 
   const body = needsPay
-    ? t("nav.billing.expiredBody", { floor: MONTHLY_FLOOR_EUR, seat: PRICE_PER_SEAT_EUR })
-    : t("nav.billing.trialBody", { floor: MONTHLY_FLOOR_EUR, seat: PRICE_PER_SEAT_EUR });
+    ? t("nav.billing.expiredBody", {
+        floor: MONTHLY_FLOOR_EUR,
+        annualFloor: ANNUAL_FLOOR_EUR,
+        seat: PRICE_PER_SEAT_EUR,
+        annualSeat: PRICE_PER_SEAT_ANNUAL_EUR,
+      })
+    : t("nav.billing.trialBody", {
+        floor: MONTHLY_FLOOR_EUR,
+        annualFloor: ANNUAL_FLOOR_EUR,
+        seat: PRICE_PER_SEAT_EUR,
+        annualSeat: PRICE_PER_SEAT_ANNUAL_EUR,
+      });
 
   const cta = isAdmin
     ? needsPay

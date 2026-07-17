@@ -2,6 +2,7 @@
 
 import { Check, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { ModalOverlay, ModalPanel } from "../ui/ModalShell";
 
 export function ConfirmDeleteModal(props: {
   label: string;
@@ -11,12 +12,12 @@ export function ConfirmDeleteModal(props: {
   const { t } = useTranslation();
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-[0_34px_90px_rgba(20,17,13,0.24)]">
+    <ModalOverlay onBackdropClick={props.onCancel}>
+      <ModalPanel>
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--danger)_10%,var(--surface))]">
           <Trash2 className="h-6 w-6 text-[var(--danger)]" />
         </div>
-        <h3 className="text-base font-semibold text-[var(--foreground)]">{t("common.confirmDeleteTitle")}</h3>
+        <h3 className="ui-display text-lg text-[var(--foreground)]">{t("common.confirmDeleteTitle")}</h3>
         <p className="mt-1.5 text-sm text-[color:var(--foreground)]/65">
           {t("common.confirmDeleteBody", { label: props.label })}
         </p>
@@ -36,8 +37,8 @@ export function ConfirmDeleteModal(props: {
             {t("common.delete")}
           </button>
         </div>
-      </div>
-    </div>
+      </ModalPanel>
+    </ModalOverlay>
   );
 }
 

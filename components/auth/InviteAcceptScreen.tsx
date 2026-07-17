@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { Briefcase, Camera, User, UserRound } from "lucide-react";
 import { completeInviteProfile, type InviteWelcomeContext } from "../../app/actions/invites";
 import { uploadOrgAsset } from "../../app/actions/storage";
+import { isImageWithinServerActionLimit } from "../../lib/imageUploadLimits";
 import { AppMark } from "../AppBrand";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError, toastSuccess } from "../../lib/toast";
+import InlineAlert from "../ui/InlineAlert";
 
 type InviteAcceptScreenProps = {
   context: Extract<InviteWelcomeContext, { needsOnboarding: true }>;
@@ -32,6 +34,11 @@ export default function InviteAcceptScreen({ context }: InviteAcceptScreenProps)
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (!isImageWithinServerActionLimit(file)) {
+      toastError(t("common.imageTooLarge"));
+      event.target.value = "";
+      return;
+    }
     setPhotoFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
@@ -183,7 +190,9 @@ export default function InviteAcceptScreen({ context }: InviteAcceptScreenProps)
           </div>
 
           {error ? (
-            <div className="ui-alert ui-alert-danger mt-4 rounded-xl px-3 py-2 text-sm">{error}</div>
+            <InlineAlert variant="danger" className="mt-4">
+              {error}
+            </InlineAlert>
           ) : null}
 
           <button

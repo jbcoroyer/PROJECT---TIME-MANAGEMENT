@@ -11,6 +11,8 @@ import { needsInviteProfileCompletion } from "../../lib/inviteOnboarding";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { useBranding } from "../../lib/brandingContext";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { InlineAlertMessages } from "../ui/InlineAlert";
+import InlineAlert from "../ui/InlineAlert";
 import { TRIAL_DAYS } from "../../lib/billing/plans";
 
 type AuthScreenProps = {
@@ -135,9 +137,9 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
       <AuthMobileBrand />
 
       {urlAuthError ? (
-        <div className="ui-alert ui-alert-warning mt-6 rounded-xl px-3 py-2.5 text-sm">
+        <InlineAlert variant="warning" className="mt-6">
           {urlAuthError}
-        </div>
+        </InlineAlert>
       ) : null}
 
       <div className="auth-atelier__tabs mt-8">
@@ -169,7 +171,7 @@ export default function AuthScreen({ cleanPath = "/" }: AuthScreenProps) {
           forgotLabel={sendingReset ? t("auth.sendingReset") : t("auth.forgotPassword")}
           forgotDisabled={sendingReset || loading}
         />
-        <AlertBox error={error} success={success} />
+        <InlineAlertMessages error={error} success={success} />
         <SubmitBtn
           loading={loading}
           loadingLabel={t("auth.signingIn")}
@@ -279,15 +281,6 @@ function PasswordField(props: {
   );
 }
 
-function AlertBox(props: { error?: string | null; success?: string | null }) {
-  if (props.error) {
-    return <div className="ui-alert ui-alert-danger rounded-xl px-3 py-2 text-sm">{props.error}</div>;
-  }
-  if (props.success) {
-    return <div className="ui-alert ui-alert-success rounded-xl px-3 py-2 text-sm">{props.success}</div>;
-  }
-  return null;
-}
 
 function SubmitBtn(props: { loading: boolean; label: string; loadingLabel: string }) {
   return (

@@ -90,6 +90,54 @@ export function findClosestPresetHex(hex: string): string {
   return best.hex;
 }
 
+export const ACCENT_COLOR_CHOICE_COUNT = 7;
+
+/** 7 couleurs proposées : logo en priorité, puis presets sans doublon. */
+export function buildAccentColorChoices(logoColors: string[] = []): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const raw of logoColors) {
+    const hex = normalizeHexColor(raw);
+    if (!hex || seen.has(hex)) continue;
+    seen.add(hex);
+    result.push(hex);
+    if (result.length >= ACCENT_COLOR_CHOICE_COUNT) return result;
+  }
+
+  for (const preset of ALL_BRAND_COLOR_PRESETS) {
+    const hex = normalizeHexColor(preset.hex);
+    if (!hex || seen.has(hex)) continue;
+    seen.add(hex);
+    result.push(hex);
+    if (result.length >= ACCENT_COLOR_CHOICE_COUNT) return result;
+  }
+
+  while (result.length < ACCENT_COLOR_CHOICE_COUNT) {
+    const fallback = normalizeHexColor(DEFAULT_BRAND_PRIMARY);
+    if (fallback && !seen.has(fallback)) {
+      seen.add(fallback);
+      result.push(fallback);
+    } else {
+      break;
+    }
+  }
+
+  return result;
+}
+
+export function hexToRgbComponents(hex: string): { r: number; g: number; b: number } | null {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return null;
+  return { r: rgb[0], g: rgb[1], b: rgb[2] };
+}
+
+export function rgbComponentsToHex(r: number, g: number, b: number): string {
+  const clamp = (n: number) => Math.max(0, Math.min(255, Math.round(n)));
+  const toHex = (n: number) => clamp(n).toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+}
+
 function hexToRgb(hex: string): [number, number, number] | null {
   const normalized = normalizeHexColor(hex);
   if (!/^#[0-9A-F]{6}$/.test(normalized)) return null;

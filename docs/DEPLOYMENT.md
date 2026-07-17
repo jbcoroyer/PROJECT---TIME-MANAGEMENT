@@ -28,7 +28,8 @@ Dashboard : [project-time-management → Settings → Environment Variables](htt
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_test_…` ou `pk_live_…` |
 | `STRIPE_SECRET_KEY` | `sk_test_…` ou `sk_live_…` |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…` du webhook **production** (voir §5) |
-| `STRIPE_PRICE_SINGLE_PLAN` | `price_…` (prix unique tiered) |
+| `STRIPE_PRICE_SINGLE_PLAN` | `price_…` (prix unique tiered mensuel) |
+| `STRIPE_PRICE_SINGLE_PLAN_ANNUAL` | `price_…` (prix annuel tiered — 2 mois offerts) |
 | `BILLING_ENFORCEMENT` | `true` |
 
 ### Recommandées

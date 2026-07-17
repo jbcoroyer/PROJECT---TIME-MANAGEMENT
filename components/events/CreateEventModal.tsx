@@ -113,7 +113,7 @@ export default function CreateEventModal(props: CreateEventModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+      className="ui-modal-overlay"
       role="presentation"
       onMouseDown={(ev) => ev.target === ev.currentTarget && onClose()}
     >

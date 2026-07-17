@@ -66,40 +66,33 @@ function NotificationStack(props: {
       aria-relevant="additions"
     >
       {items.map((item) => (
-        <div
-          key={item.id}
-          className="pointer-events-auto ui-surface flex flex-col overflow-hidden rounded-2xl border border-[var(--line-strong)] shadow-[0_24px_80px_rgba(20,17,13,0.22)]"
-        >
-          <div className="flex items-start gap-3 border-b border-[var(--line)] px-4 py-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)]/15 text-[var(--accent)]">
+        <div key={item.id} className="pointer-events-auto ui-toast-card ui-toast-card--info">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <div className="ui-toast-card__icon">
               <Bell className="h-4 w-4" strokeWidth={2} aria-hidden />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{item.title}</p>
-              {item.body ? (
-                <p className="mt-1 text-xs leading-relaxed text-[color:var(--foreground)]/60">{item.body}</p>
+            <div className="min-w-0 flex-1 pr-6">
+              <p className="ui-toast-card__title">{item.title}</p>
+              {item.body ? <p className="ui-toast-card__body">{item.body}</p> : null}
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  onClick={() => onDismiss(item.id)}
+                  className="ui-transition mt-2 inline-flex text-xs font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]"
+                >
+                  Ouvrir
+                </Link>
               ) : null}
             </div>
             <button
               type="button"
               onClick={() => onDismiss(item.id)}
-              className="ui-transition shrink-0 rounded-lg border border-transparent p-1.5 text-[color:var(--foreground)]/55 hover:border-[var(--line)] hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]"
+              className="ui-transition absolute right-3 top-3 rounded-lg border border-transparent p-1.5 text-[color:var(--foreground)]/45 hover:border-[var(--line)] hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]"
               aria-label="Fermer la notification"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
-          {item.href ? (
-            <div className="px-4 py-2.5">
-              <Link
-                href={item.href}
-                onClick={() => onDismiss(item.id)}
-                className="ui-transition inline-flex text-xs font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]"
-              >
-                Ouvrir
-              </Link>
-            </div>
-          ) : null}
         </div>
       ))}
     </div>,

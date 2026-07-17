@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   calculateMonthlyPriceCents,
+  calculateAnnualPriceCents,
   canAccessTeamWorkload,
   daysLeftInTrial,
   effectivePlanForOrg,
@@ -79,12 +80,23 @@ describe("billing plans", () => {
     expect(calculateMonthlyPriceCents(12)).toBe(2400);
   });
 
+  it("calcule le prix annuel avec plancher (2 mois offerts)", async () => {
+    const { ANNUAL_FLOOR_EUR, PRICE_PER_SEAT_ANNUAL_EUR } = await import("./plans");
+    expect(PRICE_PER_SEAT_ANNUAL_EUR).toBe(20);
+    expect(ANNUAL_FLOOR_EUR).toBe(100);
+    expect(calculateAnnualPriceCents(1)).toBe(10000);
+    expect(calculateAnnualPriceCents(5)).toBe(10000);
+    expect(calculateAnnualPriceCents(6)).toBe(12000);
+  });
+
   it("résume l'offre unique", async () => {
     const { singlePlanPricingSummary, PRICE_PER_SEAT_EUR, MONTHLY_FLOOR_EUR } = await import("./plans");
     expect(PRICE_PER_SEAT_EUR).toBe(2);
     expect(MONTHLY_FLOOR_EUR).toBe(10);
     expect(singlePlanPricingSummary()).toContain("2 €");
     expect(singlePlanPricingSummary()).toContain("10 €");
+    expect(singlePlanPricingSummary("year")).toContain("20 €");
+    expect(singlePlanPricingSummary("year")).toContain("2 mois offerts");
   });
 
   it("mappe les statuts Stripe", () => {
@@ -115,7 +127,9 @@ describe("billing plans", () => {
 
   it("reconnaît le price_id unique", () => {
     vi.stubEnv("STRIPE_PRICE_SINGLE_PLAN", "price_single");
+    vi.stubEnv("STRIPE_PRICE_SINGLE_PLAN_ANNUAL", "price_single_annual");
     expect(planFromPriceId("price_single")).toBe("active");
+    expect(planFromPriceId("price_single_annual")).toBe("active");
     expect(planFromPriceId("price_other")).toBeNull();
     vi.unstubAllEnvs();
   });

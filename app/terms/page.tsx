@@ -1,7 +1,9 @@
 import LegalDocument from "../../components/legal/LegalDocument";
 import {
+  ANNUAL_FLOOR_EUR,
   FLOOR_INCLUDED_SEATS,
   MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_ANNUAL_EUR,
   PRICE_PER_SEAT_EUR,
   TRIAL_DAYS,
 } from "../../lib/billing/plans";
@@ -55,9 +57,11 @@ export default function TermsPage() {
       <section>
         <h2 className="text-lg font-semibold text-[var(--foreground)]">5. Abonnements et facturation</h2>
         <p className="mt-2">
-          Un seul abonnement est proposé : {PRICE_PER_SEAT_EUR}&nbsp;€ par utilisateur actif et par mois, avec
-          un minimum de {MONTHLY_FLOOR_EUR}&nbsp;€/mois (jusqu&apos;à {FLOOR_INCLUDED_SEATS} utilisateurs). La
-          facturation est mensuelle via Stripe et la quantité suit le nombre de membres de l&apos;organisation.
+          Un seul abonnement est proposé : {PRICE_PER_SEAT_EUR}&nbsp;€ par utilisateur actif et par mois
+          ({PRICE_PER_SEAT_ANNUAL_EUR}&nbsp;€/an avec engagement annuel — 2 mois offerts), avec un minimum de{" "}
+          {MONTHLY_FLOOR_EUR}&nbsp;€/mois ou {ANNUAL_FLOOR_EUR}&nbsp;€/an (jusqu&apos;à{" "}
+          {FLOOR_INCLUDED_SEATS} utilisateurs). La facturation est mensuelle ou annuelle via Stripe et la
+          quantité suit le nombre de membres de l&apos;organisation.
           L&apos;essai gratuit de {TRIAL_DAYS} jours donne accès à l&apos;ensemble des fonctionnalités sans
           carte bancaire. À l&apos;issue de l&apos;essai, un abonnement actif est requis pour continuer à
           utiliser le Service. Les tarifs en vigueur sont consultables sur la page{" "}

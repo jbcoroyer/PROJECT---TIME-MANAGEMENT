@@ -1,9 +1,10 @@
 import { STORAGE_BUCKETS, isOrgPrefixedStoragePath, type StorageBucket } from "./storagePaths";
+import { SERVER_ACTION_IMAGE_MAX_BYTES } from "./imageUploadLimits";
 
 const MAX_BYTES_BY_BUCKET: Record<StorageBucket, number> = {
-  "idena-mark": 2 * 1024 * 1024,
-  "member-avatars": 2 * 1024 * 1024,
-  "company-logos": 2 * 1024 * 1024,
+  "idena-mark": SERVER_ACTION_IMAGE_MAX_BYTES,
+  "member-avatars": SERVER_ACTION_IMAGE_MAX_BYTES,
+  "company-logos": SERVER_ACTION_IMAGE_MAX_BYTES,
   "event-documents": 15 * 1024 * 1024,
   "social-post-visuals": 10 * 1024 * 1024,
   "stock-plv-visuals": 15 * 1024 * 1024,

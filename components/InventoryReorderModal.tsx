@@ -45,7 +45,7 @@ export default function InventoryReorderModal(props: InventoryReorderModalProps)
 
   return (
     <div
-      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+      className="ui-modal-overlay"
       role="presentation"
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
     >

@@ -5,6 +5,7 @@ import { ImageIcon, Mail, Plus, RefreshCw, UserPlus, Users } from "lucide-react"
 import AdminAvatar from "../AdminAvatar";
 import { inviteTeamMember } from "../../app/actions/invites";
 import { uploadOrgAsset } from "../../app/actions/storage";
+import { isImageWithinServerActionLimit } from "../../lib/imageUploadLimits";
 import { syncAdminColorAssignments } from "../../lib/adminColorAssignments";
 import { adminSolidColorFor, getAdminColorPaletteSize } from "../../lib/kanbanStyles";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
@@ -271,6 +272,11 @@ export default function TeamSettingsSection() {
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
+                            if (!isImageWithinServerActionLimit(file)) {
+                              toastError(t("common.imageTooLarge"));
+                              e.target.value = "";
+                              return;
+                            }
                             const ext = file.name.split(".").pop() ?? "jpg";
                             const relativePath = `${row.id}.${ext}`;
                             const formData = new FormData();

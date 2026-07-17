@@ -278,30 +278,38 @@ export default function V2DashboardHomePage() {
     isFormOpen &&
     firstTaskTutorialEligible;
 
-  const tutorialAutoCompletedRef = useRef(false);
-  useEffect(() => {
-    if (tutorialAutoCompletedRef.current) return;
-    if (tasks.length === 0 || firstTaskTutorialCompleted) return;
-    if (
-      !tutorial?.active &&
-      gamification?.profile.tutorials.first_task?.status !== "in_progress"
-    ) {
-      return;
-    }
-    tutorialAutoCompletedRef.current = true;
-    tutorial?.finishCelebration();
-    void gamification?.completeTutorial("first_task");
-  }, [
-    tasks.length,
-    firstTaskTutorialCompleted,
-    tutorial,
-    gamification,
-  ]);
 
   useEffect(() => {
     if (!tutorial?.active) return;
     if (exploration?.boardActive) return;
-    if (tutorial.step === "celebrate" || tutorial.step === "done") return;
+    const allowedSteps = [
+      "celebrate",
+      "visitList",
+      "editInList",
+      "visitCalendar",
+      "exploreCalendar",
+      "createEvent",
+      "visitTodo",
+      "exploreTodo",
+      "done",
+    ];
+    if (allowedSteps.includes(tutorial.step)) {
+      if (tutorial.step === "visitList" && activeTab !== "list" && activeTab !== "kanban") {
+        tutorial.dismissTutorial();
+      }
+      if (
+        (tutorial.step === "editInList" && activeTab !== "list") ||
+        (["visitCalendar", "exploreCalendar", "createEvent"].includes(tutorial.step) &&
+          activeTab !== "calendar" &&
+          activeTab !== "list") ||
+        (["visitTodo", "exploreTodo"].includes(tutorial.step) &&
+          activeTab !== "todo" &&
+          activeTab !== "calendar")
+      ) {
+        if (isFormOpen) queueMicrotask(() => setIsFormOpen(false));
+      }
+      return;
+    }
     if (activeTab === "kanban") return;
     tutorial.dismissTutorial();
     if (isFormOpen) queueMicrotask(() => setIsFormOpen(false));
@@ -374,18 +382,44 @@ export default function V2DashboardHomePage() {
   const handleTaskFormDone = useCallback(() => {
     const firstCompany = companyRecords[0]?.name ?? initialFormState.company;
     const firstDomain = domainRecords[0]?.name ?? initialFormState.domain;
-    if (firstTaskTutorialEligible && tutorial?.active && tutorial.step === "fillForm") {
+    if (!editingTaskId && !firstTaskTutorialCompleted && tutorial?.active && tutorial.step === "fillForm") {
       tutorial.notifyTaskCreated();
     }
-    setIsFormOpen(false);
-    setNewTask({
-      ...initialFormState,
-      company: firstCompany,
-      domain: firstDomain,
-      admins: defaultAdminName ? [defaultAdminName] : [],
+    const closeForm = () => {
+      setIsFormOpen(false);
+      setEditingTaskId(null);
+      setNewTask({
+        ...initialFormState,
+        company: firstCompany,
+        domain: firstDomain,
+        admins: defaultAdminName ? [defaultAdminName] : [],
+      });
+      setNewTaskColumn((columns[0] as ColumnId) ?? "À faire");
+    };
+    if (editingTaskId) {
+      closeForm();
+      return;
+    }
+    window.setTimeout(closeForm, 1650);
+  }, [companyRecords, domainRecords, defaultAdminName, columns, tutorial, firstTaskTutorialCompleted, editingTaskId]);
+
+  const tutorialHighlightTaskId = useMemo(() => {
+    if (firstTaskTutorialCompleted) return null;
+    const active = tasks.filter((task) => !task.isArchived);
+    if (active.length === 0) return null;
+    const sorted = [...active].sort((a, b) => {
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tb - ta;
     });
-    setNewTaskColumn((columns[0] as ColumnId) ?? "À faire");
-  }, [companyRecords, domainRecords, defaultAdminName, columns, tutorial, firstTaskTutorialEligible]);
+    return sorted[0]?.id ?? null;
+  }, [tasks, firstTaskTutorialCompleted]);
+
+  const handleTutorialEventSaved = useCallback(() => {
+    if (!tutorial?.active || tutorial.step !== "createEvent") return;
+    tutorial.notifyEventCreated();
+    navigateToTab("todo");
+  }, [tutorial, navigateToTab]);
 
   const openEditForTask = useCallback((task: Task) => {
     setEditingTaskId(task.id);
@@ -835,6 +869,10 @@ export default function V2DashboardHomePage() {
               admins={admins}
               currentUserName={currentUser?.teamMemberName ?? null}
               calendarEvents={calendarEvents}
+              tutorialStep={tutorial?.active ? tutorial.step : null}
+              highlightTaskId={tutorialHighlightTaskId}
+              onTutorialEventSaved={handleTutorialEventSaved}
+              onEventModalOpenChange={gamification?.setCalendarEventModalOpen}
               onSelectTask={(taskId) => {
                 setLastFocusedTaskId(null);
                 setSelectedTaskId(taskId);
@@ -892,6 +930,7 @@ export default function V2DashboardHomePage() {
           admins={adminRecords}
           companies={companyRecords}
           domains={domainRecords}
+          tasks={tasks}
           currentUserName={effectiveUser ?? currentUser?.teamMemberName ?? currentUser?.displayName ?? null}
           currentUser={currentUser}
           tutorialMode={tutorialModalActive && !editingTaskId}

@@ -227,3 +227,17 @@
   width: 100% !important;
   box-shadow: 0 16px 48px rgba(10, 8, 6, 0.22);
 }
+
+.calendar-tutorial-highlight-event {
+  animation: calendar-tutorial-pulse 2s ease-in-out infinite;
+}
+
+@keyframes calendar-tutorial-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}

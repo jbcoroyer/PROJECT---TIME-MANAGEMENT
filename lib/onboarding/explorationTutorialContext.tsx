@@ -172,9 +172,13 @@ export function ExplorationTutorialProvider({ children }: { children: ReactNode 
 
   const notifyColumnAdded = useCallback(() => {
     if (boardStep === "add_column") {
-      advanceBoard("visit_list");
+      if (gamification?.profile.firstTaskTutorialCompleted) {
+        advanceBoard("celebrate");
+      } else {
+        advanceBoard("visit_list");
+      }
     }
-  }, [advanceBoard, boardStep]);
+  }, [advanceBoard, boardStep, gamification?.profile.firstTaskTutorialCompleted]);
 
   const notifyTabVisited = useCallback(
     (tab: "list" | "calendar" | "todo") => {

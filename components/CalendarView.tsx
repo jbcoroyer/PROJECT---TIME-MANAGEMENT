@@ -26,6 +26,12 @@ import {
   type CalendarExtraEvent,
 } from "../lib/calendarExtraEvents";
 import {
+  buildCalendarTutorialDemoEvents,
+  CALENDAR_TUTORIAL_EVENT_SUGGESTION,
+} from "../lib/onboarding/calendarTutorialDemo";
+import type { FirstTaskTutorialStep } from "../lib/onboarding/firstTaskTutorialContext";
+import { useTranslation } from "../lib/i18n/useTranslation";
+import {
   adminAvatarMetaFor,
   adminFilterPillClassFor,
   adminSolidColorFor,
@@ -56,12 +62,15 @@ type CalendarEventResource = {
   task?: Task;
   domain?: string;
   isDeadline?: boolean;
-  kind: "planning" | "deadline" | "extra" | "event";
+  kind: "planning" | "deadline" | "extra" | "event" | "demo";
   owner: AdminId;
   ownerColor: string;
   columnColor?: string;
   extra?: CalendarExtraEvent;
   linkedEvent?: EventRow;
+  isDemo?: boolean;
+  isHighlighted?: boolean;
+  demoLocation?: string;
 };
 
 type CalendarEvent = {
@@ -164,10 +173,27 @@ function LinkedEventCard(props: { event: CalendarEvent }) {
   );
 }
 
+function DemoEventCard(props: { event: CalendarEvent; demoHint: string }) {
+  return (
+    <div className="relative flex h-full w-full flex-col overflow-hidden rounded-md px-2 py-1 opacity-90">
+      <div className="mb-0.5 flex items-center gap-1">
+        <span className="rounded bg-white/20 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider">
+          {props.demoHint}
+        </span>
+      </div>
+      <p className="truncate text-[11px] font-semibold leading-tight">{props.event.title}</p>
+    </div>
+  );
+}
+
 function CalendarEventWrapper(props: {
   event: CalendarEvent;
   onTaskContextMenu?: (e: React.MouseEvent, task: Task) => void;
+  demoHint?: string;
 }) {
+  if (props.event.resource.isDemo || props.event.resource.kind === "demo") {
+    return <DemoEventCard event={props.event} demoHint={props.demoHint ?? "Exemple"} />;
+  }
   if (props.event.resource.kind === "extra") {
     return <ExtraEventCard event={props.event} />;
   }
@@ -191,6 +217,7 @@ function TaskColorContextMenu(props: {
   onClose: () => void;
   onPickColor: (color: string) => void;
 }) {
+  const { t } = useTranslation();
   const mounted = useIsClient();
   const { state, onClose, onPickColor } = props;
 
@@ -217,7 +244,7 @@ function TaskColorContextMenu(props: {
     <>
       <button
         type="button"
-        aria-label="Fermer le menu"
+        aria-label={t("calendarView.closeMenu")}
         className="fixed inset-0 z-[120]"
         onClick={onClose}
       />
@@ -227,13 +254,13 @@ function TaskColorContextMenu(props: {
         style={{ left, top }}
       >
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/45">
-          Couleur
+          {t("calendarView.color")}
         </p>
         <p className="mt-0.5 truncate text-sm font-semibold text-[var(--foreground)]">
-          {state.task.projectName || "Sans titre"}
+          {state.task.projectName || t("calendarView.untitled")}
         </p>
         <p className="mt-0.5 text-[11px] text-[color:var(--foreground)]/55">
-          Colonne « {state.columnLabel} » — synchronisée avec le Kanban
+          {t("calendarView.columnSync", { label: state.columnLabel })}
         </p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {BOARD_COLUMN_PALETTE.map((color) => (
@@ -263,14 +290,16 @@ function Toolbar(props: {
   onView: (view: View) => void;
   view: View;
   onAddManual: () => void;
+  highlightAddEvent?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3">
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => props.onNavigate("PREV")}
-          aria-label="Période précédente"
+          aria-label={t("calendarView.prevPeriod")}
           className="ui-transition flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -280,12 +309,12 @@ function Toolbar(props: {
           onClick={() => props.onNavigate("TODAY")}
           className="ui-transition rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-sm font-semibold text-[color:var(--foreground)]/85 hover:bg-[var(--surface-soft)]"
         >
-          Aujourd&apos;hui
+          {t("calendarView.today")}
         </button>
         <button
           type="button"
           onClick={() => props.onNavigate("NEXT")}
-          aria-label="Période suivante"
+          aria-label={t("calendarView.nextPeriod")}
           className="ui-transition flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]"
         >
           <ChevronRight className="h-4 w-4" aria-hidden />
@@ -295,11 +324,15 @@ function Toolbar(props: {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
+          data-tutorial="calendar-add-event"
           onClick={props.onAddManual}
-          className="ui-transition inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--foreground)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90"
+          className={[
+            "ui-transition inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--foreground)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-contrast)] shadow-sm hover:opacity-90",
+            props.highlightAddEvent ? "first-task-tutorial__highlight-field ring-2 ring-[var(--accent)] ring-offset-2" : "",
+          ].join(" ")}
         >
           <Plus className="h-3.5 w-3.5" />
-          Événement
+          {t("calendarView.addEvent")}
         </button>
         <div className="flex items-center gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-0.5">
           {CALENDAR_VIEWS.map((v) => (
@@ -314,7 +347,13 @@ function Toolbar(props: {
                   : "text-[color:var(--foreground)]/65 hover:bg-[var(--surface-soft)]",
               ].join(" ")}
             >
-              {v === "month" ? "Mois" : v === "week" ? "Semaine" : v === "day" ? "Jour" : "Agenda"}
+              {v === "month"
+                ? t("calendarView.views.month")
+                : v === "week"
+                  ? t("calendarView.views.week")
+                  : v === "day"
+                    ? t("calendarView.views.day")
+                    : t("calendarView.views.agenda")}
             </button>
           ))}
         </div>
@@ -334,9 +373,11 @@ type EventModalProps = {
   onSave: (ev: CalendarExtraEvent) => Promise<boolean>;
   onDelete?: () => void;
   initial: CalendarExtraEvent | null;
+  tutorialMode?: boolean;
 };
 
-function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProps) {
+function EventModal({ open, onClose, onSave, onDelete, initial, tutorialMode = false }: EventModalProps) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
@@ -357,17 +398,24 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
       } else {
         const s = new Date();
         s.setMinutes(0, 0, 0);
+        s.setHours(s.getHours() + 1);
         const e = new Date(s.getTime() + 60 * 60 * 1000);
-        setTitle("");
-        setLocation("");
-        setNotes("");
+        if (tutorialMode) {
+          setTitle(CALENDAR_TUTORIAL_EVENT_SUGGESTION.title);
+          setLocation(CALENDAR_TUTORIAL_EVENT_SUGGESTION.location);
+          setNotes(CALENDAR_TUTORIAL_EVENT_SUGGESTION.notes);
+        } else {
+          setTitle("");
+          setLocation("");
+          setNotes("");
+        }
         setAllDay(false);
         setStartVal(toLocalDatetimeValue(s));
         setEndVal(toLocalDatetimeValue(e));
       }
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [open, initial]);
+  }, [open, initial, tutorialMode]);
 
   if (!open) return null;
 
@@ -401,7 +449,7 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+      className="ui-modal-overlay"
       role="presentation"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
@@ -409,21 +457,24 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
         className="ui-surface max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-[var(--line-strong)] p-5 shadow-2xl"
         role="dialog"
         aria-labelledby="calendar-event-title"
+        data-tutorial="calendar-event-modal"
       >
         <div className="mb-4 flex items-start justify-between gap-2">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
-              Calendrier
+              {t("calendarView.modal.kicker")}
             </p>
             <h2 id="calendar-event-title" className="ui-heading mt-1 text-lg font-semibold">
-              {initial?.id && initial.id.length > 0 ? "Modifier l'événement" : "Nouvel événement"}
+              {initial?.id && initial.id.length > 0
+                ? t("calendarView.modal.editTitle")
+                : t("calendarView.modal.newTitle")}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-lg border border-[var(--line)] p-1.5 text-[color:var(--foreground)]/55 hover:bg-[var(--surface-soft)]"
-            aria-label="Fermer"
+            aria-label={t("calendarView.modal.close")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -431,26 +482,26 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-              Titre
+              {t("calendarView.modal.titleLabel")}
             </label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
-              placeholder="Réunion, point équipe…"
+              placeholder={t("calendarView.modal.titlePlaceholder")}
               required
             />
           </div>
           <div>
             <label className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-[color:var(--foreground)]/65">
               <Building2 className="h-3.5 w-3.5" />
-              Lieu
+              {t("calendarView.modal.locationLabel")}
             </label>
             <input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
-              placeholder="Salle A, visio, Slack…"
+              placeholder={t("calendarView.modal.locationPlaceholder")}
             />
           </div>
           <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -460,13 +511,13 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
               onChange={(e) => setAllDay(e.target.checked)}
               className="rounded border-[var(--line)]"
             />
-            <span className="text-[color:var(--foreground)]/80">Journée entière</span>
+            <span className="text-[color:var(--foreground)]/80">{t("calendarView.modal.allDay")}</span>
           </label>
           {!allDay && (
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                  Début
+                  {t("calendarView.modal.start")}
                 </label>
                 <input
                   type="datetime-local"
@@ -477,7 +528,7 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                  Fin
+                  {t("calendarView.modal.end")}
                 </label>
                 <input
                   type="datetime-local"
@@ -491,7 +542,7 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
           {allDay && (
             <div>
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-                Date
+                {t("calendarView.modal.date")}
               </label>
               <input
                 type="date"
@@ -507,18 +558,18 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
           )}
           <div>
             <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
-              Notes
+              {t("calendarView.modal.notes")}
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
               className="ui-focus-ring w-full resize-none rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
-              placeholder="Ordre du jour, lien…"
+              placeholder={t("calendarView.modal.notesPlaceholder")}
             />
           </div>
           <p className="text-[10px] text-[color:var(--foreground)]/45">
-            Les nouveaux événements créés ici sont ajoutés au hub événementiel.
+            {t("calendarView.modal.hubHint")}
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
             {initial?.id && initial.id.length > 0 && onDelete && (
@@ -531,7 +582,7 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
                 className="ui-transition ui-btn ui-btn-outline-danger inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                Supprimer
+                {t("calendarView.modal.delete")}
               </button>
             )}
             <button
@@ -539,13 +590,13 @@ function EventModal({ open, onClose, onSave, onDelete, initial }: EventModalProp
               onClick={onClose}
               className="ui-transition ml-auto rounded-xl border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]"
             >
-              Annuler
+              {t("calendarView.modal.cancel")}
             </button>
             <button
               type="submit"
               className="ui-transition rounded-xl border border-[var(--line-strong)] bg-[var(--foreground)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:opacity-90"
             >
-              Enregistrer
+              {t("calendarView.modal.save")}
             </button>
           </div>
         </form>
@@ -560,8 +611,13 @@ export default function CalendarView(props: {
   currentUserName?: string | null;
   calendarEvents?: EventRow[];
   onSelectTask: (taskId: string) => void;
+  tutorialStep?: FirstTaskTutorialStep | null;
+  highlightTaskId?: string | null;
+  onTutorialEventSaved?: () => void;
+  onEventModalOpenChange?: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colorFor } = useColumnVisuals();
   const { columns: columnRecords } = useReferenceData();
   const [view, setView] = useState<View>("week");
@@ -573,6 +629,22 @@ export default function CalendarView(props: {
   const [editingExtra, setEditingExtra] = useState<CalendarExtraEvent | null>(null);
   const [colorMenu, setColorMenu] = useState<TaskColorMenuState | null>(null);
   const [colorSaving, setColorSaving] = useState(false);
+
+  const tutorialActive = Boolean(
+    props.tutorialStep &&
+      ["visitCalendar", "exploreCalendar", "createEvent"].includes(props.tutorialStep),
+  );
+  const tutorialCreateEvent = props.tutorialStep === "createEvent";
+
+  useEffect(() => {
+    if (!tutorialActive) return;
+    queueMicrotask(() => setDate(new Date()));
+  }, [tutorialActive]);
+
+  useEffect(() => {
+    if (!tutorialCreateEvent) return;
+    props.onEventModalOpenChange?.(modalOpen);
+  }, [modalOpen, tutorialCreateEvent, props]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -605,14 +677,22 @@ export default function CalendarView(props: {
     setModalOpen(true);
   }, []);
 
+  useEffect(() => {
+    if (props.tutorialStep !== "createEvent" || modalOpen) return;
+    const timeoutId = window.setTimeout(() => openNewEvent(), 400);
+    return () => window.clearTimeout(timeoutId);
+  }, [props.tutorialStep, modalOpen, openNewEvent]);
+
   const handleSelectSlot = useCallback(
     ({ start, end }: { start: Date; end: Date }) => {
+      if (tutorialActive && !tutorialCreateEvent) return;
       openNewEvent({ start, end });
     },
-    [openNewEvent],
+    [openNewEvent, tutorialActive, tutorialCreateEvent],
   );
 
   const handleSaveExtra = useCallback(async (ev: CalendarExtraEvent) => {
+    const onSaved = props.onTutorialEventSaved;
     const isExistingLocalExtra = extraEvents.some((x) => x.id === ev.id);
     if (isExistingLocalExtra) {
       const id = ev.id || crypto.randomUUID();
@@ -627,6 +707,7 @@ export default function CalendarView(props: {
         return [...prev, next];
       });
       setEditingExtra(null);
+      if (tutorialCreateEvent) onSaved?.();
       return true;
     }
 
@@ -645,10 +726,11 @@ export default function CalendarView(props: {
       toastError(result.error);
       return false;
     }
-    toastSuccess("Événement ajouté au hub événementiel");
+    toastSuccess(t("calendarView.toast.eventAdded"));
     setEditingExtra(null);
+    if (tutorialCreateEvent) onSaved?.();
     return true;
-  }, [extraEvents]);
+  }, [extraEvents, tutorialCreateEvent, props.onTutorialEventSaved, t]);
 
   const handleDeleteExtra = useCallback((id: string) => {
     setExtraEvents((prev) => prev.filter((x) => x.id !== id));
@@ -658,7 +740,7 @@ export default function CalendarView(props: {
     (e: React.MouseEvent, task: Task) => {
       const column = columnRecords.find((col) => col.name === task.column);
       if (!column?.id || column.id.startsWith("temp-")) {
-        toastError("Colonne introuvable pour cette tâche.");
+        toastError(t("calendarView.toast.columnNotFound"));
         return;
       }
       setColorMenu({
@@ -670,7 +752,7 @@ export default function CalendarView(props: {
         currentColor: column.color?.trim() || colorFor(task.column),
       });
     },
-    [columnRecords, colorFor],
+    [columnRecords, colorFor, t],
   );
 
   const handlePickColumnColor = useCallback(
@@ -679,22 +761,26 @@ export default function CalendarView(props: {
       setColorSaving(true);
       try {
         await setBoardColumnColor(colorMenu.columnId, color);
-        toastSuccess(`Couleur de « ${colorMenu.columnLabel} » mise à jour`);
+        toastSuccess(t("calendarView.toast.colorUpdated", { label: colorMenu.columnLabel }));
         setColorMenu(null);
       } catch {
-        toastError("Impossible de changer la couleur.");
+        toastError(t("calendarView.toast.colorError"));
       } finally {
         setColorSaving(false);
       }
     },
-    [colorMenu, colorSaving],
+    [colorMenu, colorSaving, t],
   );
 
   const TaskEventComponent = useCallback(
     (eventProps: { event: CalendarEvent }) => (
-      <CalendarEventWrapper event={eventProps.event} onTaskContextMenu={handleTaskContextMenu} />
+      <CalendarEventWrapper
+        event={eventProps.event}
+        onTaskContextMenu={handleTaskContextMenu}
+        demoHint={t("firstTaskTutorial.spotlight.calendarDemoHint")}
+      />
     ),
-    [handleTaskContextMenu],
+    [handleTaskContextMenu, t],
   );
 
   const visibleTasks = useMemo(
@@ -707,13 +793,18 @@ export default function CalendarView(props: {
 
   const events = useMemo<CalendarEvent[]>(() => {
     const result: CalendarEvent[] = [];
+    const highlightId = props.highlightTaskId;
+    let highlightHasEvents = false;
+
     for (const task of visibleTasks) {
       const owner = (task.admins[0] ?? props.admins[0] ?? "") as AdminId;
       const ownerColor = adminAvatarMetaFor(owner).calendarColor;
       const columnColor = colorFor(task.column);
+      const isHighlighted = Boolean(highlightId && task.id === highlightId);
 
       for (const item of task.projectedWork || []) {
         if (!item.date || item.hours <= 0) continue;
+        if (isHighlighted) highlightHasEvents = true;
         const d = parse(item.date, "yyyy-MM-dd", new Date());
         let start: Date;
         let end: Date;
@@ -742,11 +833,13 @@ export default function CalendarView(props: {
             owner,
             ownerColor,
             columnColor,
+            isHighlighted,
           },
         });
       }
 
       if (task.deadline) {
+        if (isHighlighted) highlightHasEvents = true;
         const d = parse(task.deadline, "yyyy-MM-dd", new Date());
         result.push({
           id: `${task.id}-deadline`,
@@ -762,6 +855,61 @@ export default function CalendarView(props: {
             owner,
             ownerColor,
             columnColor,
+            isHighlighted,
+          },
+        });
+      }
+    }
+
+    if (highlightId && !highlightHasEvents) {
+      const task = visibleTasks.find((entry) => entry.id === highlightId);
+      if (task) {
+        const owner = (task.admins[0] ?? props.admins[0] ?? "") as AdminId;
+        const ownerColor = adminAvatarMetaFor(owner).calendarColor;
+        const columnColor = colorFor(task.column);
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 0, 0);
+        const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+        result.push({
+          id: `${task.id}-tutorial-highlight`,
+          title: task.projectName || "Votre projet",
+          start,
+          end,
+          resource: {
+            task,
+            domain: task.domain,
+            kind: "planning",
+            owner,
+            ownerColor,
+            columnColor,
+            isHighlighted: true,
+          },
+        });
+      }
+    }
+
+    if (tutorialActive) {
+      for (const demo of buildCalendarTutorialDemoEvents(date)) {
+        const demoColor =
+          demo.kind === "deadline"
+            ? CALENDAR_DEADLINE_COLOR
+            : demo.kind === "event"
+              ? CALENDAR_EVENT_COLOR
+              : demo.kind === "extra"
+                ? CALENDAR_EXTRA_COLOR
+                : defaultDomainColor;
+        result.push({
+          id: demo.id,
+          title: demo.title,
+          start: demo.start,
+          end: demo.end,
+          allDay: demo.allDay,
+          resource: {
+            kind: "demo",
+            owner: defaultOwner,
+            ownerColor: demoColor,
+            isDemo: true,
+            demoLocation: demo.location,
           },
         });
       }
@@ -796,7 +944,7 @@ export default function CalendarView(props: {
       if (endExclusive <= start) continue;
       result.push({
         id: `event-${ev.id}`,
-        title: ev.name || "Événement",
+        title: ev.name || t("calendarView.fallback.event"),
         start,
         end: endExclusive,
         allDay: true,
@@ -810,7 +958,18 @@ export default function CalendarView(props: {
     }
 
     return result;
-  }, [visibleTasks, props.admins, extraEvents, defaultOwner, props.calendarEvents, colorFor]);
+  }, [
+    visibleTasks,
+    props.admins,
+    props.highlightTaskId,
+    extraEvents,
+    defaultOwner,
+    props.calendarEvents,
+    colorFor,
+    tutorialActive,
+    date,
+    t,
+  ]);
 
   const CustomToolbar = useCallback(
     (tbProps: {
@@ -825,13 +984,24 @@ export default function CalendarView(props: {
         onView={tbProps.onView}
         view={tbProps.view}
         onAddManual={() => openNewEvent()}
+        highlightAddEvent={tutorialCreateEvent && !modalOpen}
       />
     ),
-    [openNewEvent],
+    [openNewEvent, tutorialCreateEvent, modalOpen],
   );
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4" data-tutorial="calendar-view-panel">
+      {tutorialActive ? (
+        <p className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/8 px-4 py-2.5 text-xs text-[color:var(--foreground)]/70">
+          <span className="font-semibold text-[var(--accent-strong)]">
+            {t("firstTaskTutorial.spotlight.calendarDemoHint")}
+          </span>
+          {" — "}
+          {t("firstTaskTutorial.spotlight.calendarBody")}
+        </p>
+      ) : null}
+
       <div className="ui-surface flex flex-wrap items-center gap-3 rounded-2xl p-4">
         <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
           Collaborateur
@@ -955,6 +1125,7 @@ export default function CalendarView(props: {
               event: TaskEventComponent,
             }}
             onSelectEvent={(event: CalendarEvent) => {
+              if (event.resource.isDemo || event.resource.kind === "demo") return;
               if (event.resource.kind === "extra" && event.resource.extra) {
                 setEditingExtra(event.resource.extra);
                 setModalOpen(true);
@@ -969,7 +1140,22 @@ export default function CalendarView(props: {
               }
             }}
             eventPropGetter={(event: CalendarEvent) => {
-              const { owner, isDeadline, ownerColor, kind } = event.resource;
+              const { owner, isDeadline, ownerColor, kind, isDemo, isHighlighted } = event.resource;
+              if (isDemo || kind === "demo") {
+                const demoColor = ownerColor || defaultDomainColor;
+                return {
+                  className: "calendar-tutorial-demo-event",
+                  style: {
+                    backgroundColor: demoColor,
+                    borderColor: `${demoColor}66`,
+                    color: "#fff",
+                    borderRadius: "8px",
+                    padding: "2px 4px",
+                    fontSize: "11px",
+                    opacity: 0.38,
+                  },
+                };
+              }
               if (kind === "extra") {
                 return {
                   style: {
@@ -1002,6 +1188,7 @@ export default function CalendarView(props: {
                 defaultDomainColor;
               if (isDeadline) {
                 return {
+                  className: isHighlighted ? "calendar-tutorial-highlight-event" : undefined,
                   style: {
                     backgroundColor: CALENDAR_DEADLINE_COLOR,
                     borderColor: "color-mix(in srgb, var(--danger) 85%, var(--foreground))",
@@ -1010,10 +1197,14 @@ export default function CalendarView(props: {
                     padding: "2px 4px",
                     fontSize: "11px",
                     borderLeft: `4px solid ${event.resource.columnColor ?? CALENDAR_DEADLINE_COLOR}`,
+                    ...(isHighlighted
+                      ? { boxShadow: "0 0 0 2px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent)" }
+                      : {}),
                   },
                 };
               }
               return {
+                className: isHighlighted ? "calendar-tutorial-highlight-event" : undefined,
                 style: {
                   backgroundColor: color,
                   borderColor: `${color}cc`,
@@ -1021,6 +1212,9 @@ export default function CalendarView(props: {
                   borderRadius: "8px",
                   borderLeft: `4px solid ${event.resource.columnColor ?? color}`,
                   padding: "2px 4px",
+                  ...(isHighlighted
+                    ? { boxShadow: "0 0 0 2px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent)" }
+                    : {}),
                 },
               };
             }}
@@ -1031,11 +1225,13 @@ export default function CalendarView(props: {
       <EventModal
         open={modalOpen}
         onClose={() => {
+          if (tutorialCreateEvent) return;
           setModalOpen(false);
           setEditingExtra(null);
         }}
         initial={editingExtra}
         onSave={handleSaveExtra}
+        tutorialMode={tutorialCreateEvent}
         onDelete={
           editingExtra?.id && editingExtra.id.length > 0
             ? () => handleDeleteExtra(editingExtra.id)

@@ -13,6 +13,7 @@ Guide pour valider `app/api/webhooks/stripe/route.ts` avant mise en production.
 | `STRIPE_SECRET_KEY` | Clé secrète **test** (`sk_test_…`) |
 | `STRIPE_WEBHOOK_SECRET` | Secret du webhook local (fourni par `stripe listen`, voir ci-dessous) |
 | `STRIPE_PRICE_SINGLE_PLAN` | ID du prix unique (tiered) en mode test (`price_…`) |
+| `STRIPE_PRICE_SINGLE_PLAN_ANNUAL` | ID du prix annuel (tiered, 2 mois offerts) en mode test |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Clé publique test (`pk_test_…`) — utile pour un checkout réel |
 | `SUPABASE_SERVICE_ROLE_KEY` | Requis : le webhook met à jour `organizations` via le service role |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase |
@@ -193,7 +194,7 @@ stripe trigger customer.subscription.updated
 
 **Effet attendu** (si abonnement lié à une org) :
 
-- `plan` déduit du `price_id` (`STRIPE_PRICE_SINGLE_PLAN`) → `active`
+- `plan` déduit du `price_id` (`STRIPE_PRICE_SINGLE_PLAN` ou `STRIPE_PRICE_SINGLE_PLAN_ANNUAL`) → `active`
 - `billing_status` mappé depuis le statut Stripe (`active`, `trialing`, `past_due`, etc.)
 - `stripe_customer_id`, `stripe_subscription_id`, `trial_ends_at` synchronisés
 
@@ -315,7 +316,8 @@ Configurer pour l’environnement **Production** (et **Preview** si besoin de te
 |----------|--------|-------|
 | `STRIPE_SECRET_KEY` | `sk_live_…` | Clé secrète **live** — jamais côté client |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…` | Secret de l’endpoint webhook **production** (Dashboard Stripe, pas `stripe listen`) |
-| `STRIPE_PRICE_SINGLE_PLAN` | `price_…` | Prix unique (tiered) **live** |
+| `STRIPE_PRICE_SINGLE_PLAN` | `price_…` | Prix unique (tiered) **live** mensuel |
+| `STRIPE_PRICE_SINGLE_PLAN_ANNUAL` | `price_…` | Prix annuel (tiered, 2 mois offerts) **live** |
 | `NEXT_PUBLIC_APP_URL` | `https://project-time-management.vercel.app` | URL canonique de production |
 | `SUPABASE_SERVICE_ROLE_KEY` | (existant) | Indispensable pour `updateOrganizationBilling` |
 | `BILLING_ENFORCEMENT` | `true` ou `false` | `true` pour bloquer l'accès sans abonnement actif après l'essai |
@@ -342,7 +344,7 @@ Configurer pour l’environnement **Production** (et **Preview** si besoin de te
 - [ ] Un checkout live de test (petit montant ou remboursement immédiat) met à jour `organizations` en production.
 - [ ] Le Dashboard Stripe → Webhooks affiche des livraisons `200` pour les événements ci-dessus.
 - [ ] Aucun secret `whsec_` de `stripe listen` n’est présent dans les variables Vercel production.
-- [ ] `STRIPE_PRICE_SINGLE_PLAN` correspond au prix **live** actif (tiered volume).
+- [ ] `STRIPE_PRICE_SINGLE_PLAN` et `STRIPE_PRICE_SINGLE_PLAN_ANNUAL` correspondent aux prix **live** actifs (tiered volume).
 - [ ] `NEXT_PUBLIC_APP_URL` pointe vers le domaine de production (URLs de retour checkout / portail).
 - [ ] La migration `20260713160000_stripe_billing.sql` est appliquée sur la base Supabase de production.
 - [ ] `BILLING_ENFORCEMENT` est défini selon la politique commerciale souhaitée.

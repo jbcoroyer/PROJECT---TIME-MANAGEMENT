@@ -13,8 +13,10 @@ import { completeInitialSetup } from "../../app/actions/setup";
 import { uploadOrgAsset } from "../../app/actions/storage";
 import { AppMark } from "../AppBrand";
 import BrandColorPicker from "./BrandColorPicker";
-import { detectAccentFromFile } from "../../lib/detectLogoAccentColor";
-import ModuleCatalog from "./ModuleCatalog";
+import { extractAccentColorsFromFile, extractAccentColorsFromImageSource } from "../../lib/detectLogoAccentColor";
+import { isImageWithinServerActionLimit } from "../../lib/imageUploadLimits";
+import ModuleQuestionnaire from "./ModuleQuestionnaire";
+import { TRIAL_DAYS } from "../../lib/billing/plans";
 import { brandingStyleVars } from "../../lib/branding";
 import { useBranding } from "../../lib/brandingContext";
 import { LOCALE_OPTIONS, detectBrowserLocale, resolveLocale, type AppLocale } from "../../lib/i18n";
@@ -22,7 +24,7 @@ import { readStoredLocale } from "../../lib/i18n/localeStorage";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
 import { useCurrentUser } from "../../lib/useCurrentUser";
-import { findClosestPresetHex, isPresetColor, normalizeHexColor } from "../../lib/brandColorPresets";
+import { normalizeHexColor } from "../../lib/brandColorPresets";
 import { DEFAULT_ONBOARDING_MODULES, getDefaultModuleRoute, type AppModuleId } from "../../lib/modules";
 import { toastError, toastSuccess } from "../../lib/toast";
 import "./setup-onboarding.css";
@@ -75,6 +77,8 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
   const [locale, setLocale] = useState<AppLocale>(() => readStoredLocale() ?? detectBrowserLocale());
   const [enabledModules, setEnabledModules] = useState<AppModuleId[]>([...DEFAULT_ONBOARDING_MODULES]);
   const [markUploading, setMarkUploading] = useState(false);
+  const [logoAccentColors, setLogoAccentColors] = useState<string[]>([]);
+  const [modulePhase, setModulePhase] = useState<"questions" | "recommendation">("questions");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hydratedFromBranding, setHydratedFromBranding] = useState(false);
@@ -88,7 +92,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
       if (name && !appName.trim()) setAppName(name);
       if (branding.primaryColor) {
         const hex = normalizeHexColor(branding.primaryColor) || branding.primaryColor;
-        setPrimaryColor(isPresetColor(hex) ? hex : findClosestPresetHex(hex));
+        setPrimaryColor(hex);
       }
       setHydratedFromBranding(true);
     });
@@ -99,6 +103,19 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
   useEffect(() => {
     onAccentChange?.(normalizeHexColor(primaryColor) || primaryColor);
   }, [onAccentChange, primaryColor]);
+
+  useEffect(() => {
+    if (step !== 2 || !markPreviewUrl || logoAccentColors.length > 0) return;
+    let cancelled = false;
+    void extractAccentColorsFromImageSource(markPreviewUrl, 7).then((colors) => {
+      if (!cancelled && colors.length > 0) {
+        setLogoAccentColors(colors);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [step, markPreviewUrl, logoAccentColors.length]);
 
   const previewName = appName.trim() || branding.appName || "Workspace";
   const organizationId = user?.organizationId ?? branding.organizationId;
@@ -116,9 +133,15 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
       return;
     }
 
-    const detected = await detectAccentFromFile(file);
-    if (detected) {
-      setPrimaryColor(detected);
+    if (!isImageWithinServerActionLimit(file)) {
+      toastError(t("common.imageTooLarge"));
+      return;
+    }
+
+    const extractedColors = await extractAccentColorsFromFile(file, 7);
+    if (extractedColors.length > 0) {
+      setLogoAccentColors(extractedColors);
+      setPrimaryColor(extractedColors[0]);
     }
 
     setMarkUploading(true);
@@ -276,6 +299,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
                       onClick={() => {
                         setMarkStoragePath(null);
                         setMarkPreviewUrl(null);
+                        setLogoAccentColors([]);
                       }}
                       className="ui-btn ui-btn-ghost"
                     >
@@ -305,6 +329,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
                 <BrandColorPicker
                   value={primaryColor}
                   onChange={(hex) => setPrimaryColor(normalizeHexColor(hex) || hex)}
+                  logoColors={logoAccentColors}
                 />
                 <AccentLivePreview />
               </div>
@@ -312,7 +337,11 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
           )}
 
           {step === 3 && (
-            <ModuleCatalog variant="onboarding" value={enabledModules} onChange={setEnabledModules} />
+            <ModuleQuestionnaire
+              value={enabledModules}
+              onChange={setEnabledModules}
+              onPhaseChange={setModulePhase}
+            />
           )}
 
           {step === 4 && (
@@ -383,6 +412,18 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
                 </p>
                 <p className="mt-1 opacity-90">{t("setup.readyBody", { name: previewName })}</p>
               </div>
+
+              <div className="rounded-[var(--radius-lg)] border border-[var(--accent)]/25 bg-[color-mix(in_srgb,var(--accent)_8%,var(--surface))] px-5 py-4">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent-strong)]">
+                  {t("setup.trialKicker", { days: TRIAL_DAYS })}
+                </p>
+                <p className="mt-2 text-base font-semibold text-[var(--foreground)]">
+                  {t("setup.trialTitle", { days: TRIAL_DAYS })}
+                </p>
+                <p className="mt-1.5 text-sm leading-relaxed text-[var(--ink-muted)]">
+                  {t("setup.trialBody")}
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -408,6 +449,10 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
               onClick={() => {
                 if (step === 1 && !appName.trim()) {
                   setError(t("setup.nameRequired"));
+                  return;
+                }
+                if (step === 3 && modulePhase !== "recommendation") {
+                  setError(t("setup.moduleQuiz.finishFirst"));
                   return;
                 }
                 if (step === 3 && enabledModules.length === 0) {

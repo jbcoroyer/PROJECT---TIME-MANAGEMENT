@@ -18,9 +18,11 @@ import {
   UserRound,
 } from "lucide-react";
 import { uploadOrgAsset } from "../../app/actions/storage";
+import { isImageWithinServerActionLimit } from "../../lib/imageUploadLimits";
 import AuthAtelierShell, { AuthMobileBrand, AuthTabLink } from "./AuthAtelierShell";
 import OAuthButtons from "./OAuthButtons";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { InlineAlertMessages } from "../ui/InlineAlert";
 import { getOAuthCallbackOrigin } from "../../lib/publicAppUrl";
 import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 
@@ -64,6 +66,11 @@ export default function SignUpScreen() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!isImageWithinServerActionLimit(file)) {
+      setError(t("common.imageTooLarge"));
+      e.target.value = "";
+      return;
+    }
     setPhotoFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
@@ -254,7 +261,7 @@ export default function SignUpScreen() {
                 autoComplete="organization-title"
               />
 
-              <AlertBox error={error} />
+              <InlineAlertMessages error={error} />
 
               <button
                 type="button"
@@ -320,7 +327,7 @@ export default function SignUpScreen() {
                 autoComplete="new-password"
               />
 
-              <AlertBox error={error} />
+              <InlineAlertMessages error={error} />
 
               <label className="flex items-start gap-2.5 text-sm text-[color:var(--foreground)]/70">
                 <input
@@ -442,14 +449,6 @@ function PasswordField(props: {
   );
 }
 
-function AlertBox(props: { error?: string | null }) {
-  if (!props.error) return null;
-  return (
-    <div className="ui-alert ui-alert-danger rounded-xl px-3 py-2 text-sm">
-      {props.error}
-    </div>
-  );
-}
 
 function SubmitBtn(props: { loading: boolean; label: string; loadingLabel: string }) {
   return (

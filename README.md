@@ -126,7 +126,7 @@ Après l’essai : un abonnement actif est **requis** (plus de plan Gratuit).
 - Checkout : Paramètres → Facturation ou `/pricing`
 - Webhook : `POST /api/webhooks/stripe`
 - Blocage post-essai : `/billing` si `BILLING_ENFORCEMENT=true`
-- Variable prix : `STRIPE_PRICE_SINGLE_PLAN`
+- Variable prix : `STRIPE_PRICE_SINGLE_PLAN` (mensuel) et `STRIPE_PRICE_SINGLE_PLAN_ANNUAL` (annuel, 2 mois offerts)
 
 Guide Stripe local : [docs/TEST_STRIPE_WEBHOOK.md](docs/TEST_STRIPE_WEBHOOK.md)
 

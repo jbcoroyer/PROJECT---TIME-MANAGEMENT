@@ -1,14 +1,17 @@
 import { en } from "./messages/en";
+import { es } from "./messages/es";
 import { fr, type MessageTree } from "./messages/fr";
 
-export type AppLocale = "fr" | "en";
+export type AppLocale = "fr" | "en" | "es";
 
-const catalogs: Record<AppLocale, MessageTree> = { fr, en };
+const catalogs: Record<AppLocale, MessageTree> = { fr, en, es };
 
-/** Normalise une locale (fr, fr-FR, en-US…) vers fr ou en. */
+/** Normalise une locale (fr, fr-FR, en-US, es-ES…) vers fr, en ou es. */
 export function resolveLocale(value: string | null | undefined): AppLocale {
   const base = (value ?? "").trim().split(/[-_]/)[0]?.toLowerCase();
-  return base === "en" ? "en" : "fr";
+  if (base === "en") return "en";
+  if (base === "es") return "es";
+  return "fr";
 }
 
 /** Détecte la langue du navigateur (côté client uniquement). */
@@ -51,4 +54,5 @@ export function createTranslator(locale: AppLocale) {
 export const LOCALE_OPTIONS: { value: AppLocale; label: string }[] = [
   { value: "fr", label: "Français" },
   { value: "en", label: "English" },
+  { value: "es", label: "Español" },
 ];

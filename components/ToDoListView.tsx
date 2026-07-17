@@ -250,7 +250,10 @@ export default function ToDoListView(props: {
 
   const mainContent = (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-[color-mix(in_srgb,var(--accent)_22%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] p-4">
+      <div
+        className="rounded-2xl border border-[color-mix(in_srgb,var(--accent)_22%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] p-4"
+        data-tutorial="todo-views-guide"
+      >
         <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
           Vue personnelle
         </p>
@@ -436,11 +439,11 @@ export default function ToDoListView(props: {
   );
 
   if (!showActivityPanel) {
-    return mainContent;
+    return <div data-tutorial="todo-view-panel">{mainContent}</div>;
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+    <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]" data-tutorial="todo-view-panel">
       {mainContent}
       <InboxActivityPanel />
     </div>

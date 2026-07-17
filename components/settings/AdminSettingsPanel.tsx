@@ -23,6 +23,7 @@ import { useTranslation } from "../../lib/i18n/useTranslation";
 import LocalePicker from "../i18n/LocalePicker";
 import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
 import { uploadOrgAsset } from "../../app/actions/storage";
+import { isImageWithinServerActionLimit } from "../../lib/imageUploadLimits";
 import { SettingsSection } from "./settingsShared";
 
 type TeamMemberRow = {
@@ -153,6 +154,11 @@ export default function AdminSettingsPanel() {
                     const allowed = ["png", "webp", "jpg", "jpeg", "gif", "svg"];
                     if (!allowed.includes(ext)) {
                       toastError(t("settings.brandingInvalidFormat"));
+                      e.target.value = "";
+                      return;
+                    }
+                    if (!isImageWithinServerActionLimit(file)) {
+                      toastError(t("common.imageTooLarge"));
                       e.target.value = "";
                       return;
                     }

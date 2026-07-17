@@ -4,8 +4,10 @@ import ModuleGlyph from "../modules/ModuleGlyph";
 import ScrollReveal from "./ScrollReveal";
 import LandingPricingSection from "./LandingPricingSection";
 import {
+  ANNUAL_FLOOR_EUR,
   FLOOR_INCLUDED_SEATS,
   MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_ANNUAL_EUR,
   PRICE_PER_SEAT_EUR,
   TRIAL_DAYS,
 } from "../../lib/billing/plans";
@@ -65,7 +67,7 @@ const HERO_STATS = [
   { value: `${TRIAL_DAYS}j`, label: "Essai complet, sans CB", accent: false },
   {
     value: `${PRICE_PER_SEAT_EUR}€`,
-    label: "Par utilisateur / mois",
+    label: "Par utilisateur / mois · annuel −2 mois",
     accent: true,
   },
 ];
@@ -108,9 +110,9 @@ const PRODUCT_BENEFITS = [
 
 const WHY_POINTS = [
   "Tout inclus : 11 modules + IA + Outlook + alertes Slack / Teams",
-  `${PRICE_PER_SEAT_EUR} € / utilisateur / mois — minimum ${MONTHLY_FLOOR_EUR} € (jusqu’à ${FLOOR_INCLUDED_SEATS} personnes)`,
+  `${PRICE_PER_SEAT_EUR} € / utilisateur / mois ou ${PRICE_PER_SEAT_ANNUAL_EUR} € / an (2 mois offerts) — minimum ${MONTHLY_FLOOR_EUR} € / mois ou ${ANNUAL_FLOOR_EUR} € / an (jusqu'à ${FLOOR_INCLUDED_SEATS} personnes)`,
   "Invitations illimitées — la facture suit le nombre de sièges actifs",
-  `Essai ${TRIAL_DAYS} jours sans carte — après, abonnement requis pour continuer`,
+  `Essai ${TRIAL_DAYS} jours sans carte — après, abonnement mensuel ou annuel requis pour continuer`,
   "Logo, couleurs et modules : chaque espace s’adapte à votre organisation",
 ];
 
@@ -201,7 +203,7 @@ export default function LandingPage() {
                 <br />
                 Tarif unique de{" "}
                 <strong className="font-semibold text-[var(--ink)]">
-                  {PRICE_PER_SEAT_EUR}&nbsp;€ par utilisateur
+                  {PRICE_PER_SEAT_EUR}&nbsp;€/mois ou {PRICE_PER_SEAT_ANNUAL_EUR}&nbsp;€/an
                 </strong>
                 . Tout est inclus&nbsp;!
               </p>
@@ -419,7 +421,7 @@ export default function LandingPage() {
             <p className="mx-auto mt-[22px] max-w-[520px] text-[17px] text-[rgba(246,241,231,0.6)]">
               Créez votre espace en quelques minutes, activez vos modules, invitez l&apos;équipe.{" "}
               {TRIAL_DAYS} jours pour tout tester, sans carte — puis {PRICE_PER_SEAT_EUR}&nbsp;€ /
-              utilisateur / mois.
+              utilisateur / mois ou {PRICE_PER_SEAT_ANNUAL_EUR}&nbsp;€ / an (2 mois offerts).
             </p>
             <Link
               href="/signup"

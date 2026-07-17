@@ -13,6 +13,7 @@ import { createPortal } from "react-dom";
 import { AlertTriangle, Trash2, X } from "lucide-react";
 import { useIsClient } from "../../lib/useIsClient";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { ModalOverlay, ModalPanel } from "./ModalShell";
 
 export type ConfirmOptions = {
   /** Titre principal de la boîte de dialogue. */
@@ -124,17 +125,8 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
     mounted &&
     pending &&
     createPortal(
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="confirm-dialog-title"
-        className="fixed inset-0 flex items-center justify-center bg-[var(--foreground)]/30 px-4 backdrop-blur-sm"
-        style={{ zIndex: "var(--z-dialog)" }}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) close(false);
-        }}
-      >
-        <div className="w-full max-w-sm rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-[0_34px_90px_rgba(20,17,13,0.24)]">
+      <ModalOverlay onBackdropClick={() => close(false)} labelledBy="confirm-dialog-title">
+        <ModalPanel>
           <div className="mb-4 flex items-start justify-between gap-2">
             <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${iconWrapper}`}>
               <Icon className="h-6 w-6" aria-hidden />
@@ -148,10 +140,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
               <X className="h-4 w-4" />
             </button>
           </div>
-          <h3
-            id="confirm-dialog-title"
-            className="ui-display text-lg text-[var(--foreground)]"
-          >
+          <h3 id="confirm-dialog-title" className="ui-display text-lg text-[var(--foreground)]">
             {pending.options.title}
           </h3>
           {pending.options.description ? (
@@ -177,8 +166,8 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                 (variant === "destructive" ? t("confirmDialog.delete") : t("confirmDialog.confirm"))}
             </button>
           </div>
-        </div>
-      </div>,
+        </ModalPanel>
+      </ModalOverlay>,
       document.body,
     );
 

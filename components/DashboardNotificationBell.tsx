@@ -6,10 +6,13 @@ import Link from "next/link";
 import { Bell } from "lucide-react";
 import { useInAppNotifications } from "../lib/inAppNotificationsContext";
 import { useIsClient } from "../lib/useIsClient";
+import { useTranslation } from "../lib/i18n/useTranslation";
+import type { AppLocale } from "../lib/i18n";
 
-function formatNotifTime(at: number): string {
+function formatNotifTime(at: number, locale: AppLocale): string {
+  const dateLocale = locale === "fr" ? "fr-FR" : locale === "es" ? "es-ES" : "en-US";
   try {
-    return new Date(at).toLocaleString("fr-FR", {
+    return new Date(at).toLocaleString(dateLocale, {
       day: "numeric",
       month: "short",
       hour: "2-digit",
@@ -23,6 +26,7 @@ function formatNotifTime(at: number): string {
 type PanelPos = { top: number; right: number; width: number; maxHeight: number };
 
 export default function DashboardNotificationBell() {
+  const { t, locale } = useTranslation();
   const { history, markHistoryRead, clearHistory, unreadCount } = useInAppNotifications();
   const [open, setOpen] = useState(false);
   const mounted = useIsClient();
@@ -83,8 +87,8 @@ export default function DashboardNotificationBell() {
     <div
       ref={panelRef}
       role="dialog"
-      aria-label="Centre de notifications"
-      className="ui-surface flex flex-col overflow-hidden rounded-2xl border border-[var(--line-strong)] shadow-[0_24px_80px_rgba(20,17,13,0.22)]"
+      aria-label={t("notifications.bell.ariaLabel")}
+      className="ui-popup-panel flex flex-col overflow-hidden"
       style={{
         position: "fixed",
         zIndex: 250,
@@ -95,14 +99,14 @@ export default function DashboardNotificationBell() {
       }}
     >
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-[var(--line)] px-4 py-3">
-        <p className="text-sm font-semibold text-[var(--foreground)]">Notifications</p>
+        <p className="text-sm font-semibold text-[var(--foreground)]">{t("notifications.bell.title")}</p>
         {history.length > 0 ? (
           <button
             type="button"
             onClick={() => clearHistory()}
             className="ui-transition text-[11px] font-semibold text-[color:var(--foreground)]/55 hover:text-[var(--accent)]"
           >
-            Tout effacer
+            {t("notifications.bell.clearAll")}
           </button>
         ) : null}
       </div>
@@ -110,11 +114,9 @@ export default function DashboardNotificationBell() {
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         {history.length === 0 ? (
           <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-6 text-center">
-            <p className="text-sm font-medium text-[color:var(--foreground)]/75">Aucune notification pour l’instant</p>
+            <p className="text-sm font-medium text-[color:var(--foreground)]/75">{t("notifications.bell.emptyTitle")}</p>
             <p className="mt-2 text-xs leading-relaxed text-[color:var(--foreground)]/55">
-              Vous verrez ici les nouvelles tâches qui vous concernent, les changements d’échéance ou de colonne
-              (temps réel), ainsi que les rappels de dates limites. Si un autre collaborateur modifie le Kanban, une
-              alerte apparaît aussi en haut à droite de l’écran.
+              {t("notifications.bell.emptyBody")}
             </p>
           </div>
         ) : (
@@ -134,14 +136,14 @@ export default function DashboardNotificationBell() {
                   <p className="mt-0.5 text-[11px] leading-relaxed text-[color:var(--foreground)]/60">{item.body}</p>
                 ) : null}
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[10px] text-[color:var(--foreground)]/45">{formatNotifTime(item.at)}</span>
+                  <span className="text-[10px] text-[color:var(--foreground)]/45">{formatNotifTime(item.at, locale)}</span>
                   {item.href ? (
                     <Link
                       href={item.href}
                       onClick={() => setOpen(false)}
                       className="text-[11px] font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]"
                     >
-                      Ouvrir
+                      {t("notifications.bell.open")}
                     </Link>
                   ) : null}
                 </div>
@@ -160,7 +162,7 @@ export default function DashboardNotificationBell() {
           ref={buttonRef}
           type="button"
           onClick={() => setOpen((was) => !was)}
-          title="Notifications"
+          title={t("notifications.bell.title")}
           aria-expanded={open}
           aria-haspopup="dialog"
           className="ui-transition relative flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] text-[color:var(--foreground)]/75 shadow-[0_8px_22px_rgba(20,17,13,0.08)] hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]"
@@ -171,7 +173,7 @@ export default function DashboardNotificationBell() {
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           ) : null}
-          <span className="sr-only">Notifications</span>
+          <span className="sr-only">{t("notifications.bell.srOnly")}</span>
         </button>
       </div>
       {mounted && panel ? createPortal(panel, document.body) : null}

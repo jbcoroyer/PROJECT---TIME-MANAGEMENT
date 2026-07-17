@@ -38,7 +38,7 @@ export default function IntakeTaskMappingModal({
     setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
 
   return (
-    <div className="fixed inset-0 z-[calc(var(--z-overlay)+5)] flex items-center justify-center bg-black/40 p-4">
+    <div className="ui-modal-overlay">
       <div
         role="dialog"
         aria-modal="true"

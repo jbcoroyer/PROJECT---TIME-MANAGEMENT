@@ -40,6 +40,8 @@ type GamificationContextValue = {
   tutorialActive: boolean;
   tutorialStep: FirstTaskTutorialStep;
   setTutorialRuntime: (active: boolean, step: FirstTaskTutorialStep) => void;
+  calendarEventModalOpen: boolean;
+  setCalendarEventModalOpen: (open: boolean) => void;
   requestTutorialResume: boolean;
   clearTutorialResume: () => void;
 };
@@ -58,6 +60,13 @@ const FIRST_TASK_STEP_MAP: Record<string, FirstTaskTutorialStep> = {
   clickNewTask: "clickNewTask",
   fillForm: "fillForm",
   celebrate: "celebrate",
+  visitList: "visitList",
+  editInList: "editInList",
+  visitCalendar: "visitCalendar",
+  exploreCalendar: "exploreCalendar",
+  createEvent: "createEvent",
+  visitTodo: "visitTodo",
+  exploreTodo: "exploreTodo",
   done: "done",
 };
 
@@ -69,6 +78,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [tutorialActive, setTutorialActive] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<FirstTaskTutorialStep>("welcome");
+  const [calendarEventModalOpen, setCalendarEventModalOpen] = useState(false);
   const [requestTutorialResume, setRequestTutorialResume] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -177,6 +187,8 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
       tutorialActive,
       tutorialStep,
       setTutorialRuntime,
+      calendarEventModalOpen,
+      setCalendarEventModalOpen,
       requestTutorialResume,
       clearTutorialResume: () => setRequestTutorialResume(false),
     }),
@@ -192,6 +204,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
       tutorialActive,
       tutorialStep,
       setTutorialRuntime,
+      calendarEventModalOpen,
       requestTutorialResume,
     ],
   );

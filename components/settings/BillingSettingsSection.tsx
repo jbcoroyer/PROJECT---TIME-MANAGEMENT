@@ -5,6 +5,7 @@ import { CreditCard } from "lucide-react";
 import {
   FLOOR_INCLUDED_SEATS,
   MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_ANNUAL_EUR,
   PRICE_PER_SEAT_EUR,
   TRIAL_DAYS,
 } from "../../lib/billing/plans";
@@ -47,6 +48,9 @@ export default function BillingSettingsSection() {
                   floor: MONTHLY_FLOOR_EUR,
                   seats: FLOOR_INCLUDED_SEATS,
                 })}
+              </p>
+              <p className="mt-2 text-[11px] font-semibold text-[var(--accent)]">
+                {t("pricing.annualCommitment")} · {PRICE_PER_SEAT_ANNUAL_EUR} €{t("settings.billing.perYearSuffix")}
               </p>
             </div>
           </div>

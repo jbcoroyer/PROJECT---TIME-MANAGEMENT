@@ -11,6 +11,11 @@ describe("resolveLocale", () => {
     expect(resolveLocale("en")).toBe("en");
     expect(resolveLocale("en-US")).toBe("en");
   });
+
+  it("reconnaît l'espagnol", () => {
+    expect(resolveLocale("es")).toBe("es");
+    expect(resolveLocale("es-ES")).toBe("es");
+  });
 });
 
 describe("t", () => {
@@ -20,6 +25,11 @@ describe("t", () => {
 
   it("traduit en anglais", () => {
     expect(t("en", "common.back")).toBe("Back");
+  });
+
+  it("traduit en espagnol", () => {
+    expect(t("es", "setup.chooseLanguage")).toBe("Idioma de la interfaz");
+    expect(t("es", "common.back")).toBe("Volver");
   });
 
   it("interpole les variables", () => {

@@ -604,7 +604,7 @@ export default function V2ListView(props: V2ListViewProps) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-tutorial="list-view-panel">
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
@@ -679,11 +679,13 @@ export default function V2ListView(props: V2ListViewProps) {
                 key={col.id}
                 role="columnheader"
                 className={[
-                  "px-2 py-3",
+                  "min-w-0 overflow-hidden px-2 py-3",
                   col.sticky ? "border-r border-[var(--line)]" : "",
                 ].join(" ")}
               >
-                {col.label}
+                <span className="block truncate" title={col.label || undefined}>
+                  {col.label}
+                </span>
               </div>
             ))}
           </div>
@@ -715,10 +717,8 @@ export default function V2ListView(props: V2ListViewProps) {
                     <ChevronDown className="h-4 w-4 shrink-0 opacity-60" />
                   )}
                   <span>{groupColumn}</span>
-                  <span className="rounded-full bg-[color:var(--foreground)]/8 px-2 py-0.5 text-[11px] font-semibold text-[color:var(--foreground)]/55">
-                    {t(groupTasks.length === 1 ? "dashboard.list.itemsOne" : "dashboard.list.itemsMany", {
-                      count: groupTasks.length,
-                    })}
+                  <span className="shrink-0 rounded-full bg-[color:var(--foreground)]/8 px-2 py-0.5 text-[11px] font-semibold text-[color:var(--foreground)]/55">
+                    {groupTasks.length}
                   </span>
                   </div>
                 </button>

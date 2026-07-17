@@ -5,14 +5,15 @@ import Link from "next/link";
 import { AtelierMark } from "../AtelierMark";
 import { AppWordmark } from "../AppBrand";
 import { useBranding } from "../../lib/brandingContext";
-import { MONTHLY_FLOOR_EUR, PRICE_PER_SEAT_EUR, TRIAL_DAYS } from "../../lib/billing/plans";
+import {
+  ANNUAL_FLOOR_EUR,
+  MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_ANNUAL_EUR,
+  PRICE_PER_SEAT_EUR,
+  TRIAL_DAYS,
+} from "../../lib/billing/plans";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 import "../marketing/marketing.css";
-
-const PROOF_POINTS = [
-  "Kanban, demandes, planning, events, stock, objectifs…",
-  "IA, Outlook 365 et alertes Slack / Teams inclus",
-  `${PRICE_PER_SEAT_EUR} €/utilisateur/mois · min. ${MONTHLY_FLOOR_EUR} € · essai ${TRIAL_DAYS} j sans CB`,
-];
 
 type AuthAtelierShellProps = {
   children: ReactNode;
@@ -22,6 +23,19 @@ type AuthAtelierShellProps = {
 
 export default function AuthAtelierShell({ children, heading, subtitle }: AuthAtelierShellProps) {
   const { branding } = useBranding();
+  const { t } = useTranslation();
+
+  const proofPoints = [
+    t("auth.proofModules"),
+    t("auth.proofIntegrations"),
+    t("auth.proofPricing", {
+      seat: PRICE_PER_SEAT_EUR,
+      annualSeat: PRICE_PER_SEAT_ANNUAL_EUR,
+      floor: MONTHLY_FLOOR_EUR,
+      annualFloor: ANNUAL_FLOOR_EUR,
+      days: TRIAL_DAYS,
+    }),
+  ];
 
   return (
     <div className="auth-atelier">
@@ -52,7 +66,7 @@ export default function AuthAtelierShell({ children, heading, subtitle }: AuthAt
             de projet <em className="text-[var(--accent-on-dark)] italic">abordable.</em>
           </p>
           <div className="mt-10 flex flex-col border-t border-[rgba(246,241,231,0.15)]">
-            {PROOF_POINTS.map((text) => (
+            {proofPoints.map((text) => (
               <div
                 key={text}
                 className="border-b border-[rgba(246,241,231,0.15)] py-[15px] text-[15px] text-[rgba(246,241,231,0.75)]"

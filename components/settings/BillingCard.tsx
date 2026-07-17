@@ -3,13 +3,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { CreditCard, ExternalLink, Loader2, Check } from "lucide-react";
 import {
+  ANNUAL_FLOOR_EUR,
   FLOOR_INCLUDED_SEATS,
   MONTHLY_FLOOR_EUR,
+  PRICE_PER_SEAT_ANNUAL_EUR,
   PRICE_PER_SEAT_EUR,
   SINGLE_PLAN_FEATURES,
-  formatMonthlyPriceEur,
+  formatAnnualMonthlyEquivalentEur,
+  formatPriceEurForInterval,
   singlePlanPricingSummary,
+  type BillingInterval,
 } from "../../lib/billing/plans";
+import BillingIntervalToggle from "../billing/BillingIntervalToggle";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { toastError, toastSuccess } from "../../lib/toast";
 
@@ -34,6 +39,7 @@ export default function BillingCard() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<"checkout" | "portal" | null>(null);
   const [billing, setBilling] = useState<BillingStatusResponse | null>(null);
+  const [interval, setInterval] = useState<BillingInterval>("month");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -70,7 +76,7 @@ export default function BillingCard() {
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ interval }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) throw new Error(data.error ?? t("settings.billing.checkoutError"));
@@ -108,9 +114,11 @@ export default function BillingCard() {
   const onTrial = billing.plan === "trial";
   const onActive = billing.plan === "active";
   const trialExpired = onTrial && billing.trialDaysLeft !== null && billing.trialDaysLeft <= 0;
-  const monthlyLabel = formatMonthlyPriceEur(billing.memberCount);
-  const floorEur = String(MONTHLY_FLOOR_EUR);
-  const seatEur = String(PRICE_PER_SEAT_EUR);
+  const priceLabel = formatPriceEurForInterval(billing.memberCount, interval);
+  const floorEur = interval === "year" ? String(ANNUAL_FLOOR_EUR) : String(MONTHLY_FLOOR_EUR);
+  const seatEur = interval === "year" ? String(PRICE_PER_SEAT_ANNUAL_EUR) : String(PRICE_PER_SEAT_EUR);
+  const periodSuffix =
+    interval === "year" ? t("settings.billing.perYearSuffix") : t("settings.billing.perMonthSuffix");
 
   return (
     <div className="space-y-4">
@@ -130,11 +138,19 @@ export default function BillingCard() {
               </p>
             )}
             <p className="mt-2 text-sm text-[color:var(--foreground)]/70">
-              {billing.memberCount} collaborateur{billing.memberCount > 1 ? "s" : ""} · {monthlyLabel}/mois
+              {t("settings.billing.memberCount", { count: billing.memberCount })} · {priceLabel}
+              {periodSuffix}
               {billing.memberCount <= FLOOR_INCLUDED_SEATS
-                ? ` (plancher ${floorEur} €)`
-                : ` (${seatEur} €/pers.)`}
+                ? ` ${t("settings.billing.floorHintMonthly", { floor: floorEur })}`
+                : ` ${t("settings.billing.seatHintMonthly", { seat: seatEur })}`}
             </p>
+            {interval === "year" && (
+              <p className="mt-1 text-xs text-[color:var(--foreground)]/55">
+                {t("settings.billing.annualEquivalent", {
+                  price: formatAnnualMonthlyEquivalentEur(billing.memberCount),
+                })}
+              </p>
+            )}
             {!billing.accessAllowed && (
               <p className="mt-2 text-sm font-medium text-[var(--danger)]">{t("settings.billing.accessSuspended")}</p>
             )}
@@ -159,12 +175,15 @@ export default function BillingCard() {
 
       {billing.isAdmin && billing.stripeConfigured && !onActive && (
         <div className="rounded-xl border border-[color-mix(in_srgb,var(--accent)_40%,var(--line))] bg-[color-mix(in_srgb,var(--accent)_6%,var(--surface))] p-4">
-          <div className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4 text-[color:var(--foreground)]/50" />
-            <h3 className="font-semibold text-[var(--foreground)]">Abonnement unique — tout inclus</h3>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-[color:var(--foreground)]/50" />
+              <h3 className="font-semibold text-[var(--foreground)]">{t("settings.billing.singlePlanTitle")}</h3>
+            </div>
+            <BillingIntervalToggle value={interval} onChange={setInterval} />
           </div>
           <p className="mt-2 text-sm text-[color:var(--foreground)]/65">
-            {singlePlanPricingSummary()}. Après l&apos;essai, un abonnement est requis.
+            {t("settings.billing.singlePlanBody", { summary: singlePlanPricingSummary(interval) })}
           </p>
           <ul className="mt-3 space-y-1.5">
             {SINGLE_PLAN_FEATURES.map((feature) => (
@@ -185,8 +204,10 @@ export default function BillingCard() {
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {t("settings.billing.redirecting")}
               </span>
+            ) : interval === "year" ? (
+              t("settings.billing.subscribeAnnual", { price: priceLabel })
             ) : (
-              `S'abonner — ${monthlyLabel}/mois`
+              t("settings.billing.subscribeMonthly", { price: priceLabel })
             )}
           </button>
         </div>

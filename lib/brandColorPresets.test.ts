@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  ACCENT_COLOR_CHOICE_COUNT,
   ALL_BRAND_COLOR_PRESETS,
   BRAND_COLOR_PRESETS_DEFAULT,
   BRAND_COLOR_PRESETS_EXTENDED,
   DEFAULT_BRAND_PRIMARY,
+  buildAccentColorChoices,
   findClosestPresetHex,
   findPresetByHex,
   isPresetColor,
@@ -31,5 +33,13 @@ describe("brandColorPresets", () => {
 
   it("trouve le preset le plus proche", () => {
     expect(findClosestPresetHex("#E08030")).toBe(DEFAULT_BRAND_PRIMARY);
+  });
+
+  it("compose 7 couleurs avec priorité au logo", () => {
+    const choices = buildAccentColorChoices(["#112233", "#E07A28"]);
+    expect(choices).toHaveLength(ACCENT_COLOR_CHOICE_COUNT);
+    expect(choices[0]).toBe("#112233");
+    expect(choices[1]).toBe("#E07A28");
+    expect(new Set(choices).size).toBe(ACCENT_COLOR_CHOICE_COUNT);
   });
 });

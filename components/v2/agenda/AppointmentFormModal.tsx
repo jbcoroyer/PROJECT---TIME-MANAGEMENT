@@ -246,7 +246,7 @@ export default function AppointmentFormModal({
   const formKey = editing?.id ?? `new-${initialStart?.getTime() ?? 0}-${initialEnd?.getTime() ?? 0}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="ui-modal-overlay">
       <div className="ui-surface max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl p-5 shadow-[var(--shadow-2)]">
         <AppointmentFormBody
           key={formKey}
