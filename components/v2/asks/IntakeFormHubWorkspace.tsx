@@ -16,12 +16,17 @@ import {
 } from "lucide-react";
 import {
   createIntakeForm,
-  getOrgIntakeForm,
   type IntakeFormWithStats,
 } from "../../../app/actions/intakeForm";
 import { useBranding } from "../../../lib/brandingContext";
+import {
+  defaultTitleForTemplate,
+  defaultWelcomeForTemplate,
+  type IntakeFormTemplateId,
+} from "../../../lib/intake/intakeFormTemplates";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { toastError, toastSuccess } from "../../../lib/toast";
+import IntakeFormTemplatePicker from "./IntakeFormTemplatePicker";
 
 type IntakeFormHubWorkspaceProps = {
   initialForm: IntakeFormWithStats | null;
@@ -30,14 +35,22 @@ type IntakeFormHubWorkspaceProps = {
 export default function IntakeFormHubWorkspace({ initialForm }: IntakeFormHubWorkspaceProps) {
   const router = useRouter();
   const { branding } = useBranding();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [form, setForm] = useState(initialForm);
   const [creating, setCreating] = useState(false);
+  const [templateId, setTemplateId] = useState<IntakeFormTemplateId>("blank");
   const [title, setTitle] = useState(() =>
-    t("asks.hub.defaultTitle", { appName: branding.appName }),
+    defaultTitleForTemplate("blank", "fr", branding.appName),
   );
-  const [welcomeMessage, setWelcomeMessage] = useState(() => t("asks.hub.defaultWelcomeMessage"));
+  const [welcomeMessage, setWelcomeMessage] = useState(() =>
+    defaultWelcomeForTemplate("blank", "fr"),
+  );
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setTitle(defaultTitleForTemplate(templateId, locale, branding.appName));
+    setWelcomeMessage(defaultWelcomeForTemplate(templateId, locale));
+  }, [templateId, locale, branding.appName]);
 
   useEffect(() => {
     setForm(initialForm);
@@ -52,15 +65,17 @@ export default function IntakeFormHubWorkspace({ initialForm }: IntakeFormHubWor
     const cleanTitle = title.trim();
     if (!cleanTitle || creating) return;
     setCreating(true);
-    const result = await createIntakeForm(cleanTitle, welcomeMessage);
+    const result = await createIntakeForm(cleanTitle, welcomeMessage, {
+      templateId,
+      locale,
+    });
     setCreating(false);
     if (!result.ok) {
       toastError(result.error);
       return;
     }
     toastSuccess(t("asks.hub.toast.ready"));
-    const refreshed = await getOrgIntakeForm();
-    setForm(refreshed);
+    router.push("/asks/edit");
     router.refresh();
   };
 
@@ -106,6 +121,12 @@ export default function IntakeFormHubWorkspace({ initialForm }: IntakeFormHubWor
                 </ol>
               </div>
             </div>
+
+            <IntakeFormTemplatePicker
+              value={templateId}
+              onChange={setTemplateId}
+              disabled={creating}
+            />
 
             <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--ink-muted)]">
               {t("asks.hub.create.formTitleLabel")}
