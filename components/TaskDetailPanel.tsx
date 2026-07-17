@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import AdminAvatar from "./AdminAvatar";
 import SubtasksPanel from "./SubtasksPanel";
+import { DatePicker } from "./ui/DatePicker";
 import { adminBadgeClassFor, domainTagStyles } from "../lib/kanbanStyles";
 import type { Task, AdminId, ColumnId, Priority, ProjectedWorkItem } from "../lib/types";
 import type { CurrentUser } from "../lib/useCurrentUser";
@@ -468,10 +469,9 @@ export default function TaskDetailPanel(props: {
                 <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--foreground)]/55">
                   Date limite (deadline)
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={planDeadline}
-                  onChange={(e) => setPlanDeadline(e.target.value)}
+                  onChange={setPlanDeadline}
                   className={[
                     "ui-focus-ring mt-1 w-full rounded-lg border bg-[var(--surface)] px-2.5 py-1.5 text-sm",
                     isOverdue ? "border-[color-mix(in_srgb,var(--danger)_35%,var(--line))]" : "border-[var(--line)]",
@@ -579,15 +579,16 @@ export default function TaskDetailPanel(props: {
                       key={`${slot.date}-${index}`}
                       className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-2 text-xs"
                     >
-                      <input
-                        type="date"
+                      <DatePicker
                         value={slot.date}
-                        onChange={(e) =>
+                        onChange={(v) =>
                           setPlanProjectedWork((prev) =>
-                            prev.map((p, i) => (i === index ? { ...p, date: e.target.value } : p)),
+                            prev.map((p, i) => (i === index ? { ...p, date: v } : p)),
                           )
                         }
-                        className="ui-focus-ring rounded-md border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1"
+                        compact
+                        clearable={false}
+                        className="ui-focus-ring rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 py-1"
                       />
                       {isDayOnly ? (
                         <>

@@ -17,6 +17,8 @@ import { fr } from "date-fns/locale";
 import { Building2, ChevronLeft, ChevronRight, MapPin, Plus, Trash2, X } from "lucide-react";
 import { createEventWithTasks } from "../app/actions/events";
 import AdminAvatar from "./AdminAvatar";
+import { DatePicker } from "./ui/DatePicker";
+import { DateTimePicker } from "./ui/DateTimePicker";
 import type { Task, AdminId } from "../lib/types";
 import type { EventRow } from "../lib/eventTypes";
 import { toastError, toastSuccess } from "../lib/toast";
@@ -519,10 +521,10 @@ function EventModal({ open, onClose, onSave, onDelete, initial, tutorialMode = f
                 <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
                   {t("calendarView.modal.start")}
                 </label>
-                <input
-                  type="datetime-local"
+                <DateTimePicker
                   value={startVal}
-                  onChange={(e) => setStartVal(e.target.value)}
+                  onChange={setStartVal}
+                  compact
                   className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2 py-2 text-xs"
                 />
               </div>
@@ -530,10 +532,10 @@ function EventModal({ open, onClose, onSave, onDelete, initial, tutorialMode = f
                 <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
                   {t("calendarView.modal.end")}
                 </label>
-                <input
-                  type="datetime-local"
+                <DateTimePicker
                   value={endVal}
-                  onChange={(e) => setEndVal(e.target.value)}
+                  onChange={setEndVal}
+                  compact
                   className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2 py-2 text-xs"
                 />
               </div>
@@ -544,14 +546,13 @@ function EventModal({ open, onClose, onSave, onDelete, initial, tutorialMode = f
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
                 {t("calendarView.modal.date")}
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={startVal.slice(0, 10)}
-                onChange={(e) => {
-                  const d = e.target.value;
+                onChange={(d) => {
                   setStartVal(`${d}T09:00`);
                   setEndVal(`${d}T18:00`);
                 }}
+                clearable={false}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
               />
             </div>

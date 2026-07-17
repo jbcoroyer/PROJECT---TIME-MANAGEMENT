@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { useFieldArray, useForm, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -31,6 +31,7 @@ import { ensureCurrentUserTeamMember, resolveFallbackAssigneeName } from "../lib
 import { resolveDefaultSubtaskAssignee, teamAdminNameForUser } from "../lib/taskConcernsUser";
 import type { CurrentUser } from "../lib/useCurrentUser";
 import CustomFieldInputs from "./CustomFieldInputs";
+import { DatePicker } from "./ui/DatePicker";
 import NewTaskPlanningCalendar, {
   type ExistingSlot,
   type PlanningSlot,
@@ -664,11 +665,20 @@ export default function NewTaskModal(props: {
                     <span className="ml-0.5 font-normal text-[color:var(--foreground)]/45">{t("newTaskModal.optional")}</span>
                     <FieldHint text={t("newTaskModal.deadlineHint")} />
                   </label>
-                  <input
-                    id={`${prefix}-deadline`}
-                    type="date"
-                    {...register("deadline")}
-                    className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] shadow-sm focus:outline-none"
+                  <Controller
+                    name="deadline"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        id={`${prefix}-deadline`}
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        inputRef={field.ref}
+                        className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] shadow-sm focus:outline-none"
+                      />
+                    )}
                   />
                   {errors.deadline?.message && <p className="text-[11px] text-[var(--danger)]">{errors.deadline.message}</p>}
                 </div>
@@ -829,11 +839,11 @@ export default function NewTaskModal(props: {
                           placeholder={t("newTaskModal.subtaskNamePlaceholder")}
                           className="ui-focus-ring flex-1 min-w-[160px] rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs"
                         />
-                        <input
-                          type="date"
+                        <DatePicker
                           value={newSubDeadline}
-                          onChange={(e) => setNewSubDeadline(e.target.value)}
+                          onChange={setNewSubDeadline}
                           title={t("newTaskModal.subtaskDeadlineTitle")}
+                          compact
                           className="ui-focus-ring w-36 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs"
                         />
                         <select

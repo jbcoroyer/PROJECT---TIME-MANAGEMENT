@@ -10,6 +10,7 @@ import {
   MessageSquarePlus,
   Plus,
 } from "lucide-react";
+import { DatePicker } from "../../ui/DatePicker";
 import AdminAvatar from "../../AdminAvatar";
 import CompanyAvatar from "../../CompanyAvatar";
 import type { ReferenceRecord } from "../../../lib/referenceData";
@@ -307,13 +308,12 @@ function ListRow({
       </div>
 
       <div role="cell" className="px-2 py-1">
-        <input
-          type="date"
+        <DatePicker
           value={task.deadline || ""}
-          onChange={(e) => {
-            const deadline = e.target.value;
+          onChange={(deadline) => {
             saveField({ deadline }, { deadline: deadline || null });
           }}
+          compact
           className={[
             "w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30",
             isOverdue ? "border-[color-mix(in_srgb,var(--danger)_35%,var(--line))] text-[var(--danger)]" : "",

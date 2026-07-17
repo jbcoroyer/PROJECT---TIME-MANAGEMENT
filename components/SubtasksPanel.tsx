@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { getSupabaseBrowser } from "../lib/supabaseBrowser";
 import AdminAvatar from "./AdminAvatar";
+import { DatePicker } from "./ui/DatePicker";
 import ColumnStatusSelect from "./ColumnStatusSelect";
 import type { Task, AdminId, ColumnId } from "../lib/types";
 import { adminBadgeClassFor } from "../lib/kanbanStyles";
@@ -107,10 +108,9 @@ function AddSubtaskForm(props: {
           className="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
         />
         <div className="flex gap-2">
-          <input
-            type="date"
+          <DatePicker
             value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
+            onChange={setDeadline}
             className="ui-focus-ring flex-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
           />
           <select

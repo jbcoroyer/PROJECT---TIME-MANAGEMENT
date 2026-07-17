@@ -9,7 +9,7 @@ import {
   type CreateAppointmentInput,
 } from "../../../app/actions/agenda";
 import type { AgendaAppointment } from "../../../lib/agenda/agendaTypes";
-import { DateTimeQuarterPicker } from "../../ui/DateTimeQuarterPicker";
+import { DateTimePicker } from "../../ui/DateTimePicker";
 import { toLocalDateTimeValue } from "../../../lib/dateTime/quarterHourUtils";
 import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
@@ -146,11 +146,11 @@ function AppointmentFormBody({
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
             {t("agenda.form.startLabel")}
-            <DateTimeQuarterPicker value={startsAt} onChange={setStartsAt} />
+            <DateTimePicker value={startsAt} onChange={setStartsAt} />
           </label>
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
             {t("agenda.form.endLabel")}
-            <DateTimeQuarterPicker value={endsAt} onChange={setEndsAt} />
+            <DateTimePicker value={endsAt} onChange={setEndsAt} />
           </label>
         </div>
 

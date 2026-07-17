@@ -6,6 +6,7 @@ import { priorities, type Priority } from "../../../lib/types";
 import type { IntakeTaskDraft } from "../../../lib/v2/intakeMapping";
 import { createDisplayLabelHelpers } from "../../../lib/i18n/displayLabels";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
+import { DatePicker } from "../../ui/DatePicker";
 
 export default function IntakeTaskMappingModal({
   open,
@@ -82,11 +83,10 @@ export default function IntakeTaskMappingModal({
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="text-[11px] font-semibold text-[color:var(--foreground)]/55">{t("dashboard.intake.deadline")}</span>
-              <input
-                type="date"
+              <DatePicker
                 required
                 value={form.deadline}
-                onChange={(e) => set("deadline", e.target.value)}
+                onChange={(v) => set("deadline", v)}
                 className="ui-focus-ring mt-1 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
               />
             </label>

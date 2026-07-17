@@ -5,6 +5,7 @@ import { Plus, X } from "lucide-react";
 import type { ProjectedWorkItem, Task } from "../../lib/types";
 import { computeSlotHours, HALF_HOUR_OPTIONS } from "../../lib/projectedWorkUtils";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { DatePicker } from "../ui/DatePicker";
 
 type Props = {
   open: boolean;
@@ -107,12 +108,13 @@ export default function EventTaskPlanningModal(props: Props) {
                     key={`${slot.date}-${index}`}
                     className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-2 text-xs"
                   >
-                    <input
-                      type="date"
+                    <DatePicker
                       value={slot.date}
-                      onChange={(e) =>
-                        setItems((prev) => prev.map((p, i) => (i === index ? { ...p, date: e.target.value } : p)))
+                      onChange={(v) =>
+                        setItems((prev) => prev.map((p, i) => (i === index ? { ...p, date: v } : p)))
                       }
+                      compact
+                      clearable={false}
                       className="ui-focus-ring rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 py-1"
                     />
                     {isDayOnly ? (

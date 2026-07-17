@@ -7,6 +7,7 @@ import type { AgendaSettings } from "../../../lib/agenda/agendaTypes";
 import type { WeekdayKey } from "../../../lib/agenda/agendaTypes";
 import { createDisplayLabelHelpers } from "../../../lib/i18n/displayLabels";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
+import { TimePicker } from "../../ui/TimePicker";
 import { toastError, toastSuccess } from "../../../lib/toast";
 
 type AgendaBookingPanelProps = {
@@ -241,19 +242,19 @@ export default function AgendaBookingPanel({ settings, onUpdated }: AgendaBookin
                 />
                 {labels.agendaWeekday(key)}
               </label>
-              <input
-                type="time"
+              <TimePicker
                 value={day.start}
                 disabled={!day.enabled}
-                onChange={(e) => updateDay(key, "start", e.target.value)}
+                onChange={(v) => updateDay(key, "start", v)}
+                minuteStep={1}
                 className="ui-input w-auto"
               />
               <span className="text-[var(--ink-muted)]">→</span>
-              <input
-                type="time"
+              <TimePicker
                 value={day.end}
                 disabled={!day.enabled}
-                onChange={(e) => updateDay(key, "end", e.target.value)}
+                onChange={(v) => updateDay(key, "end", v)}
+                minuteStep={1}
                 className="ui-input w-auto"
               />
             </div>

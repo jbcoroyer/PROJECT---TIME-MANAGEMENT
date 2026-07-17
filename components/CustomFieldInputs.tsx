@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { BoardField, BoardFieldType } from "../lib/v2/boardFields";
 import type { CustomFieldsMap } from "../lib/v2/customFieldValues";
+import { DatePicker } from "./ui/DatePicker";
 import {
   entityKindForPerson,
   entityKindForRelation,
@@ -223,10 +224,9 @@ function renderFieldInput(
     case "date":
       if (readOnly) return <ReadonlyValue>{typeof value === "string" ? value : ""}</ReadonlyValue>;
       return (
-        <input
-          type="date"
+        <DatePicker
           value={typeof value === "string" ? value : ""}
-          onChange={(e) => onChange(e.target.value || null)}
+          onChange={(v) => onChange(v || null)}
           className="ui-focus-ring mt-1 w-full rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm"
         />
       );

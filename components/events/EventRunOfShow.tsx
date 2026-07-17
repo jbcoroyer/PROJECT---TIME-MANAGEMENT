@@ -6,6 +6,8 @@ import { getSupabaseBrowser } from "../../lib/supabaseBrowser";
 import { toastError, toastSuccess } from "../../lib/toast";
 import { getInventoryErrorMessage } from "../../lib/useInventory";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { DatePicker } from "../ui/DatePicker";
+import { TimePicker } from "../ui/TimePicker";
 
 export type RunSlotRow = {
   id: string;
@@ -147,24 +149,27 @@ export default function EventRunOfShow(props: Props) {
               key={slot.id}
               className="grid gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3 md:grid-cols-[120px_90px_90px_1fr_auto]"
             >
-              <input
-                type="date"
+              <DatePicker
                 value={slot.slotDate}
+                onChange={(v) => void updateSlot(slot.id, { slot_date: v })}
                 min={startDate}
                 max={endDate}
-                onChange={(e) => void updateSlot(slot.id, { slot_date: e.target.value })}
+                compact
+                clearable={false}
                 className="ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs"
               />
-              <input
-                type="time"
+              <TimePicker
                 value={slot.startTime}
-                onChange={(e) => void updateSlot(slot.id, { start_time: e.target.value })}
+                onChange={(v) => void updateSlot(slot.id, { start_time: v })}
+                minuteStep={1}
+                compact
                 className="ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs"
               />
-              <input
-                type="time"
+              <TimePicker
                 value={slot.endTime}
-                onChange={(e) => void updateSlot(slot.id, { end_time: e.target.value })}
+                onChange={(v) => void updateSlot(slot.id, { end_time: v })}
+                minuteStep={1}
+                compact
                 className="ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs"
               />
               <input

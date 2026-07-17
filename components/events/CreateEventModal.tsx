@@ -6,6 +6,7 @@ import { createEventWithTasks, duplicateEvent } from "../../app/actions/events";
 import { eventStatuses, type EventRow, type EventStatus } from "../../lib/eventTypes";
 import { toastError, toastSuccess } from "../../lib/toast";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { DatePicker } from "../ui/DatePicker";
 
 type CreateEventModalProps = {
   open: boolean;
@@ -221,10 +222,10 @@ export default function CreateEventModal(props: CreateEventModalProps) {
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
                 {t("eventsLegacy.create.start")}
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={startDate}
-                onChange={(ev) => setStartDate(ev.target.value)}
+                onChange={setStartDate}
+                max={endDate || undefined}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] px-3 py-2.5 text-sm"
               />
             </div>
@@ -232,10 +233,10 @@ export default function CreateEventModal(props: CreateEventModalProps) {
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
                 {t("eventsLegacy.create.end")}
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={endDate}
-                onChange={(ev) => setEndDate(ev.target.value)}
+                onChange={setEndDate}
+                min={startDate || undefined}
                 className="ui-focus-ring w-full rounded-xl border border-[var(--line)] px-3 py-2.5 text-sm"
               />
             </div>
