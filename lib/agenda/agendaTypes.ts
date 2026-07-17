@@ -62,6 +62,32 @@ export type BookingSlot = {
   end: string;
 };
 
+export type AppointmentRequestStatus = "pending" | "accepted" | "rejected";
+
+export type AgendaAppointmentRequest = {
+  id: string;
+  agendaSettingsId: string;
+  requestedStartsAt: string;
+  requestedEndsAt: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  guestMessage: string;
+  status: AppointmentRequestStatus;
+  appointmentId: string | null;
+  rejectionReason: string;
+  decidedAt: string | null;
+  decidedByUserId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const APPOINTMENT_REQUEST_STATUS_LABELS: Record<AppointmentRequestStatus, string> = {
+  pending: "En attente",
+  accepted: "Acceptée",
+  rejected: "Refusée",
+};
+
 export const WEEKDAY_KEYS: WeekdayKey[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 export const WEEKDAY_LABELS: Record<WeekdayKey, string> = {

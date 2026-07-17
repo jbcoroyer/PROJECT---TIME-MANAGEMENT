@@ -100,6 +100,156 @@ export const moduleUiEs = {
       submit: "Enviar solicitud",
       footer:
         "Acceso limitado a este formulario: no tienes acceso al resto de la plataforma."
+    },
+    templates: {
+      picker: {
+        title: "Partir de una plantilla o formulario en blanco",
+        description:
+          "Elige una plantilla precargada con preguntas habituales o un formulario en blanco para personalizar.",
+        ariaLabel: "Plantillas de formulario de solicitud",
+        meta: "{count} campos · ~{minutes} min"
+      },
+      blank: {
+        name: "Formulario en blanco",
+        description: "Formulario mínimo para construir campo a campo.",
+        defaultTitle: "Solicitudes {appName}",
+        defaultWelcome:
+          "Describe tu necesidad. Nuestro equipo evaluará tu solicitud antes de gestionarla."
+      },
+      project: {
+        name: "Solicitud de proyecto",
+        description: "Nombre, plazo, presupuesto, prioridad y descripción del proyecto.",
+        defaultTitle: "Solicitudes de proyecto {appName}",
+        defaultWelcome:
+          "Describe tu proyecto: objetivos, plazos y restricciones. Te responderemos pronto.",
+        sectionTitle: "Tu proyecto"
+      },
+      general_inquiry: {
+        name: "Consulta general",
+        description: "Contacto simple: asunto, servicio y mensaje.",
+        defaultTitle: "Contacto {appName}",
+        defaultWelcome:
+          "Formula tu pregunta o comparte tu necesidad. Te responderemos lo antes posible.",
+        sectionTitle: "Tu mensaje"
+      },
+      support: {
+        name: "Soporte y asistencia",
+        description: "Reportar un problema con categoría, urgencia e impacto.",
+        defaultTitle: "Soporte {appName}",
+        defaultWelcome:
+          "Describe tu problema o solicitud de asistencia. Indica la urgencia para un tratamiento adecuado.",
+        sectionTitle: "Tu solicitud de soporte"
+      },
+      creative_brief: {
+        name: "Brief creativo",
+        description: "Campaña, entregables, referencias y guía de marca.",
+        defaultTitle: "Brief creativo {appName}",
+        defaultWelcome:
+          "Comparte el contexto, los entregables esperados y tus restricciones creativas.",
+        sectionTitle: "Tu brief"
+      },
+      fields: {
+        firstName: "Nombre",
+        firstNamePlaceholder: "Ej. María",
+        lastName: "Apellido",
+        lastNamePlaceholder: "Ej. García",
+        email: "Correo electrónico",
+        phone: "Teléfono",
+        phonePlaceholder: "Ej. +34 612 345 678",
+        company: "Empresa",
+        projectName: "Nombre del proyecto",
+        projectNamePlaceholder: "Ej. Campaña feria VIV Europe",
+        requestType: "Tipo de solicitud",
+        requestTypePlaceholder: "Ej. Creación, rediseño, producción…",
+        priority: "Prioridad",
+        deadline: "Plazo",
+        budget: "Presupuesto estimado",
+        budgetPlaceholder: "Ej. 5 000 € o rango",
+        deliverableFormat: "Formato del entregable",
+        projectDescription: "Descripción del proyecto",
+        projectDescriptionPlaceholder: "Contexto, objetivos, público, restricciones…",
+        subject: "Asunto",
+        subjectPlaceholder: "Ej. Solicitud de información",
+        department: "Servicio concernido",
+        responseChannel: "Canal de respuesta preferido",
+        desiredDate: "Fecha deseada",
+        desiredDateHelp: "Fecha en la que deseas una respuesta o entrega.",
+        message: "Mensaje",
+        messagePlaceholder: "Detalla tu solicitud…",
+        issueSubject: "Asunto del problema",
+        issueSubjectPlaceholder: "Ej. No puedo acceder al portal",
+        issueCategory: "Categoría",
+        urgency: "Urgencia",
+        impact: "Impacto",
+        resolutionDeadline: "Fecha deseada de resolución",
+        issueDescription: "Descripción del problema",
+        issueDescriptionPlaceholder: "Pasos para reproducir, mensajes de error…",
+        campaignName: "Nombre de campaña / proyecto",
+        campaignNamePlaceholder: "Ej. Lanzamiento producto Q4",
+        supportType: "Tipo de soporte",
+        supportTypePlaceholder: "Ej. Flyer, visual redes, roll-up…",
+        mainFormat: "Formato principal",
+        deliverables: "Entregables esperados",
+        deliverablesPlaceholder: "Lista de archivos o soportes a producir…",
+        briefContext: "Contexto y objetivos",
+        briefContextPlaceholder: "Público, tono, restricciones, mensajes clave…",
+        references: "Referencias e inspiración",
+        referencesPlaceholder: "Enlaces, moodboards, ejemplos…",
+        brandGuidelines: "Guía de marca y restricciones",
+        brandGuidelinesPlaceholder: "Colores, tipografías, prohibiciones…"
+      },
+      options: {
+        priority: {
+          "0": "Baja",
+          "1": "Normal",
+          "2": "Alta",
+          "3": "Urgente"
+        },
+        deliverableFormat: {
+          "0": "A4 impresión",
+          "1": "PDF",
+          "2": "Cuadrado Instagram 1080×1080",
+          "3": "Story Instagram 1080×1920",
+          "4": "Post LinkedIn 1200×627"
+        },
+        responseChannel: {
+          "0": "Correo",
+          "1": "Teléfono",
+          "2": "Videollamada"
+        },
+        department: {
+          "0": "Comunicación",
+          "1": "Marketing",
+          "2": "Comercial",
+          "3": "Dirección",
+          "4": "Otro"
+        },
+        issueCategory: {
+          "0": "Acceso y cuenta",
+          "1": "Error de aplicación",
+          "2": "Hardware",
+          "3": "Red",
+          "4": "Otro"
+        },
+        urgency: {
+          "0": "Baja — puede esperar",
+          "1": "Media — en 48 h",
+          "2": "Alta — bloqueante"
+        },
+        impact: {
+          "0": "Individual",
+          "1": "Equipo",
+          "2": "Organización"
+        },
+        creativeFormat: {
+          "0": "A4 impresión",
+          "1": "PDF",
+          "2": "Cuadrado Instagram 1080×1080",
+          "3": "Story Instagram 1080×1920",
+          "4": "Post LinkedIn 1200×627",
+          "5": "Otro"
+        }
+      }
     }
   },
   damModule: {
@@ -348,13 +498,14 @@ export const moduleUiEs = {
         "Gestiona citas, notas de reuniones y reservas en línea. Tu calendario se actualiza en tiempo real con cada nueva reserva.",
       tabs: {
         calendar: "Calendario",
+        requests: "Solicitudes RDV",
         booking: "Reserva",
         today: "Mi día"
       },
       stats: {
         today: "Hoy",
         upcoming: "Próximas",
-        pending: "Pendiente"
+        pending: "Solicitudes"
       },
       todayTab: {
         description:
@@ -365,7 +516,7 @@ export const moduleUiEs = {
       publicPage: {
         title: "Página de reserva pública",
         description:
-          "Comparte este enlace para que los clientes reserven una franja por su cuenta. Las citas aparecen automáticamente en tu calendario.",
+          "Comparte este enlace para que los clientes soliciten una franja. Cada solicitud aparece en la pestaña Solicitudes RDV para su validación.",
         copied: "Copiado",
         copy: "Copiar",
         preview: "Vista previa",
@@ -380,7 +531,7 @@ export const moduleUiEs = {
         buffer: "Margen (min)",
         horizon: "Horizonte (días)",
         minNotice: "Preaviso mín. (h)",
-        autoConfirm: "Confirmar automáticamente las reservas en línea",
+        autoConfirm: "Confirmación automática (desactivada — las solicitudes requieren validación)",
         weeklyAvailability: "Disponibilidad semanal",
         saving: "Guardando…",
         save: "Guardar ajustes"
@@ -459,6 +610,9 @@ export const moduleUiEs = {
       }
     },
     public: {
+      requestSubmitted: "Solicitud enviada",
+      requestSubmittedMessage:
+        "Tu solicitud de cita con {appName} ha sido recibida. Recibirás un correo de confirmación en {email} una vez validada la franja.",
       confirmed: "Reserva confirmada",
       confirmedMessage:
         "Tu franja con {appName} está reservada. Recibirás una confirmación en {email}.",
@@ -473,7 +627,39 @@ export const moduleUiEs = {
       phoneLabel: "Teléfono",
       messageLabel: "Asunto / mensaje",
       booking: "Reservando…",
+      submitRequest: "Enviar solicitud",
       confirm: "Confirmar cita"
+    },
+    requests: {
+      title: "Solicitudes de cita",
+      pendingOne: "{count} solicitud pendiente",
+      pendingMany: "{count} solicitudes pendientes",
+      loading: "Cargando solicitudes…",
+      emptyTitle: "Ninguna solicitud pendiente",
+      emptyBody: "Las nuevas solicitudes desde su página pública aparecerán aquí.",
+      review: "Tratar",
+      recentTitle: "Solicitudes recientes",
+      statusAccepted: "Aceptada",
+      statusRejected: "Rechazada",
+      panelEmptyTitle: "Seleccione una solicitud",
+      panelEmptyBody: "Elija una solicitud para validarla, personalizar el correo de respuesta o rechazarla.",
+      panelTitle: "Validación",
+      emailSection: "Correo de confirmación al solicitante",
+      locationLabel: "Lugar",
+      locationPlaceholder: "Dirección, sala, consultorio…",
+      videoLabel: "Enlace de videollamada",
+      customMessageLabel: "Mensaje personalizado",
+      customMessagePlaceholder: "Instrucciones, documentos a preparar, información adicional…",
+      accept: "Validar y enviar",
+      accepting: "Enviando…",
+      reject: "Rechazar",
+      rejectSection: "Rechazo (opcional)",
+      rejectionReasonPlaceholder: "Motivo del rechazo…",
+      notifyOnReject: "Notificar al solicitante por correo",
+      toast: {
+        accepted: "Cita confirmada y correo enviado.",
+        rejected: "Solicitud rechazada."
+      }
     },
     today: "Hoy",
     weekday: {
@@ -1446,6 +1632,13 @@ export const moduleUiEs = {
       open: "Abrir",
       srOnly: "Notificaciones",
     },
+  },
+  datePicker: {
+    today: "Hoy",
+    clear: "Borrar",
+    selectDate: "Elegir una fecha",
+    prevMonth: "Mes anterior",
+    nextMonth: "Mes siguiente",
   },
   calendarView: {
     closeMenu: "Cerrar menú",

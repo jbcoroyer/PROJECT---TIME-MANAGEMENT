@@ -9,12 +9,20 @@ import {
 import type {
   AgendaAppointment,
   AgendaAppointmentNote,
+  AgendaAppointmentRequest,
   AgendaSettings,
+  AppointmentRequestStatus,
   AppointmentStatus,
   WorkHours,
 } from "../../lib/agenda/agendaTypes";
 import { APPOINTMENT_STATUS_COLORS } from "../../lib/agenda/agendaTypes";
+import {
+  buildAppointmentConfirmationEmail,
+  buildAppointmentRejectionEmail,
+  isValidEmailAddress,
+} from "../../lib/agenda/appointmentRequestEmail";
 import { getServerOrgContext } from "../../lib/server/orgContext";
+import { sendTransactionalEmail } from "../../lib/server/email";
 import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 
@@ -62,6 +70,24 @@ type NoteRow = {
   author_user_id: string | null;
   body: string;
   created_at: string | null;
+};
+
+type RequestRow = {
+  id: string;
+  agenda_settings_id: string;
+  requested_starts_at: string;
+  requested_ends_at: string;
+  guest_name: string | null;
+  guest_email: string | null;
+  guest_phone: string | null;
+  guest_message: string | null;
+  status: string;
+  appointment_id: string | null;
+  rejection_reason: string | null;
+  decided_at: string | null;
+  decided_by_user_id: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 };
 
 function mapSettings(row: SettingsRow): AgendaSettings {
@@ -113,6 +139,27 @@ function mapNote(row: NoteRow): AgendaAppointmentNote {
     authorUserId: row.author_user_id,
     body: row.body,
     createdAt: row.created_at ?? "",
+  };
+}
+
+function mapRequest(row: RequestRow): AgendaAppointmentRequest {
+  const status = row.status as AppointmentRequestStatus;
+  return {
+    id: row.id,
+    agendaSettingsId: row.agenda_settings_id,
+    requestedStartsAt: row.requested_starts_at,
+    requestedEndsAt: row.requested_ends_at,
+    guestName: row.guest_name ?? "",
+    guestEmail: row.guest_email ?? "",
+    guestPhone: row.guest_phone ?? "",
+    guestMessage: row.guest_message ?? "",
+    status: ["pending", "accepted", "rejected"].includes(status) ? status : "pending",
+    appointmentId: row.appointment_id,
+    rejectionReason: row.rejection_reason ?? "",
+    decidedAt: row.decided_at,
+    decidedByUserId: row.decided_by_user_id,
+    createdAt: row.created_at ?? "",
+    updatedAt: row.updated_at ?? "",
   };
 }
 
@@ -438,10 +485,24 @@ export async function getPublicAvailableSlots(
     .gte("starts_at", dayStart.toISOString())
     .lte("starts_at", dayEnd.toISOString());
 
-  const busy = (appointments ?? []).map((row) => ({
-    start: new Date((row as { starts_at: string }).starts_at),
-    end: new Date((row as { ends_at: string }).ends_at),
-  }));
+  const { data: pendingRequests } = await admin
+    .from("agenda_appointment_requests")
+    .select("requested_starts_at, requested_ends_at")
+    .eq("agenda_settings_id", settingsId)
+    .eq("status", "pending")
+    .gte("requested_starts_at", dayStart.toISOString())
+    .lte("requested_starts_at", dayEnd.toISOString());
+
+  const busy = [
+    ...(appointments ?? []).map((row) => ({
+      start: new Date((row as { starts_at: string }).starts_at),
+      end: new Date((row as { ends_at: string }).ends_at),
+    })),
+    ...(pendingRequests ?? []).map((row) => ({
+      start: new Date((row as { requested_starts_at: string }).requested_starts_at),
+      end: new Date((row as { requested_ends_at: string }).requested_ends_at),
+    })),
+  ];
 
   const slots = getAvailableSlotsForDate(
     date,
@@ -476,7 +537,7 @@ export async function submitPublicBooking(
   if (!guestName || !guestEmail) {
     return { ok: false, error: "Nom et e-mail requis." };
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+  if (!isValidEmailAddress(guestEmail)) {
     return { ok: false, error: "E-mail invalide." };
   }
 
@@ -493,7 +554,7 @@ export async function submitPublicBooking(
   const admin = createSupabaseAdmin();
   const { data: settings } = await admin
     .from("agenda_settings")
-    .select("id, title, auto_confirm, organization_id")
+    .select("id, organization_id")
     .eq("id", settingsId)
     .eq("status", "active")
     .maybeSingle();
@@ -502,21 +563,16 @@ export async function submitPublicBooking(
     return { ok: false, error: "Réservation indisponible." };
   }
 
-  const status = settings.auto_confirm ? "confirmed" : "pending";
-  const title = `RDV — ${guestName}`;
-
-  const { error } = await admin.from("agenda_appointments").insert({
+  const { error } = await admin.from("agenda_appointment_requests").insert({
     organization_id: settings.organization_id,
-    title,
-    starts_at: input.slotStart,
-    ends_at: input.slotEnd,
-    status,
-    source: "public_booking",
+    agenda_settings_id: settingsId,
+    requested_starts_at: input.slotStart,
+    requested_ends_at: input.slotEnd,
     guest_name: guestName,
     guest_email: guestEmail,
     guest_phone: input.guestPhone?.trim() ?? "",
     guest_message: input.guestMessage?.trim() ?? "",
-    color: status === "confirmed" ? APPOINTMENT_STATUS_COLORS.confirmed : APPOINTMENT_STATUS_COLORS.pending,
+    status: "pending",
   });
 
   if (error) return { ok: false, error: error.message ?? "Réservation impossible." };
@@ -539,19 +595,246 @@ export async function getAgendaStats(): Promise<AgendaStats> {
   todayEnd.setHours(23, 59, 59, 999);
 
   const supabase = await createServerSupabase();
-  const { data } = await supabase
-    .from("agenda_appointments")
-    .select("id, starts_at, status")
-    .neq("status", "cancelled")
-    .gte("starts_at", now.toISOString());
+  const [{ data: appointments }, { data: requests }] = await Promise.all([
+    supabase
+      .from("agenda_appointments")
+      .select("id, starts_at, status")
+      .neq("status", "cancelled")
+      .gte("starts_at", now.toISOString()),
+    supabase
+      .from("agenda_appointment_requests")
+      .select("id")
+      .eq("status", "pending"),
+  ]);
 
-  const rows = data ?? [];
+  const rows = appointments ?? [];
   return {
     upcomingCount: rows.length,
-    pendingCount: rows.filter((r) => (r as { status: string }).status === "pending").length,
+    pendingCount: (requests ?? []).length,
     todayCount: rows.filter((r) => {
       const start = new Date((r as { starts_at: string }).starts_at);
       return start >= todayStart && start <= todayEnd;
     }).length,
   };
+}
+
+/** Liste des demandes de RDV (toutes ou filtrées par statut). */
+export async function listAgendaAppointmentRequests(
+  status?: AppointmentRequestStatus,
+): Promise<AgendaAppointmentRequest[]> {
+  const supabase = await createServerSupabase();
+  let query = supabase
+    .from("agenda_appointment_requests")
+    .select(
+      "id, agenda_settings_id, requested_starts_at, requested_ends_at, guest_name, guest_email, guest_phone, guest_message, status, appointment_id, rejection_reason, decided_at, decided_by_user_id, created_at, updated_at",
+    )
+    .order("created_at", { ascending: false });
+
+  if (status) query = query.eq("status", status);
+
+  const { data, error } = await query;
+  if (error) return [];
+  return ((data ?? []) as RequestRow[]).map(mapRequest);
+}
+
+export type AcceptAppointmentRequestInput = {
+  location?: string;
+  meetingUrl?: string;
+  customMessage?: string;
+};
+
+export async function acceptAgendaAppointmentRequest(
+  requestId: string,
+  input: AcceptAppointmentRequestInput,
+): Promise<{ ok: true; appointmentId: string } | { ok: false; error: string }> {
+  if (!requestId) return { ok: false, error: "Demande introuvable." };
+
+  const ctx = await getServerOrgContext();
+  if (!ctx) return { ok: false, error: "Vous devez être connecté." };
+
+  const supabase = await createServerSupabase();
+  const { data: request, error: fetchError } = await supabase
+    .from("agenda_appointment_requests")
+    .select(
+      "id, agenda_settings_id, requested_starts_at, requested_ends_at, guest_name, guest_email, guest_phone, guest_message, status, organization_id",
+    )
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (fetchError || !request) {
+    return { ok: false, error: "Demande introuvable." };
+  }
+  if ((request as { status: string }).status !== "pending") {
+    return { ok: false, error: "Cette demande a déjà été traitée." };
+  }
+
+  const guestName = ((request as { guest_name: string }).guest_name ?? "").trim();
+  const guestEmail = ((request as { guest_email: string }).guest_email ?? "").trim();
+  if (!guestEmail || !isValidEmailAddress(guestEmail)) {
+    return { ok: false, error: "E-mail du demandeur invalide." };
+  }
+
+  const location = input.location?.trim() ?? "";
+  const meetingUrl = input.meetingUrl?.trim() ?? "";
+  const customMessage = input.customMessage?.trim() ?? "";
+  const title = `RDV — ${guestName || "Invité"}`;
+
+  const { data: appointment, error: createError } = await supabase
+    .from("agenda_appointments")
+    .insert({
+      organization_id: (request as { organization_id: string }).organization_id,
+      title,
+      starts_at: (request as { requested_starts_at: string }).requested_starts_at,
+      ends_at: (request as { requested_ends_at: string }).requested_ends_at,
+      status: "confirmed",
+      source: "public_booking",
+      guest_name: guestName,
+      guest_email: guestEmail,
+      guest_phone: ((request as { guest_phone: string }).guest_phone ?? "").trim(),
+      guest_message: ((request as { guest_message: string }).guest_message ?? "").trim(),
+      location,
+      meeting_url: meetingUrl,
+      color: APPOINTMENT_STATUS_COLORS.confirmed,
+    })
+    .select("id")
+    .single();
+
+  if (createError || !appointment) {
+    return { ok: false, error: createError?.message ?? "Création du rendez-vous impossible." };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error: updateError } = await supabase
+    .from("agenda_appointment_requests")
+    .update({
+      status: "accepted",
+      appointment_id: appointment.id as string,
+      decided_at: new Date().toISOString(),
+      decided_by_user_id: user?.id ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", requestId)
+    .eq("status", "pending");
+
+  if (updateError) {
+    return { ok: false, error: updateError.message ?? "Mise à jour de la demande impossible." };
+  }
+
+  const admin = createSupabaseAdmin();
+  const { data: appSettings } = await admin
+    .from("app_settings")
+    .select("app_name")
+    .eq("organization_id", (request as { organization_id: string }).organization_id)
+    .maybeSingle();
+
+  const appName = (appSettings?.app_name as string | undefined)?.trim() || "Workspace";
+  const email = buildAppointmentConfirmationEmail({
+    guestName,
+    appName,
+    startsAt: (request as { requested_starts_at: string }).requested_starts_at,
+    endsAt: (request as { requested_ends_at: string }).requested_ends_at,
+    location,
+    meetingUrl,
+    customMessage,
+  });
+
+  const emailResult = await sendTransactionalEmail({
+    to: guestEmail,
+    subject: email.subject,
+    html: email.html,
+  });
+
+  if (!emailResult.ok && !emailResult.skipped) {
+    return {
+      ok: false,
+      error: emailResult.error || "Rendez-vous créé mais l'e-mail n'a pas pu être envoyé.",
+    };
+  }
+
+  revalidateAgenda();
+  return { ok: true, appointmentId: appointment.id as string };
+}
+
+export type RejectAppointmentRequestInput = {
+  rejectionReason?: string;
+  notifyRequester?: boolean;
+};
+
+export async function rejectAgendaAppointmentRequest(
+  requestId: string,
+  input: RejectAppointmentRequestInput = {},
+): Promise<ActionResult> {
+  if (!requestId) return { ok: false, error: "Demande introuvable." };
+
+  const ctx = await getServerOrgContext();
+  if (!ctx) return { ok: false, error: "Vous devez être connecté." };
+
+  const supabase = await createServerSupabase();
+  const { data: request, error: fetchError } = await supabase
+    .from("agenda_appointment_requests")
+    .select(
+      "id, requested_starts_at, guest_name, guest_email, status, organization_id, rejection_reason",
+    )
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (fetchError || !request) {
+    return { ok: false, error: "Demande introuvable." };
+  }
+  if ((request as { status: string }).status !== "pending") {
+    return { ok: false, error: "Cette demande a déjà été traitée." };
+  }
+
+  const rejectionReason = input.rejectionReason?.trim() ?? "";
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error: updateError } = await supabase
+    .from("agenda_appointment_requests")
+    .update({
+      status: "rejected",
+      rejection_reason: rejectionReason,
+      decided_at: new Date().toISOString(),
+      decided_by_user_id: user?.id ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", requestId)
+    .eq("status", "pending");
+
+  if (updateError) {
+    return { ok: false, error: updateError.message ?? "Refus impossible." };
+  }
+
+  if (input.notifyRequester) {
+    const guestEmail = ((request as { guest_email: string }).guest_email ?? "").trim();
+    if (guestEmail && isValidEmailAddress(guestEmail)) {
+      const admin = createSupabaseAdmin();
+      const { data: appSettings } = await admin
+        .from("app_settings")
+        .select("app_name")
+        .eq("organization_id", (request as { organization_id: string }).organization_id)
+        .maybeSingle();
+
+      const appName = (appSettings?.app_name as string | undefined)?.trim() || "Workspace";
+      const email = buildAppointmentRejectionEmail({
+        guestName: (request as { guest_name: string }).guest_name ?? "",
+        appName,
+        startsAt: (request as { requested_starts_at: string }).requested_starts_at,
+        rejectionReason,
+      });
+
+      await sendTransactionalEmail({
+        to: guestEmail,
+        subject: email.subject,
+        html: email.html,
+      });
+    }
+  }
+
+  revalidateAgenda();
+  return { ok: true };
 }

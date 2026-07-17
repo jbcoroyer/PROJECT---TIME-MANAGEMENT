@@ -84,9 +84,9 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
         <div className="mx-auto max-w-lg">
           <div className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-8 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-[var(--success)]" />
-            <h1 className="mt-3 text-xl font-semibold">{t("agenda.public.confirmed")}</h1>
+            <h1 className="mt-3 text-xl font-semibold">{t("agenda.public.requestSubmitted")}</h1>
             <p className="mt-2 text-sm text-[var(--ink-muted)]">
-              {t("agenda.public.confirmedMessage", { appName: meta.appName, email: guestEmail })}
+              {t("agenda.public.requestSubmittedMessage", { appName: meta.appName, email: guestEmail })}
             </p>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default function PublicBookingForm({ meta }: PublicBookingFormProps) {
               className="ui-btn ui-btn-primary w-full gap-2"
             >
               <CalendarCheck className="h-4 w-4" />
-              {busy ? t("agenda.public.booking") : t("agenda.public.confirm")}
+              {busy ? t("agenda.public.booking") : t("agenda.public.submitRequest")}
             </button>
             <p className="text-center text-xs text-[var(--ink-muted)]">
               {format(new Date(selectedSlot.start), "EEEE d MMMM · HH:mm", { locale: dateLocale })}

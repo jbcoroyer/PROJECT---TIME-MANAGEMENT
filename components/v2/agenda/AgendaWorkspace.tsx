@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CalendarRange,
   Clock,
+  Inbox,
   Link2,
   Sparkles,
   Sun,
@@ -15,11 +16,12 @@ import type { AgendaStats } from "../../../app/actions/agenda";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import AgendaBookingPanel from "./AgendaBookingPanel";
 import AgendaCalendarView from "./AgendaCalendarView";
+import AgendaRequestsPanel from "./AgendaRequestsPanel";
 import AppointmentDetailPanel from "./AppointmentDetailPanel";
 import AppointmentFormModal from "./AppointmentFormModal";
 import V2TodoPage from "../todo/V2TodoPage";
 
-type TabId = "calendar" | "booking" | "today";
+type TabId = "calendar" | "booking" | "requests" | "today";
 
 type AgendaWorkspaceProps = {
   settings: AgendaSettings;
@@ -32,7 +34,7 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const activeTab: TabId =
-    tabParam === "booking" || tabParam === "today" || tabParam === "calendar"
+    tabParam === "booking" || tabParam === "requests" || tabParam === "today" || tabParam === "calendar"
       ? tabParam
       : "calendar";
 
@@ -47,6 +49,7 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
     () =>
       [
         { id: "calendar" as const, label: t("agenda.workspace.tabs.calendar"), icon: CalendarRange },
+        { id: "requests" as const, label: t("agenda.workspace.tabs.requests"), icon: Inbox },
         { id: "booking" as const, label: t("agenda.workspace.tabs.booking"), icon: Link2 },
         { id: "today" as const, label: t("agenda.workspace.tabs.today"), icon: Sun },
       ],
@@ -142,6 +145,10 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
 
       {activeTab === "booking" ? (
         <AgendaBookingPanel settings={settings} onUpdated={handleRefresh} />
+      ) : null}
+
+      {activeTab === "requests" ? (
+        <AgendaRequestsPanel onUpdated={handleRefresh} />
       ) : null}
 
       {activeTab === "today" ? (
