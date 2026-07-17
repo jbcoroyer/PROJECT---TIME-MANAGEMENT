@@ -43,7 +43,7 @@ export function slugifyStockCategory(label: string): string {
 }
 
 export function uniqueStockCategoryValue(label: string, existing: string[]): string {
-  let slug = slugifyStockCategory(label);
+  const slug = slugifyStockCategory(label);
   if (!existing.includes(slug)) return slug;
   let n = 2;
   while (existing.includes(`${slug}-${n}`)) n += 1;

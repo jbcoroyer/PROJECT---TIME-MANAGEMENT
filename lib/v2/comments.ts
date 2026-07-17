@@ -116,7 +116,9 @@ export function useEntityComments(
   }, [channelKey, supabase]);
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   useEffect(() => {

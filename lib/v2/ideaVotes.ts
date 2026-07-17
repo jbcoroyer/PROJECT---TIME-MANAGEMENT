@@ -80,7 +80,9 @@ export function useIdeaVotes() {
   }, [supabase, user]);
 
   useEffect(() => {
-    void reload();
+    queueMicrotask(() => {
+      void reload();
+    });
   }, [reload]);
 
   useEffect(() => {
@@ -144,7 +146,7 @@ export function useIdeaVotes() {
         await reload();
       })();
     },
-    [backend, reload, supabase, user?.id],
+    [backend, reload, supabase, user],
   );
 
   return { votes, backend, setVote };

@@ -238,7 +238,9 @@ export default function TutorialSpotlight({
   useEffect(() => {
     if (!visible) return;
     hasUserDraggedRef.current = false;
-    setUserPosition(readStoredTutorialCardPosition(storageKey));
+    queueMicrotask(() => {
+      setUserPosition(readStoredTutorialCardPosition(storageKey));
+    });
   }, [visible, storageKey, targetSelector, cardPosition]);
 
   const anchoredPosition = useMemo(() => {

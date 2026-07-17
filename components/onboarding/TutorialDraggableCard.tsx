@@ -72,8 +72,9 @@ export default function TutorialDraggableCard({
   const hasUserDraggedRef = useRef(false);
 
   const [cardSize, setCardSize] = useState({ width: 352, height: 280 });
-  const [userPosition, setUserPosition] = useState<TutorialCardPoint | null>(null);
-  const [defaultPosition, setDefaultPosition] = useState<TutorialCardPoint | null>(null);
+  const [userPosition, setUserPosition] = useState<TutorialCardPoint | null>(() =>
+    typeof window === "undefined" ? null : readStoredTutorialCardPosition(storageKey),
+  );
   const [isDragging, setIsDragging] = useState(false);
 
   const { header, body, footer } = useMemo(() => partitionCardChildren(children), [children]);
@@ -101,20 +102,21 @@ export default function TutorialDraggableCard({
 
   useEffect(() => {
     hasUserDraggedRef.current = false;
-    setUserPosition(readStoredTutorialCardPosition(storageKey));
+    queueMicrotask(() => {
+      setUserPosition(readStoredTutorialCardPosition(storageKey));
+    });
   }, [storageKey]);
 
-  useLayoutEffect(() => {
-    if (userPosition || defaultPlacement !== "bottom-right") return;
+  const defaultPosition = useMemo((): TutorialCardPoint | null => {
+    if (userPosition || defaultPlacement !== "bottom-right") return null;
+    if (typeof window === "undefined") return null;
     const pad = getTutorialViewportPadding();
-    setDefaultPosition(
-      clampTutorialCardPosition(
-        window.innerHeight - cardSize.height - pad.bottom,
-        window.innerWidth - cardSize.width - pad.right,
-        cardSize.width,
-        cardSize.height,
-        pad,
-      ),
+    return clampTutorialCardPosition(
+      window.innerHeight - cardSize.height - pad.bottom,
+      window.innerWidth - cardSize.width - pad.right,
+      cardSize.width,
+      cardSize.height,
+      pad,
     );
   }, [userPosition, defaultPlacement, cardSize.width, cardSize.height]);
 
