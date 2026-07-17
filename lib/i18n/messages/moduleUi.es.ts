@@ -451,6 +451,8 @@ export const moduleUiEs = {
       saving: "Guardando…",
       save: "Guardar",
       create: "Crear cita",
+      invalidRange: "La hora de fin debe ser posterior al inicio.",
+      invalidDateTime: "Fecha u hora no válida.",
       toast: {
         updated: "Cita actualizada.",
         created: "Cita creada."

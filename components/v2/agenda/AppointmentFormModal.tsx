@@ -9,6 +9,8 @@ import {
   type CreateAppointmentInput,
 } from "../../../app/actions/agenda";
 import type { AgendaAppointment } from "../../../lib/agenda/agendaTypes";
+import { DateTimeQuarterPicker } from "../../ui/DateTimeQuarterPicker";
+import { toLocalDateTimeValue } from "../../../lib/dateTime/quarterHourUtils";
 import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { useReferenceData } from "../../../lib/useReferenceData";
@@ -23,11 +25,6 @@ type AppointmentFormModalProps = {
   onSaved: () => void;
 };
 
-function toLocalInputValue(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 function buildInitialFormState(
   editing: AgendaAppointment | null | undefined,
   initialStart?: Date,
@@ -36,8 +33,8 @@ function buildInitialFormState(
   if (editing) {
     return {
       title: editing.title,
-      startsAt: toLocalInputValue(new Date(editing.startsAt)),
-      endsAt: toLocalInputValue(new Date(editing.endsAt)),
+      startsAt: toLocalDateTimeValue(new Date(editing.startsAt)),
+      endsAt: toLocalDateTimeValue(new Date(editing.endsAt)),
       hostId: editing.hostTeamMemberId ?? "",
       guestName: editing.guestName,
       guestEmail: editing.guestEmail,
@@ -51,8 +48,8 @@ function buildInitialFormState(
   const end = initialEnd ?? new Date(start.getTime() + 30 * 60_000);
   return {
     title: "",
-    startsAt: toLocalInputValue(start),
-    endsAt: toLocalInputValue(end),
+    startsAt: toLocalDateTimeValue(start),
+    endsAt: toLocalDateTimeValue(end),
     hostId: "",
     guestName: "",
     guestEmail: "",
@@ -88,6 +85,18 @@ function AppointmentFormBody({
 
   const submit = async () => {
     if (!title.trim() || busy) return;
+
+    const startDate = new Date(startsAt);
+    const endDate = new Date(endsAt);
+    if (!Number.isFinite(startDate.getTime()) || !Number.isFinite(endDate.getTime())) {
+      toastError(t("agenda.form.invalidDateTime"));
+      return;
+    }
+    if (endDate <= startDate) {
+      toastError(t("agenda.form.invalidRange"));
+      return;
+    }
+
     setBusy(true);
 
     const payload: CreateAppointmentInput = {
@@ -137,21 +146,11 @@ function AppointmentFormBody({
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
             {t("agenda.form.startLabel")}
-            <input
-              type="datetime-local"
-              value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
-              className="ui-input"
-            />
+            <DateTimeQuarterPicker value={startsAt} onChange={setStartsAt} />
           </label>
           <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
             {t("agenda.form.endLabel")}
-            <input
-              type="datetime-local"
-              value={endsAt}
-              onChange={(e) => setEndsAt(e.target.value)}
-              className="ui-input"
-            />
+            <DateTimeQuarterPicker value={endsAt} onChange={setEndsAt} />
           </label>
         </div>
 

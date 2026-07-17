@@ -441,6 +441,8 @@ export const moduleUiEn = {
       saving: "Saving…",
       save: "Save",
       create: "Create appointment",
+      invalidRange: "End time must be after start time.",
+      invalidDateTime: "Invalid date or time.",
       toast: {
         updated: "Appointment updated.",
         created: "Appointment created.",

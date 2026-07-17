@@ -443,6 +443,8 @@ export const moduleUiFr = {
       saving: "Enregistrement…",
       save: "Enregistrer",
       create: "Créer le RDV",
+      invalidRange: "La fin doit être après le début.",
+      invalidDateTime: "Date ou heure invalide.",
       toast: {
         updated: "Rendez-vous mis à jour.",
         created: "Rendez-vous créé.",
