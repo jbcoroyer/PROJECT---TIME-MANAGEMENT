@@ -76,5 +76,25 @@ export function useBillingPlan(): BillingPlanState {
     return () => window.removeEventListener("focus", onFocus);
   }, [load]);
 
+  useEffect(() => {
+    let midnightTimer: number | undefined;
+    const scheduleMidnightRefresh = () => {
+      const now = new Date();
+      const next = new Date(now);
+      next.setHours(24, 0, 0, 0);
+      const delay = Math.max(60_000, next.getTime() - now.getTime());
+      midnightTimer = window.setTimeout(() => {
+        void load();
+        scheduleMidnightRefresh();
+      }, delay);
+    };
+    scheduleMidnightRefresh();
+    const hourlyTimer = window.setInterval(() => void load(), 60 * 60 * 1000);
+    return () => {
+      if (midnightTimer !== undefined) window.clearTimeout(midnightTimer);
+      window.clearInterval(hourlyTimer);
+    };
+  }, [load]);
+
   return { ...state, loading, reload: () => void load() };
 }

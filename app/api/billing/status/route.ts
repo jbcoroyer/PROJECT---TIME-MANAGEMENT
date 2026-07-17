@@ -4,6 +4,7 @@ import {
   PLAN_LABELS,
   calculateMonthlyPriceCents,
   daysLeftInTrial,
+  inferTrialEndsAt,
   isOrgAccessAllowed,
   type BillingStatus,
   type OrgPlan,
@@ -31,7 +32,8 @@ export async function GET(request: Request) {
 
     let plan = org.plan as OrgPlan;
     let billingStatus = org.billingStatus as BillingStatus;
-    let trialEndsAt = org.trialEndsAt;
+    let trialEndsAt =
+      inferTrialEndsAt(org.trialEndsAt, plan, org.createdAt) ?? org.trialEndsAt;
 
     plan = await finalizeExpiredTrial(ctx.organizationId, plan, trialEndsAt);
     if (plan === "canceled" && org.plan === "trial") {
@@ -46,12 +48,12 @@ export async function GET(request: Request) {
       planLabel: PLAN_LABELS[plan],
       billingStatus,
       billingStatusLabel: BILLING_STATUS_LABELS[billingStatus],
-      trialEndsAt: org.trialEndsAt,
-      trialDaysLeft: daysLeftInTrial(org.trialEndsAt),
+      trialEndsAt,
+      trialDaysLeft: daysLeftInTrial(trialEndsAt),
       accessAllowed: isOrgAccessAllowed({
         plan,
         billingStatus,
-        trialEndsAt: org.trialEndsAt,
+        trialEndsAt,
       }),
       memberCount,
       monthlyPriceCents: calculateMonthlyPriceCents(memberCount),

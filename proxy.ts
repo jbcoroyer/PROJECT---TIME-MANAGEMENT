@@ -1,5 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { BILLING_REQUIRED_PATH, isBillingExemptPath } from "./lib/billing/billingPaths";
+import { isBillingEnforcementEnabled } from "./lib/billing/enforcement";
+import { resolveBillingAccess } from "./lib/billing/resolveBillingAccess";
+import { isPlatformAdminEmail } from "./lib/server/platformAdmin";
 import { isInvalidRefreshTokenError } from "./lib/supabaseAuthRecovery";
 
 function isPublicPath(pathname: string): boolean {
@@ -74,6 +78,21 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
+  }
+
+  if (
+    user &&
+    isBillingEnforcementEnabled() &&
+    !isPublicPath(pathname) &&
+    !isBillingExemptPath(pathname)
+  ) {
+    const billing = await resolveBillingAccess(supabase, user.id);
+    const platformAdmin = isPlatformAdminEmail(user.email);
+    if (!billing.allowed && !platformAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = BILLING_REQUIRED_PATH;
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;

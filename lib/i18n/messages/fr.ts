@@ -367,6 +367,11 @@ const frCore: MessageTree = {
     trialExpiredBadge: "Essai expiré",
     choosePlan: "Choisir un abonnement",
     dataKept: "Vos données sont conservées. L'accès est rétabli dès qu'un abonnement est actif.",
+    contactAdminTitle: "Essai terminé — abonnement requis",
+    contactAdminBody:
+      "Votre essai gratuit est terminé. Contactez un administrateur de votre espace pour souscrire un abonnement et retrouver l'accès.",
+    contactAdminHint:
+      "Seul un administrateur peut activer l'abonnement. Demandez-lui de se connecter et d'ouvrir la section Facturation dans les paramètres.",
   },
   marketingLanding: marketingLandingFr,
   pricing: {

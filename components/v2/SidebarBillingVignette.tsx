@@ -41,7 +41,11 @@ export default function SidebarBillingVignette({ onNavigate }: SidebarBillingVig
   const onTrial = plan === "trial";
   const onActive = plan === "active" && (hasActiveSubscription || accessAllowed);
   const days =
-    trialDaysLeft === null || trialDaysLeft === undefined ? TRIAL_DAYS : Math.max(0, trialDaysLeft);
+    trialDaysLeft === null || trialDaysLeft === undefined
+      ? onTrial
+        ? 0
+        : TRIAL_DAYS
+      : Math.max(0, trialDaysLeft);
   const urgentTrial = onTrial && days <= 3;
   const expired = onTrial && days <= 0;
   const needsPay = expired || plan === "canceled" || !accessAllowed;

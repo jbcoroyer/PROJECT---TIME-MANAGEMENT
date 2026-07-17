@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Clock, CreditCard, LogOut, ShieldAlert } from "lucide-react";
+import { Clock, CreditCard, LogOut, ShieldAlert, Users } from "lucide-react";
 import BillingCard from "../settings/BillingCard";
 import { AppMark } from "../AppBrand";
 import { useBranding } from "../../lib/brandingContext";
@@ -12,25 +12,38 @@ import { useTranslation } from "../../lib/i18n/useTranslation";
 type Props = {
   reason: BillingBlockReason;
   trialDaysLeft: number | null;
+  isAdmin?: boolean;
+  /** Mode overlay plein écran (non fermable). */
+  modal?: boolean;
 };
 
-export default function BillingRequiredScreen({ reason, trialDaysLeft }: Props) {
+export default function BillingRequiredScreen({
+  reason,
+  trialDaysLeft,
+  isAdmin = true,
+  modal = false,
+}: Props) {
   const router = useRouter();
   const { branding } = useBranding();
   const { t } = useTranslation();
 
   const copy =
-    reason === "trial_expired"
-      ? { title: t("billingGate.trialExpiredTitle"), body: t("billingGate.trialExpiredBody") }
-      : reason === "subscription_inactive"
-        ? {
-            title: t("billingGate.subscriptionInactiveTitle"),
-            body: t("billingGate.subscriptionInactiveBody"),
-          }
-        : {
-            title: t("billingGate.accessSuspendedTitle"),
-            body: t("billingGate.accessSuspendedBody"),
-          };
+    !isAdmin
+      ? {
+          title: t("billingGate.contactAdminTitle"),
+          body: t("billingGate.contactAdminBody"),
+        }
+      : reason === "trial_expired"
+        ? { title: t("billingGate.trialExpiredTitle"), body: t("billingGate.trialExpiredBody") }
+        : reason === "subscription_inactive"
+          ? {
+              title: t("billingGate.subscriptionInactiveTitle"),
+              body: t("billingGate.subscriptionInactiveBody"),
+            }
+          : {
+              title: t("billingGate.accessSuspendedTitle"),
+              body: t("billingGate.accessSuspendedBody"),
+            };
 
   async function signOut() {
     const supabase = getSupabaseBrowser();
@@ -38,8 +51,20 @@ export default function BillingRequiredScreen({ reason, trialDaysLeft }: Props) 
     router.replace("/login");
   }
 
+  const shellClass = modal
+    ? "fixed inset-0 z-[200] overflow-y-auto bg-[var(--background)] px-4 py-10 sm:px-6"
+    : "min-h-screen bg-[var(--background)] px-4 py-10 sm:px-6";
+
   return (
-    <div className="min-h-screen bg-[var(--background)] px-4 py-10 sm:px-6">
+    <div
+      className={shellClass}
+      role="dialog"
+      aria-modal={modal ? "true" : undefined}
+      aria-labelledby="billing-gate-title"
+    >
+      {modal ? (
+        <div className="pointer-events-none fixed inset-0 z-[-1] bg-[color-mix(in_srgb,var(--background)_72%,#000)] backdrop-blur-sm" />
+      ) : null}
       <div className="mx-auto max-w-2xl space-y-6">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -63,16 +88,23 @@ export default function BillingRequiredScreen({ reason, trialDaysLeft }: Props) 
           <div className="border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--danger)_6%,var(--surface))] px-5 py-5 sm:px-6">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--danger)_12%,var(--surface))]">
-                {reason === "trial_expired" ? (
+                {!isAdmin ? (
+                  <Users className="h-5 w-5 text-[var(--danger)]" />
+                ) : reason === "trial_expired" ? (
                   <Clock className="h-5 w-5 text-[var(--danger)]" />
                 ) : (
                   <ShieldAlert className="h-5 w-5 text-[var(--danger)]" />
                 )}
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-[var(--foreground)] sm:text-2xl">{copy.title}</h1>
+                <h1
+                  id="billing-gate-title"
+                  className="text-xl font-semibold text-[var(--foreground)] sm:text-2xl"
+                >
+                  {copy.title}
+                </h1>
                 <p className="mt-2 text-sm leading-relaxed text-[color:var(--foreground)]/70">{copy.body}</p>
-                {reason === "trial_expired" && trialDaysLeft === 0 && (
+                {reason === "trial_expired" && trialDaysLeft === 0 && isAdmin && (
                   <p className="mt-2 text-xs font-medium uppercase tracking-wide text-[color:var(--foreground)]/50">
                     {t("billingGate.trialExpiredBadge")}
                   </p>
@@ -81,13 +113,19 @@ export default function BillingRequiredScreen({ reason, trialDaysLeft }: Props) 
             </div>
           </div>
 
-          <div className="space-y-4 px-5 py-5 sm:px-6">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--foreground)]/80">
-              <CreditCard className="h-4 w-4" />
-              {t("billingGate.choosePlan")}
+          {isAdmin ? (
+            <div className="space-y-4 px-5 py-5 sm:px-6">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--foreground)]/80">
+                <CreditCard className="h-4 w-4" />
+                {t("billingGate.choosePlan")}
+              </div>
+              <BillingCard />
             </div>
-            <BillingCard />
-          </div>
+          ) : (
+            <div className="space-y-3 px-5 py-5 sm:px-6">
+              <p className="text-sm text-[color:var(--foreground)]/65">{t("billingGate.contactAdminHint")}</p>
+            </div>
+          )}
         </div>
 
         <p className="text-center text-xs text-[color:var(--foreground)]/50">{t("billingGate.dataKept")}</p>

@@ -1,14 +1,17 @@
-import { describe, expect, it } from "vitest";
-import { BILLING_REQUIRED_PATH, isBillingExemptPath } from "./billingPaths";
+import { describe, expect, it, afterEach, vi } from "vitest";
+import { isBillingExemptApiPath, isBillingExemptPath } from "./billingPaths";
 
 describe("billingPaths", () => {
-  it("autorise l'onboarding et la facturation pendant le blocage", () => {
-    expect(isBillingExemptPath("/setup")).toBe(true);
-    expect(isBillingExemptPath(BILLING_REQUIRED_PATH)).toBe(true);
+  it("exempte la page /billing", () => {
+    expect(isBillingExemptPath("/billing")).toBe(true);
+    expect(isBillingExemptPath("/dashboard")).toBe(false);
   });
 
-  it("bloque les routes applicatives", () => {
-    expect(isBillingExemptPath("/dashboard/kanban")).toBe(false);
-    expect(isBillingExemptPath("/settings")).toBe(false);
+  it("exempte les routes API billing et webhooks", () => {
+    expect(isBillingExemptApiPath("/api/billing/status")).toBe(true);
+    expect(isBillingExemptApiPath("/api/webhooks/stripe")).toBe(true);
+    expect(isBillingExemptApiPath("/api/cron/trial-reminders")).toBe(true);
+    expect(isBillingExemptApiPath("/api/health")).toBe(true);
+    expect(isBillingExemptApiPath("/api/v2/ai")).toBe(false);
   });
 });

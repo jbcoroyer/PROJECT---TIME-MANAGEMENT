@@ -363,6 +363,11 @@ const esOverrides: MessageTree = {
     trialExpiredBadge: "Prueba caducada",
     choosePlan: "Elegir una suscripción",
     dataKept: "Tus datos se conservan. El acceso se restaura en cuanto haya una suscripción activa.",
+    contactAdminTitle: "Prueba finalizada — suscripción requerida",
+    contactAdminBody:
+      "Tu prueba gratuita ha terminado. Contacta a un administrador de tu espacio para suscribirte y recuperar el acceso.",
+    contactAdminHint:
+      "Solo un administrador puede activar la suscripción. Pídele que inicie sesión y abra Facturación en ajustes.",
   },
   pricing: {
     intervalToggleLabel: "Periodo de facturación",

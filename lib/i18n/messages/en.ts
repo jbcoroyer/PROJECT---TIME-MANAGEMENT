@@ -360,6 +360,11 @@ const enCore: MessageTree = {
     trialExpiredBadge: "Trial expired",
     choosePlan: "Choose a subscription",
     dataKept: "Your data is kept. Access is restored as soon as a subscription is active.",
+    contactAdminTitle: "Trial ended — subscription required",
+    contactAdminBody:
+      "Your free trial has ended. Contact a workspace administrator to subscribe and restore access.",
+    contactAdminHint:
+      "Only an administrator can activate a subscription. Ask them to sign in and open Billing in settings.",
   },
   pricing: {
     intervalToggleLabel: "Billing period",

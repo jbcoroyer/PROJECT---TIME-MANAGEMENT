@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   daysLeftInTrial,
+  inferTrialEndsAt,
   isOrgAccessAllowed,
   isTrialExpired,
   type BillingStatus,
@@ -65,7 +66,7 @@ export async function resolveBillingAccess(
 
   const { data: org } = await supabase
     .from("organizations")
-    .select("plan, billing_status, trial_ends_at")
+    .select("plan, billing_status, trial_ends_at, created_at")
     .eq("id", organizationId)
     .maybeSingle();
 
@@ -83,7 +84,12 @@ export async function resolveBillingAccess(
 
   let plan = org.plan as OrgPlan;
   let billingStatus = org.billing_status as BillingStatus;
-  let trialEndsAt = (org.trial_ends_at as string | null) ?? null;
+  let trialEndsAt =
+    inferTrialEndsAt(
+      (org.trial_ends_at as string | null) ?? null,
+      plan,
+      (org.created_at as string | null) ?? null,
+    ) ?? null;
 
   if (plan === "trial" && isTrialExpired(trialEndsAt)) {
     plan = await finalizeExpiredTrial(organizationId, plan, trialEndsAt);

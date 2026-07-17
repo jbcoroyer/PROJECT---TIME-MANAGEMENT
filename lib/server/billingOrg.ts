@@ -10,6 +10,7 @@ export type OrganizationBilling = {
   plan: OrgPlan;
   billingStatus: BillingStatus;
   trialEndsAt: string | null;
+  createdAt: string | null;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   planUpdatedAt: string | null;
@@ -21,13 +22,14 @@ type OrgBillingRow = {
   plan: string;
   billing_status: string;
   trial_ends_at: string | null;
+  created_at: string | null;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   plan_updated_at: string | null;
 };
 
 const SELECT =
-  "id, name, plan, billing_status, trial_ends_at, stripe_customer_id, stripe_subscription_id, plan_updated_at";
+  "id, name, plan, billing_status, trial_ends_at, created_at, stripe_customer_id, stripe_subscription_id, plan_updated_at";
 
 function rowToBilling(row: OrgBillingRow): OrganizationBilling {
   return {
@@ -36,6 +38,7 @@ function rowToBilling(row: OrgBillingRow): OrganizationBilling {
     plan: row.plan as OrgPlan,
     billingStatus: row.billing_status as BillingStatus,
     trialEndsAt: row.trial_ends_at,
+    createdAt: row.created_at,
     stripeCustomerId: row.stripe_customer_id,
     stripeSubscriptionId: row.stripe_subscription_id,
     planUpdatedAt: row.plan_updated_at,

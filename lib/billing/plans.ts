@@ -101,6 +101,19 @@ export function isTrialExpired(trialEndsAt: string | null): boolean {
   return new Date(trialEndsAt).getTime() <= Date.now();
 }
 
+/** Date de fin d'essai : DB ou création + TRIAL_DAYS si manquante. */
+export function inferTrialEndsAt(
+  trialEndsAt: string | null,
+  plan: OrgPlan,
+  orgCreatedAt: string | null,
+): string | null {
+  if (trialEndsAt) return trialEndsAt;
+  if (plan !== "trial" || !orgCreatedAt) return null;
+  const anchor = new Date(orgCreatedAt).getTime();
+  if (Number.isNaN(anchor)) return null;
+  return new Date(anchor + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+}
+
 /** Plan effectif après expiration d'essai (plus d'accès sans abonnement). */
 export function effectivePlanForOrg(input: {
   plan: OrgPlan;
@@ -186,7 +199,7 @@ export function isOrgAccessAllowed(input: {
   trialEndsAt: string | null;
 }): boolean {
   if (input.plan === "trial") {
-    if (!input.trialEndsAt) return true;
+    if (!input.trialEndsAt) return false;
     return new Date(input.trialEndsAt).getTime() > Date.now();
   }
 

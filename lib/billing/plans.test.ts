@@ -5,10 +5,13 @@ import {
   canAccessTeamWorkload,
   daysLeftInTrial,
   effectivePlanForOrg,
+  inferTrialEndsAt,
   isModuleAllowedForPlan,
   isOrgAccessAllowed,
+  isTrialExpired,
   mapStripeSubscriptionStatus,
   planFromPriceId,
+  TRIAL_DAYS,
 } from "./plans";
 
 describe("billing plans", () => {
@@ -50,6 +53,43 @@ describe("billing plans", () => {
   it("calcule les jours restants d'essai", () => {
     expect(daysLeftInTrial("2026-07-20T10:00:00Z")).toBe(7);
     expect(daysLeftInTrial("2026-07-10T10:00:00Z")).toBe(0);
+    expect(daysLeftInTrial("2026-07-13T10:00:01Z")).toBe(1);
+  });
+
+  it("infère trialEndsAt depuis la date de création", () => {
+    const created = "2026-07-01T10:00:00Z";
+    const inferred = inferTrialEndsAt(null, "trial", created);
+    expect(inferred).toBe("2026-07-15T10:00:00.000Z");
+    expect(daysLeftInTrial(inferred)).toBe(2);
+  });
+
+  it("détecte l'expiration d'essai", () => {
+    expect(isTrialExpired("2026-07-10T10:00:00Z")).toBe(true);
+    expect(isTrialExpired("2026-07-20T10:00:00Z")).toBe(false);
+    expect(isTrialExpired(null)).toBe(false);
+  });
+
+  it("bloque l'essai sans date de fin", () => {
+    expect(
+      isOrgAccessAllowed({
+        plan: "trial",
+        billingStatus: "trialing",
+        trialEndsAt: null,
+      }),
+    ).toBe(false);
+  });
+
+  it("autorise l'essai avec date de fin inférée", () => {
+    const created = "2026-07-10T10:00:00Z";
+    const trialEndsAt = inferTrialEndsAt(null, "trial", created);
+    expect(
+      isOrgAccessAllowed({
+        plan: "trial",
+        billingStatus: "trialing",
+        trialEndsAt,
+      }),
+    ).toBe(true);
+    expect(TRIAL_DAYS).toBe(14);
   });
 
   it("bloque un abonnement résilié", () => {

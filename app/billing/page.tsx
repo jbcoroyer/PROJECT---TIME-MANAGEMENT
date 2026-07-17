@@ -3,6 +3,7 @@ import BillingRequiredScreen from "../../components/billing/BillingRequiredScree
 import { getDefaultModuleRoute } from "../../lib/modules";
 import { resolveBillingAccess } from "../../lib/billing/resolveBillingAccess";
 import { getBrandingServer } from "../../lib/server/getBrandingServer";
+import { getServerOrgContext } from "../../lib/server/orgContext";
 import { SETUP_PATH } from "../../lib/setupPaths";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 
@@ -29,7 +30,13 @@ export default async function BillingRequiredPage() {
     redirect(getDefaultModuleRoute(branding.enabledModules));
   }
 
+  const ctx = await getServerOrgContext();
+
   return (
-    <BillingRequiredScreen reason={access.reason} trialDaysLeft={access.trialDaysLeft} />
+    <BillingRequiredScreen
+      reason={access.reason}
+      trialDaysLeft={access.trialDaysLeft}
+      isAdmin={ctx?.isAdmin ?? false}
+    />
   );
 }
