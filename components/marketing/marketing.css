@@ -5,6 +5,25 @@
   --mkt-ink-muted: var(--ink-muted);
 }
 
+html:has(.mkt-page) {
+  scroll-behavior: smooth;
+}
+
+.mkt-header {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+}
+
+.mkt-header--scrolled {
+  background: color-mix(in srgb, var(--background) 92%, transparent);
+  box-shadow: 0 10px 30px rgba(26, 22, 17, 0.06);
+}
+
+.mkt-section {
+  scroll-margin-top: 5.5rem;
+}
+
 .mkt-nav-link {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 12px;
@@ -480,21 +499,25 @@
   .mkt-reveal {
     opacity: 0;
     transition:
-      opacity 0.8s var(--ease-atelier),
-      transform 0.8s var(--ease-atelier);
+      opacity 1.05s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 1.05s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: opacity, transform;
   }
 
   .mkt-reveal--up {
-    transform: translateY(34px);
+    transform: translateY(48px);
   }
 
   .mkt-reveal--left {
-    transform: translateX(-24px);
+    transform: translateX(-36px);
   }
 
   .mkt-reveal--right {
-    transform: translateX(24px);
+    transform: translateX(36px);
+  }
+
+  .mkt-reveal--scale {
+    transform: translateY(28px) scale(0.96);
   }
 
   .mkt-reveal--visible {

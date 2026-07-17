@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { AppMark, AppWordmark } from "../AppBrand";
 import ModuleGlyph from "../modules/ModuleGlyph";
 import ScrollReveal from "./ScrollReveal";
@@ -39,8 +40,38 @@ const BENEFIT_KEYS = ["b1", "b2", "b3", "b4"] as const;
 
 const USE_CASE_KEYS = ["ops", "events", "leadership"] as const;
 
+function scrollToSection(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  window.history.pushState(null, "", `#${id}`);
+}
+
 export default function LandingPageContent() {
   const { t } = useTranslation({ preferBrowser: true });
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const next = window.scrollY > 16;
+      queueMicrotask(() => setHeaderScrolled(next));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return;
+    const frame = window.requestAnimationFrame(() => scrollToSection(hash));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  const onSectionNav = useCallback((event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    event.preventDefault();
+    scrollToSection(id);
+  }, []);
 
   const priceParams = {
     seat: PRICE_PER_SEAT_EUR,
@@ -73,21 +104,36 @@ export default function LandingPageContent() {
   ];
 
   return (
-    <div className="mkt-page relative min-h-screen overflow-hidden bg-[var(--background)]">
-      <header className="relative z-10 border-b border-[var(--line)]">
-        <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-5 sm:grid-cols-[1fr_auto_1fr] sm:px-10">
+    <div className="mkt-page relative min-h-screen overflow-x-hidden bg-[var(--background)]">
+      <header
+        className={[
+          "mkt-header sticky top-0 z-50 border-b transition-[background,box-shadow,border-color] duration-300",
+          headerScrolled
+            ? "mkt-header--scrolled border-[var(--line)]"
+            : "border-transparent bg-[var(--background)]/80",
+        ].join(" ")}
+      >
+        <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 sm:grid-cols-[1fr_auto_1fr] sm:px-10 sm:py-5">
           <Link href="/" className="flex items-center gap-3">
             <AppMark className="h-[34px] w-[34px]" />
             <AppWordmark size="compact" />
           </Link>
           <nav className="hidden items-center justify-center gap-9 sm:flex">
-            <a href="#avantages" className="mkt-nav-link">
+            <a
+              href="#avantages"
+              className="mkt-nav-link"
+              onClick={(e) => onSectionNav(e, "avantages")}
+            >
               {t("marketingLanding.nav.benefits")}
             </a>
-            <a href="#modules" className="mkt-nav-link">
+            <a
+              href="#modules"
+              className="mkt-nav-link"
+              onClick={(e) => onSectionNav(e, "modules")}
+            >
               {t("marketingLanding.nav.modules")}
             </a>
-            <a href="#tarifs" className="mkt-nav-link">
+            <a href="#tarifs" className="mkt-nav-link" onClick={(e) => onSectionNav(e, "tarifs")}>
               {t("marketingLanding.nav.pricing")}
             </a>
             <Link href="/pricing" className="mkt-nav-link">
@@ -107,20 +153,32 @@ export default function LandingPageContent() {
       </header>
 
       <main className="relative z-[5]">
-        <section className="relative px-6 pb-[90px] pt-[110px] sm:px-10">
-          <div className="ui-hero-halo ui-hero-halo--orange absolute -right-[120px] -top-[180px] h-[700px] w-[700px]" aria-hidden />
+        <section className="relative px-6 pb-[90px] pt-[72px] sm:px-10 sm:pt-[90px]">
+          <div
+            className="ui-hero-halo ui-hero-halo--orange absolute -right-[120px] -top-[180px] h-[700px] w-[700px]"
+            aria-hidden
+          />
           <div className="relative mx-auto max-w-[1280px]">
             <div className="mkt-hero-kicker flex items-center gap-3.5">
-              <span className="ui-kicker text-[12px] tracking-[0.18em]">{t("marketingLanding.hero.kicker")}</span>
-              <span className="mkt-hero-line h-px max-w-[220px] flex-1 bg-[rgba(26,22,17,0.25)]" aria-hidden />
+              <span className="ui-kicker text-[12px] tracking-[0.18em]">
+                {t("marketingLanding.hero.kicker")}
+              </span>
+              <span
+                className="mkt-hero-line h-px max-w-[220px] flex-1 bg-[rgba(26,22,17,0.25)]"
+                aria-hidden
+              />
             </div>
             <h1 className="ui-display mt-9 max-w-[1100px] text-[clamp(3.2rem,7.5vw,6.4rem)] leading-[1.08] tracking-[-0.02em] text-[var(--ink)]">
               <span className="mkt-hero-line-reveal block">
-                <span className="mkt-hero-line-inner block">{t("marketingLanding.hero.title1")}</span>
+                <span className="mkt-hero-line-inner block">
+                  {t("marketingLanding.hero.title1")}
+                </span>
               </span>
               <span className="mkt-hero-line-reveal block">
                 <span className="mkt-hero-line-inner mkt-hero-line-inner--2 block">
-                  <em className="italic text-[var(--accent)]">{t("marketingLanding.hero.titleEmphasis")}</em>
+                  <em className="italic text-[var(--accent)]">
+                    {t("marketingLanding.hero.titleEmphasis")}
+                  </em>
                 </span>
               </span>
             </h1>
@@ -135,7 +193,11 @@ export default function LandingPageContent() {
                   {t("marketingLanding.hero.ctaLaunch")}{" "}
                   <span className="font-[family-name:var(--font-mono)]">→</span>
                 </Link>
-                <a href="#tarifs" className="mkt-link-accent text-[15px] font-semibold">
+                <a
+                  href="#tarifs"
+                  className="mkt-link-accent text-[15px] font-semibold"
+                  onClick={(e) => onSectionNav(e, "tarifs")}
+                >
                   {t("marketingLanding.hero.ctaPricing", priceParams)}
                 </a>
               </div>
@@ -180,14 +242,18 @@ export default function LandingPageContent() {
           </div>
         </div>
 
-        <section id="avantages" className="relative z-[5] px-6 py-[100px] sm:px-10">
+        <section id="avantages" className="mkt-section relative z-[5] px-6 py-[100px] sm:px-10">
           <div className="mx-auto max-w-[1280px]">
             <ScrollReveal>
-              <span className="ui-kicker text-[12px] tracking-[0.18em]">{t("marketingLanding.benefits.kicker")}</span>
+              <span className="ui-kicker text-[12px] tracking-[0.18em]">
+                {t("marketingLanding.benefits.kicker")}
+              </span>
               <h2 className="ui-display mt-6 max-w-[820px] text-[clamp(2.2rem,4vw,3.4rem)] tracking-[-0.02em] text-[var(--ink)]">
                 {t("marketingLanding.benefits.title1")}
                 <br />
-                <em className="text-[var(--accent)] italic">{t("marketingLanding.benefits.titleEmphasis")}</em>
+                <em className="text-[var(--accent)] italic">
+                  {t("marketingLanding.benefits.titleEmphasis")}
+                </em>
               </h2>
               <p className="mt-5 max-w-[620px] text-base leading-relaxed text-[var(--ink-muted)]">
                 {t("marketingLanding.benefits.intro")}
@@ -196,11 +262,13 @@ export default function LandingPageContent() {
 
             <div className="mt-14 grid grid-cols-1 gap-0 border-t border-[rgba(26,22,17,0.18)] md:grid-cols-2">
               {BENEFIT_KEYS.map((key, index) => (
-                <ScrollReveal key={key} delay={index * 60}>
+                <ScrollReveal key={key} delay={index * 90}>
                   <div
                     className={[
                       "border-b border-[rgba(26,22,17,0.12)] px-0 py-8 md:px-6",
-                      index % 2 === 0 ? "md:border-r md:border-[rgba(26,22,17,0.12)] md:pl-0" : "",
+                      index % 2 === 0
+                        ? "md:border-r md:border-[rgba(26,22,17,0.12)] md:pl-0"
+                        : "",
                     ].join(" ")}
                   >
                     <h3 className="ui-display text-[1.55rem] tracking-[-0.01em] text-[var(--ink)]">
@@ -219,15 +287,19 @@ export default function LandingPageContent() {
         <section className="relative z-[5] px-6 pb-[80px] sm:px-10">
           <div className="mx-auto max-w-[1280px]">
             <ScrollReveal>
-              <span className="ui-kicker text-[12px] tracking-[0.18em]">{t("marketingLanding.useCases.kicker")}</span>
+              <span className="ui-kicker text-[12px] tracking-[0.18em]">
+                {t("marketingLanding.useCases.kicker")}
+              </span>
               <h2 className="ui-display mt-6 text-[clamp(2rem,3.5vw,2.8rem)] tracking-[-0.02em] text-[var(--ink)]">
                 {t("marketingLanding.useCases.title")}{" "}
-                <em className="text-[var(--accent)] italic">{t("marketingLanding.useCases.titleEmphasis")}</em>
+                <em className="text-[var(--accent)] italic">
+                  {t("marketingLanding.useCases.titleEmphasis")}
+                </em>
               </h2>
             </ScrollReveal>
             <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-3">
               {USE_CASE_KEYS.map((key, index) => (
-                <ScrollReveal key={key} delay={index * 80}>
+                <ScrollReveal key={key} delay={index * 100}>
                   <div className="border-t border-[rgba(26,22,17,0.2)] pt-6">
                     <h3 className="ui-display text-xl text-[var(--ink)]">
                       {t(`marketingLanding.useCases.${key}Title`)}
@@ -238,7 +310,10 @@ export default function LandingPageContent() {
                           key={n}
                           className="flex gap-3 text-[14.5px] leading-relaxed text-[rgba(26,22,17,0.7)]"
                         >
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" aria-hidden />
+                          <span
+                            className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]"
+                            aria-hidden
+                          />
                           {t(`marketingLanding.useCases.${key}${n}`)}
                         </li>
                       ))}
@@ -250,26 +325,32 @@ export default function LandingPageContent() {
           </div>
         </section>
 
-        <section id="modules" className="relative z-[5] px-6 py-[100px] sm:px-10">
+        <section id="modules" className="mkt-section relative z-[5] px-6 py-[100px] sm:px-10">
           <div className="mx-auto max-w-[1280px]">
-            <div className="flex flex-wrap items-baseline justify-between gap-6">
-              <h2 className="ui-display text-[clamp(2.4rem,4.5vw,3.6rem)] tracking-[-0.02em] text-[var(--ink)]">
-                {t("marketingLanding.modules.title1")}
-                <br />
-                <em className="text-[var(--accent)] italic">{t("marketingLanding.modules.titleEmphasis")}</em>
-              </h2>
-              <p className="max-w-[400px] text-base leading-relaxed text-[var(--ink-muted)]">
-                {t("marketingLanding.modules.intro", priceParams)}
-              </p>
-            </div>
+            <ScrollReveal>
+              <div className="flex flex-wrap items-baseline justify-between gap-6">
+                <h2 className="ui-display text-[clamp(2.4rem,4.5vw,3.6rem)] tracking-[-0.02em] text-[var(--ink)]">
+                  {t("marketingLanding.modules.title1")}
+                  <br />
+                  <em className="text-[var(--accent)] italic">
+                    {t("marketingLanding.modules.titleEmphasis")}
+                  </em>
+                </h2>
+                <p className="max-w-[400px] text-base leading-relaxed text-[var(--ink-muted)]">
+                  {t("marketingLanding.modules.intro", priceParams)}
+                </p>
+              </div>
+            </ScrollReveal>
 
             <div className="mt-14 border-t border-[rgba(26,22,17,0.18)]">
               {LANDING_MODULE_ORDER.map((moduleId, index) => (
                 <ModuleRow key={moduleId} moduleId={moduleId} index={index} t={t} />
               ))}
-              <ScrollReveal>
+              <ScrollReveal delay={80}>
                 <div className="grid grid-cols-[56px_1fr] items-center gap-6 rounded-b-[18px] bg-[var(--ink)] px-5 py-[26px] sm:grid-cols-[80px_1fr_1.2fr_auto]">
-                  <span className="font-[family-name:var(--font-mono)] text-[13px] text-[rgba(246,241,231,0.45)]">12</span>
+                  <span className="font-[family-name:var(--font-mono)] text-[13px] text-[rgba(246,241,231,0.45)]">
+                    12
+                  </span>
                   <h3 className="ui-display text-[27px] tracking-[-0.01em] text-[var(--background)]">
                     {t("marketingLanding.modules.aiTitle")}{" "}
                     <em className="text-[var(--accent-on-dark)] italic">
@@ -280,7 +361,10 @@ export default function LandingPageContent() {
                     {t("marketingLanding.modules.aiDesc")}
                   </p>
                   <span className="hidden h-[42px] w-[42px] items-center justify-center rounded-full bg-[var(--accent)] sm:inline-flex">
-                    <span className="atelier-star atelier-star--spin h-3.5 w-3.5 bg-[var(--background)]" aria-hidden />
+                    <span
+                      className="atelier-star atelier-star--spin h-3.5 w-3.5 bg-[var(--background)]"
+                      aria-hidden
+                    />
                   </span>
                 </div>
               </ScrollReveal>
@@ -288,27 +372,30 @@ export default function LandingPageContent() {
           </div>
         </section>
 
-        <section className="relative z-[5] px-6 pb-[100px] pt-10 sm:px-10">
+        <section id="tarifs" className="mkt-section relative z-[5] px-6 pb-[100px] pt-10 sm:px-10">
           <div className="mx-auto max-w-[1280px]">
             <ScrollReveal>
-              <span className="ui-kicker text-[12px] tracking-[0.18em]">{t("marketingLanding.why.kicker")}</span>
+              <span className="ui-kicker text-[12px] tracking-[0.18em]">
+                {t("marketingLanding.why.kicker")}
+              </span>
               <div className="mt-7 grid grid-cols-1 items-start gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
                 <div>
                   <p className="ui-display text-[clamp(1.8rem,3.2vw,2.6rem)] leading-[1.2] tracking-[-0.01em] text-[var(--ink)]">
                     {t("marketingLanding.why.quote", priceParams)}
                   </p>
                   <ul className="mt-9 flex flex-col">
-                    {whyPoints.map((text) => (
-                      <li
-                        key={text}
-                        className="border-b border-[rgba(26,22,17,0.12)] py-[15px] text-base text-[rgba(26,22,17,0.8)]"
-                      >
-                        {text}
-                      </li>
+                    {whyPoints.map((text, index) => (
+                      <ScrollReveal key={text} delay={index * 70}>
+                        <li className="border-b border-[rgba(26,22,17,0.12)] py-[15px] text-base text-[rgba(26,22,17,0.8)]">
+                          {text}
+                        </li>
+                      </ScrollReveal>
                     ))}
                   </ul>
                 </div>
-                <LandingPricingSection />
+                <ScrollReveal direction="right" delay={120}>
+                  <LandingPricingSection />
+                </ScrollReveal>
               </div>
             </ScrollReveal>
           </div>
@@ -316,13 +403,15 @@ export default function LandingPageContent() {
 
         <section className="relative z-[5] mx-6 mb-10 overflow-hidden rounded-[28px] bg-[var(--ink)] px-6 py-[100px] text-center sm:mx-10">
           <GrainBand aria-hidden />
-          <ScrollReveal>
+          <ScrollReveal direction="scale">
             <span className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.18em] text-[var(--accent-on-dark)]">
               {t("marketingLanding.cta.kicker")}
             </span>
             <h2 className="ui-display mx-auto mt-6 max-w-[760px] text-[clamp(2.6rem,5vw,4.2rem)] leading-[1.05] tracking-[-0.02em] text-[var(--background)]">
               {t("marketingLanding.cta.title1")}{" "}
-              <em className="text-[var(--accent-on-dark)] italic">{t("marketingLanding.cta.titleEmphasis")}</em>
+              <em className="text-[var(--accent-on-dark)] italic">
+                {t("marketingLanding.cta.titleEmphasis")}
+              </em>
               {t("marketingLanding.cta.titleEnd")}
             </h2>
             <p className="mx-auto mt-[22px] max-w-[520px] text-[17px] text-[rgba(246,241,231,0.6)]">
@@ -373,9 +462,11 @@ function ModuleRow({
 }) {
   const num = String(index + 1).padStart(2, "0");
   return (
-    <ScrollReveal>
+    <ScrollReveal delay={Math.min(index * 40, 200)}>
       <div className="mkt-module-row group grid grid-cols-[56px_1fr] items-center gap-6 border-b border-[var(--line)] py-[26px] sm:grid-cols-[80px_1fr_1.2fr_auto] sm:px-2">
-        <span className="font-[family-name:var(--font-mono)] text-[13px] text-[rgba(26,22,17,0.4)]">{num}</span>
+        <span className="font-[family-name:var(--font-mono)] text-[13px] text-[rgba(26,22,17,0.4)]">
+          {num}
+        </span>
         <h3 className="ui-display text-[27px] tracking-[-0.01em] text-[var(--ink)]">
           {t(`modules.${moduleId}.name`)}
         </h3>

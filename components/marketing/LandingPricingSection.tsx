@@ -27,10 +27,7 @@ export default function LandingPricingSection() {
   const periodSuffix = interval === "year" ? t("settings.billing.perYearSuffix") : t("settings.billing.perMonthSuffix");
 
   return (
-    <div
-      id="tarifs"
-      className="flex flex-col overflow-hidden rounded-[22px] border border-[rgba(26,22,17,0.2)] bg-[var(--surface)] shadow-[0_24px_60px_rgba(26,22,17,0.1)]"
-    >
+    <div className="flex flex-col overflow-hidden rounded-[22px] border border-[rgba(26,22,17,0.2)] bg-[var(--surface)] shadow-[0_24px_60px_rgba(26,22,17,0.1)]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[rgba(26,22,17,0.12)] px-[30px] py-4">
         <p className="text-[13px] text-[rgba(26,22,17,0.55)]">
           {t("pricing.modulesLine", { days: TRIAL_DAYS })}
