@@ -1467,7 +1467,7 @@ export const moduleUiFr = {
     daysPlaceholder: "Ex : 2 jours",
     hoursVolumeHint: "Indiquez le volume en heures (ex. 3). Vous le placerez ensuite sur le calendrier.",
     daysVolumeHint: "Indiquez le volume en jours ouvrés (1 jour ≈ 7 heures pour la planification).",
-    subtasks: "To-do / Sous-tâches",
+    planningRemaining: "À placer :", planningFree: "Planification libre", planningCalendarHint: "Glissez-déposez votre bloc sur la semaine, redimensionnez-le aux bords, ou sélectionnez un créneau vide. Les blocs gris sont déjà planifiés ailleurs.", subtasks: "To-do / Sous-tâches",
     subtasksHint: "Découpez le projet en étapes avec échéance et responsable. Elles seront créées automatiquement.",
     removeSubtask: "Retirer cette étape",
     subtaskNamePlaceholder: "Nom de la to-do (Entrée pour ajouter)",

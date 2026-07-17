@@ -1538,6 +1538,10 @@ export const moduleUiEs = {
     daysPlaceholder: "p. ej. 2 días",
     hoursVolumeHint: "Indica el volumen en horas (p. ej. 3). Luego lo colocarás en el calendario.",
     daysVolumeHint: "Indica el volumen en días laborables (1 día ≈ 7 horas para la planificación).",
+    planningRemaining: "Por colocar:",
+    planningFree: "Planificación libre",
+    planningCalendarHint:
+      "Arrastra tu bloque en la semana, redimensiónalo desde los bordes o selecciona un hueco vacío. Los bloques grises ya están planificados en otro sitio.",
     subtasks: "To-do / Subtareas",
     subtasksHint: "Divide el proyecto en pasos con fecha límite y responsable. Se crearán automáticamente.",
     removeSubtask: "Quitar este paso",

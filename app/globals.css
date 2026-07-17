@@ -1095,6 +1095,42 @@ select.ui-input {
   background: color-mix(in srgb, var(--warning) 14%, var(--surface));
 }
 
+.new-task-planning-cal .rbc-calendar {
+  height: 100%;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.new-task-planning-cal .rbc-time-view,
+.new-task-planning-cal .rbc-time-content {
+  border-color: var(--line) !important;
+}
+
+.new-task-planning-cal .rbc-time-header-cell,
+.new-task-planning-cal .rbc-header {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 2px;
+}
+
+.new-task-planning-cal .rbc-time-slot {
+  min-height: 14px;
+}
+
+.new-task-planning-cal .rbc-event {
+  border-width: 1px;
+  border-style: solid;
+  padding: 0 !important;
+}
+
+.new-task-planning-cal .rbc-addons-dnd-resizable {
+  min-height: 20px;
+}
+
+.new-task-planning-cal .rbc-addons-dnd-resize-ns-anchor {
+  width: 100%;
+  cursor: ns-resize;
+}
+
 .rbc-calendar {
   --rbc-border-color: var(--line);
   --rbc-soft-bg: var(--surface-soft);

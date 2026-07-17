@@ -31,7 +31,11 @@ import { ensureCurrentUserTeamMember, resolveFallbackAssigneeName } from "../lib
 import { resolveDefaultSubtaskAssignee, teamAdminNameForUser } from "../lib/taskConcernsUser";
 import type { CurrentUser } from "../lib/useCurrentUser";
 import CustomFieldInputs from "./CustomFieldInputs";
-import NewTaskPlanningCalendar, { type ExistingSlot, type PlanningSlot } from "./NewTaskPlanningCalendar";
+import NewTaskPlanningCalendar, {
+  type ExistingSlot,
+  type PlanningSlot,
+  slotFromDateAndHours,
+} from "./NewTaskPlanningCalendar";
 import { ensureDefaultBoard } from "../lib/v2/boardColumns";
 import { getSupabaseBrowser } from "../lib/supabaseBrowser";
 import { useBranding } from "../lib/brandingContext";
@@ -364,7 +368,7 @@ export default function NewTaskModal(props: {
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, "0");
         const dd = String(today.getDate()).padStart(2, "0");
-        replace([{ date: `${yyyy}-${mm}-${dd}`, hours: Math.min(hours, 8) }]);
+        replace([slotFromDateAndHours(`${yyyy}-${mm}-${dd}`, Math.min(hours, 8))]);
       }
     }
     setStep((prev) => Math.min(prev + 1, 3) as WizardStep);

@@ -1484,6 +1484,10 @@ export const moduleUiEn = {
     daysPlaceholder: "e.g. 2 days",
     hoursVolumeHint: "Enter volume in hours (e.g. 3). You will place it on the calendar next.",
     daysVolumeHint: "Enter volume in working days (1 day ≈ 7 hours for planning).",
+    planningRemaining: "To place:",
+    planningFree: "Free scheduling",
+    planningCalendarHint:
+      "Drag your block on the week, resize from the edges, or select an empty slot. Gray blocks are already scheduled elsewhere.",
     subtasks: "To-do / Subtasks",
     subtasksHint: "Break the project into steps with deadline and owner. They will be created automatically.",
     removeSubtask: "Remove this step",
