@@ -24,7 +24,7 @@ export default function IntakeFormEditorClient({
       title={title}
       initialDefinition={initialDefinition}
       onSave={(definition) => saveIntakeFormDefinition(formId, definition)}
-      backHref="/asks"
+      backHref={`/asks/${formId}`}
       backLabel={t("asks.editor.backLabel")}
       successMessage={t("asks.editor.saveSuccess")}
       showPrestationRules={false}

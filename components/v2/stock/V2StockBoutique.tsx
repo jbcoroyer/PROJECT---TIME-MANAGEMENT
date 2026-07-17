@@ -1,14 +1,11 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import {
   AlertTriangle,
   ArrowDownUp,
-  BarChart3,
   CheckCircle2,
   ChevronDown,
-  ClipboardList,
   LayoutGrid,
   Loader2,
   Minus,
@@ -25,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import InventoryGoodiesModal from "../../InventoryGoodiesModal";
+import InventoryGenericModal from "../../InventoryGenericModal";
 import InventoryPlvModal from "../../InventoryPlvModal";
 import InventoryPrintModal from "../../InventoryPrintModal";
 import InventoryReorderModal from "../../InventoryReorderModal";
@@ -35,13 +33,15 @@ import EmptyState from "../../ui/EmptyState";
 import { toastError, toastSuccess } from "../../../lib/toast";
 import { useCurrentUser } from "../../../lib/useCurrentUser";
 import {
-  inventoryCategories,
   inventoryItemValue,
   isLowStock,
-  type InventoryCategory,
   type InventoryItem,
   type InventoryItemDraft,
 } from "../../../lib/inventoryTypes";
+import {
+  resolveStockCategories,
+  stockCategoryLabel,
+} from "../../../lib/stockCategories";
 import { getInventoryErrorMessage, useInventory } from "../../../lib/useInventory";
 import { useStockProjects } from "../../../lib/useStockProjects";
 import { formatCurrency, formatNumber } from "../../../lib/stockUtils";
@@ -53,8 +53,8 @@ import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { getPrintSpeciesVisual } from "../../../lib/printSpeciesStyles";
 import { printSpeciesLabel } from "../../../lib/taxonomies";
 import {
-  CATEGORY_META,
   GAUGE_TONE,
+  getCategoryDisplayMeta,
   getPrintMeta,
   itemSearchHaystack,
   itemSubtitle,
@@ -82,6 +82,14 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     recordMovement,
     deleteItem,
   } = useInventory();
+  const stockCategories = useMemo(
+    () => resolveStockCategories(branding.inventoryCategories, items),
+    [branding.inventoryCategories, items],
+  );
+  const categoryMetaFor = (value: string) => {
+    const index = stockCategories.findIndex((c) => c.value === value);
+    return getCategoryDisplayMeta(value, stockCategories, index >= 0 ? index : 0);
+  };
   const { projects } = useStockProjects();
   const confirm = useConfirm();
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -100,20 +108,15 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
   const [printModalOpen, setPrintModalOpen] = useState(false);
   const [goodiesModalOpen, setGoodiesModalOpen] = useState(false);
   const [plvModalOpen, setPlvModalOpen] = useState(false);
+  const [genericModalOpen, setGenericModalOpen] = useState(false);
+  const [createCategory, setCreateCategory] = useState("");
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [reorderItem, setReorderItem] = useState<InventoryItem | null>(null);
   const [movementItem, setMovementItem] = useState<InventoryItem | null>(null);
   const [movementMode, setMovementMode] = useState<"add" | "remove">("remove");
   const [photoUploading, setPhotoUploading] = useState(false);
 
-  const categoryLabel = (category: InventoryCategory) => {
-    const keys: Record<InventoryCategory, string> = {
-      Print: "stock.boutique.category.print",
-      Goodies: "stock.boutique.category.goodies",
-      PLV: "stock.boutique.category.plv",
-    };
-    return t(keys[category]);
-  };
+  const categoryLabel = (category: string) => stockCategoryLabel(stockCategories, category);
 
   const sortOptions: { key: SortKey; label: string }[] = useMemo(
     () => [
@@ -134,10 +137,13 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
   const alertCount = useMemo(() => items.filter((it) => isLowStock(it)).length, [items]);
 
   const categoryCounts = useMemo(() => {
-    const base: Record<CategoryFilter, number> = { all: items.length, Print: 0, Goodies: 0, PLV: 0 };
-    for (const it of items) base[it.category] += 1;
+    const base: Record<string, number> = { all: items.length };
+    for (const cat of stockCategories) base[cat.value] = 0;
+    for (const it of items) {
+      base[it.category] = (base[it.category] ?? 0) + 1;
+    }
     return base;
-  }, [items]);
+  }, [items, stockCategories]);
 
   const showSpeciesFilters = categoryFilter === "all" || categoryFilter === "Print";
 
@@ -163,7 +169,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       }
       if (alertOnly && !isLowStock(item)) return false;
       if (!query) return true;
-      return itemSearchHaystack(item, printSpeciesOptions).toLowerCase().includes(query);
+      return itemSearchHaystack(item, printSpeciesOptions, stockCategories).toLowerCase().includes(query);
     });
     const sorted = [...list];
     sorted.sort((a, b) => {
@@ -183,61 +189,84 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       }
     });
     return sorted;
-  }, [items, searchQuery, categoryFilter, speciesFilter, alertOnly, sortKey, printSpeciesOptions, intlLocale]);
+  }, [items, searchQuery, categoryFilter, speciesFilter, alertOnly, sortKey, printSpeciesOptions, stockCategories, intlLocale]);
 
   const displaySections = useMemo((): DisplaySection[] => {
     const groupBySpecies =
       showSpeciesFilters && speciesFilter === "all" && visibleItems.some((it) => it.category === "Print");
 
-    if (!groupBySpecies) {
+    if (groupBySpecies) {
+      const sections: DisplaySection[] = [];
+      const printItems = visibleItems.filter((it) => it.category === "Print");
+      const otherItems = visibleItems.filter((it) => it.category !== "Print");
+
+      for (const opt of printSpeciesOptions) {
+        const group = printItems.filter((it) => getPrintMeta(it, printSpeciesOptions).species === opt.value);
+        if (group.length === 0) continue;
+        sections.push({
+          id: `species-${opt.value}`,
+          title: opt.label,
+          chipClass: getPrintSpeciesVisual(printSpeciesOptions, opt.value).badgeClass,
+          items: group,
+        });
+      }
+
+      for (const cat of stockCategories) {
+        if (cat.value === "Print") continue;
+        const group = otherItems.filter((it) => it.category === cat.value);
+        if (group.length === 0) continue;
+        const meta = categoryMetaFor(cat.value);
+        sections.push({
+          id: cat.value,
+          title: cat.label,
+          chipClass: meta.chip,
+          items: group,
+        });
+      }
+
+      const known = new Set(stockCategories.map((c) => c.value));
+      const orphan = otherItems.filter((it) => !known.has(it.category));
+      if (orphan.length > 0) {
+        sections.push({ id: "other", title: null, items: orphan });
+      }
+
+      return sections.length > 0 ? sections : [{ id: "all", title: null, items: visibleItems }];
+    }
+
+    if (categoryFilter !== "all") {
       return [{ id: "all", title: null, items: visibleItems }];
     }
 
     const sections: DisplaySection[] = [];
-    const printItems = visibleItems.filter((it) => it.category === "Print");
-    const otherItems = visibleItems.filter((it) => it.category !== "Print");
-
-    for (const opt of printSpeciesOptions) {
-      const group = printItems.filter((it) => getPrintMeta(it, printSpeciesOptions).species === opt.value);
+    for (const cat of stockCategories) {
+      const group = visibleItems.filter((it) => it.category === cat.value);
       if (group.length === 0) continue;
+      const meta = categoryMetaFor(cat.value);
       sections.push({
-        id: `species-${opt.value}`,
-        title: opt.label,
-        chipClass: getPrintSpeciesVisual(printSpeciesOptions, opt.value).badgeClass,
+        id: cat.value,
+        title: cat.label,
+        chipClass: meta.chip,
         items: group,
       });
     }
-
-    if (otherItems.length > 0) {
-      const goodies = otherItems.filter((it) => it.category === "Goodies");
-      const plv = otherItems.filter((it) => it.category === "PLV");
-      if (goodies.length > 0) {
-        sections.push({
-          id: "goodies",
-          title: t("stock.boutique.category.goodies"),
-          chipClass: CATEGORY_META.Goodies.chip,
-          items: goodies,
-        });
-      }
-      if (plv.length > 0) {
-        sections.push({
-          id: "plv",
-          title: t("stock.boutique.category.plv"),
-          chipClass: CATEGORY_META.PLV.chip,
-          items: plv,
-        });
-      }
+    const known = new Set(stockCategories.map((c) => c.value));
+    const orphan = visibleItems.filter((it) => !known.has(it.category));
+    if (orphan.length > 0) {
+      sections.push({ id: "other", title: null, items: orphan });
     }
-
     return sections.length > 0 ? sections : [{ id: "all", title: null, items: visibleItems }];
-  }, [visibleItems, showSpeciesFilters, speciesFilter, printSpeciesOptions, t]);
+  }, [visibleItems, showSpeciesFilters, speciesFilter, printSpeciesOptions, stockCategories, categoryFilter]);
 
-  const openCreate = (category: InventoryCategory) => {
+  const openCreate = (category: string) => {
     setEditingItem(null);
     setAddMenuOpen(false);
     if (category === "Print") setPrintModalOpen(true);
     else if (category === "PLV") setPlvModalOpen(true);
-    else setGoodiesModalOpen(true);
+    else if (category === "Goodies") setGoodiesModalOpen(true);
+    else {
+      setCreateCategory(category);
+      setGenericModalOpen(true);
+    }
   };
 
   const openEdit = (item: InventoryItem) => {
@@ -245,7 +274,11 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     setEditingItem(item);
     if (item.category === "Print") setPrintModalOpen(true);
     else if (item.category === "PLV") setPlvModalOpen(true);
-    else setGoodiesModalOpen(true);
+    else if (item.category === "Goodies") setGoodiesModalOpen(true);
+    else {
+      setCreateCategory(item.category);
+      setGenericModalOpen(true);
+    }
   };
 
   const openReorder = (item: InventoryItem) => {
@@ -295,6 +328,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       setPrintModalOpen(false);
       setGoodiesModalOpen(false);
       setPlvModalOpen(false);
+      setGenericModalOpen(false);
       setEditingItem(null);
       setDetailItem(null);
     } catch (error) {
@@ -340,10 +374,11 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     setMovementMode(mode);
   };
 
-  const visualUploadFolder = (category: InventoryCategory): "print" | "goodies" | "plv" => {
+  const visualUploadFolder = (category: string): string => {
     if (category === "Print") return "print";
     if (category === "PLV") return "plv";
-    return "goodies";
+    if (category === "Goodies") return "goodies";
+    return category;
   };
 
   const handleDetailPhotoUpload = async (file: File) => {
@@ -380,7 +415,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
   };
 
   const renderDetailPreview = (item: InventoryItem) => {
-    const meta = CATEGORY_META[item.category];
+    const meta = categoryMetaFor(item.category);
     const Icon = meta.icon;
     const hasVisual = Boolean(item.visualUrl);
     const isPdf = hasVisual && isPdfUrl(item.visualUrl!);
@@ -443,7 +478,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
   };
 
   const renderVisual = (item: InventoryItem, height: string) => {
-    const meta = CATEGORY_META[item.category];
+    const meta = categoryMetaFor(item.category);
     const Icon = meta.icon;
     if (item.visualUrl) {
       return (
@@ -515,7 +550,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
   );
 
   const renderCard = (item: InventoryItem) => {
-    const meta = CATEGORY_META[item.category];
+    const meta = categoryMetaFor(item.category);
     const Icon = meta.icon;
     const gauge = stockGauge(item);
     const printMeta = item.category === "Print" ? getPrintMeta(item, printSpeciesOptions) : null;
@@ -547,7 +582,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         <div className="flex flex-1 flex-col gap-3 p-4">
           <div className="min-h-[2.5rem]">
             <h3 className="line-clamp-1 font-semibold text-[var(--foreground)]">{item.name}</h3>
-            <p className="line-clamp-1 text-xs text-[color:var(--foreground)]/55">{itemSubtitle(item, printSpeciesOptions)}</p>
+            <p className="line-clamp-1 text-xs text-[color:var(--foreground)]/55">{itemSubtitle(item, printSpeciesOptions, stockCategories)}</p>
           </div>
 
           <div className="flex items-end justify-between">
@@ -576,7 +611,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
   };
 
   const renderRow = (item: InventoryItem) => {
-    const meta = CATEGORY_META[item.category];
+    const meta = categoryMetaFor(item.category);
     const Icon = meta.icon;
     const printMeta = item.category === "Print" ? getPrintMeta(item, printSpeciesOptions) : null;
     return (
@@ -604,7 +639,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
             {isLowStock(item) ? statusPill(item, true) : null}
           </div>
           <p className="mt-1 line-clamp-1 font-semibold text-[var(--foreground)]">{item.name}</p>
-          <p className="line-clamp-1 text-xs text-[color:var(--foreground)]/55">{itemSubtitle(item, printSpeciesOptions)}</p>
+          <p className="line-clamp-1 text-xs text-[color:var(--foreground)]/55">{itemSubtitle(item, printSpeciesOptions, stockCategories)}</p>
         </div>
         <div className="hidden shrink-0 text-right sm:block">
           <p className="text-lg font-semibold text-[var(--foreground)]">{formatNumber(item.quantity, intlLocale)}</p>
@@ -805,20 +840,6 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         </div>
 
         <div className="flex items-center gap-2">
-          <Link
-            href={`${basePath}/history`}
-            className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
-          >
-            <ClipboardList className="h-4 w-4" />
-            {t("stock.boutique.toolbar.history")}
-          </Link>
-          <Link
-            href={`${basePath}/dashboard`}
-            className="ui-transition inline-flex items-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[color:var(--foreground)]/75 hover:bg-[var(--surface-soft)]"
-          >
-            <BarChart3 className="h-4 w-4" />
-            {t("stock.boutique.toolbar.dashboard")}
-          </Link>
           <div className="relative">
             <button
               type="button"
@@ -839,24 +860,20 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                   onClick={() => setAddMenuOpen(false)}
                 />
                 <div className="absolute right-0 z-[61] mt-2 w-56 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-xl">
-                  {inventoryCategories.map((cat) => {
-                    const meta = CATEGORY_META[cat];
+                  {stockCategories.map((cat, index) => {
+                    const meta = getCategoryDisplayMeta(cat.value, stockCategories, index);
                     const Icon = meta.icon;
                     return (
                       <button
-                        key={cat}
+                        key={cat.value}
                         type="button"
-                        onClick={() => openCreate(cat)}
+                        onClick={() => openCreate(cat.value)}
                         className="ui-transition flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium text-[color:var(--foreground)]/80 hover:bg-[var(--surface-soft)]"
                       >
                         <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg ${meta.chip}`}>
                           <Icon className="h-4 w-4" />
                         </span>
-                        {cat === "Print"
-                          ? t("stock.boutique.addMenu.printDocument")
-                          : cat === "PLV"
-                            ? t("stock.boutique.addMenu.plvSupport")
-                            : t("stock.boutique.category.goodies")}
+                        {cat.label}
                       </button>
                     );
                   })}
@@ -869,9 +886,9 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
 
       {/* Puces de catégorie + filtre alertes */}
       <div className="flex flex-wrap items-center gap-2">
-        {(["all", ...inventoryCategories] as CategoryFilter[]).map((cat) => {
+        {(["all", ...stockCategories.map((c) => c.value)] as CategoryFilter[]).map((cat) => {
           const active = categoryFilter === cat;
-          const label = cat === "all" ? t("stock.boutique.filters.all") : categoryLabel(cat as InventoryCategory);
+          const label = cat === "all" ? t("stock.boutique.filters.all") : categoryLabel(cat);
           return (
             <button
               key={cat}
@@ -1016,7 +1033,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                 <X className="h-4 w-4" />
               </button>
               <span
-                className={`absolute left-4 top-4 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${CATEGORY_META[detail.category].chip}`}
+                className={`absolute left-4 top-4 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${categoryMetaFor(detail.category).chip}`}
               >
                 {categoryLabel(detail.category)}
               </span>
@@ -1028,7 +1045,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
                   <h2 className="text-xl font-semibold text-[var(--foreground)]">{detail.name}</h2>
                   {statusPill(detail)}
                 </div>
-                <p className="mt-1 text-sm text-[color:var(--foreground)]/60">{itemSubtitle(detail, printSpeciesOptions)}</p>
+                <p className="mt-1 text-sm text-[color:var(--foreground)]/60">{itemSubtitle(detail, printSpeciesOptions, stockCategories)}</p>
                 {detail.category === "Print" ? (
                   <div className="mt-2 flex flex-wrap gap-2">
                     <span
@@ -1195,6 +1212,20 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
         allItems={items}
         onClose={() => {
           setPlvModalOpen(false);
+          setEditingItem(null);
+        }}
+        onSubmit={handleSaveItem}
+        onDelete={handleDeleteItem}
+      />
+      <InventoryGenericModal
+        open={genericModalOpen}
+        category={createCategory}
+        categoryLabel={categoryLabel(createCategory)}
+        initialItem={
+          editingItem && editingItem.category === createCategory ? editingItem : null
+        }
+        onClose={() => {
+          setGenericModalOpen(false);
           setEditingItem(null);
         }}
         onSubmit={handleSaveItem}

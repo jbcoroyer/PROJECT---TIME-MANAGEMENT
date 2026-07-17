@@ -3,12 +3,16 @@ import { getPrintSpeciesVisual } from "../../../lib/printSpeciesStyles";
 import { printSpeciesLabel, type PrintSpeciesOption } from "../../../lib/taxonomies";
 import { decodePrintItemType, type PrintSpeciesValue } from "../../../lib/printSpecies";
 import {
+  isLegacyInventoryCategory,
+  stockCategoryMeta,
+  type StockCategoryOption,
+} from "../../../lib/stockCategories";
+import {
   isLowStock,
-  type InventoryCategory,
   type InventoryItem,
 } from "../../../lib/inventoryTypes";
 
-export type CategoryFilter = "all" | InventoryCategory;
+export type CategoryFilter = "all" | string;
 export type SpeciesFilter = "all" | PrintSpeciesValue;
 export type SortKey = "name" | "quantity" | "value" | "alert";
 export type ViewMode = "grid" | "list";
@@ -20,8 +24,9 @@ export type DisplaySection = {
   items: InventoryItem[];
 };
 
-export const CATEGORY_META: Record<
-  InventoryCategory,
+/** Rétro-compat affichage legacy Print / Goodies / PLV. */
+export const LEGACY_CATEGORY_META: Record<
+  string,
   { label: string; icon: typeof Package; gradient: string; chip: string }
 > = {
   Print: {
@@ -43,6 +48,24 @@ export const CATEGORY_META: Record<
     chip: "ui-pill ui-pill-neutral",
   },
 };
+
+export function getCategoryDisplayMeta(
+  categoryValue: string,
+  categories: StockCategoryOption[],
+  index = 0,
+) {
+  if (isLegacyInventoryCategory(categoryValue) && LEGACY_CATEGORY_META[categoryValue]) {
+    return LEGACY_CATEGORY_META[categoryValue]!;
+  }
+  const configured = categories.find((c) => c.value === categoryValue);
+  const meta = stockCategoryMeta(index);
+  return {
+    label: configured?.label ?? categoryValue,
+    icon: meta.icon,
+    gradient: meta.gradient,
+    chip: meta.chip,
+  };
+}
 
 export function getPrintMeta(item: InventoryItem, options: PrintSpeciesOption[]) {
   const decoded = decodePrintItemType(item.itemType ?? "");
@@ -72,19 +95,30 @@ export const GAUGE_TONE: Record<"ok" | "warn" | "low", string> = {
   low: "bg-[var(--danger)]",
 };
 
-export function itemSubtitle(item: InventoryItem, printSpeciesOptions: PrintSpeciesOption[]): string {
+export function itemSubtitle(
+  item: InventoryItem,
+  printSpeciesOptions: PrintSpeciesOption[],
+  categories: StockCategoryOption[],
+): string {
   if (item.category === "Print") {
     const { docType } = getPrintMeta(item, printSpeciesOptions);
     const lang = item.language?.trim();
     return lang ? `${docType} · ${lang}` : docType;
   }
-  return item.itemType || CATEGORY_META[item.category].label;
+  if (item.itemType?.trim()) return item.itemType.trim();
+  const configured = categories.find((c) => c.value === item.category);
+  return configured?.label ?? item.category;
 }
 
-export function itemSearchHaystack(item: InventoryItem, printSpeciesOptions: PrintSpeciesOption[]): string {
+export function itemSearchHaystack(
+  item: InventoryItem,
+  printSpeciesOptions: PrintSpeciesOption[],
+  categories: StockCategoryOption[],
+): string {
   if (item.category === "Print") {
     const { docType, speciesLabel } = getPrintMeta(item, printSpeciesOptions);
     return [item.name, docType, speciesLabel, item.language, item.lastQuoteInfo].filter(Boolean).join(" ");
   }
-  return [item.name, item.itemType, item.lastQuoteInfo].filter(Boolean).join(" ");
+  const catLabel = categories.find((c) => c.value === item.category)?.label ?? item.category;
+  return [item.name, item.itemType, catLabel, item.lastQuoteInfo].filter(Boolean).join(" ");
 }

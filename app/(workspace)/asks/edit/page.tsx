@@ -1,21 +1,13 @@
-import { notFound } from "next/navigation";
-import IntakeFormEditorClient from "../../../../components/v2/asks/IntakeFormEditorClient";
-import { fetchIntakeFormDefinition, getOrgIntakeForm } from "../../../../app/actions/intakeForm";
+import { redirect } from "next/navigation";
+import { listIntakeForms } from "../../../../app/actions/intakeForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function IntakeFormEditPage() {
-  const form = await getOrgIntakeForm();
-  if (!form) notFound();
-
-  const result = await fetchIntakeFormDefinition(form.id);
-  if (!result.ok) notFound();
-
-  return (
-    <IntakeFormEditorClient
-      formId={form.id}
-      title={form.title}
-      initialDefinition={result.definition}
-    />
-  );
+/** Redirection legacy /asks/edit → premier formulaire ou liste. */
+export default async function LegacyIntakeFormEditPage() {
+  const forms = await listIntakeForms();
+  if (forms.length === 1) {
+    redirect(`/asks/${forms[0].id}/edit`);
+  }
+  redirect("/asks");
 }

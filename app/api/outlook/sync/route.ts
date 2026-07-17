@@ -8,6 +8,7 @@ import {
   type ProjectedWorkItem,
   type TaskForSync,
 } from "../../../../lib/server/outlookSync";
+import { jsonServerError } from "../../../../lib/server/apiErrorResponse";
 
 type SyncBody = { taskId?: string; remove?: boolean };
 
@@ -40,11 +41,7 @@ export async function POST(request: NextRequest) {
       const result = await removeTaskFromOutlook(userId, taskId);
       return NextResponse.json(result);
     } catch (e) {
-      console.error("Outlook remove error", e);
-      return NextResponse.json(
-        { error: e instanceof Error ? e.message : "Erreur de suppression." },
-        { status: 500 },
-      );
+      return jsonServerError("api/outlook/sync remove", e);
     }
   }
 
@@ -56,7 +53,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return jsonServerError("api/outlook/sync read", error);
   }
   if (!row) {
     return NextResponse.json({ error: "Tâche introuvable." }, { status: 404 });
@@ -77,10 +74,6 @@ export async function POST(request: NextRequest) {
     const result = await syncTaskToOutlook(userId, task);
     return NextResponse.json(result);
   } catch (e) {
-    console.error("Outlook sync error", e);
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Erreur de synchronisation." },
-      { status: 500 },
-    );
+    return jsonServerError("api/outlook/sync", e);
   }
 }

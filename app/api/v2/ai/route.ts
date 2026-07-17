@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { aiRepurpose, aiSummary } from "../../../../lib/server/aiGenerate";
 import { requirePlanFeature } from "../../../../lib/server/apiAuth";
-import { apiRateLimit } from "../../../../lib/server/rateLimit";
+import { apiUserRateLimit } from "../../../../lib/server/rateLimit";
+import { createServerSupabase } from "../../../../lib/server/supabaseServer";
+import { jsonServerError } from "../../../../lib/server/apiErrorResponse";
 
 type RepurposeBody = {
   kind: "repurpose";
@@ -19,7 +21,16 @@ type SummaryBody = {
 type Body = RepurposeBody | SummaryBody;
 
 export async function POST(request: Request) {
-  const limited = apiRateLimit(request, "api/v2/ai", 30);
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
+  }
+
+  const limited = apiUserRateLimit(user.id, "api/v2/ai", 20);
   if (limited) return limited;
 
   const auth = await requirePlanFeature("ai");
@@ -47,9 +58,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: "Type de requête inconnu." }, { status: 400 });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erreur IA inconnue." },
-      { status: 500 },
-    );
+    return jsonServerError("api/v2/ai", error);
   }
 }

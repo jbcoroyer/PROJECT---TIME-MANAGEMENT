@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ArrowLeft,
   ArrowRight,
   Check,
   ClipboardList,
@@ -15,69 +16,36 @@ import {
   Sparkles,
 } from "lucide-react";
 import {
-  createIntakeForm,
+  updateIntakeFormPublicPath,
   type IntakeFormWithStats,
 } from "../../../app/actions/intakeForm";
 import { useBranding } from "../../../lib/brandingContext";
-import {
-  defaultTitleForTemplate,
-  defaultWelcomeForTemplate,
-  type IntakeFormTemplateId,
-} from "../../../lib/intake/intakeFormTemplates";
+import { INTAKE_PUBLIC_PREFIX, intakePublicSegment } from "../../../lib/intake/intakeFormPaths";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { toastError, toastSuccess } from "../../../lib/toast";
-import IntakeFormTemplatePicker from "./IntakeFormTemplatePicker";
 
 type IntakeFormHubWorkspaceProps = {
-  initialForm: IntakeFormWithStats | null;
+  form: IntakeFormWithStats;
 };
 
-export default function IntakeFormHubWorkspace({ initialForm }: IntakeFormHubWorkspaceProps) {
+export default function IntakeFormHubWorkspace({ form: initialForm }: IntakeFormHubWorkspaceProps) {
   const router = useRouter();
   const { branding } = useBranding();
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const [form, setForm] = useState(initialForm);
-  const [creating, setCreating] = useState(false);
-  const [templateId, setTemplateId] = useState<IntakeFormTemplateId>("blank");
-  const [title, setTitle] = useState(() =>
-    defaultTitleForTemplate("blank", "fr", branding.appName),
-  );
-  const [welcomeMessage, setWelcomeMessage] = useState(() =>
-    defaultWelcomeForTemplate("blank", "fr"),
-  );
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    setTitle(defaultTitleForTemplate(templateId, locale, branding.appName));
-    setWelcomeMessage(defaultWelcomeForTemplate(templateId, locale));
-  }, [templateId, locale, branding.appName]);
+  const [slug, setSlug] = useState(() => intakePublicSegment(initialForm.publicPath));
+  const [savingSlug, setSavingSlug] = useState(false);
 
   useEffect(() => {
     setForm(initialForm);
+    setSlug(intakePublicSegment(initialForm.publicPath));
   }, [initialForm]);
 
   const publicUrl =
     typeof window !== "undefined" && form
       ? `${window.location.origin}${form.publicPath}`
-      : form?.publicPath ?? "";
-
-  const handleCreate = async () => {
-    const cleanTitle = title.trim();
-    if (!cleanTitle || creating) return;
-    setCreating(true);
-    const result = await createIntakeForm(cleanTitle, welcomeMessage, {
-      templateId,
-      locale,
-    });
-    setCreating(false);
-    if (!result.ok) {
-      toastError(result.error);
-      return;
-    }
-    toastSuccess(t("asks.hub.toast.ready"));
-    router.push("/asks/edit");
-    router.refresh();
-  };
+      : form.publicPath;
 
   const handleCopy = async () => {
     if (!publicUrl) return;
@@ -91,80 +59,29 @@ export default function IntakeFormHubWorkspace({ initialForm }: IntakeFormHubWor
     }
   };
 
-  if (!form) {
-    return (
-      <div className="mx-auto max-w-2xl">
-        <div className="ui-surface overflow-hidden rounded-2xl">
-          <div className="border-b border-[var(--line)] bg-[var(--surface-soft)] px-6 py-8 sm:px-8">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent)]/10 text-[var(--accent)]">
-              <Inbox className="h-7 w-7" />
-            </div>
-            <h1 className="ui-display mt-5 text-[2rem] leading-tight text-[var(--foreground)]">
-              {t("asks.hub.create.title")}
-            </h1>
-            <p className="mt-3 max-w-lg text-[15px] text-[var(--ink-muted)]">
-              {t("asks.hub.create.description", { appName: branding.appName })}
-            </p>
-          </div>
-
-          <div className="space-y-5 px-6 py-8 sm:px-8">
-            <div className="flex items-start gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-4">
-              <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
-              <div className="text-sm text-[var(--ink-muted)]">
-                <p className="font-semibold text-[var(--foreground)]">
-                  {t("asks.hub.create.howItWorks.title")}
-                </p>
-                <ol className="mt-2 list-decimal space-y-1 pl-4">
-                  <li>{t("asks.hub.create.howItWorks.step1")}</li>
-                  <li>{t("asks.hub.create.howItWorks.step2")}</li>
-                  <li>{t("asks.hub.create.howItWorks.step3")}</li>
-                </ol>
-              </div>
-            </div>
-
-            <IntakeFormTemplatePicker
-              value={templateId}
-              onChange={setTemplateId}
-              disabled={creating}
-            />
-
-            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--ink-muted)]">
-              {t("asks.hub.create.formTitleLabel")}
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="ui-input normal-case"
-                placeholder={t("asks.hub.create.formTitlePlaceholder")}
-              />
-            </label>
-
-            <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--ink-muted)]">
-              {t("asks.hub.create.welcomeMessageLabel")}
-              <textarea
-                value={welcomeMessage}
-                onChange={(e) => setWelcomeMessage(e.target.value)}
-                rows={3}
-                className="ui-input normal-case"
-              />
-            </label>
-
-            <button
-              type="button"
-              onClick={() => void handleCreate()}
-              disabled={creating || !title.trim()}
-              className="ui-btn ui-btn-primary inline-flex w-full items-center justify-center gap-2 sm:w-auto"
-            >
-              {creating ? t("asks.hub.create.submitting") : t("asks.hub.create.submit")}
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleSaveSlug = async () => {
+    if (savingSlug) return;
+    setSavingSlug(true);
+    const result = await updateIntakeFormPublicPath(form.id, slug);
+    setSavingSlug(false);
+    if (!result.ok) {
+      toastError(result.error);
+      return;
+    }
+    toastSuccess(t("asks.hub.toast.urlUpdated"));
+    router.refresh();
+  };
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
+      <Link
+        href="/asks"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        {t("asks.hub.backToList")}
+      </Link>
+
       <header className="ui-surface rounded-2xl p-6">
         <div className="flex items-start gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent)]/10 text-[var(--accent)]">
@@ -176,7 +93,7 @@ export default function IntakeFormHubWorkspace({ initialForm }: IntakeFormHubWor
               {form.welcomeMessage || t("asks.hub.noWelcomeMessage")}
             </p>
             <Link
-              href="/asks/edit"
+              href={`/asks/${form.id}/edit`}
               className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
             >
               <Pencil className="h-3.5 w-3.5" />
@@ -196,6 +113,32 @@ export default function IntakeFormHubWorkspace({ initialForm }: IntakeFormHubWor
         <p className="mt-2 text-sm text-[var(--ink-muted)]">
           {t("asks.hub.publicLink.description", { appName: branding.appName })}
         </p>
+
+        <label className="mt-4 flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--ink-muted)]">
+          {t("asks.hub.publicLink.slugLabel")}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="flex min-w-0 flex-1 items-center gap-0 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface-soft)]">
+              <span className="shrink-0 px-3 py-2 font-mono text-xs text-[var(--ink-muted)]">
+                {INTAKE_PUBLIC_PREFIX}
+              </span>
+              <input
+                value={slug}
+                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2 font-mono text-xs normal-case text-[var(--foreground)] outline-none"
+                aria-label={t("asks.hub.publicLink.slugAriaLabel")}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => void handleSaveSlug()}
+              disabled={savingSlug || slug === intakePublicSegment(form.publicPath)}
+              className="ui-btn ui-btn-secondary shrink-0"
+            >
+              {savingSlug ? t("asks.hub.publicLink.saving") : t("asks.hub.publicLink.saveSlug")}
+            </button>
+          </div>
+        </label>
+
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
             readOnly
@@ -225,7 +168,7 @@ export default function IntakeFormHubWorkspace({ initialForm }: IntakeFormHubWor
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Link
-          href="/asks/edit"
+          href={`/asks/${form.id}/edit`}
           className="ui-surface ui-transition group rounded-2xl p-5 hover:border-[var(--accent)]"
         >
           <Pencil className="h-6 w-6 text-[var(--accent)]" />
@@ -242,7 +185,7 @@ export default function IntakeFormHubWorkspace({ initialForm }: IntakeFormHubWor
         </Link>
 
         <Link
-          href="/asks/triage"
+          href={`/asks/${form.id}/triage`}
           className="ui-surface ui-transition group rounded-2xl p-5 hover:border-[var(--accent)]"
         >
           <Inbox className="h-6 w-6 text-[var(--accent)]" />

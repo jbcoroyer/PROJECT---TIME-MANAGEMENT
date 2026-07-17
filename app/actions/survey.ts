@@ -4,6 +4,14 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
 import {
+  clampPublicText,
+  PUBLIC_ARRAY_MAX_ITEMS,
+  PUBLIC_TEXT_SHORT_MAX,
+  PUBLIC_TEXT_TITLE_MAX,
+  sanitizeSurveyAnswers,
+} from "../../lib/server/publicSubmissionLimits";
+import { publicSubmissionRateLimitError } from "../../lib/server/publicSubmissionRateLimit";
+import {
   createStarterDefinition,
   isQuestionVisible,
 } from "../../lib/survey/surveyDefinitionUtils";
@@ -368,6 +376,9 @@ export async function saveSurveyDefinition(
 export async function submitSurveyResponse(
   input: SubmitSurveyInput,
 ): Promise<SubmitSurveyResult> {
+  const rateLimited = await publicSubmissionRateLimitError("public/survey");
+  if (rateLimited) return { ok: false, error: rateLimited };
+
   const surveyId = input?.surveyVersion?.trim();
   if (!surveyId) {
     return { ok: false, error: "Questionnaire introuvable." };
@@ -380,8 +391,10 @@ export async function submitSurveyResponse(
   const definition = defResult.definition;
   const exports = definition.exports;
 
-  const answers = { ...(input?.answers ?? {}) };
-  const respondentNameFromInput = input.respondentName?.trim() || null;
+  const answers = sanitizeSurveyAnswers({ ...(input?.answers ?? {}) }, definition);
+  const respondentNameFromInput = input.respondentName?.trim()
+    ? clampPublicText(input.respondentName, PUBLIC_TEXT_SHORT_MAX)
+    : null;
   const nameQuestionId = exports?.respondentNameQuestionId;
   if (nameQuestionId) delete answers[nameQuestionId];
 
@@ -411,8 +424,15 @@ export async function submitSurveyResponse(
     }
   }
 
-  const indexed = extractIndexedFields(exports, input?.answers ?? {});
-  const respondentName = respondentNameFromInput ?? indexed.respondent_name;
+  const indexed = extractIndexedFields(exports, answers);
+  const respondentName =
+    respondentNameFromInput ??
+    (indexed.respondent_name
+      ? clampPublicText(indexed.respondent_name, PUBLIC_TEXT_SHORT_MAX)
+      : null);
+  const prestations = indexed.prestations
+    .map((p) => clampPublicText(p, PUBLIC_TEXT_TITLE_MAX))
+    .slice(0, PUBLIC_ARRAY_MAX_ITEMS);
 
   const admin = createSupabaseAdmin();
   const { data: surveyRow, error: surveyLookupError } = await admin
@@ -428,9 +448,13 @@ export async function submitSurveyResponse(
   const { error } = await admin.from("survey_responses").insert({
     organization_id: surveyRow.organization_id,
     survey_version: definition.version,
-    entity: indexed.entity,
-    service: indexed.service,
-    prestations: indexed.prestations,
+    entity: indexed.entity
+      ? clampPublicText(indexed.entity, PUBLIC_TEXT_SHORT_MAX)
+      : null,
+    service: indexed.service
+      ? clampPublicText(indexed.service, PUBLIC_TEXT_SHORT_MAX)
+      : null,
+    prestations,
     satisfaction: indexed.satisfaction,
     nps_score: indexed.nps_score,
     answers,

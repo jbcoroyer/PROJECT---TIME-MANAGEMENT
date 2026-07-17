@@ -25,6 +25,7 @@ export type IntakeRequest = {
   suggestedAssignee: string | null;
   linkedTaskId: string | null;
   decidedAt: string | null;
+  intakeFormId: string | null;
 };
 
 type IntakeRow = {
@@ -46,6 +47,7 @@ type IntakeRow = {
   suggested_assignee: string | null;
   linked_task_id: string | null;
   decided_at: string | null;
+  intake_form_id?: string | null;
 };
 
 function rowToRequest(row: IntakeRow): IntakeRequest {
@@ -68,6 +70,7 @@ function rowToRequest(row: IntakeRow): IntakeRequest {
     suggestedAssignee: row.suggested_assignee,
     linkedTaskId: row.linked_task_id,
     decidedAt: row.decided_at,
+    intakeFormId: row.intake_form_id ?? null,
   };
 }
 
@@ -81,17 +84,18 @@ export function suggestDomainFromText(text: string): string {
   return "🌎 General";
 }
 
-export function useIntakeRequests() {
+export function useIntakeRequests(formId?: string | null) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [requests, setRequests] = useState<IntakeRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("intake_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
+    let query = supabase.from("intake_requests").select("*").order("created_at", { ascending: false });
+    if (formId) {
+      query = query.eq("intake_form_id", formId);
+    }
+    const { data, error } = await query;
     if (error) {
       console.error("intake_requests load failed", error);
       setRequests([]);
@@ -99,7 +103,7 @@ export function useIntakeRequests() {
       setRequests(((data ?? []) as IntakeRow[]).map(rowToRequest));
     }
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, formId]);
 
   useEffect(() => {
     queueMicrotask(() => {

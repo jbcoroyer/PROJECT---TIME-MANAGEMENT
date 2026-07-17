@@ -23,6 +23,8 @@ import {
 } from "../../lib/intake/intakeFormPaths";
 import type { SurveyAnswers, SurveyDefinition } from "../../lib/survey/surveyTypes";
 import { getServerOrgContext } from "../../lib/server/orgContext";
+import { sanitizeIntakeSubmission } from "../../lib/server/publicSubmissionLimits";
+import { publicSubmissionRateLimitError } from "../../lib/server/publicSubmissionRateLimit";
 import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 import { suggestDomainFromText } from "../../lib/v2/intake";
@@ -501,6 +503,9 @@ export async function submitPublicIntakeRequest(
 ): Promise<SubmitPublicIntakeResult> {
   if (!formId) return { ok: false, error: "Formulaire introuvable." };
 
+  const rateLimited = await publicSubmissionRateLimitError("public/intake");
+  if (rateLimited) return { ok: false, error: rateLimited };
+
   const admin = createSupabaseAdmin();
   const form = await loadPublicFormRow(admin, formId);
 
@@ -519,12 +524,13 @@ export async function submitPublicIntakeRequest(
     mapped = input;
   }
 
-  const title = mapped.title?.trim();
-  const expectedSupport = mapped.expectedSupport?.trim();
-  const supportFormat = mapped.supportFormat?.trim();
-  const deadline = mapped.deadline?.trim();
-  const requesterName = mapped.requesterName?.trim();
-  const requesterEmail = mapped.requesterEmail?.trim();
+  const sanitized = sanitizeIntakeSubmission(mapped);
+  const title = sanitized.title;
+  const expectedSupport = sanitized.concern;
+  const supportFormat = sanitized.supportFormat;
+  const deadline = sanitized.deadline;
+  const requesterName = sanitized.requesterName;
+  const requesterEmail = sanitized.requesterEmail;
 
   if (!title || !expectedSupport || !supportFormat || !deadline) {
     return { ok: false, error: "Merci de remplir tous les champs obligatoires." };
@@ -533,15 +539,15 @@ export async function submitPublicIntakeRequest(
     return { ok: false, error: "Nom et e-mail du demandeur requis." };
   }
 
-  const domainText = `${title} ${expectedSupport} ${supportFormat} ${mapped.description ?? ""}`;
+  const domainText = `${title} ${expectedSupport} ${supportFormat} ${sanitized.description}`;
   const suggestedDomain = suggestDomainFromText(domainText);
 
   const { error } = await admin.from("intake_requests").insert({
     organization_id: form.organization_id,
     intake_form_id: form.id,
     title,
-    description: mapped.description?.trim() ?? "",
-    company: mapped.company?.trim() ?? "",
+    description: sanitized.description,
+    company: sanitized.company,
     concern: expectedSupport,
     support_format: supportFormat,
     deadline,

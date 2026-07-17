@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import type { ColumnId } from "../../../lib/types";
 import { mapTaskRow } from "../../../lib/taskMappers";
 import { markTaskMutatedLocally } from "../../../lib/taskMutatedLocally";
@@ -19,7 +21,13 @@ import { useTranslation } from "../../../lib/i18n/useTranslation";
 import V2TriagePanel from "../dashboard/V2TriagePanel";
 import IntakeTaskMappingModal from "../dashboard/IntakeTaskMappingModal";
 
-export default function AsksTriageWorkspace() {
+export default function AsksTriageWorkspace({
+  formId,
+  formTitle,
+}: {
+  formId?: string;
+  formTitle?: string;
+} = {}) {
   const { t } = useTranslation();
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -30,7 +38,7 @@ export default function AsksTriageWorkspace() {
     requests: intakeRequests,
     loading: intakeLoading,
     updateRequest: updateIntakeRequest,
-  } = useIntakeRequests();
+  } = useIntakeRequests(formId);
 
   const [mappingRequest, setMappingRequest] = useState<IntakeRequest | null>(null);
   const [mappingDraft, setMappingDraft] = useState<IntakeTaskDraft | null>(null);
@@ -136,6 +144,23 @@ export default function AsksTriageWorkspace() {
 
   return (
     <>
+      {formId ? (
+        <div className="mb-4 space-y-2">
+          <Link
+            href={`/asks/${formId}`}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            {t("asks.triage.backToForm")}
+          </Link>
+          {formTitle ? (
+            <p className="text-sm text-[var(--ink-muted)]">
+              {t("asks.triage.filteredBy", { title: formTitle })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       <V2TriagePanel
         requests={intakeRequests}
         loading={intakeLoading}

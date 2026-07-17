@@ -18,6 +18,7 @@ export const moduleUiEn = {
       ariaLabel: "Request space navigation",
       hub: "Request space",
       triage: "Process requests",
+      allForms: "← All forms",
     },
     hub: {
       defaultTitle: "Requests {appName}",
@@ -27,7 +28,9 @@ export const moduleUiEn = {
         ready: "Your request space is ready.",
         linkCopied: "Link copied.",
         copyFailed: "Unable to copy.",
+        urlUpdated: "Public URL updated.",
       },
+      backToList: "Back to all forms",
       create: {
         title: "Create your request space",
         description:
@@ -51,6 +54,10 @@ export const moduleUiEn = {
         description:
           "Anyone with this link can submit a request. They will only have access to this form, not your {appName} workspace.",
         urlAriaLabel: "Public form URL",
+        slugLabel: "Custom URL",
+        slugAriaLabel: "URL slug",
+        saveSlug: "Save URL",
+        saving: "Saving…",
         copied: "Copied",
         copy: "Copy",
         preview: "Preview",
@@ -76,6 +83,8 @@ export const moduleUiEn = {
       },
     },
     triage: {
+      backToForm: "Back to form",
+      filteredBy: "Requests for « {title} »",
       toast: {
         taskCreateFailed: "Unable to create: {message}",
         unknownError: "unknown error",
@@ -84,8 +93,28 @@ export const moduleUiEn = {
       defaultColumn: "To do",
     },
     editor: {
-      backLabel: "Back to request space",
+      backLabel: "Back to form",
       saveSuccess: "Form saved.",
+    },
+    list: {
+      title: "Request forms",
+      subtitle: "Create, edit and share independent public forms. Each form has its own link and triage queue.",
+      newForm: "New form",
+      cancel: "Cancel",
+      createSubmit: "Create form",
+      open: "Open",
+      duplicate: "Duplicate",
+      delete: "Delete",
+      deleteConfirm: "Delete this form? Received requests will be kept but unlinked.",
+      active: "Active",
+      draft: "Draft",
+      createdOn: "Created {date}",
+      emptyTitle: "No forms yet",
+      emptyBody: "Create your first request form to collect submissions from clients or partners.",
+      toast: {
+        duplicated: "Form duplicated.",
+        deleted: "Form deleted.",
+      },
     },
     public: {
       success: {
@@ -669,6 +698,12 @@ export const moduleUiEn = {
     },
   },
   stock: {
+    nav: {
+      ariaLabel: "Stock navigation",
+      dashboard: "Dashboard",
+      inventory: "Inventory",
+      history: "History",
+    },
     boutique: {
       badge: "Internal shop",
       title: "Inventory & materials",
@@ -777,6 +812,84 @@ export const moduleUiEn = {
         title: "Delete this item?",
         description: "Item « {name} » will be removed from inventory. This action cannot be undone.",
       },
+    onboarding: {
+      welcome: {
+        title: "Set up your stock space",
+        body: "Before tracking quantities, choose the types of materials, products or services you want to follow. You can change them later.",
+        cta: "Start setup",
+      },
+      categories: {
+        title: "What do you want to track?",
+        description: "We suggest ideas below, but the labels are yours — adapt them to your business (no fixed categories).",
+        suggestions: "Suggestions",
+        customLabel: "Add a custom category",
+        customPlaceholder: "e.g. Event gear, Supplies…",
+        add: "Add",
+        selected: "{count} category(ies) selected",
+        remove: "Remove {label}",
+        minOne: "Select at least one category.",
+        documents: "Documents & materials",
+        documentsDesc: "Brochures, posters, press kits…",
+        promotional: "Promotional items",
+        promotionalDesc: "Giveaways, textiles, client gifts…",
+        signage: "Signage & displays",
+        signageDesc: "Banners, roll-ups, panels…",
+        event_material: "Event equipment",
+        event_materialDesc: "Booths, furniture, technical gear…",
+        supplies: "Supplies & consumables",
+        suppliesDesc: "Paper, ink, small equipment…",
+        services: "Services & external",
+        servicesDesc: "External services tracked as logical stock",
+      },
+      tour: {
+        badge: "Overview",
+        title: "How the tool works",
+        description: "Here is what you can do once your space is configured.",
+        launching: "Launching…",
+        cta: "Launch my stock space",
+        features: {
+          inventory: {
+            title: "Internal shop",
+            body: "Browse items by category with photos, quantities and total value.",
+          },
+          movements: {
+            title: "Stock in & out",
+            body: "Record each movement and assign it to a project or event.",
+          },
+          alerts: {
+            title: "Reorder alerts",
+            body: "Set a threshold per item — low stock is highlighted.",
+          },
+          history: {
+            title: "Full history",
+            body: "See who moved what, when and why.",
+          },
+          events: {
+            title: "Events link",
+            body: "Reserve equipment from your event pages.",
+          },
+          ideas: {
+            title: "Ideas box",
+            body: "Collect logistics improvement ideas from your team.",
+          },
+        },
+      },
+    },
+    genericModal: {
+      addTitle: "Add item",
+      editTitle: "Edit item",
+      typeLabel: "Type / sub-category",
+      typePlaceholder: "e.g. Roll-up 85×200, Pens…",
+      nameLabel: "Item name",
+      namePlaceholder: "Exact name as shown in inventory",
+      unitPrice: "Unit price",
+      alertThreshold: "Alert threshold",
+      visualLabel: "Visual (image or PDF)",
+      addVisual: "Add visual",
+      nameRequired: "Name is required.",
+      uploadFailed: "Upload failed: {error}",
+      create: "Add",
+    },
     },
   },
   eventsLegacy: {

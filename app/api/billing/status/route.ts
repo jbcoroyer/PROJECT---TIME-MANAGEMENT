@@ -14,6 +14,7 @@ import { countOrganizationMembers } from "../../../../lib/server/orgMembers";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
 import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { isStripeConfigured } from "../../../../lib/server/stripe";
+import { jsonServerError } from "../../../../lib/server/apiErrorResponse";
 
 export async function GET(request: Request) {
   const limited = apiRateLimit(request, "api/billing/status", 60);
@@ -63,7 +64,6 @@ export async function GET(request: Request) {
       isAdmin: ctx.isAdmin,
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur serveur";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonServerError("billing/status", e);
   }
 }

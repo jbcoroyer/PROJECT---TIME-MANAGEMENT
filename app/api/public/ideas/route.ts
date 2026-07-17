@@ -5,7 +5,9 @@ import { createSupabaseAdmin } from "../../../../lib/server/supabaseAdmin";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
 import { createServerSupabase } from "../../../../lib/server/supabaseServer";
 import { isUuid } from "../../../../lib/server/orgValidation";
-import { apiRateLimit } from "../../../../lib/server/rateLimit";
+import { apiPublicSubmissionRateLimit, apiRateLimit } from "../../../../lib/server/rateLimit";
+import { sanitizeStockIdeaSubmission } from "../../../../lib/server/publicSubmissionLimits";
+import { jsonServerError } from "../../../../lib/server/apiErrorResponse";
 import { ideaFromRow } from "../../../../lib/stockIdeasApi";
 import type { StockIdeaCategory } from "../../../../lib/stockIdeasTypes";
 
@@ -64,19 +66,17 @@ export async function GET(request: Request) {
       .limit(500);
 
     if (error) {
-      console.error("[public/ideas] GET", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return jsonServerError("public/ideas GET", error);
     }
 
     return NextResponse.json((data ?? []).map(ideaFromRow));
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur serveur";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonServerError("public/ideas GET", e);
   }
 }
 
 export async function POST(request: Request) {
-  const limited = apiRateLimit(request, "api/public/ideas:post", 10);
+  const limited = apiPublicSubmissionRateLimit(request, "api/public/ideas:post");
   if (limited) return limited;
 
   try {
@@ -100,12 +100,13 @@ export async function POST(request: Request) {
       status?: string;
     };
 
-    const title = String(body.title ?? "").trim().slice(0, 200);
+    const { title, description } = sanitizeStockIdeaSubmission({
+      title: body.title,
+      description: body.description,
+    });
     if (!title) {
       return NextResponse.json({ error: "Titre requis." }, { status: 400 });
     }
-
-    const description = String(body.description ?? "").trim().slice(0, 5000) || null;
 
     const validCategories = new Set<StockIdeaCategory>(["materiel", "process", "communication", "autre"]);
     const category = validCategories.has(body.category as StockIdeaCategory)
@@ -126,13 +127,11 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      console.error("[public/ideas] POST", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return jsonServerError("public/ideas POST", error);
     }
 
     return NextResponse.json(ideaFromRow(data), { status: 201 });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur serveur";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonServerError("public/ideas POST", e);
   }
 }

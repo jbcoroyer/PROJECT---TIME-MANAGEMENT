@@ -21,6 +21,7 @@ import {
   updateEvent,
   type GraphEventPayload,
 } from "./microsoftGraph";
+import { decryptToken, encryptToken } from "./tokenCrypto";
 
 export type ProjectedWorkItem = {
   date: string;
@@ -49,6 +50,14 @@ type ConnectionRow = {
 /** Marge avant expiration (5 min) pour rafraîchir le jeton de façon proactive. */
 const REFRESH_MARGIN_MS = 5 * 60 * 1000;
 
+function decryptConnectionRow(row: ConnectionRow): ConnectionRow {
+  return {
+    ...row,
+    access_token: decryptToken(row.access_token),
+    refresh_token: decryptToken(row.refresh_token),
+  };
+}
+
 export async function getOutlookConnection(userId: string): Promise<ConnectionRow | null> {
   const admin = createSupabaseAdmin();
   const { data } = await admin
@@ -56,7 +65,9 @@ export async function getOutlookConnection(userId: string): Promise<ConnectionRo
     .select("user_id, access_token, refresh_token, token_expires_at, account_email")
     .eq("user_id", userId)
     .maybeSingle();
-  return (data as ConnectionRow | null) ?? null;
+  const row = (data as ConnectionRow | null) ?? null;
+  if (!row) return null;
+  return decryptConnectionRow(row);
 }
 
 export async function deleteOutlookConnection(userId: string): Promise<void> {
@@ -80,12 +91,27 @@ async function getValidAccessToken(userId: string): Promise<string | null> {
   }
 
   const refreshed = await refreshAccessToken(conn.refresh_token);
+  const plaintextRefresh = refreshed.refresh_token ?? conn.refresh_token;
+
+  let encryptedAccess: string;
+  let encryptedRefresh: string;
+  try {
+    encryptedAccess = encryptToken(refreshed.access_token);
+    encryptedRefresh = encryptToken(plaintextRefresh);
+  } catch (e) {
+    console.error(
+      "[Outlook] Impossible de persister les jetons rafraîchis : clé de chiffrement absente ou invalide.",
+      e,
+    );
+    return refreshed.access_token;
+  }
+
   const admin = createSupabaseAdmin();
   await admin
     .from("outlook_connections")
     .update({
-      access_token: refreshed.access_token,
-      refresh_token: refreshed.refresh_token ?? conn.refresh_token,
+      access_token: encryptedAccess,
+      refresh_token: encryptedRefresh,
       token_expires_at: new Date(Date.now() + refreshed.expires_in * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     })

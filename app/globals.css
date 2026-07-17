@@ -415,6 +415,18 @@ select.ui-input {
   color: var(--ink);
 }
 
+.ui-nav-link--primary {
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.ui-nav-link--primary:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
 .ui-nav-discovery-badge {
   display: inline-flex;
   align-items: center;

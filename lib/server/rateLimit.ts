@@ -41,6 +41,11 @@ export function rateLimitResponse(retryAfterSec: number): NextResponse {
 
 export const RATE_LIMIT_WINDOW_MS = 60_000;
 
+/** Fenêtre pour les dépôts publics anonymes (~10 soumissions / heure / IP). */
+export const PUBLIC_SUBMISSION_WINDOW_MS = 3_600_000;
+
+export const PUBLIC_SUBMISSIONS_PER_HOUR = 10;
+
 export function enforceRateLimit(
   request: Request,
   routeKey: string,
@@ -60,4 +65,55 @@ export function apiRateLimit(
   limit = 60,
 ): NextResponse | null {
   return enforceRateLimit(request, routeKey, limit, RATE_LIMIT_WINDOW_MS);
+}
+
+/**
+ * Limite par utilisateur authentifié (fenêtre glissante en mémoire).
+ * Même limite que `checkRateLimit` : compteur par instance serverless — sous charge
+ * multi-instances le plafond effectif peut être plus élevé ; suffisant en best-effort.
+ */
+export function enforceUserRateLimit(
+  userId: string,
+  routeKey: string,
+  limit: number,
+  windowMs: number,
+): NextResponse | null {
+  const result = checkRateLimit(`${routeKey}:user:${userId}`, limit, windowMs);
+  if (!result.ok) return rateLimitResponse(result.retryAfterSec);
+  return null;
+}
+
+/** Limite standard par utilisateur sur une route API (20 req/min par défaut). */
+export function apiUserRateLimit(
+  userId: string,
+  routeKey: string,
+  limit = 20,
+): NextResponse | null {
+  return enforceUserRateLimit(userId, routeKey, limit, RATE_LIMIT_WINDOW_MS);
+}
+
+/**
+ * Limite les dépôts publics par IP (fenêtre 1 h, compteur en mémoire par instance).
+ * En serverless multi-instances le plafond effectif peut être plus élevé — best-effort.
+ */
+export function enforcePublicSubmissionRateLimit(
+  ip: string,
+  routeKey: string,
+  limit = PUBLIC_SUBMISSIONS_PER_HOUR,
+): NextResponse | null {
+  const result = checkRateLimit(
+    `${routeKey}:public:${ip}`,
+    limit,
+    PUBLIC_SUBMISSION_WINDOW_MS,
+  );
+  if (!result.ok) return rateLimitResponse(result.retryAfterSec);
+  return null;
+}
+
+export function apiPublicSubmissionRateLimit(
+  request: Request,
+  routeKey: string,
+  limit = PUBLIC_SUBMISSIONS_PER_HOUR,
+): NextResponse | null {
+  return enforcePublicSubmissionRateLimit(getClientIp(request), routeKey, limit);
 }

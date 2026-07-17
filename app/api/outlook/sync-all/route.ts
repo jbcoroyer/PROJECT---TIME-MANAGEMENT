@@ -4,6 +4,7 @@ import { createServerSupabase } from "../../../../lib/server/supabaseServer";
 import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { syncAllTasksForUser } from "../../../../lib/server/outlookSync";
 import { getServerUserIdentity } from "../../../../lib/server/userIdentity";
+import { jsonServerError } from "../../../../lib/server/apiErrorResponse";
 
 /** Synchronise toutes les tâches planifiées de l'utilisateur vers Outlook. */
 export async function POST(request: Request) {
@@ -24,16 +25,12 @@ export async function POST(request: Request) {
       .eq("is_archived", false);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return jsonServerError("api/outlook/sync-all read", error);
     }
 
     const result = await syncAllTasksForUser(userId, identity, (rows ?? []) as Record<string, unknown>[]);
     return NextResponse.json(result);
   } catch (e) {
-    console.error("Outlook sync-all error", e);
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Erreur de synchronisation." },
-      { status: 500 },
-    );
+    return jsonServerError("api/outlook/sync-all", e);
   }
 }

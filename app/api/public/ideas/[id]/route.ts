@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdmin } from "../../../../../lib/server/supabaseAdmin";
 import { getServerOrgContext } from "../../../../../lib/server/orgContext";
 import { apiRateLimit } from "../../../../../lib/server/rateLimit";
+import { jsonServerError } from "../../../../../lib/server/apiErrorResponse";
 import { ideaFromRow } from "../../../../../lib/stockIdeasApi";
 import type { StockIdeaCategory, StockIdeaStatus } from "../../../../../lib/stockIdeasTypes";
 
@@ -54,8 +55,7 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error("[public/ideas] PATCH", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return jsonServerError("public/ideas PATCH", error);
     }
 
     if (!data) {
@@ -64,8 +64,7 @@ export async function PATCH(
 
     return NextResponse.json(ideaFromRow(data));
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur serveur";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonServerError("public/ideas PATCH", e);
   }
 }
 
@@ -103,13 +102,11 @@ export async function DELETE(
       .eq("organization_id", ctx.organizationId);
 
     if (error) {
-      console.error("[public/ideas] DELETE", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return jsonServerError("public/ideas DELETE", error);
     }
 
     return new NextResponse(null, { status: 204 });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur serveur";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonServerError("public/ideas DELETE", e);
   }
 }

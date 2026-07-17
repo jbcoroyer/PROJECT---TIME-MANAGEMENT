@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3, Euro, TrendingDown } from "lucide-react";
-import StockSectionNav from "../StockSectionNav";
 import type { InventoryItem } from "../../lib/inventoryTypes";
 import { inventoryItemValue } from "../../lib/inventoryTypes";
 import type { StockMovement } from "../../lib/stockTypes";
@@ -73,8 +72,6 @@ export default function StockDashboardWorkspace({
           {t("stockLegacy.dashboard.subtitle")}
         </p>
       </div>
-
-      <StockSectionNav basePath={basePath} />
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="ui-surface rounded-[24px] p-5">

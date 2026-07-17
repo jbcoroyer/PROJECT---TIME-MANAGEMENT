@@ -3,6 +3,8 @@ import { requirePlanFeature } from "../../../../lib/server/apiAuth";
 import { verifyInternalApiSecret } from "../../../../lib/server/internalApiAuth";
 import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { sendStockAlertWebhook } from "../../../../lib/server/sendStockAlertWebhook";
+import { createServerSupabase } from "../../../../lib/server/supabaseServer";
+import { jsonServerError } from "../../../../lib/server/apiErrorResponse";
 
 type AlertPayload = {
   itemName?: string;
@@ -11,6 +13,15 @@ type AlertPayload = {
 };
 
 export async function POST(request: Request) {
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
+  }
+
   const limited = apiRateLimit(request, "api/stock/alerts", 20);
   if (limited) return limited;
 
@@ -37,9 +48,6 @@ export async function POST(request: Request) {
     const result = await sendStockAlertWebhook(itemName, remainingQty);
     return NextResponse.json({ triggered: true, ...result });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erreur webhook inconnue." },
-      { status: 500 },
-    );
+    return jsonServerError("api/stock/alerts", error);
   }
 }

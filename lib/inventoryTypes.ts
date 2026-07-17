@@ -1,6 +1,7 @@
 export const inventoryCategories = ["Print", "Goodies", "PLV"] as const;
 
-export type InventoryCategory = (typeof inventoryCategories)[number];
+/** Slug de catégorie stock (config org ou legacy Print/Goodies/PLV). */
+export type InventoryCategory = string;
 
 export type InventoryItem = {
   id: string;

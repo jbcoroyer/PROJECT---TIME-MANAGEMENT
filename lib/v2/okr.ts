@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCurrentUser } from "../useCurrentUser";
 import { getSupabaseBrowser } from "../supabaseBrowser";
 import { toastError } from "../toast";
@@ -23,6 +24,10 @@ export type Objective = {
   period: string;
   keyResults: KeyResult[];
 };
+
+export type OkrBackend = "supabase" | "local";
+
+const LOCAL_KEY = "v2-okr-objectives";
 
 type KeyResultRow = {
   id: string;
@@ -55,6 +60,33 @@ const OBJECTIVE_SELECT = `
     current
   )
 `;
+
+function readLocal(): Objective[] {
+  try {
+    const raw = window.localStorage.getItem(LOCAL_KEY);
+    const parsed = raw ? (JSON.parse(raw) as Objective[]) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocal(list: Objective[]) {
+  try {
+    window.localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+function newId(prefix: string): string {
+  return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+async function detectBackend(supabase: SupabaseClient): Promise<OkrBackend> {
+  const { error } = await supabase.from("objectives").select("id").limit(1);
+  return error ? "local" : "supabase";
+}
 
 function rowToKeyResult(row: KeyResultRow): KeyResult {
   return {
@@ -104,6 +136,7 @@ export function useObjectives() {
   const { user } = useCurrentUser();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [objectives, setObjectives] = useState<Objective[]>([]);
+  const [backend, setBackend] = useState<OkrBackend>("local");
   const objectivesRef = useRef<Objective[]>([]);
 
   useEffect(() => {
@@ -111,6 +144,14 @@ export function useObjectives() {
   }, [objectives]);
 
   const load = useCallback(async () => {
+    const mode = await detectBackend(supabase);
+    setBackend(mode);
+
+    if (mode === "local") {
+      setObjectives(readLocal());
+      return;
+    }
+
     if (!user) {
       setObjectives([]);
       return;
@@ -134,7 +175,7 @@ export function useObjectives() {
   }, [load]);
 
   useEffect(() => {
-    if (!user) return;
+    if (backend !== "supabase" || !user) return;
 
     const channel = supabase
       .channel("okr-realtime")
@@ -183,10 +224,19 @@ export function useObjectives() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, user]);
+  }, [backend, supabase, user]);
 
   const addObjective = useCallback(
     (title: string, company: string | null, period: string) => {
+      if (backend === "local") {
+        setObjectives((prev) => {
+          const next = [...prev, { id: newId("obj"), title, company, period, keyResults: [] }];
+          writeLocal(next);
+          return next;
+        });
+        return;
+      }
+
       void (async () => {
         try {
           const { data, error } = await supabase
@@ -203,13 +253,20 @@ export function useObjectives() {
         }
       })();
     },
-    [supabase],
+    [backend, supabase],
   );
 
   const removeObjective = useCallback(
     (id: string) => {
       const previous = objectivesRef.current;
-      setObjectives((prev) => prev.filter((objective) => objective.id !== id));
+      setObjectives((prev) => {
+        const next = prev.filter((objective) => objective.id !== id);
+        if (backend === "local") writeLocal(next);
+        return next;
+      });
+
+      if (backend === "local") return;
+
       void (async () => {
         try {
           const { error } = await supabase.from("objectives").delete().eq("id", id);
@@ -221,11 +278,24 @@ export function useObjectives() {
         }
       })();
     },
-    [supabase],
+    [backend, supabase],
   );
 
   const addKeyResult = useCallback(
     (objectiveId: string, kr: Omit<KeyResult, "id">) => {
+      if (backend === "local") {
+        setObjectives((prev) => {
+          const next = prev.map((objective) =>
+            objective.id === objectiveId
+              ? { ...objective, keyResults: [...objective.keyResults, { ...kr, id: newId("kr") }] }
+              : objective,
+          );
+          writeLocal(next);
+          return next;
+        });
+        return;
+      }
+
       void (async () => {
         try {
           const { data, error } = await supabase
@@ -248,14 +318,14 @@ export function useObjectives() {
         }
       })();
     },
-    [supabase],
+    [backend, supabase],
   );
 
   const updateKeyResult = useCallback(
     (objectiveId: string, krId: string, patch: Partial<KeyResult>) => {
       const previous = objectivesRef.current;
-      setObjectives((prev) =>
-        prev.map((objective) =>
+      setObjectives((prev) => {
+        const next = prev.map((objective) =>
           objective.id === objectiveId
             ? {
                 ...objective,
@@ -264,8 +334,13 @@ export function useObjectives() {
                 ),
               }
             : objective,
-        ),
-      );
+        );
+        if (backend === "local") writeLocal(next);
+        return next;
+      });
+
+      if (backend === "local") return;
+
       void (async () => {
         try {
           const dbPatch: Record<string, unknown> = {};
@@ -282,19 +357,24 @@ export function useObjectives() {
         }
       })();
     },
-    [supabase],
+    [backend, supabase],
   );
 
   const removeKeyResult = useCallback(
     (objectiveId: string, krId: string) => {
       const previous = objectivesRef.current;
-      setObjectives((prev) =>
-        prev.map((objective) =>
+      setObjectives((prev) => {
+        const next = prev.map((objective) =>
           objective.id === objectiveId
             ? { ...objective, keyResults: objective.keyResults.filter((kr) => kr.id !== krId) }
             : objective,
-        ),
-      );
+        );
+        if (backend === "local") writeLocal(next);
+        return next;
+      });
+
+      if (backend === "local") return;
+
       void (async () => {
         try {
           const { error } = await supabase.from("key_results").delete().eq("id", krId);
@@ -306,10 +386,10 @@ export function useObjectives() {
         }
       })();
     },
-    [supabase],
+    [backend, supabase],
   );
 
-  return { objectives, addObjective, removeObjective, addKeyResult, updateKeyResult, removeKeyResult };
+  return { objectives, backend, addObjective, removeObjective, addKeyResult, updateKeyResult, removeKeyResult };
 }
 
 /** Progression effective d'un KR : auto depuis les tâches si un domaine est lié, sinon current/target. */

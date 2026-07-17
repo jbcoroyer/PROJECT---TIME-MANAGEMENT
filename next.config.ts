@@ -61,6 +61,47 @@ const nextConfig: NextConfig = {
       { source: "/v2/:path*", destination: "/:path*", permanent: true },
     ];
   },
+  async headers() {
+    const supabaseConnect = supabaseHostname
+      ? `https://${supabaseHostname} wss://${supabaseHostname}`
+      : "https://*.supabase.co wss://*.supabase.co";
+
+    // Report-Only : surveille les violations sans bloquer (Next.js + styles inline + Supabase).
+    const contentSecurityPolicy = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://*.supabase.co https:",
+      "font-src 'self' data:",
+      `connect-src 'self' ${supabaseConnect} https://openrouter.ai https://graph.microsoft.com https://login.microsoftonline.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://*.sentry.io`,
+      "frame-ancestors 'none'",
+      "frame-src 'self' https://login.microsoftonline.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self' https://login.microsoftonline.com",
+    ].join("; ");
+
+    const securityHeaders = [
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      {
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      },
+      {
+        key: "Content-Security-Policy-Report-Only",
+        value: contentSecurityPolicy,
+      },
+    ];
+
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "../../../../lib/server/apiAuth";
 import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { createServerSupabase } from "../../../../lib/server/supabaseServer";
+import { jsonServerError } from "../../../../lib/server/apiErrorResponse";
 
 function linkedInConfig(): { url: string; slug: string } | null {
   const url = process.env.NEXT_PUBLIC_LINKEDIN_COMPANY_URL?.trim();
@@ -171,14 +172,6 @@ export async function GET(request: Request) {
       monthlySeries,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Erreur inconnue lors de la récupération LinkedIn.",
-      },
-      { status: 500 },
-    );
+    return jsonServerError("api/social/linkedin-followers", error);
   }
 }

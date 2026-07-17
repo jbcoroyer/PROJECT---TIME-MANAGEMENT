@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCurrentUser } from "../useCurrentUser";
 import { getSupabaseBrowser } from "../supabaseBrowser";
 import { toastError } from "../toast";
@@ -18,6 +19,10 @@ export type DamAsset = {
   createdAt: string;
 };
 
+export type DamBackend = "supabase" | "local";
+
+const LOCAL_KEY = "v2-dam-assets";
+
 type DamAssetRow = {
   id: string;
   name: string;
@@ -29,6 +34,33 @@ type DamAssetRow = {
 };
 
 const SELECT = "id, name, url, company, type, tags, created_at";
+
+function readLocal(): DamAsset[] {
+  try {
+    const raw = window.localStorage.getItem(LOCAL_KEY);
+    const parsed = raw ? (JSON.parse(raw) as DamAsset[]) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocal(list: DamAsset[]) {
+  try {
+    window.localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+function newId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `dam-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+async function detectBackend(supabase: SupabaseClient): Promise<DamBackend> {
+  const { error } = await supabase.from("dam_assets").select("id").limit(1);
+  return error ? "local" : "supabase";
+}
 
 function rowToAsset(row: DamAssetRow): DamAsset {
   return {
@@ -46,6 +78,7 @@ export function useDamAssets() {
   const { user } = useCurrentUser();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [assets, setAssets] = useState<DamAsset[]>([]);
+  const [backend, setBackend] = useState<DamBackend>("local");
   const assetsRef = useRef<DamAsset[]>([]);
 
   useEffect(() => {
@@ -53,6 +86,14 @@ export function useDamAssets() {
   }, [assets]);
 
   const load = useCallback(async () => {
+    const mode = await detectBackend(supabase);
+    setBackend(mode);
+
+    if (mode === "local") {
+      setAssets(readLocal());
+      return;
+    }
+
     if (!user) {
       setAssets([]);
       return;
@@ -76,7 +117,7 @@ export function useDamAssets() {
   }, [load]);
 
   useEffect(() => {
-    if (!user) return;
+    if (backend !== "supabase" || !user) return;
 
     const channel = supabase
       .channel("dam-assets-realtime")
@@ -106,10 +147,19 @@ export function useDamAssets() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, user]);
+  }, [backend, supabase, user]);
 
   const add = useCallback(
     (asset: Omit<DamAsset, "id" | "createdAt">) => {
+      if (backend === "local") {
+        setAssets((prev) => {
+          const next = [{ ...asset, id: newId(), createdAt: new Date().toISOString() }, ...prev];
+          writeLocal(next);
+          return next;
+        });
+        return;
+      }
+
       void (async () => {
         try {
           const { data, error } = await supabase
@@ -137,13 +187,20 @@ export function useDamAssets() {
         }
       })();
     },
-    [supabase],
+    [backend, supabase],
   );
 
   const remove = useCallback(
     (id: string) => {
       const previous = assetsRef.current;
-      setAssets((prev) => prev.filter((asset) => asset.id !== id));
+      setAssets((prev) => {
+        const next = prev.filter((asset) => asset.id !== id);
+        if (backend === "local") writeLocal(next);
+        return next;
+      });
+
+      if (backend === "local") return;
+
       void (async () => {
         try {
           const { error } = await supabase.from("dam_assets").delete().eq("id", id);
@@ -155,10 +212,10 @@ export function useDamAssets() {
         }
       })();
     },
-    [supabase],
+    [backend, supabase],
   );
 
-  return { assets, add, remove };
+  return { assets, backend, add, remove };
 }
 
 /** Recherche simple par mot-clé sur nom, tags, société et type. */

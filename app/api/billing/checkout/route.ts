@@ -5,6 +5,7 @@ import { countOrganizationMembers } from "../../../../lib/server/orgMembers";
 import { getServerOrgContext } from "../../../../lib/server/orgContext";
 import { apiRateLimit } from "../../../../lib/server/rateLimit";
 import { appBaseUrl, getStripe, isStripeConfigured } from "../../../../lib/server/stripe";
+import { jsonServerError } from "../../../../lib/server/apiErrorResponse";
 
 export async function POST(request: Request) {
   const limited = apiRateLimit(request, "api/billing/checkout", 20);
@@ -77,8 +78,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur serveur";
-    console.error("[billing/checkout]", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonServerError("billing/checkout", e);
   }
 }

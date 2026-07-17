@@ -8,6 +8,7 @@ import {
 } from "../../../../lib/server/billingOrg";
 import { getStripe } from "../../../../lib/server/stripe";
 import { apiRateLimit } from "../../../../lib/server/rateLimit";
+import { jsonServerError, logApiError } from "../../../../lib/server/apiErrorResponse";
 
 export const runtime = "nodejs";
 
@@ -32,9 +33,8 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Signature invalide";
-    console.error("[stripe/webhook] verify", message);
-    return NextResponse.json({ error: message }, { status: 400 });
+    logApiError("stripe/webhook verify", e);
+    return NextResponse.json({ error: "Requête webhook invalide." }, { status: 400 });
   }
 
   try {
@@ -51,9 +51,7 @@ export async function POST(request: Request) {
       retrieveSubscription: (subscriptionId) => stripe.subscriptions.retrieve(subscriptionId),
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur webhook";
-    console.error("[stripe/webhook] handler", event.type, message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonServerError(`stripe/webhook handler ${event.type}`, e);
   }
 
   return NextResponse.json({ received: true });

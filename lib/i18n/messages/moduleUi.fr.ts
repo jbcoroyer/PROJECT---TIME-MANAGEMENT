@@ -18,6 +18,7 @@ export const moduleUiFr = {
       ariaLabel: "Navigation espace demandes",
       hub: "Espace demandes",
       triage: "Traiter les demandes",
+      allForms: "← Tous les formulaires",
     },
     hub: {
       defaultTitle: "Demandes {appName}",
@@ -27,7 +28,9 @@ export const moduleUiFr = {
         ready: "Votre espace de demandes est prêt.",
         linkCopied: "Lien copié.",
         copyFailed: "Copie impossible.",
+        urlUpdated: "URL publique mise à jour.",
       },
+      backToList: "Retour à tous les formulaires",
       create: {
         title: "Créez votre espace de demandes",
         description:
@@ -51,6 +54,10 @@ export const moduleUiFr = {
         description:
           "Toute personne disposant de ce lien peut soumettre une demande. Elle n'aura accès qu'à ce formulaire, pas à votre espace {appName}.",
         urlAriaLabel: "URL publique du formulaire",
+        slugLabel: "URL personnalisée",
+        slugAriaLabel: "Segment d'URL",
+        saveSlug: "Enregistrer l'URL",
+        saving: "Enregistrement…",
         copied: "Copié",
         copy: "Copier",
         preview: "Aperçu",
@@ -76,6 +83,8 @@ export const moduleUiFr = {
       },
     },
     triage: {
+      backToForm: "Retour au formulaire",
+      filteredBy: "Demandes pour « {title} »",
       toast: {
         taskCreateFailed: "Création impossible : {message}",
         unknownError: "erreur inconnue",
@@ -84,8 +93,31 @@ export const moduleUiFr = {
       defaultColumn: "À faire",
     },
     editor: {
-      backLabel: "Retour à l'espace demandes",
+      backLabel: "Retour au formulaire",
       saveSuccess: "Formulaire enregistré.",
+    },
+    list: {
+      title: "Formulaires de demande",
+      subtitle:
+        "Créez, modifiez et partagez des formulaires publics autonomes. Chaque formulaire a son lien et sa file de triage.",
+      newForm: "Nouveau formulaire",
+      cancel: "Annuler",
+      createSubmit: "Créer le formulaire",
+      open: "Ouvrir",
+      duplicate: "Dupliquer",
+      delete: "Supprimer",
+      deleteConfirm:
+        "Supprimer ce formulaire ? Les demandes reçues seront conservées mais dissociées.",
+      active: "Actif",
+      draft: "Brouillon",
+      createdOn: "Créé le {date}",
+      emptyTitle: "Aucun formulaire",
+      emptyBody:
+        "Créez votre premier formulaire de demande pour collecter des soumissions de clients ou partenaires.",
+      toast: {
+        duplicated: "Formulaire dupliqué.",
+        deleted: "Formulaire supprimé.",
+      },
     },
     public: {
       success: {
@@ -671,6 +703,12 @@ export const moduleUiFr = {
     },
   },
   stock: {
+    nav: {
+      ariaLabel: "Navigation stock",
+      dashboard: "Dashboard",
+      inventory: "Inventaire",
+      history: "Historique",
+    },
     boutique: {
       badge: "Boutique interne",
       title: "Stock & matériel",
@@ -779,6 +817,88 @@ export const moduleUiFr = {
         title: "Supprimer cet article ?",
         description: "L'article « {name} » sera retiré du stock. Cette action est irréversible.",
       },
+    onboarding: {
+      welcome: {
+        title: "Configurez votre espace stock",
+        body: "Avant de gérer vos quantités, indiquez les types de supports, produits ou services que vous souhaitez suivre. Vous pourrez les modifier plus tard.",
+        step1: "Choisissez vos catégories (suggestions ou libellés personnalisés)",
+        step2: "Découvrez comment inventorier, alerter et tracer les mouvements",
+        step3: "Accédez à votre boutique interne adaptée à votre activité",
+        cta: "Commencer la configuration",
+      },
+      categories: {
+        title: "Quels stocks souhaitez-vous suivre ?",
+        description:
+          "Nous vous proposons des idées ci-dessous, mais ce sont vos libellés : adaptez-les à votre métier (aucune catégorie imposée).",
+        suggestions: "Suggestions",
+        customLabel: "Ajouter une catégorie personnalisée",
+        customPlaceholder: "Ex. Matériel événementiel, Fournitures…",
+        add: "Ajouter",
+        selected: "{count} catégorie(s) sélectionnée(s)",
+        remove: "Retirer {label}",
+        minOne: "Sélectionnez au moins une catégorie.",
+        documents: "Documents & supports",
+        documentsDesc: "Brochures, affiches, dossiers de presse…",
+        promotional: "Objets promotionnels",
+        promotionalDesc: "Goodies, textiles, cadeaux clients…",
+        signage: "Signalétique & PLV",
+        signageDesc: "Kakémonos, roll-ups, panneaux…",
+        event_material: "Matériel événementiel",
+        event_materialDesc: "Stands, mobiliers, technique…",
+        supplies: "Fournitures & consommables",
+        suppliesDesc: "Papier, encres, petit matériel…",
+        services: "Prestations & services",
+        servicesDesc: "Prestations externes à suivre en stock logique",
+      },
+      tour: {
+        badge: "Découverte",
+        title: "Comment fonctionne l'outil",
+        description: "Voici ce que vous pourrez faire une fois votre espace configuré.",
+        launching: "Lancement…",
+        cta: "Lancer mon espace stock",
+        features: {
+          inventory: {
+            title: "Boutique interne",
+            body: "Visualisez vos articles par catégorie, avec photos, quantités et valeur totale.",
+          },
+          movements: {
+            title: "Entrées & sorties",
+            body: "Enregistrez chaque mouvement et imputez-le à un projet ou un événement.",
+          },
+          alerts: {
+            title: "Alertes de réappro",
+            body: "Définissez un seuil par article : l'outil signale les stocks bas.",
+          },
+          history: {
+            title: "Historique complet",
+            body: "Retrouvez qui a bougé quoi, quand et pourquoi.",
+          },
+          events: {
+            title: "Lien événements",
+            body: "Réservez du matériel depuis vos fiches événement.",
+          },
+          ideas: {
+            title: "Boîte à idées",
+            body: "Collectez des suggestions d'amélioration logistique de votre équipe.",
+          },
+        },
+      },
+    },
+    genericModal: {
+      addTitle: "Ajouter un article",
+      editTitle: "Modifier l'article",
+      typeLabel: "Type / sous-catégorie",
+      typePlaceholder: "Ex. Roll-up 85×200, Stylos…",
+      nameLabel: "Nom de l'article",
+      namePlaceholder: "Nom exact tel qu'il apparaît en stock",
+      unitPrice: "Prix unitaire",
+      alertThreshold: "Seuil d'alerte",
+      visualLabel: "Visuel (image ou PDF)",
+      addVisual: "Ajouter un visuel",
+      nameRequired: "Le nom est obligatoire.",
+      uploadFailed: "Upload impossible : {error}",
+      create: "Ajouter",
+    },
     },
   },
   eventsLegacy: {

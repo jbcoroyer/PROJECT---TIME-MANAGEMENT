@@ -6,15 +6,16 @@ import { uploadOrgAsset } from "../app/actions/storage";
  */
 export async function uploadStockVisual(
   file: File,
-  folder: "print" | "goodies" | "plv",
+  folder: string,
 ): Promise<{ url: string | null; path: string | null; error: string | null }> {
   if (!isStockVisualFile(file)) {
     return { url: null, path: null, error: "Format non pris en charge. Utilisez une image ou un PDF." };
   }
 
+  const safeFolder = folder.replace(/[^a-zA-Z0-9_-]/g, "").toLowerCase() || "items";
   const extRaw = file.name.split(".").pop() ?? (file.type === "application/pdf" ? "pdf" : "png");
   const ext = extRaw.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "png";
-  const relativePath = `${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+  const relativePath = `${safeFolder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
   const formData = new FormData();
   formData.set("file", file);

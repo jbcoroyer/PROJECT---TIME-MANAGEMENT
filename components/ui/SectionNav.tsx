@@ -7,6 +7,8 @@ export type SectionNavItem = {
   href: string;
   label: string;
   icon?: LucideIcon;
+  /** Met en avant l’entrée principale du module (ex. dashboard stock). */
+  primary?: boolean;
 };
 
 export default function SectionNav(props: {
@@ -34,7 +36,7 @@ export default function SectionNav(props: {
             href={item.href}
             className={[
               "ui-nav-link ui-transition text-sm",
-              active ? "ui-nav-link--active" : "",
+              active ? "ui-nav-link--active" : item.primary ? "ui-nav-link--primary" : "",
             ]
               .filter(Boolean)
               .join(" ")}

@@ -7,6 +7,7 @@ import {
   parseSocialThematics,
   type PrintSpeciesOption,
 } from "./taxonomies";
+import { parseInventoryCategories, type StockCategoryOption } from "./stockCategories";
 import {
   parseEnabledModules,
   resolveEnabledModules,
@@ -34,6 +35,8 @@ export type AppBranding = {
   socialThematics: string[];
   printSpecies: PrintSpeciesOption[];
   enabledModules: AppModuleId[];
+  inventoryCategories: StockCategoryOption[];
+  stockOnboardingCompleted: boolean;
 };
 
 export type AppSettingsRow = {
@@ -56,6 +59,8 @@ export type AppSettingsRow = {
   social_thematics?: unknown;
   print_species?: unknown;
   enabled_modules?: unknown;
+  inventory_categories?: unknown;
+  stock_onboarding_completed?: boolean | null;
   updated_at?: string | null;
 };
 
@@ -76,6 +81,8 @@ export type AppBrandingPatch = Partial<{
   socialThematics: string[];
   printSpecies: PrintSpeciesOption[];
   enabledModules: AppModuleId[];
+  inventoryCategories: StockCategoryOption[];
+  stockOnboardingCompleted: boolean;
 }>;
 
 const NEUTRAL_PRIMARY = "#E07A28";
@@ -131,6 +138,8 @@ function envBrandingDefaults(): AppBranding {
     socialThematics: [...DEFAULT_SOCIAL_THEMATICS],
     printSpecies: [...DEFAULT_PRINT_SPECIES],
     enabledModules: resolveEnabledModules(null),
+    inventoryCategories: [],
+    stockOnboardingCompleted: false,
   };
 }
 
@@ -182,6 +191,9 @@ export function mapAppSettingsRow(row: unknown): AppSettingsRow {
     social_thematics: r.social_thematics,
     print_species: r.print_species,
     enabled_modules: r.enabled_modules,
+    inventory_categories: r.inventory_categories,
+    stock_onboarding_completed:
+      typeof r.stock_onboarding_completed === "boolean" ? r.stock_onboarding_completed : null,
     updated_at: typeof r.updated_at === "string" ? r.updated_at : null,
   };
 }
@@ -216,6 +228,8 @@ export function mergeBranding(row: AppSettingsRow | null | undefined): AppBrandi
     socialThematics: parseSocialThematics(row?.social_thematics),
     printSpecies: parsePrintSpecies(row?.print_species),
     enabledModules: resolveEnabledModules(parseEnabledModules(row?.enabled_modules)),
+    inventoryCategories: parseInventoryCategories(row?.inventory_categories),
+    stockOnboardingCompleted: row?.stock_onboarding_completed === true,
   };
 }
 
@@ -267,6 +281,10 @@ export function brandingToDbPatch(
   if (patch.socialThematics !== undefined) row.social_thematics = patch.socialThematics;
   if (patch.printSpecies !== undefined) row.print_species = patch.printSpecies;
   if (patch.enabledModules !== undefined) row.enabled_modules = patch.enabledModules;
+  if (patch.inventoryCategories !== undefined) row.inventory_categories = patch.inventoryCategories;
+  if (patch.stockOnboardingCompleted !== undefined) {
+    row.stock_onboarding_completed = patch.stockOnboardingCompleted;
+  }
   return row;
 }
 

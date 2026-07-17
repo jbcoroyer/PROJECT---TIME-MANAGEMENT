@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { ArrowDown, ArrowUp, ClipboardList, FolderKanban, UserRound } from "lucide-react";
-import StockSectionNav from "../StockSectionNav";
 import type { StockMovement } from "../../lib/stockTypes";
 import { formatCurrency, formatNumber } from "../../lib/stockUtils";
 import { useTranslation } from "../../lib/i18n/useTranslation";
@@ -62,8 +61,6 @@ export default function StockHistoryWorkspace({
           {t("stockLegacy.history.subtitle")}
         </p>
       </div>
-
-      <StockSectionNav basePath={basePath} />
 
       <div className="ui-surface rounded-[24px] p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

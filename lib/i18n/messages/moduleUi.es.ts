@@ -17,7 +17,8 @@ export const moduleUiEs = {
     nav: {
       ariaLabel: "Navegación del espacio de solicitudes",
       hub: "Espacio de solicitudes",
-      triage: "Procesar solicitudes"
+      triage: "Procesar solicitudes",
+      allForms: "← Todos los formularios",
     },
     hub: {
       defaultTitle: "Solicitudes {appName}",
@@ -26,8 +27,10 @@ export const moduleUiEs = {
       toast: {
         ready: "Su espacio de solicitudes está listo.",
         linkCopied: "Enlace copiado.",
-        copyFailed: "Copia imposible."
+        copyFailed: "Copia imposible.",
+        urlUpdated: "URL pública actualizada.",
       },
+      backToList: "Volver a todos los formularios",
       create: {
         title: "Cree su espacio de solicitudes",
         description:
@@ -51,6 +54,10 @@ export const moduleUiEs = {
         description:
           "Cualquiera con este enlace puede enviar una solicitud. Solo tendrá acceso a este formulario, no al espacio de trabajo de {appName}.",
         urlAriaLabel: "URL del formulario público",
+        slugLabel: "URL personalizada",
+        slugAriaLabel: "Segmento de URL",
+        saveSlug: "Guardar URL",
+        saving: "Guardando…",
         copied: "Copiado",
         copy: "Copiar",
         preview: "Vista previa"
@@ -76,6 +83,8 @@ export const moduleUiEs = {
       }
     },
     triage: {
+      backToForm: "Volver al formulario",
+      filteredBy: "Solicitudes de « {title} »",
       toast: {
         taskCreateFailed: "Creación imposible: {message}",
         unknownError: "error desconocido",
@@ -84,8 +93,31 @@ export const moduleUiEs = {
       defaultColumn: "Por hacer"
     },
     editor: {
-      backLabel: "Volver al espacio de solicitudes",
+      backLabel: "Volver al formulario",
       saveSuccess: "Formulario guardado."
+    },
+    list: {
+      title: "Formularios de solicitud",
+      subtitle:
+        "Crea, edita y comparte formularios públicos autónomos. Cada formulario tiene su enlace y su cola de triaje.",
+      newForm: "Nuevo formulario",
+      cancel: "Cancelar",
+      createSubmit: "Crear formulario",
+      open: "Abrir",
+      duplicate: "Duplicar",
+      delete: "Eliminar",
+      deleteConfirm:
+        "¿Eliminar este formulario? Las solicitudes recibidas se conservarán pero quedarán desvinculadas.",
+      active: "Activo",
+      draft: "Borrador",
+      createdOn: "Creado el {date}",
+      emptyTitle: "Sin formularios",
+      emptyBody:
+        "Crea tu primer formulario de solicitud para recibir envíos de clientes o socios.",
+      toast: {
+        duplicated: "Formulario duplicado.",
+        deleted: "Formulario eliminado."
+      }
     },
     public: {
       success: {
@@ -679,11 +711,17 @@ export const moduleUiEs = {
     }
   },
   stock: {
+    nav: {
+      ariaLabel: "Navegación de stock",
+      dashboard: "Panel",
+      inventory: "Inventario",
+      history: "Historial"
+    },
     boutique: {
       badge: "Tienda interna",
       title: "Inventario y material",
       subtitle:
-        "Navega el catálogo de Impresiones, Regalos y POS como en una tienda. Haz clic en un elemento para previsualizarlo y gestionar el stock de entrada/salida.",
+        "Explore su catálogo por categoría. Haga clic en un artículo para previsualizarlo y gestionar entradas / salidas.",
       kpi: {
         value: "Valor",
         refs: "Referencias",
@@ -789,6 +827,88 @@ export const moduleUiEs = {
         description:
           "El artículo « {name} » se eliminará del inventario. Esta acción no se puede deshacer."
       }
+    },
+    onboarding: {
+      welcome: {
+        title: "Configure su espacio de stock",
+        body: "Antes de gestionar cantidades, indique qué tipos de soportes, productos o servicios quiere seguir. Podrá modificarlos después.",
+        step1: "Elija sus categorías (sugerencias o etiquetas personalizadas)",
+        step2: "Descubra cómo inventariar, alertar y registrar movimientos",
+        step3: "Acceda a su tienda interna adaptada a su actividad",
+        cta: "Empezar configuración"
+      },
+      categories: {
+        title: "¿Qué stocks desea seguir?",
+        description:
+          "Le proponemos ideas, pero las etiquetas son suyas: adáptelas a su actividad (sin categorías impuestas).",
+        suggestions: "Sugerencias",
+        customLabel: "Añadir categoría personalizada",
+        customPlaceholder: "Ej. Material eventos, Suministros…",
+        add: "Añadir",
+        selected: "{count} categoría(s) seleccionada(s)",
+        remove: "Quitar {label}",
+        minOne: "Seleccione al menos una categoría.",
+        documents: "Documentos y soportes",
+        documentsDesc: "Folletos, carteles, dossiers de prensa…",
+        promotional: "Objetos promocionales",
+        promotionalDesc: "Regalos, textiles, obsequios clientes…",
+        signage: "Señalización y PLV",
+        signageDesc: "Banners, roll-ups, paneles…",
+        event_material: "Material de eventos",
+        event_materialDesc: "Stands, mobiliario, técnica…",
+        supplies: "Suministros y consumibles",
+        suppliesDesc: "Papel, tinta, pequeño material…",
+        services: "Prestaciones y servicios",
+        servicesDesc: "Servicios externos seguidos como stock lógico"
+      },
+      tour: {
+        badge: "Descubrimiento",
+        title: "Cómo funciona la herramienta",
+        description: "Esto es lo que podrá hacer una vez configurado su espacio.",
+        launching: "Iniciando…",
+        cta: "Lanzar mi espacio stock",
+        features: {
+          inventory: {
+            title: "Tienda interna",
+            body: "Visualice artículos por categoría, con fotos, cantidades y valor total."
+          },
+          movements: {
+            title: "Entradas y salidas",
+            body: "Registre cada movimiento e impute a un proyecto o evento."
+          },
+          alerts: {
+            title: "Alertas de reposición",
+            body: "Defina un umbral por artículo: el stock bajo se destaca."
+          },
+          history: {
+            title: "Historial completo",
+            body: "Vea quién movió qué, cuándo y por qué."
+          },
+          events: {
+            title: "Vínculo eventos",
+            body: "Reserve material desde sus fichas de evento."
+          },
+          ideas: {
+            title: "Buzón de ideas",
+            body: "Recoja sugerencias logísticas de su equipo."
+          }
+        }
+      }
+    },
+    genericModal: {
+      addTitle: "Añadir artículo",
+      editTitle: "Modificar artículo",
+      typeLabel: "Tipo / subcategoría",
+      typePlaceholder: "Ej. Roll-up 85×200, Bolígrafos…",
+      nameLabel: "Nombre del artículo",
+      namePlaceholder: "Nombre exacto en inventario",
+      unitPrice: "Precio unitario",
+      alertThreshold: "Umbral de alerta",
+      visualLabel: "Visual (imagen o PDF)",
+      addVisual: "Añadir visual",
+      nameRequired: "El nombre es obligatorio.",
+      uploadFailed: "Subida imposible: {error}",
+      create: "Añadir"
     }
   },
   eventsLegacy: {
