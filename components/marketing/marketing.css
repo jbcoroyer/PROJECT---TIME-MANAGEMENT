@@ -3,10 +3,14 @@
 .mkt-page {
   --mkt-ink: var(--ink);
   --mkt-ink-muted: var(--ink-muted);
+  /* clip (not hidden): coupe le débordement (halo, etc.) sans casser le header fixed */
+  overflow-x: clip;
 }
 
-html:has(.mkt-page) {
+html:has(.mkt-page),
+body:has(.mkt-page) {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 .mkt-header {

@@ -153,7 +153,7 @@ export default function LandingPageContent() {
       </header>
 
       <main className="relative z-[5] pt-[76px] sm:pt-[88px]">
-        <section className="relative px-6 pb-[90px] pt-[48px] sm:px-10 sm:pt-[64px]">
+        <section className="relative overflow-x-clip px-6 pb-[90px] pt-[48px] sm:px-10 sm:pt-[64px]">
           <div
             className="ui-hero-halo ui-hero-halo--orange absolute -right-[120px] -top-[180px] h-[700px] w-[700px]"
             aria-hidden
