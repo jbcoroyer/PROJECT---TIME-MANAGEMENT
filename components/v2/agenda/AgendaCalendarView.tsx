@@ -11,13 +11,14 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import type { AgendaAppointment } from "../../../lib/agenda/agendaTypes";
 import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
 import { createDisplayLabelHelpers } from "../../../lib/i18n/displayLabels";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { useAgendaAppointments } from "../../../lib/useAgendaAppointments";
 import { useIsClient } from "../../../lib/useIsClient";
+import EmptyState from "../../ui/EmptyState";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const VIEWS: View[] = ["month", "week", "day", "agenda"];
@@ -53,6 +54,14 @@ export default function AgendaCalendarView({
       }),
     [dateLocale, locale],
   );
+  const openCreateSlot = () => {
+    const start = new Date();
+    start.setMinutes(0, 0, 0);
+    start.setHours(start.getHours() + 1);
+    const end = new Date(start.getTime() + 30 * 60_000);
+    onCreateSlot(start, end);
+  };
+
   const calendarMessages = useMemo(
     () => ({
       today: t("agenda.calendar.messages.today"),
@@ -166,13 +175,7 @@ export default function AgendaCalendarView({
           ))}
           <button
             type="button"
-            onClick={() => {
-              const start = new Date();
-              start.setMinutes(0, 0, 0);
-              start.setHours(start.getHours() + 1);
-              const end = new Date(start.getTime() + 30 * 60_000);
-              onCreateSlot(start, end);
-            }}
+            onClick={openCreateSlot}
             className="ui-btn ui-btn-primary gap-1.5 text-xs"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -183,6 +186,17 @@ export default function AgendaCalendarView({
 
       {loading ? (
         <p className="text-center text-sm text-[var(--ink-muted)]">{t("agenda.calendar.loadingShort")}</p>
+      ) : null}
+
+      {!loading && appointments.length === 0 ? (
+        <EmptyState
+          icon={CalendarDays}
+          title={t("emptyStates.agenda.title")}
+          description={t("emptyStates.agenda.body")}
+          actionLabel={t("emptyStates.agenda.cta")}
+          onAction={openCreateSlot}
+          className="mb-4"
+        />
       ) : null}
 
       <div className="agenda-calendar-shell overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2">

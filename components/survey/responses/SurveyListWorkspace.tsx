@@ -25,6 +25,7 @@ import { useBranding } from "../../../lib/brandingContext";
 import { toastError, toastSuccess } from "../../../lib/toast";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
+import EmptyState from "../../ui/EmptyState";
 
 type TranslateFn = ReturnType<typeof useTranslation>["t"];
 
@@ -310,9 +311,13 @@ export default function SurveyListWorkspace() {
       {loading ? (
         <p className="text-sm text-[color:var(--foreground)]/55">{t("survey.list.loading")}</p>
       ) : surveys.length === 0 ? (
-        <div className="ui-surface rounded-2xl p-8 text-center text-sm text-[color:var(--foreground)]/55">
-          {t("survey.list.empty")}
-        </div>
+        <EmptyState
+          icon={MessageSquare}
+          title={t("emptyStates.survey.title")}
+          description={t("emptyStates.survey.body")}
+          actionLabel={t("emptyStates.survey.cta")}
+          onAction={() => setCreatingOpen(true)}
+        />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {surveys.map((survey) => (

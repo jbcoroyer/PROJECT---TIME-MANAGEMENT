@@ -16,6 +16,8 @@ import {
 import { BarChart3, Clock, FolderKanban, PieChart as PieChartIcon, Users } from "lucide-react";
 import { defaultDomainColor, domainCalendarColors } from "../lib/kanbanStyles";
 import type { Task } from "../lib/types";
+import EmptyState from "./ui/EmptyState";
+import { useTranslation } from "../lib/i18n/useTranslation";
 
 function formatHours(ms: number): string {
   if (!Number.isFinite(ms) || ms <= 0) return "0 h";
@@ -23,6 +25,7 @@ function formatHours(ms: number): string {
 }
 
 export default function AnalyticsView(props: { tasks: Task[] }) {
+  const { t } = useTranslation();
   const [periodDays, setPeriodDays] = useState<30 | 90 | 365>(30);
   const [now] = useState(() => Date.now());
   const periodStart = now - periodDays * 24 * 60 * 60 * 1000;
@@ -185,7 +188,14 @@ export default function AnalyticsView(props: { tasks: Task[] }) {
             Temps par domaine
           </h3>
           {pieData.length === 0 ? (
-            <p className="text-sm text-[color:var(--foreground)]/55">Aucune donnée sur cette période.</p>
+            <EmptyState
+              compact
+              icon={PieChartIcon}
+              title={t("emptyStates.analytics.title")}
+              description={t("emptyStates.analytics.body")}
+              actionLabel={t("emptyStates.analytics.cta")}
+              actionHref="/dashboard/kanban"
+            />
           ) : (
             <div className="h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -228,7 +238,12 @@ export default function AnalyticsView(props: { tasks: Task[] }) {
             Volume par société
           </h3>
           {barData.length === 0 ? (
-            <p className="text-sm text-[color:var(--foreground)]/55">Aucune donnée sur cette période.</p>
+            <EmptyState
+              compact
+              icon={BarChart3}
+              title={t("emptyStates.analytics.title")}
+              description={t("emptyStates.analytics.body")}
+            />
           ) : (
             <div className="h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -254,9 +269,12 @@ export default function AnalyticsView(props: { tasks: Task[] }) {
       <section className="ui-surface rounded-2xl p-5">
         <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">Top clients</h3>
         {topClients.length === 0 ? (
-          <p className="text-sm text-[color:var(--foreground)]/65">
-            Aucune demande client sur cette période.
-          </p>
+          <EmptyState
+            compact
+            icon={Users}
+            title={t("emptyStates.analytics.title")}
+            description={t("emptyStates.analytics.body")}
+          />
         ) : (
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {topClients.map(({ clientName, count }, i) => (

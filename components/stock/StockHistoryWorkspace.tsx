@@ -7,6 +7,7 @@ import type { StockMovement } from "../../lib/stockTypes";
 import { formatCurrency, formatNumber } from "../../lib/stockUtils";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 import { getIntlLocale } from "../../lib/i18n/dateFnsLocale";
+import EmptyState from "../ui/EmptyState";
 
 type StockHistoryWorkspaceProps = {
   basePath?: string;
@@ -81,9 +82,13 @@ export default function StockHistoryWorkspace({
             {t("stockLegacy.history.loading")}
           </div>
         ) : filteredMovements.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-            {t("stockLegacy.history.empty")}
-          </div>
+          <EmptyState
+            icon={ClipboardList}
+            title={t("emptyStates.stockHistory.title")}
+            description={t("emptyStates.stockHistory.body")}
+            actionLabel={t("emptyStates.stockHistory.cta")}
+            actionHref={basePath}
+          />
         ) : (
           <div className="space-y-3">
             {filteredMovements.map((movement) => {

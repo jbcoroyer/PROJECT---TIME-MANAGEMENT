@@ -31,6 +31,7 @@ import InventoryReorderModal from "../../InventoryReorderModal";
 import StockMovementModal from "../../StockMovementModal";
 import StockVisualPreview from "../../stock/StockVisualPreview";
 import { useConfirm } from "../../ui/ConfirmDialog";
+import EmptyState from "../../ui/EmptyState";
 import { toastError, toastSuccess } from "../../../lib/toast";
 import { useCurrentUser } from "../../../lib/useCurrentUser";
 import {
@@ -967,15 +968,29 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
           ))}
         </div>
       ) : visibleItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-6 py-20 text-center">
-          <Package className="h-10 w-10 text-[color:var(--foreground)]/30" />
-          <p className="mt-4 text-base font-semibold text-[var(--foreground)]">{t("stock.boutique.empty.title")}</p>
-          <p className="mt-1 max-w-sm text-sm text-[color:var(--foreground)]/55">
-            {searchQuery || alertOnly || categoryFilter !== "all" || speciesFilter !== "all"
-              ? t("stock.boutique.empty.filtered")
-              : t("stock.boutique.empty.initial")}
-          </p>
-        </div>
+        <EmptyState
+          icon={Package}
+          title={
+            searchQuery || alertOnly || categoryFilter !== "all" || speciesFilter !== "all"
+              ? t("emptyStates.stockBoutiqueFiltered.title")
+              : t("emptyStates.stockBoutique.title")
+          }
+          description={
+            searchQuery || alertOnly || categoryFilter !== "all" || speciesFilter !== "all"
+              ? t("emptyStates.stockBoutiqueFiltered.body")
+              : t("emptyStates.stockBoutique.body")
+          }
+          actionLabel={
+            searchQuery || alertOnly || categoryFilter !== "all" || speciesFilter !== "all"
+              ? undefined
+              : t("emptyStates.stockBoutique.cta")
+          }
+          onAction={
+            searchQuery || alertOnly || categoryFilter !== "all" || speciesFilter !== "all"
+              ? undefined
+              : () => setAddMenuOpen(true)
+          }
+        />
       ) : (
         renderCatalog()
       )}

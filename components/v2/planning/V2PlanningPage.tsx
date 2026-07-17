@@ -41,6 +41,7 @@ import {
   DAILY_CAPACITY_HOURS,
 } from "../../../lib/v2/workload";
 import type { Task } from "../../../lib/types";
+import EmptyState from "../../ui/EmptyState";
 
 type ViewId = "retroplanning" | "week" | "month" | "workload";
 
@@ -211,6 +212,15 @@ export default function V2PlanningPage() {
         ) : null}
 
         {view === "week" ? (
+          activeTasks.length === 0 ? (
+            <EmptyState
+              icon={CalendarDays}
+              title={t("emptyStates.planning.title")}
+              description={t("emptyStates.planning.body")}
+              actionLabel={t("emptyStates.planning.cta")}
+              actionHref="/dashboard/kanban"
+            />
+          ) : (
           <section className="ui-surface overflow-x-auto rounded-2xl p-4">
             <div className="grid min-w-[840px] grid-cols-7 gap-2">
               {weekDays.map((day) => {
@@ -243,9 +253,19 @@ export default function V2PlanningPage() {
               })}
             </div>
           </section>
+          )
         ) : null}
 
         {view === "month" ? (
+          activeTasks.length === 0 ? (
+            <EmptyState
+              icon={LayoutGrid}
+              title={t("emptyStates.planning.title")}
+              description={t("emptyStates.planning.body")}
+              actionLabel={t("emptyStates.planning.cta")}
+              actionHref="/dashboard/kanban"
+            />
+          ) : (
           <section className="ui-surface rounded-2xl p-4">
             <div className="grid grid-cols-7 gap-1">
               {weekdayHeaders.map((d) => (
@@ -269,10 +289,10 @@ export default function V2PlanningPage() {
                       {format(day, "d")}
                     </div>
                     <div className="mt-1 space-y-1">
-                      {dayTasks.slice(0, 3).map((t) => (
-                        <div key={t.id} className="flex items-center gap-1 truncate rounded bg-[var(--accent-soft)] px-1 py-0.5 text-[10px] font-medium text-[var(--accent)]">
-                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${PRIORITY_DOT[t.priority] ?? "bg-slate-400"}`} />
-                          <span className="truncate">{t.projectName}</span>
+                      {dayTasks.slice(0, 3).map((taskItem) => (
+                        <div key={taskItem.id} className="flex items-center gap-1 truncate rounded bg-[var(--accent-soft)] px-1 py-0.5 text-[10px] font-medium text-[var(--accent)]">
+                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${PRIORITY_DOT[taskItem.priority] ?? "bg-slate-400"}`} />
+                          <span className="truncate">{taskItem.projectName}</span>
                         </div>
                       ))}
                       {dayTasks.length > 3 ? (
@@ -284,12 +304,20 @@ export default function V2PlanningPage() {
               })}
             </div>
           </section>
+          )
         ) : null}
 
         {view === "workload" ? (
           <section className="ui-surface overflow-x-auto rounded-2xl p-4">
             {workload.length === 0 ? (
-              <p className="py-8 text-center text-sm text-[color:var(--foreground)]/55">{t("planning.workload.empty")}</p>
+              <EmptyState
+                compact
+                icon={Scale}
+                title={t("emptyStates.planning.title")}
+                description={t("emptyStates.planning.body")}
+                actionLabel={t("emptyStates.planning.cta")}
+                actionHref="/dashboard/kanban"
+              />
             ) : (
               <table className="w-full min-w-[840px] border-collapse text-sm">
                 <thead>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
-import { MapPin, Trash2 } from "lucide-react";
+import { CalendarRange, MapPin, Trash2 } from "lucide-react";
 import EventCoverImage from "./EventCoverImage";
 import type { EventRow } from "../../lib/eventTypes";
 import { computeEventPreparationStats } from "../../lib/eventPreparationStats";
@@ -10,24 +10,32 @@ import type { Task } from "../../lib/types";
 import { formatCurrency } from "../../lib/stockUtils";
 import { getDateFnsLocale } from "../../lib/i18n/dateFnsLocale";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import EmptyState from "../ui/EmptyState";
 
 type EventTimelineProps = {
   events: EventRow[];
   tasks?: Task[];
   onDeleteEvent?: (eventId: string) => void | Promise<void>;
   eventsBasePath?: string;
+  /** Ouvre le flux de création d’événement (CTA empty state). */
+  onCreateEvent?: () => void;
 };
 
 export default function EventTimeline(props: EventTimelineProps) {
   const { t, locale } = useTranslation();
   const dateFnsLocale = getDateFnsLocale(locale);
-  const { events, tasks = [], onDeleteEvent, eventsBasePath = "/events" } = props;
+  const { events, tasks = [], onDeleteEvent, eventsBasePath = "/events", onCreateEvent } = props;
 
   if (events.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-        {t("eventsLegacy.timeline.emptyScheduled")}
-      </div>
+      <EmptyState
+        icon={CalendarRange}
+        title={t("emptyStates.events.title")}
+        description={t("emptyStates.events.body")}
+        actionLabel={t("emptyStates.events.cta")}
+        onAction={onCreateEvent}
+        actionHref={onCreateEvent ? undefined : `${eventsBasePath}/dashboard`}
+      />
     );
   }
 

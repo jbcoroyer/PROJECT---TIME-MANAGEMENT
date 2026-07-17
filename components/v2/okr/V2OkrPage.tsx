@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Plus, Target, Trash2 } from "lucide-react";
 import { useReferenceData } from "../../../lib/useReferenceData";
 import { useTasks } from "../../../lib/useTasks";
 import { keyResultProgress, objectiveProgress, useObjectives } from "../../../lib/v2/okr";
 import { getIntlLocale } from "../../../lib/i18n/dateFnsLocale";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
+import EmptyState from "../../ui/EmptyState";
 
 export default function V2OkrPage() {
   const { t, locale } = useTranslation();
@@ -14,6 +15,7 @@ export default function V2OkrPage() {
   const { companies, domains } = useReferenceData();
   const { tasks } = useTasks();
   const { objectives, addObjective, removeObjective, addKeyResult, updateKeyResult, removeKeyResult } = useObjectives();
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
@@ -58,7 +60,13 @@ export default function V2OkrPage() {
         <section className="ui-surface rounded-2xl p-5">
           <h2 className="mb-3 text-base font-semibold text-[var(--foreground)]">{t("okrModule.newObjective")}</h2>
           <div className="flex flex-wrap gap-2">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("okrModule.objectivePlaceholder")} className="ui-focus-ring min-w-[240px] flex-1 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm" />
+            <input
+              ref={titleInputRef}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t("okrModule.objectivePlaceholder")}
+              className="ui-focus-ring min-w-[240px] flex-1 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
+            />
             <select value={company} onChange={(e) => setCompany(e.target.value)} className="ui-focus-ring rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm">
               <option value="">{t("okrModule.group")}</option>
               {companies.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
@@ -71,9 +79,13 @@ export default function V2OkrPage() {
         </section>
 
         {objectives.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-            {t("okrModule.empty")}
-          </p>
+          <EmptyState
+            icon={Target}
+            title={t("emptyStates.okr.title")}
+            description={t("emptyStates.okr.body")}
+            actionLabel={t("emptyStates.okr.cta")}
+            onAction={() => titleInputRef.current?.focus()}
+          />
         ) : (
           <div className="space-y-4">
             {objectives.map((obj) => {

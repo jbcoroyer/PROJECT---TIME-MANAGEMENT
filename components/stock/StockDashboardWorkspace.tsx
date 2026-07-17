@@ -9,6 +9,7 @@ import { inventoryItemValue } from "../../lib/inventoryTypes";
 import type { StockMovement } from "../../lib/stockTypes";
 import { formatCurrency, formatNumber } from "../../lib/stockUtils";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import EmptyState from "../ui/EmptyState";
 
 function isSameMonth(date: Date, reference: Date): boolean {
   return date.getMonth() === reference.getMonth() && date.getFullYear() === reference.getFullYear();
@@ -112,9 +113,13 @@ export default function StockDashboardWorkspace({
             {t("stockLegacy.dashboard.loading")}
           </div>
         ) : chartData.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-16 text-center text-sm text-[color:var(--foreground)]/55">
-            {t("stockLegacy.dashboard.empty")}
-          </div>
+          <EmptyState
+            icon={BarChart3}
+            title={t("emptyStates.stockDashboard.title")}
+            description={t("emptyStates.stockDashboard.body")}
+            actionLabel={t("emptyStates.stockDashboard.cta")}
+            actionHref={basePath}
+          />
         ) : (
           <div className="h-[360px] w-full">
             <ResponsiveContainer width="100%" height="100%">

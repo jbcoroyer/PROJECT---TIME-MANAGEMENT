@@ -7,6 +7,7 @@ import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { CalendarRange, Layers, Tag, Users } from "lucide-react";
 import type { Task } from "../../../lib/types";
 import AdminAvatar from "../../AdminAvatar";
+import EmptyState from "../../ui/EmptyState";
 import {
   barPositionPercent,
   buildGanttBars,
@@ -86,11 +87,13 @@ export default function RetroplanningGantt({
 
   if (bars.length === 0) {
     return (
-      <section className="ui-surface rounded-2xl p-10 text-center">
-        <CalendarRange className="mx-auto h-10 w-10 text-[var(--accent)]" />
-        <h3 className="mt-3 text-base font-semibold text-[var(--foreground)]">{t("planning.gantt.empty.title")}</h3>
-        <p className="mt-1 text-sm text-[var(--ink-muted)]">{t("planning.gantt.empty.body")}</p>
-      </section>
+      <EmptyState
+        icon={CalendarRange}
+        title={t("emptyStates.planning.title")}
+        description={t("emptyStates.planning.body")}
+        actionLabel={t("emptyStates.planning.cta")}
+        actionHref="/dashboard/kanban"
+      />
     );
   }
 

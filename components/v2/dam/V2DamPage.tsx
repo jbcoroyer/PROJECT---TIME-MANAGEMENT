@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { FolderOpen, ImageIcon, Plus, Search, Tag, Trash2 } from "lucide-react";
 import { useReferenceData } from "../../../lib/useReferenceData";
 import { DAM_TYPES, searchAssets, useDamAssets, type DamType } from "../../../lib/v2/dam";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
+import EmptyState from "../../ui/EmptyState";
 
 export default function V2DamPage() {
   const { t } = useTranslation();
   const { companies } = useReferenceData();
   const { assets, add, remove } = useDamAssets();
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
@@ -52,7 +54,13 @@ export default function V2DamPage() {
           <section className="ui-surface rounded-2xl p-5">
             <h2 className="mb-3 text-base font-semibold text-[var(--foreground)]">{t("damModule.addTitle")}</h2>
             <div className="space-y-3">
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("damModule.name")} className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm" />
+              <input
+                ref={nameInputRef}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t("damModule.name")}
+                className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
+              />
               <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder={t("damModule.url")} className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm" />
               <div className="grid grid-cols-2 gap-2">
                 <select value={company} onChange={(e) => setCompany(e.target.value)} className="ui-focus-ring rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2 py-2 text-sm">
@@ -80,9 +88,18 @@ export default function V2DamPage() {
               />
             </div>
             {filtered.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-12 text-center text-sm text-[color:var(--foreground)]/55">
-                {assets.length === 0 ? t("damModule.emptyAssets") : t("damModule.emptySearch")}
-              </p>
+              <EmptyState
+                compact
+                icon={ImageIcon}
+                title={
+                  assets.length === 0 ? t("emptyStates.dam.title") : t("emptyStates.damSearch.title")
+                }
+                description={
+                  assets.length === 0 ? t("emptyStates.dam.body") : t("emptyStates.damSearch.body")
+                }
+                actionLabel={assets.length === 0 ? t("emptyStates.dam.cta") : undefined}
+                onAction={assets.length === 0 ? () => nameInputRef.current?.focus() : undefined}
+              />
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {filtered.map((a) => (

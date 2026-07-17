@@ -193,6 +193,7 @@ export default function EventsHubWorkspace({
             tasks={eventTasks}
             onDeleteEvent={handleDeleteEvent}
             eventsBasePath={eventsBasePath}
+            onCreateEvent={() => setCreateOpen(true)}
           />
         )}
       </div>

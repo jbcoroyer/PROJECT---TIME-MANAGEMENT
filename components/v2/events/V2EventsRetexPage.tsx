@@ -9,6 +9,7 @@ import { buildRetexDraft, useRetexInputs } from "../../../lib/v2/retex";
 import { summarize } from "../../../lib/v2/aiClient";
 import { toastError, toastSuccess } from "../../../lib/toast";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
+import EmptyState from "../../ui/EmptyState";
 
 export default function V2EventsRetexPage() {
   const { t } = useTranslation();
@@ -95,7 +96,14 @@ export default function V2EventsRetexPage() {
             {loading ? (
               <p className="text-sm text-[color:var(--foreground)]/55">{t("events.loading")}</p>
             ) : events.length === 0 ? (
-              <p className="text-sm text-[color:var(--foreground)]/55">{t("events.emptyList")}</p>
+              <EmptyState
+                compact
+                icon={CalendarRange}
+                title={t("emptyStates.eventsRetex.title")}
+                description={t("emptyStates.eventsRetex.body")}
+                actionLabel={t("emptyStates.eventsRetex.cta")}
+                actionHref="/events/dashboard"
+              />
             ) : (
               <ul className="space-y-1.5">
                 {events.map((event) => {

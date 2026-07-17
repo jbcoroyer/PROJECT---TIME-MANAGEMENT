@@ -847,4 +847,96 @@ export const en: MessageTree = {
       },
     },
   },
+
+  /** Module empty states — title + benefit + CTA. */
+  emptyStates: {
+    agenda: {
+      title: "Your calendar is clear",
+      body: "Centralize meetings and bookable slots so you stop juggling emails and spreadsheets.",
+      cta: "Create an appointment",
+    },
+    todoPlan: {
+      title: "No day planned yet",
+      body: "Block time for your priority tasks and keep a clear, realistic schedule.",
+      cta: "Open the Kanban board",
+    },
+    planning: {
+      title: "Nothing to schedule yet",
+      body: "Add due dates to your tasks to see workload and spot conflicts early.",
+      cta: "Create a task",
+    },
+    events: {
+      title: "No events scheduled",
+      body: "Run ops, gear, budget and debriefs in one place — from brief to after-action review.",
+      cta: "Create an event",
+    },
+    eventsRetex: {
+      title: "No debrief yet",
+      body: "Create an event, then capture a structured after-action review from the field.",
+      cta: "Go to events",
+    },
+    socialRecycle: {
+      title: "Nothing to recycle yet",
+      body: "Publish and measure content — top posts will show up here for a second life.",
+      cta: "Open the studio",
+    },
+    socialInsights: {
+      title: "No insights yet",
+      body: "Once posts get engagement, we’ll highlight your best days and hours.",
+      cta: "Create a post",
+    },
+    dam: {
+      title: "Library is empty",
+      body: "Centralize logos, visuals and documents to reuse them across every module.",
+      cta: "Add a file",
+    },
+    damSearch: {
+      title: "No results",
+      body: "No files match your search. Try another keyword.",
+    },
+    stockHistory: {
+      title: "No movements yet",
+      body: "Stock in and out movements will appear here for a clear audit trail.",
+      cta: "Manage stock",
+    },
+    stockDashboard: {
+      title: "No stock data yet",
+      body: "Add items and movements to track value and alerts at a glance.",
+      cta: "Open the catalog",
+    },
+    stockBoutique: {
+      title: "Inventory is empty",
+      body: "Catalog merch, POS and gear to reserve, track and avoid stockouts.",
+      cta: "Add an item",
+    },
+    stockBoutiqueFiltered: {
+      title: "No items found",
+      body: "Adjust filters or search to show items.",
+    },
+    ideas: {
+      title: "The idea box is waiting",
+      body: "Collect suggestions and prioritize them as a team — no more lost email threads.",
+      cta: "Suggest an idea",
+    },
+    okr: {
+      title: "No objectives yet",
+      body: "Set measurable OKRs to connect strategy with day-to-day execution.",
+      cta: "Create an objective",
+    },
+    survey: {
+      title: "No surveys yet",
+      body: "Create a questionnaire to collect client or internal feedback in a few clicks.",
+      cta: "New survey",
+    },
+    analytics: {
+      title: "No data yet",
+      body: "Create and move tasks forward — charts will fill this view automatically.",
+      cta: "Go to the board",
+    },
+    todoList: {
+      title: "No active tasks",
+      body: "Assign Kanban cards to see them here, sorted by due date.",
+      cta: "Open Kanban",
+    },
+  },
 };

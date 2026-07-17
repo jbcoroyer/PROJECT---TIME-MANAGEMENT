@@ -11,6 +11,7 @@ import { useTasks } from "../../../lib/useTasks";
 import { buildDayPlan, type PlanBlock } from "../../../lib/v2/planner";
 import { summarize } from "../../../lib/v2/aiClient";
 import { toastError } from "../../../lib/toast";
+import EmptyState from "../../ui/EmptyState";
 
 const KIND_ICON: Record<PlanBlock["kind"], typeof Coffee> = {
   task: CalendarCheck,
@@ -112,9 +113,13 @@ export default function V2TodoPage() {
               {t("todoModule.loginPrompt")}
             </p>
           ) : plan.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-10 text-center text-sm text-[color:var(--foreground)]/55">
-              {t("todoModule.emptyPlan")}
-            </p>
+            <EmptyState
+              compact
+              title={t("emptyStates.todoPlan.title")}
+              description={t("emptyStates.todoPlan.body")}
+              actionLabel={t("emptyStates.todoPlan.cta")}
+              actionHref="/dashboard/kanban"
+            />
           ) : (
             <ol className="space-y-2">
               {plan.map((block, idx) => {

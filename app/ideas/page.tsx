@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -17,8 +17,10 @@ import {
 import AppShell from "../../components/v2/AppShell";
 import ModuleRouteGuard from "../../components/v2/ModuleRouteGuard";
 import { useConfirm } from "../../components/ui/ConfirmDialog";
+import EmptyState from "../../components/ui/EmptyState";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { useBranding } from "../../lib/brandingContext";
+import { useTranslation } from "../../lib/i18n/useTranslation";
 import {
   type StockIdea,
   type StockIdeaCategory,
@@ -70,6 +72,7 @@ function categoryLabel(c: StockIdeaCategory): string {
 }
 
 export default function IdeasPage() {
+  const { t } = useTranslation();
   const { user: currentUser } = useCurrentUser();
   const { branding } = useBranding();
   const { ideas, hydrated, canManage, addIdea, updateIdea, removeIdea, exportJson } = useStockIdeas();
@@ -79,6 +82,7 @@ export default function IdeasPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<StockIdeaCategory>("materiel");
   const [query, setQuery] = useState("");
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -165,12 +169,13 @@ export default function IdeasPage() {
           </div>
         </header>
 
-        <section className="ui-surface rounded-2xl p-6">
+        <section id="ideas-compose" className="ui-surface rounded-2xl p-6">
           <h2 className="text-lg font-semibold text-[var(--foreground)]">Nouvelle idée</h2>
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
               <div className="space-y-3">
                 <input
+                  ref={titleInputRef}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Titre court et clair…"
@@ -234,6 +239,18 @@ export default function IdeasPage() {
           </span>
         </div>
 
+        {ideas.length === 0 ? (
+          <EmptyState
+            icon={Lightbulb}
+            title={t("emptyStates.ideas.title")}
+            description={t("emptyStates.ideas.body")}
+            actionLabel={t("emptyStates.ideas.cta")}
+            onAction={() => {
+              document.getElementById("ideas-compose")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              titleInputRef.current?.focus();
+            }}
+          />
+        ) : (
         <div className="grid gap-4 xl:grid-cols-4">
           {STATUS_COLS.map((col) => {
             const Icon = col.icon;
@@ -279,6 +296,7 @@ export default function IdeasPage() {
             );
           })}
         </div>
+        )}
       </div>
   );
 

@@ -7,6 +7,7 @@ import {
   CalendarRange,
   ChevronDown,
   ChevronRight,
+  ListTodo,
   UserCircle2,
 } from "lucide-react";
 import type { Task, AdminId } from "../lib/types";
@@ -19,6 +20,8 @@ import {
 import { partitionTasksByEvent } from "../lib/eventTaskGroups";
 import ColumnStatusBadge from "./ColumnStatusBadge";
 import InboxActivityPanel from "./v2/dashboard/InboxActivityPanel";
+import EmptyState from "./ui/EmptyState";
+import { useTranslation } from "../lib/i18n/useTranslation";
 
 /** Colonnes ouvertes affichées dans la To-Do List (toutes sauf « terminé »). */
 function buildOpenColumnSet(openColumns?: string[]): Set<string> {
@@ -171,6 +174,7 @@ export default function ToDoListView(props: {
   onTaskClick?: (task: Task) => void;
   showActivityPanel?: boolean;
 }) {
+  const { t } = useTranslation();
   const showActivityPanel = props.showActivityPanel ?? true;
   const [manualSelectedAdmin, setManualSelectedAdmin] = useState<AdminId>("");
   const [collapsedEventIds, setCollapsedEventIds] = useState<Set<string>>(() => loadCollapsedEventGroupIds());
@@ -420,14 +424,13 @@ export default function ToDoListView(props: {
       })}
 
       {visibleTasks.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-[var(--line)] py-14 text-center">
-          <p className="text-sm text-[color:var(--foreground)]/45">
-            Aucune tâche active pour {selectedAdmin} pour le moment.
-          </p>
-          <p className="mt-1 text-xs text-[color:var(--foreground)]/30">
-            Les tâches &apos;Terminé&apos; sont masquées dans cette vue.
-          </p>
-        </div>
+        <EmptyState
+          icon={ListTodo}
+          title={t("emptyStates.todoList.title")}
+          description={t("emptyStates.todoList.body")}
+          actionLabel={t("emptyStates.todoList.cta")}
+          actionHref="/dashboard/kanban"
+        />
       )}
     </div>
   );

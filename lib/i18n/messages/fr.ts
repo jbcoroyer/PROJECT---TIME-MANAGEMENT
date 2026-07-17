@@ -851,4 +851,96 @@ export const fr: MessageTree = {
       },
     },
   },
+
+  /** États vides des modules — titre + bénéfice + CTA. */
+  emptyStates: {
+    agenda: {
+      title: "Votre agenda est libre",
+      body: "Centralisez RDV et créneaux réservables pour ne plus jongler entre mails et tableurs.",
+      cta: "Créer un rendez-vous",
+    },
+    todoPlan: {
+      title: "Aucune journée planifiée",
+      body: "Bloquez du temps pour vos tâches prioritaires et gardez une journée claire et réaliste.",
+      cta: "Voir le tableau Kanban",
+    },
+    planning: {
+      title: "Rien à planifier pour l’instant",
+      body: "Posez des échéances sur vos tâches pour visualiser la charge et anticiper les conflits.",
+      cta: "Créer une tâche",
+    },
+    events: {
+      title: "Aucun événement planifié",
+      body: "Pilotez régie, matériel, budget et bilans au même endroit — du brief au RETEX.",
+      cta: "Créer un événement",
+    },
+    eventsRetex: {
+      title: "Pas encore de bilan",
+      body: "Créez un événement, puis capitalisez sur le terrain avec un RETEX structuré.",
+      cta: "Aller aux événements",
+    },
+    socialRecycle: {
+      title: "Rien à recycler pour l’instant",
+      body: "Publiez et mesurez vos contenus : les meilleurs posts reviendront ici pour un second souffle.",
+      cta: "Ouvrir le studio",
+    },
+    socialInsights: {
+      title: "Pas encore d’insights",
+      body: "Dès que vos posts ont de l’engagement, on vous indiquera les meilleurs jours et horaires.",
+      cta: "Créer un post",
+    },
+    dam: {
+      title: "Bibliothèque vide",
+      body: "Centralisez logos, visuels et documents pour les réutiliser dans tous vos modules.",
+      cta: "Ajouter un fichier",
+    },
+    damSearch: {
+      title: "Aucun résultat",
+      body: "Aucun fichier ne correspond à votre recherche. Essayez un autre mot-clé.",
+    },
+    stockHistory: {
+      title: "Aucun mouvement enregistré",
+      body: "Les entrées et sorties de stock apparaîtront ici pour garder une trace claire.",
+      cta: "Gérer le stock",
+    },
+    stockDashboard: {
+      title: "Pas encore de données stock",
+      body: "Ajoutez des articles et des mouvements pour suivre valeur et alertes en un coup d’œil.",
+      cta: "Ouvrir la boutique",
+    },
+    stockBoutique: {
+      title: "Inventaire vide",
+      body: "Référencez goodies, PLV et matériel pour réserver, suivre et éviter les ruptures.",
+      cta: "Ajouter un article",
+    },
+    stockBoutiqueFiltered: {
+      title: "Aucun article trouvé",
+      body: "Modifiez les filtres ou la recherche pour afficher des articles.",
+    },
+    ideas: {
+      title: "La boîte à idées attend sa première pépite",
+      body: "Collectez suggestions et priorisez-les en équipe — plus besoin de fils de mails perdus.",
+      cta: "Proposer une idée",
+    },
+    okr: {
+      title: "Aucun objectif défini",
+      body: "Fixez des OKR mesurables pour relier la stratégie au quotidien de l’équipe.",
+      cta: "Créer un objectif",
+    },
+    survey: {
+      title: "Aucune enquête pour le moment",
+      body: "Créez un questionnaire pour recueillir retours clients ou feedback interne en quelques clics.",
+      cta: "Nouvelle enquête",
+    },
+    analytics: {
+      title: "Pas encore de données",
+      body: "Créez et avancez des tâches : les graphiques rempliront cette vue automatiquement.",
+      cta: "Aller au tableau",
+    },
+    todoList: {
+      title: "Aucune tâche active",
+      body: "Assignez des cartes Kanban pour les retrouver ici, triées par échéance.",
+      cta: "Ouvrir le Kanban",
+    },
+  },
 };

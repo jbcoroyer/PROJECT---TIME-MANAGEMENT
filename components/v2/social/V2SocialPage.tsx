@@ -14,6 +14,7 @@ import { toastError, toastSuccess } from "../../../lib/toast";
 import { bestDays, bestHours, engagementScore, topPerformingPosts } from "../../../lib/v2/socialInsights";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { createDisplayLabelHelpers } from "../../../lib/i18n/displayLabels";
+import EmptyState from "../../ui/EmptyState";
 
 type Tab = "validation" | "studio" | "insights" | "recyclage";
 
@@ -316,9 +317,13 @@ export default function V2SocialPage() {
                 <p className="text-sm font-medium text-[var(--foreground)]">{recommendation}</p>
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-8 text-center text-sm text-[color:var(--foreground)]/55">
-                {t("social.insights.noData")}
-              </div>
+              <EmptyState
+                icon={TrendingUp}
+                title={t("emptyStates.socialInsights.title")}
+                description={t("emptyStates.socialInsights.body")}
+                actionLabel={t("emptyStates.socialInsights.cta")}
+                onAction={() => setTab("studio")}
+              />
             )}
             <div className="grid gap-5 lg:grid-cols-2">
               <section className="ui-surface rounded-2xl p-5">
@@ -375,9 +380,14 @@ export default function V2SocialPage() {
               <Recycle className="h-4 w-4 text-[var(--accent)]" /> {t("social.recycle.title")}
             </h2>
             {topPosts.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface-soft)] px-4 py-10 text-center text-sm text-[color:var(--foreground)]/55">
-                {t("social.recycle.empty")}
-              </p>
+              <EmptyState
+                compact
+                icon={Recycle}
+                title={t("emptyStates.socialRecycle.title")}
+                description={t("emptyStates.socialRecycle.body")}
+                actionLabel={t("emptyStates.socialRecycle.cta")}
+                onAction={() => setTab("studio")}
+              />
             ) : (
               <ul className="space-y-2">
                 {topPosts.map((post, idx) => (
