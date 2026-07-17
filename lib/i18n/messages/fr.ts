@@ -1,5 +1,6 @@
 import { deepMergeMessages } from "../deepMerge";
 import { moduleUiFr } from "./moduleUi.fr";
+import { marketingLandingFr } from "./marketingLanding.fr";
 
 export type MessageTree = {
   [key: string]: string | MessageTree;
@@ -367,6 +368,7 @@ const frCore: MessageTree = {
     choosePlan: "Choisir un abonnement",
     dataKept: "Vos données sont conservées. L'accès est rétabli dès qu'un abonnement est actif.",
   },
+  marketingLanding: marketingLandingFr,
   pricing: {
     intervalToggleLabel: "Période de facturation",
     intervalMonthly: "Mensuel",

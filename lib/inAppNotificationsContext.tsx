@@ -16,6 +16,7 @@ import { Bell, X } from "lucide-react";
 import TaskRealtimeNotifications from "../components/TaskRealtimeNotifications";
 import type { InAppNotificationHistoryEntry, InAppNotificationInput } from "./inAppNotificationTypes";
 import { useIsClient } from "./useIsClient";
+import { useTranslation } from "./i18n/useTranslation";
 
 export type { InAppNotificationInput, InAppNotificationHistoryEntry } from "./inAppNotificationTypes";
 
@@ -50,6 +51,7 @@ function NotificationStack(props: {
 }) {
   const { items, onDismiss } = props;
   const mounted = useIsClient();
+  const { t } = useTranslation();
 
   if (!mounted || items.length === 0) return null;
 
@@ -80,7 +82,7 @@ function NotificationStack(props: {
                   onClick={() => onDismiss(item.id)}
                   className="ui-transition mt-2 inline-flex text-xs font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]"
                 >
-                  Ouvrir
+                  {t("notifications.bell.open")}
                 </Link>
               ) : null}
             </div>

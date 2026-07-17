@@ -1,6 +1,7 @@
 import { deepMergeMessages } from "../deepMerge";
 import type { MessageTree } from "./fr";
 import { moduleUiEn } from "./moduleUi.en";
+import { marketingLandingEn } from "./marketingLanding.en";
 
 const enCore: MessageTree = {
   common: {
@@ -380,6 +381,7 @@ const enCore: MessageTree = {
     singlePriceTitle: "One price",
     annualCommitment: "Annual commitment — save 2 months",
   },
+  marketingLanding: marketingLandingEn,
   marketingPricing: {
     seeDetails: "See pricing details",
     page: {

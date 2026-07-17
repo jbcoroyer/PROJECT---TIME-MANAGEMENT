@@ -2,6 +2,7 @@ import { en } from "./en";
 import { deepMergeMessages } from "../deepMerge";
 import type { MessageTree } from "./fr";
 import { moduleUiEs } from "./moduleUi.es";
+import { marketingLandingEs } from "./marketingLanding.es";
 
 const esOverrides: MessageTree = {
   common: {
@@ -383,6 +384,7 @@ const esOverrides: MessageTree = {
     singlePriceTitle: "Un solo precio",
     annualCommitment: "Compromiso anual — ahorra 2 meses",
   },
+  marketingLanding: marketingLandingEs,
   marketingPricing: {
     seeDetails: "Ver detalles de precios",
     page: {
