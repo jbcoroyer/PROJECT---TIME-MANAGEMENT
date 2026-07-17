@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+/**
+ * CSP mode switch — change ONE line to revert safely:
+ * - true  → Content-Security-Policy (enforcing, blocks violations)
+ * - false → Content-Security-Policy-Report-Only (observe only)
+ *
+ * Test in Vercel Preview before Production.
+ */
+const CSP_ENFORCE = true;
+
 /** Sur Vercel, utilise le domaine de production stable (pas l'URL de preview éphémère). */
 const publicAppUrl =
   process.env.NEXT_PUBLIC_APP_URL?.trim() ||
@@ -66,20 +75,38 @@ const nextConfig: NextConfig = {
       ? `https://${supabaseHostname} wss://${supabaseHostname}`
       : "https://*.supabase.co wss://*.supabase.co";
 
-    // Report-Only : surveille les violations sans bloquer (Next.js + styles inline + Supabase).
+    // Domaines réellement utilisés : Supabase (+ realtime), OpenRouter, Microsoft Graph/login,
+    // Vercel Analytics/Insights, Sentry, self, data:/blob: pour images uploadées.
     const contentSecurityPolicy = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co https:",
       "font-src 'self' data:",
-      `connect-src 'self' ${supabaseConnect} https://openrouter.ai https://graph.microsoft.com https://login.microsoftonline.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://*.sentry.io`,
+      "media-src 'self' blob: data:",
+      "worker-src 'self' blob:",
+      [
+        "connect-src 'self'",
+        supabaseConnect,
+        "https://openrouter.ai",
+        "https://graph.microsoft.com",
+        "https://login.microsoftonline.com",
+        "https://vitals.vercel-insights.com",
+        "https://va.vercel-scripts.com",
+        "https://*.sentry.io",
+        "https://*.ingest.sentry.io",
+        "https://*.ingest.de.sentry.io",
+      ].join(" "),
       "frame-ancestors 'none'",
       "frame-src 'self' https://login.microsoftonline.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self' https://login.microsoftonline.com",
     ].join("; ");
+
+    const cspHeaderKey = CSP_ENFORCE
+      ? "Content-Security-Policy"
+      : "Content-Security-Policy-Report-Only";
 
     const securityHeaders = [
       { key: "X-Frame-Options", value: "DENY" },
@@ -90,7 +117,7 @@ const nextConfig: NextConfig = {
         value: "max-age=63072000; includeSubDomains; preload",
       },
       {
-        key: "Content-Security-Policy-Report-Only",
+        key: cspHeaderKey,
         value: contentSecurityPolicy,
       },
     ];
