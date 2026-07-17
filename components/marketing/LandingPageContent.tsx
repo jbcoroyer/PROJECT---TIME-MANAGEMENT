@@ -104,13 +104,13 @@ export default function LandingPageContent() {
   ];
 
   return (
-    <div className="mkt-page relative min-h-screen overflow-x-hidden bg-[var(--background)]">
+    <div className="mkt-page relative min-h-screen bg-[var(--background)]">
       <header
         className={[
-          "mkt-header sticky top-0 z-50 border-b transition-[background,box-shadow,border-color] duration-300",
+          "mkt-header fixed inset-x-0 top-0 z-50 border-b transition-[background,box-shadow,border-color] duration-300",
           headerScrolled
             ? "mkt-header--scrolled border-[var(--line)]"
-            : "border-transparent bg-[var(--background)]/80",
+            : "border-transparent",
         ].join(" ")}
       >
         <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 sm:grid-cols-[1fr_auto_1fr] sm:px-10 sm:py-5">
@@ -152,8 +152,8 @@ export default function LandingPageContent() {
         </div>
       </header>
 
-      <main className="relative z-[5]">
-        <section className="relative px-6 pb-[90px] pt-[72px] sm:px-10 sm:pt-[90px]">
+      <main className="relative z-[5] pt-[76px] sm:pt-[88px]">
+        <section className="relative px-6 pb-[90px] pt-[48px] sm:px-10 sm:pt-[64px]">
           <div
             className="ui-hero-halo ui-hero-halo--orange absolute -right-[120px] -top-[180px] h-[700px] w-[700px]"
             aria-hidden
