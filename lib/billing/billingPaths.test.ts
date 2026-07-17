@@ -1,4 +1,4 @@
-import { describe, expect, it, afterEach, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { isBillingExemptApiPath, isBillingExemptPath } from "./billingPaths";
 
 describe("billingPaths", () => {

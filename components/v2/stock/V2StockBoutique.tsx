@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowDownUp,
@@ -66,7 +66,7 @@ import {
   type ViewMode,
 } from "./stockBoutiqueUtils";
 
-export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: string }) {
+export default function V2StockBoutique(_props: { basePath?: string } = {}) {
   const { t, locale } = useTranslation();
   const intlLocale = useMemo(() => getIntlLocale(locale), [locale]);
   const { branding } = useBranding();
@@ -86,10 +86,13 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
     () => resolveStockCategories(branding.inventoryCategories, items),
     [branding.inventoryCategories, items],
   );
-  const categoryMetaFor = (value: string) => {
-    const index = stockCategories.findIndex((c) => c.value === value);
-    return getCategoryDisplayMeta(value, stockCategories, index >= 0 ? index : 0);
-  };
+  const categoryMetaFor = useCallback(
+    (value: string) => {
+      const index = stockCategories.findIndex((c) => c.value === value);
+      return getCategoryDisplayMeta(value, stockCategories, index >= 0 ? index : 0);
+    },
+    [stockCategories],
+  );
   const { projects } = useStockProjects();
   const confirm = useConfirm();
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -255,7 +258,7 @@ export default function V2StockBoutique({ basePath = "/stock" }: { basePath?: st
       sections.push({ id: "other", title: null, items: orphan });
     }
     return sections.length > 0 ? sections : [{ id: "all", title: null, items: visibleItems }];
-  }, [visibleItems, showSpeciesFilters, speciesFilter, printSpeciesOptions, stockCategories, categoryFilter]);
+  }, [visibleItems, showSpeciesFilters, speciesFilter, printSpeciesOptions, stockCategories, categoryFilter, categoryMetaFor]);
 
   const openCreate = (category: string) => {
     setEditingItem(null);
