@@ -83,7 +83,6 @@ export default function FirstTaskTutorial() {
     continueToCalendar,
     notifyCalendarTabOpened,
     beginCreateEvent,
-    notifyTodoTabOpened,
     finishFirstTaskTutorial,
     dismissTutorial,
   } = useFirstTaskTutorial();

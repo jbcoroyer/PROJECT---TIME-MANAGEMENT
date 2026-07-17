@@ -133,7 +133,6 @@ function SectionDropZone({ id, children }: { id: string; children: ReactNode }) 
 }
 
 export default function SurveyEditorWorkspace({
-  formId,
   title,
   initialDefinition,
   onSave,

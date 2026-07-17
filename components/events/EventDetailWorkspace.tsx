@@ -269,7 +269,7 @@ export default function EventDetailWorkspace({
     } finally {
       setLoadingDocuments(false);
     }
-  }, [id, currentUser?.organizationId]);
+  }, [id, currentUser?.organizationId, t]);
 
   useEffect(() => {
     void loadEvent();
@@ -363,7 +363,7 @@ export default function EventDetailWorkspace({
       toastSuccess(t("eventsLegacy.detail.toast.taskUpdated"));
       void loadTasks();
     },
-    [loadTasks],
+    [loadTasks, t],
   );
 
   const [planningTask, setPlanningTask] = useState<Task | null>(null);

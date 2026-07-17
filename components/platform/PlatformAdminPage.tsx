@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Building2, Loader2, RefreshCw, Shield } from "lucide-react";
 import { listPlatformOrganizations, type PlatformOrgRow } from "../../app/actions/platform";
 import { BILLING_STATUS_LABELS, PLAN_LABELS, type BillingStatus, type OrgPlan } from "../../lib/billing/plans";
@@ -13,7 +13,7 @@ export default function PlatformAdminPage() {
   const [rows, setRows] = useState<PlatformOrgRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const result = await listPlatformOrganizations();
@@ -24,11 +24,11 @@ export default function PlatformAdminPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [t]);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">

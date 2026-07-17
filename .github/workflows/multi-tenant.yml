@@ -17,10 +17,10 @@ jobs:
         if: env.NEXT_PUBLIC_SUPABASE_URL == ''
         run: echo "TEST_SUPABASE_URL secret not configured — skipping isolation tests."
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: env.NEXT_PUBLIC_SUPABASE_URL != ''
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         if: env.NEXT_PUBLIC_SUPABASE_URL != ''
         with:
           node-version: "22"

@@ -25,7 +25,6 @@ import { AdminAvatarContext } from "../../../lib/adminAvatarContext";
 import {
   priorities,
   type ColumnId,
-  type Priority,
   type Task,
   type NewTaskFormState,
   initialFormState,

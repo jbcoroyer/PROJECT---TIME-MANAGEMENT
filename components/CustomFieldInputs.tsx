@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import type { BoardField, BoardFieldType } from "../lib/v2/boardFields";
+import type { BoardField } from "../lib/v2/boardFields";
 import type { CustomFieldsMap } from "../lib/v2/customFieldValues";
 import { DatePicker } from "./ui/DatePicker";
 import {

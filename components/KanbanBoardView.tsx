@@ -80,13 +80,6 @@ function resolveKanbanCardDisplayMode(
   return "compact";
 }
 
-const COLUMN_STYLE: Record<string, { italic?: boolean; muted?: boolean }> = {
-  "À faire": {},
-  "En cours": { italic: true },
-  "En validation": {},
-  Terminé: { muted: true },
-};
-
 const COL_DROP_PREFIX = "col-drop:";
 const COL_SORT_PREFIX = "col-sort:";
 

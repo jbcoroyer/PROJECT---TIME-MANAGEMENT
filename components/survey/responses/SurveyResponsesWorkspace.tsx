@@ -127,7 +127,7 @@ export default function SurveyResponsesWorkspace({
     } finally {
       setLoading(false);
     }
-  }, [supabase, surveyId]);
+  }, [supabase, surveyId, t]);
 
   useEffect(() => {
     void load().catch(() => {});
