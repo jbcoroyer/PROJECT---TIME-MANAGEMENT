@@ -68,13 +68,11 @@ export function mapIntakeAnswersToInput(
       ? [baseDescription, ...extraLines].filter(Boolean).join("\n\n")
       : baseDescription;
 
-  const company = asString(answers[ids.company]);
-
   return {
     title: asString(answers[ids.title]),
     expectedSupport: asString(answers[ids.expectedSupport]),
     supportFormat: asString(answers[ids.supportFormat]),
-    company: company === "—" ? "" : company,
+    company: "",
     deadline: asString(answers[ids.deadline]),
     description,
     requesterName: asString(answers[ids.requesterName]),

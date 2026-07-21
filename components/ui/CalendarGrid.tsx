@@ -113,9 +113,9 @@ export function CalendarGrid({
 
       <div role="grid" aria-label={format(viewMonth, "LLLL yyyy", { locale })} className="select-none">
         <div role="row" className="mb-1 grid grid-cols-7 gap-0.5">
-          {weekdayLabels.map((label) => (
+          {weekdayLabels.map((label, dayIndex) => (
             <div
-              key={label}
+              key={dayIndex}
               role="columnheader"
               className="py-1 text-center text-[10px] font-semibold uppercase tracking-wide text-[var(--ink-muted)]"
             >

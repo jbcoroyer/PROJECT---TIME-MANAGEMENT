@@ -23,11 +23,11 @@ export type IntakeFormTemplateMeta = {
 };
 
 export const INTAKE_FORM_TEMPLATE_META: IntakeFormTemplateMeta[] = [
-  { id: "blank", fieldCount: 8, estimatedMinutes: 3 },
-  { id: "project", fieldCount: 12, estimatedMinutes: 5 },
-  { id: "general_inquiry", fieldCount: 10, estimatedMinutes: 3 },
-  { id: "support", fieldCount: 11, estimatedMinutes: 4 },
-  { id: "creative_brief", fieldCount: 14, estimatedMinutes: 6 },
+  { id: "blank", fieldCount: 7, estimatedMinutes: 3 },
+  { id: "project", fieldCount: 11, estimatedMinutes: 5 },
+  { id: "general_inquiry", fieldCount: 9, estimatedMinutes: 3 },
+  { id: "support", fieldCount: 10, estimatedMinutes: 4 },
+  { id: "creative_brief", fieldCount: 13, estimatedMinutes: 6 },
 ];
 
 function tk(locale: AppLocale, key: string, vars?: Record<string, string | number>): string {
@@ -79,18 +79,6 @@ function contactBlock(locale: AppLocale, withPhone: boolean): Question[] {
   }
 
   return questions;
-}
-
-function companyQuestion(locale: AppLocale): Question {
-  return {
-    id: INTAKE_QUESTION_IDS.company,
-    type: "single",
-    section: 1,
-    label: tk(locale, "asks.templates.fields.company"),
-    required: false,
-    optionsSource: "companies",
-    options: ["—"],
-  };
 }
 
 function buildDefinition(
@@ -170,7 +158,6 @@ function projectTemplate(
       required: true,
       options: priorityOptions,
     },
-    companyQuestion(locale),
     {
       id: ids.deadline,
       type: "text",
@@ -250,7 +237,6 @@ function generalInquiryTemplate(
         tkOpt(locale, "asks.templates.options.department", i),
       ),
     },
-    companyQuestion(locale),
     {
       id: ids.supportFormat,
       type: "single",
@@ -326,7 +312,6 @@ function supportTemplate(
       required: true,
       options: [0, 1, 2].map((i) => tkOpt(locale, "asks.templates.options.urgency", i)),
     },
-    companyQuestion(locale),
     {
       id: ids.supportFormat,
       type: "single",
@@ -409,7 +394,6 @@ function creativeBriefTemplate(
       required: true,
       placeholder: tk(locale, "asks.templates.fields.deliverablesPlaceholder"),
     },
-    companyQuestion(locale),
     {
       id: ids.deadline,
       type: "text",

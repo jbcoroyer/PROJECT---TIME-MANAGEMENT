@@ -5,9 +5,11 @@ import { cookies } from "next/headers";
 import { needsInviteProfileCompletion } from "../../lib/inviteOnboarding";
 import { sendTransactionalEmail } from "../../lib/server/email";
 import { syncStripeSubscriptionQuantity } from "../../lib/server/stripeSubscriptionSync";
-import { SETUP_PATH, INVITE_ACCEPT_PATH } from "../../lib/setupPaths";
+import { INVITE_ACCEPT_PATH } from "../../lib/setupPaths";
 import { syncUserDisplayName } from "../../lib/syncUserDisplayName";
-import { getSetupAccess } from "./setup";
+import { getSetupAccess } from "../../lib/setup/getSetupAccess";
+import { resolveOrganizationSetupStatus } from "../../lib/setup/resolveOrganizationSetupStatus";
+import { resolvePostAuthRoute } from "../../lib/setup/setupAccessRules";
 
 async function createSupabaseServer() {
   const cookieStore = await cookies();
@@ -71,15 +73,15 @@ export async function resolvePostAuthRedirect(fallbackPath: string): Promise<str
   if (!user) return "/login";
   if (needsInviteProfileCompletion(user)) return INVITE_ACCEPT_PATH;
 
-  // Laisse le temps au trigger handle_new_user de créer profil + organisation.
-  let access = await getSetupAccess();
-  for (let attempt = 0; attempt < 6 && !access.organizationId; attempt += 1) {
+  let status = await resolveOrganizationSetupStatus();
+  for (let attempt = 0; attempt < 6 && !status.organizationId; attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, 350));
-    access = await getSetupAccess();
+    status = await resolveOrganizationSetupStatus();
   }
 
-  if (!access.isConfigured) return SETUP_PATH;
-
-  const safeFallback = fallbackPath.startsWith("/") ? fallbackPath : "/dashboard";
-  return safeFallback;
+  return resolvePostAuthRoute({
+    isConfiguredResolved: status.isConfiguredResolved,
+    defaultRoute: status.defaultRoute,
+    fallbackPath,
+  });
 }

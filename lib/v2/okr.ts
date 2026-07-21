@@ -8,6 +8,8 @@ import { toastError } from "../toast";
 import type { Task } from "../types";
 import { DONE_COLUMN_NAME } from "../workflowConstants";
 
+export type ObjectiveScope = "team" | "personal";
+
 export type KeyResult = {
   id: string;
   label: string;
@@ -20,10 +22,27 @@ export type KeyResult = {
 export type Objective = {
   id: string;
   title: string;
-  company: string | null;
+  description: string | null;
+  scope: ObjectiveScope;
+  ownerUserId: string | null;
+  dueDate: string | null;
+  /** Conservé pour compatibilité (période affichée ou trimestre). */
   period: string;
+  company: string | null;
+  createdAt: string;
   keyResults: KeyResult[];
 };
+
+export type CreateObjectiveInput = {
+  title: string;
+  scope: ObjectiveScope;
+  dueDate: string | null;
+  description?: string | null;
+};
+
+export type UpdateObjectiveInput = Partial<
+  Pick<Objective, "title" | "description" | "dueDate">
+>;
 
 export type OkrBackend = "supabase" | "local";
 
@@ -41,16 +60,26 @@ type KeyResultRow = {
 type ObjectiveRow = {
   id: string;
   title: string;
+  description?: string | null;
+  scope?: ObjectiveScope | null;
+  owner_user_id?: string | null;
+  due_date?: string | null;
   company: string | null;
   period: string;
+  created_at?: string | null;
   key_results?: KeyResultRow[] | null;
 };
 
 const OBJECTIVE_SELECT = `
   id,
   title,
+  description,
+  scope,
+  owner_user_id,
+  due_date,
   company,
   period,
+  created_at,
   key_results (
     id,
     objective_id,
@@ -83,6 +112,14 @@ function newId(prefix: string): string {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function periodFromDueDate(dueDate: string | null): string {
+  if (!dueDate) return "";
+  const d = new Date(`${dueDate}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return "";
+  const quarter = Math.floor(d.getMonth() / 3) + 1;
+  return `T${quarter} ${d.getFullYear()}`;
+}
+
 async function detectBackend(supabase: SupabaseClient): Promise<OkrBackend> {
   const { error } = await supabase.from("objectives").select("id").limit(1);
   return error ? "local" : "supabase";
@@ -105,8 +142,13 @@ function rowToObjective(row: ObjectiveRow): Objective {
   return {
     id: row.id,
     title: row.title,
+    description: row.description ?? null,
+    scope: row.scope === "personal" ? "personal" : "team",
+    ownerUserId: row.owner_user_id ?? null,
+    dueDate: row.due_date ?? null,
     company: row.company,
     period: row.period,
+    createdAt: row.created_at ?? new Date().toISOString(),
     keyResults,
   };
 }
@@ -130,6 +172,12 @@ function upsertKeyResult(prev: Objective[], objectiveId: string, keyResult: KeyR
     keyResults[idx] = keyResult;
     return { ...objective, keyResults };
   });
+}
+
+export function canDeleteObjective(objective: Objective, userId: string | null, isAdmin: boolean): boolean {
+  if (isAdmin) return true;
+  if (objective.scope === "personal" && objective.ownerUserId === userId) return true;
+  return false;
 }
 
 export function useObjectives() {
@@ -160,7 +208,7 @@ export function useObjectives() {
       const { data, error } = await supabase
         .from("objectives")
         .select(OBJECTIVE_SELECT)
-        .order("id", { ascending: true });
+        .order("created_at", { ascending: false });
       if (error) throw error;
       setObjectives((data ?? []).map((row: ObjectiveRow) => rowToObjective(row)));
     } catch (e) {
@@ -227,22 +275,50 @@ export function useObjectives() {
   }, [backend, supabase, user]);
 
   const addObjective = useCallback(
-    (title: string, company: string | null, period: string) => {
+    (input: CreateObjectiveInput) => {
+      const period = periodFromDueDate(input.dueDate) || "En cours";
+      const ownerUserId = input.scope === "personal" ? user?.id ?? null : null;
+
       if (backend === "local") {
         setObjectives((prev) => {
-          const next = [...prev, { id: newId("obj"), title, company, period, keyResults: [] }];
+          const next = [
+            ...prev,
+            {
+              id: newId("obj"),
+              title: input.title,
+              description: input.description ?? null,
+              scope: input.scope,
+              ownerUserId,
+              dueDate: input.dueDate,
+              company: null,
+              period,
+              createdAt: new Date().toISOString(),
+              keyResults: [],
+            },
+          ];
           writeLocal(next);
           return next;
         });
         return;
       }
 
+      if (!user) return;
+
       void (async () => {
         try {
           const { data, error } = await supabase
             .from("objectives")
-            .insert({ title, company, period })
-            .select("id, title, company, period")
+            .insert({
+              title: input.title,
+              description: input.description ?? null,
+              scope: input.scope,
+              owner_user_id: ownerUserId,
+              due_date: input.dueDate,
+              company: null,
+              period,
+              created_by_user_id: user.id,
+            })
+            .select("id, title, description, scope, owner_user_id, due_date, company, period, created_at")
             .single();
           if (error) throw error;
           const created = rowToObjective({ ...(data as ObjectiveRow), key_results: [] });
@@ -250,6 +326,47 @@ export function useObjectives() {
         } catch (e) {
           console.warn("[OKR] addObjective:", e);
           toastError("Impossible de créer l'objectif.");
+        }
+      })();
+    },
+    [backend, supabase, user],
+  );
+
+  const updateObjective = useCallback(
+    (id: string, patch: UpdateObjectiveInput) => {
+      const previous = objectivesRef.current;
+      setObjectives((prev) => {
+        const next = prev.map((objective) => {
+          if (objective.id !== id) return objective;
+          const dueDate = patch.dueDate !== undefined ? patch.dueDate : objective.dueDate;
+          return {
+            ...objective,
+            ...patch,
+            dueDate,
+            period: patch.dueDate !== undefined ? periodFromDueDate(dueDate) || objective.period : objective.period,
+          };
+        });
+        if (backend === "local") writeLocal(next);
+        return next;
+      });
+
+      if (backend === "local") return;
+
+      void (async () => {
+        try {
+          const dbPatch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+          if (patch.title !== undefined) dbPatch.title = patch.title;
+          if (patch.description !== undefined) dbPatch.description = patch.description;
+          if (patch.dueDate !== undefined) {
+            dbPatch.due_date = patch.dueDate;
+            dbPatch.period = periodFromDueDate(patch.dueDate) || "En cours";
+          }
+          const { error } = await supabase.from("objectives").update(dbPatch).eq("id", id);
+          if (error) throw error;
+        } catch (e) {
+          console.warn("[OKR] updateObjective:", e);
+          setObjectives(previous);
+          toastError("Impossible de mettre à jour l'objectif.");
         }
       })();
     },
@@ -283,11 +400,16 @@ export function useObjectives() {
 
   const addKeyResult = useCallback(
     (objectiveId: string, kr: Omit<KeyResult, "id">) => {
+      const safeTarget = kr.linkedDomain ? Math.max(1, kr.target) : Math.max(1, kr.target || 1);
+
       if (backend === "local") {
         setObjectives((prev) => {
           const next = prev.map((objective) =>
             objective.id === objectiveId
-              ? { ...objective, keyResults: [...objective.keyResults, { ...kr, id: newId("kr") }] }
+              ? {
+                  ...objective,
+                  keyResults: [...objective.keyResults, { ...kr, id: newId("kr"), target: safeTarget }],
+                }
               : objective,
           );
           writeLocal(next);
@@ -304,7 +426,7 @@ export function useObjectives() {
               objective_id: objectiveId,
               label: kr.label,
               linked_domain: kr.linkedDomain,
-              target: kr.target,
+              target: safeTarget,
               current: kr.current,
             })
             .select("id, objective_id, label, linked_domain, target, current")
@@ -389,7 +511,16 @@ export function useObjectives() {
     [backend, supabase],
   );
 
-  return { objectives, backend, addObjective, removeObjective, addKeyResult, updateKeyResult, removeKeyResult };
+  return {
+    objectives,
+    backend,
+    addObjective,
+    updateObjective,
+    removeObjective,
+    addKeyResult,
+    updateKeyResult,
+    removeKeyResult,
+  };
 }
 
 /** Progression effective d'un KR : auto depuis les tâches si un domaine est lié, sinon current/target. */
@@ -397,10 +528,10 @@ export function keyResultProgress(kr: KeyResult, tasks: Task[]): { value: number
   if (kr.linkedDomain) {
     const scope = tasks.filter((t) => !t.isArchived && !t.parentTaskId && t.domain === kr.linkedDomain);
     const done = scope.filter((t) => t.column === DONE_COLUMN_NAME).length;
-    const target = kr.target > 0 ? kr.target : scope.length || 1;
+    const target = Math.max(1, kr.target);
     return { value: done, ratio: Math.min(1, done / target), auto: true };
   }
-  const target = kr.target > 0 ? kr.target : 1;
+  const target = Math.max(1, kr.target);
   return { value: kr.current, ratio: Math.min(1, kr.current / target), auto: false };
 }
 
@@ -408,4 +539,20 @@ export function objectiveProgress(obj: Objective, tasks: Task[]): number {
   if (obj.keyResults.length === 0) return 0;
   const total = obj.keyResults.reduce((acc, kr) => acc + keyResultProgress(kr, tasks).ratio, 0);
   return total / obj.keyResults.length;
+}
+
+export function objectiveDueStatus(
+  obj: Objective,
+  tasks: Task[],
+  now = new Date(),
+): "none" | "upcoming" | "overdue" | "done" {
+  const ratio = objectiveProgress(obj, tasks);
+  if (ratio >= 1) return "done";
+  if (!obj.dueDate) return "none";
+  const due = new Date(`${obj.dueDate}T23:59:59`);
+  if (Number.isNaN(due.getTime())) return "none";
+  if (due < now) return "overdue";
+  const daysLeft = (due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  if (daysLeft <= 14) return "upcoming";
+  return "none";
 }

@@ -301,22 +301,43 @@ export const moduleUiEs = {
   },
   okrModule: {
     badge: "Objetivos",
-    title: "OKR vinculados a tareas",
+    title: "Objetivos y resultados clave",
     subtitle:
-      "Vincula cada resultado clave a un dominio para calcular el progreso automáticamente.",
+      "Define objetivos de equipo compartidos o personales privados. Añade resultados clave medibles con seguimiento manual o automático desde tus tareas.",
+    tabTeam: "Equipo",
+    tabPersonal: "Mis objetivos",
+    newTeamObjective: "Nuevo objetivo de equipo",
+    newPersonalObjective: "Nuevo objetivo personal",
+    teamHint: "Visible para todo el equipo. Ideal para OKR colectivos.",
+    personalHint: "Visible solo para ti. Perfecto para tu desarrollo individual.",
     newObjective: "Nuevo objetivo",
-    objectivePlaceholder: "Objetivo (p. ej., fortalecer el reconocimiento de marca digital)",
+    objectivePlaceholder: "Objetivo (p. ej., alcanzar 50 leads cualificados este trimestre)",
+    descriptionPlaceholder: "Descripción opcional…",
+    deadline: "Fecha límite",
     group: "Grupo",
     period: "Periodo",
     create: "Crear",
     empty: "Ningún objetivo definido.",
     delete: "Eliminar",
     progressAuto: "{current}/{target} (automático)",
-    linkedDomain: "Vinculado al dominio {domain}",
-    krPlaceholder: "Resultado clave",
-    manual: "Modo manual",
+    linkedDomain: "Seguimiento auto · dominio {domain}",
+    krPlaceholder: "Resultado clave medible",
+    manual: "Seguimiento manual",
+    trackingMode: "Modo de seguimiento",
     target: "Objetivo",
-    addKr: "KR"
+    addKr: "Añadir",
+    teamBadge: "Equipo",
+    personalBadge: "Personal",
+    overdue: "Retrasado · {date}",
+    krSingular: "resultado clave",
+    krPlural: "resultados clave",
+    noKeyResults: "Añade al menos un resultado clave para seguir el progreso.",
+    currentValue: "Valor actual",
+    statsTotal: "{count} objetivo(s)",
+    statsCompleted: "{count} completado(s)",
+    statsOverdue: "{count} retrasado(s)",
+    addDeadline: "Añadir fecha límite",
+    editDeadline: "Editar fecha límite",
   },
   events: {
     badge: "Eventos",
@@ -542,29 +563,93 @@ export const moduleUiEs = {
       todayTab: {
         description:
           "Vista « Mi día »: agenda con franjas horarias generada a partir de tus tareas. Complementa el calendario de citas para una visión unificada de tu actividad."
+      },
+      bookingPromo: {
+        badge: "Enlace público",
+        tabBadge: "Enlace",
+        title: "Comparte tu enlace de reserva",
+        description:
+          "Crea y envía este enlace para que tus clientes reserven una franja en línea. Cada solicitud llega a la pestaña Solicitudes RDV.",
+        urlLabel: "Tu enlace de reserva",
+        copy: "Copiar mi enlace",
+        copied: "Enlace copiado",
+        customize: "Configurar página",
+        preview: "Ver página",
+        statusActive: "Activo",
+        statusPaused: "En pausa"
+      }
+    },
+    intro: {
+      next: "Continuar",
+      finish: "Acceder a mi agenda",
+      welcome: {
+        title: "Bienvenido a tu Agenda",
+        body: "Centraliza tus citas y ofrece reservas en línea a tus contactos.",
+        bullet1: "Visualiza tus citas en un calendario claro",
+        bullet2: "Crea citas manualmente en un clic",
+        bullet3: "Recibe solicitudes de reserva en tiempo real"
+      },
+      link: {
+        title: "Tu enlace de reserva",
+        body: "Cada espacio tiene una página pública para compartir por e-mail, firma o redes.",
+        bullet1: "Copia el enlace desde la pestaña Reserva",
+        bullet2: "Tus clientes eligen fecha y franja disponible",
+        bullet3: "Las franjas respetan los horarios definidos en la instalación"
+      },
+      flow: {
+        title: "Cómo funciona",
+        body: "Tú mantienes el control: cada solicitud puede validarse antes de confirmarse.",
+        bullet1: "La solicitud llega a la pestaña Solicitudes RDV",
+        bullet2: "Aceptas o rechazas la franja propuesta",
+        bullet3: "La cita confirmada aparece en tu calendario",
+        hint: "Consejo: configura tu página y horarios en la pestaña Reserva cuando quieras."
       }
     },
     booking: {
       publicPage: {
         title: "Página de reserva pública",
+        heroTitle: "Tu enlace de reserva en línea",
+        urlLabel: "Enlace para compartir",
         description:
           "Comparte este enlace para que los clientes soliciten una franja. Cada solicitud aparece en la pestaña Solicitudes RDV para su validación.",
         copied: "Copiado",
         copy: "Copiar",
+        copyPrimary: "Copiar enlace de reserva",
         preview: "Vista previa",
         pause: "Pausar reservas",
         resume: "Reactivar reservas"
       },
       settings: {
         title: "Ajustes",
+        publicContentTitle: "Contenido de la página pública",
+        publicContentHint: "Texto mostrado en la parte superior de tu página de reserva.",
+        rulesTitle: "Reglas de reserva",
+        rulesHint: "Duración de franjas, plazos y validación de solicitudes.",
         publicTitle: "Título público",
         welcomeMessage: "Mensaje de bienvenida",
-        slotDuration: "Duración de franja (min)",
-        buffer: "Margen (min)",
-        horizon: "Horizonte (días)",
-        minNotice: "Preaviso mín. (h)",
+        slotDuration: "Duración de la franja",
+        buffer: "Pausa entre citas",
+        horizon: "Reserva hasta",
+        minNotice: "Preaviso mínimo",
+        minutesShort: "{value} min",
+        daysShort: "{value} d",
+        hoursShort: "{value} h",
+        autoConfirmLabel: "Confirmación automática",
+        autoConfirmOnHint: "Las solicitudes se confirman de inmediato sin validación manual.",
+        autoConfirmOffHint: "Cada solicitud llega a la pestaña Solicitudes RDV para validación.",
         autoConfirm: "Confirmación automática (desactivada — las solicitudes requieren validación)",
         weeklyAvailability: "Disponibilidad semanal",
+        weeklySummary: "{count} día(s) abierto(s) para reservas",
+        enableWeekdays: "Abrir lun.–vie.",
+        copyMonday: "Copiar el lunes",
+        dayColumn: "Día",
+        openColumn: "Abierto",
+        fromTimeShort: "Inicio",
+        toTimeShort: "Fin",
+        fromTime: "Hora de inicio — {day}",
+        toTime: "Hora de fin — {day}",
+        dayOff: "Cerrado",
+        unsavedChanges: "Cambios sin guardar",
         saving: "Guardando…",
         save: "Guardar ajustes"
       },
@@ -620,6 +705,12 @@ export const moduleUiEs = {
       editTitle: "Editar cita",
       newTitle: "Nueva cita",
       titleLabel: "Título *",
+      dateLabel: "Fecha *",
+      startTimeLabel: "Hora de inicio *",
+      endTimeLabel: "Hora de fin *",
+      durationMinutes: "{minutes} min",
+      durationHours: "{hours} h {minutes} min",
+      durationHoursOnly: "{hours} h",
       startLabel: "Inicio *",
       endLabel: "Fin *",
       hostLabel: "Anfitrión / responsable",
@@ -715,7 +806,8 @@ export const moduleUiEs = {
       ariaLabel: "Navegación de stock",
       dashboard: "Panel",
       inventory: "Inventario",
-      history: "Historial"
+      history: "Historial",
+      settings: "Ajustes",
     },
     boutique: {
       badge: "Tienda interna",
@@ -908,8 +1000,27 @@ export const moduleUiEs = {
       addVisual: "Añadir visual",
       nameRequired: "El nombre es obligatorio.",
       uploadFailed: "Subida imposible: {error}",
-      create: "Añadir"
-    }
+      create: "Añadir",
+      categoryLabel: "Categoría",
+    },
+    settings: {
+      badge: "Configuración stock",
+      title: "Ajustes del stock",
+      subtitle:
+        "Adapte sus categorías en cualquier momento. Los artículos existentes permanecen vinculados.",
+      unsaved: "Cambios sin guardar",
+      categories: {
+        title: "Categorías de inventario",
+        description:
+          "Renombre, añada o elimine categorías. No se puede eliminar una categoría con artículos.",
+        saved: "Categorías actualizadas.",
+        renameHint: "Edite la etiqueta mostrada; los artículos siguen en la misma categoría.",
+        renameAria: "Etiqueta de categoría {label}",
+        itemCount: "{count} artículo(s)",
+        cannotRemove: "No se puede quitar « {label} »: {count} artículo(s) la usan.",
+        cannotRemoveHint: "Mueva o elimine los artículos antes de quitar esta categoría.",
+      },
+    },
   },
   eventsLegacy: {
     nav: {
@@ -1253,6 +1364,9 @@ export const moduleUiEs = {
       openForm: "Abrir formulario",
       openFormDescription: "Ver o compartir el enlace público de la encuesta.",
       choose: "Elegir",
+      statsResponses: "Respuestas recopiladas",
+      viewResponses: "Ver respuestas",
+      shareTitle: "Compartir encuesta",
       cards: {
         edit: {
           title: "Editar preguntas",
@@ -1264,8 +1378,20 @@ export const moduleUiEs = {
         }
       }
     },
+    nav: {
+      backToList: "Todas las encuestas",
+      overview: "Resumen",
+      edit: "Editar",
+      responses: "Respuestas",
+      copyLink: "Copiar enlace",
+      copied: "Copiado",
+      linkCopied: "Enlace copiado al portapapeles.",
+      linkCopyFailed: "No se pudo copiar.",
+      preview: "Vista previa",
+    },
     list: {
       title: "Encuestas",
+      subtitle: "Crea, comparte y analiza tus encuestas. Cada encuesta tiene un enlace público y un espacio de respuestas.",
       companyWide: "A nivel de empresa",
       commTeam: "Equipo de comunicación",
       commTeamSubtitle: "Reservado para miembros del departamento",
@@ -1284,6 +1410,8 @@ export const moduleUiEs = {
       questionCount: "{count} pregunta(s)",
       cardHint:
         "Cada tarjeta tiene un color según el público objetivo: empleados del grupo, equipo interno o una encuesta personalizada.",
+      actionResponses: "Respuestas",
+      actionEdit: "Editar",
       newSurvey: "Nueva encuesta",
       empty: "Aún no hay encuestas. Crea una con el botón de arriba.",
       loading: "Cargando encuestas…",
@@ -1877,6 +2005,38 @@ export const moduleUiEs = {
     successBody: "La tarea está en el tablero. Sigue así.",
     domainAdded: "Dominio añadido.",
     untitled: "Sin título",
+  },
+  ideasBox: {
+    subtitle:
+      "Comparta una sugerencia, necesidad o mejora. Sin formulario largo: un título y unas líneas bastan.",
+    guestHint: "Acceso público de lectura y envío. Inicie sesión para moderar.",
+    guestLogin: "Iniciar sesión",
+    exportJson: "Exportar JSON",
+    composeTitle: "Proponer una idea",
+    titlePlaceholder: "En una frase, ¿cuál es su idea?",
+    bodyPlaceholder: "Por qué ayuda, para quién, ejemplos… (opcional)",
+    submit: "Publicar idea",
+    submitSuccess: "Idea publicada — ¡gracias!",
+    searchPlaceholder: "Buscar…",
+    count: "{count} idea(s)",
+    filterAll: "Todas",
+    status: {
+      nouveau: "Nuevas",
+      etude: "En revisión",
+      adopte: "Aceptadas",
+      archive: "Archivadas",
+    },
+    emptyFilter: "Ninguna idea en esta vista.",
+    vote: "Apoyar",
+    manage: {
+      toReview: "Revisar",
+      adopt: "Aceptar",
+      archive: "Archivar",
+      reopen: "Reabrir",
+      removeTitle: "¿Quitar esta idea?",
+      removeBody: "Se eliminará para todo el equipo.",
+      removeConfirm: "Quitar",
+    },
   },
   confirmDialog: {
     cancel: "Cancelar",

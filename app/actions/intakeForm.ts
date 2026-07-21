@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import {
   createStarterIntakeDefinition,
   parseIntakeFormDefinition,
+  stripDeprecatedIntakeQuestions,
 } from "../../lib/intake/intakeFormDefinition";
 import {
   createIntakeDefinitionFromTemplate,
@@ -47,7 +48,6 @@ export type PublicIntakeFormMeta = {
   title: string;
   welcomeMessage: string;
   appName: string;
-  companies: string[];
   definition: SurveyDefinition;
 };
 
@@ -80,7 +80,7 @@ type IntakeFormRow = {
 
 function resolveIntakeDefinition(row: IntakeFormRow): SurveyDefinition {
   const parsed = parseIntakeFormDefinition(row.definition);
-  if (parsed) return parsed;
+  if (parsed) return stripDeprecatedIntakeQuestions(parsed);
   return createStarterIntakeDefinition(
     row.id,
     row.title ?? "Formulaire de demande",
@@ -410,7 +410,7 @@ export async function saveIntakeFormDefinition(
   const { error } = await supabase
     .from("intake_forms")
     .update({
-      definition,
+      definition: stripDeprecatedIntakeQuestions(definition),
       title: definition.title.trim() || definition.intro.title.trim(),
       welcome_message: definition.intro.subtitle.trim(),
       updated_at: new Date().toISOString(),
@@ -464,9 +464,8 @@ export async function getPublicIntakeFormMeta(
 
   const orgId = form.organization_id;
 
-  const [{ data: settings }, { data: companies }] = await Promise.all([
+  const [{ data: settings }] = await Promise.all([
     admin.from("app_settings").select("app_name").eq("organization_id", orgId).maybeSingle(),
-    admin.from("companies").select("name").eq("organization_id", orgId).order("name"),
   ]);
 
   return {
@@ -474,9 +473,6 @@ export async function getPublicIntakeFormMeta(
     title: form.title ?? "Soumettre une demande",
     welcomeMessage: form.welcome_message ?? "",
     appName: (settings?.app_name as string) ?? "Workspace",
-    companies: (companies ?? [])
-      .map((c) => String((c as { name?: string }).name ?? "").trim())
-      .filter(Boolean),
     definition: resolveIntakeDefinition(form),
   };
 }

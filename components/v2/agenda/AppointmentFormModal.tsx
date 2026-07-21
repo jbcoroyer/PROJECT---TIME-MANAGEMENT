@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { format } from "date-fns";
+import { useState } from "react";
 import { X } from "lucide-react";
 import {
   createAgendaAppointment,
@@ -9,9 +8,15 @@ import {
   type CreateAppointmentInput,
 } from "../../../app/actions/agenda";
 import type { AgendaAppointment } from "../../../lib/agenda/agendaTypes";
-import { DateTimePicker } from "../../ui/DateTimePicker";
-import { toLocalDateTimeValue } from "../../../lib/dateTime/quarterHourUtils";
-import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
+import { SameDaySchedulePicker } from "../../ui/SameDaySchedulePicker";
+import {
+  addQuarterHours,
+  buildDateTimeLocal,
+  parseDateTimeLocal,
+  snapTimeToQuarter,
+  timeToMinutes,
+  toLocalDateTimeValue,
+} from "../../../lib/dateTime/quarterHourUtils";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { useReferenceData } from "../../../lib/useReferenceData";
 import { toastError, toastSuccess } from "../../../lib/toast";
@@ -25,16 +30,43 @@ type AppointmentFormModalProps = {
   onSaved: () => void;
 };
 
+function normalizeSameDaySchedule(startsAt: string, endsAt: string): { startsAt: string; endsAt: string } {
+  const start = parseDateTimeLocal(startsAt);
+  const end = parseDateTimeLocal(endsAt);
+  const startTime = snapTimeToQuarter(`${start.hour}:${String(start.minute).padStart(2, "0")}`);
+
+  if (start.date === end.date) {
+    const endTime = snapTimeToQuarter(`${end.hour}:${String(end.minute).padStart(2, "0")}`);
+    const starts = buildDateTimeLocal(start.date, startTime.split(":")[0]!, Number(startTime.split(":")[1]));
+    let ends = buildDateTimeLocal(end.date, endTime.split(":")[0]!, Number(endTime.split(":")[1]));
+    if (timeToMinutes(endTime) <= timeToMinutes(startTime)) {
+      const bumped = addQuarterHours(startTime, 2);
+      ends = buildDateTimeLocal(start.date, bumped.split(":")[0]!, Number(bumped.split(":")[1]));
+    }
+    return { startsAt: starts, endsAt: ends };
+  }
+
+  const starts = buildDateTimeLocal(start.date, startTime.split(":")[0]!, Number(startTime.split(":")[1]));
+  const defaultEnd = addQuarterHours(startTime, 2);
+  const ends = buildDateTimeLocal(
+    start.date,
+    defaultEnd.split(":")[0]!,
+    Number(defaultEnd.split(":")[1]),
+  );
+  return { startsAt: starts, endsAt: ends };
+}
+
 function buildInitialFormState(
   editing: AgendaAppointment | null | undefined,
   initialStart?: Date,
   initialEnd?: Date,
 ) {
   if (editing) {
+    const normalized = normalizeSameDaySchedule(editing.startsAt, editing.endsAt);
     return {
       title: editing.title,
-      startsAt: toLocalDateTimeValue(new Date(editing.startsAt)),
-      endsAt: toLocalDateTimeValue(new Date(editing.endsAt)),
+      startsAt: normalized.startsAt,
+      endsAt: normalized.endsAt,
       hostId: editing.hostTeamMemberId ?? "",
       guestName: editing.guestName,
       guestEmail: editing.guestEmail,
@@ -46,10 +78,14 @@ function buildInitialFormState(
   }
   const start = initialStart ?? new Date();
   const end = initialEnd ?? new Date(start.getTime() + 30 * 60_000);
+  const normalized = normalizeSameDaySchedule(
+    toLocalDateTimeValue(start),
+    toLocalDateTimeValue(end),
+  );
   return {
     title: "",
-    startsAt: toLocalDateTimeValue(start),
-    endsAt: toLocalDateTimeValue(end),
+    startsAt: normalized.startsAt,
+    endsAt: normalized.endsAt,
     hostId: "",
     guestName: "",
     guestEmail: "",
@@ -67,8 +103,7 @@ function AppointmentFormBody({
   onClose,
   onSaved,
 }: Omit<AppointmentFormModalProps, "open">) {
-  const { t, locale } = useTranslation();
-  const dateLocale = useMemo(() => getDateFnsLocale(locale), [locale]);
+  const { t } = useTranslation();
   const { admins } = useReferenceData();
   const initial = buildInitialFormState(editing, initialStart, initialEnd);
   const [title, setTitle] = useState(initial.title);
@@ -143,16 +178,15 @@ function AppointmentFormBody({
           <input value={title} onChange={(e) => setTitle(e.target.value)} className="ui-input" />
         </label>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            {t("agenda.form.startLabel")}
-            <DateTimePicker value={startsAt} onChange={setStartsAt} />
-          </label>
-          <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
-            {t("agenda.form.endLabel")}
-            <DateTimePicker value={endsAt} onChange={setEndsAt} />
-          </label>
-        </div>
+        <SameDaySchedulePicker
+          startsAt={startsAt}
+          endsAt={endsAt}
+          onChange={({ startsAt: nextStart, endsAt: nextEnd }) => {
+            setStartsAt(nextStart);
+            setEndsAt(nextEnd);
+          }}
+          disabled={busy}
+        />
 
         <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-muted)]">
           {t("agenda.form.hostLabel")}
@@ -221,13 +255,6 @@ function AppointmentFormBody({
           {busy ? t("agenda.form.saving") : editing ? t("agenda.form.save") : t("agenda.form.create")}
         </button>
       </div>
-
-      {startsAt && endsAt ? (
-        <p className="mt-2 text-center text-[11px] text-[var(--ink-muted)]">
-          {format(new Date(startsAt), "d MMM yyyy · HH:mm", { locale: dateLocale })} →{" "}
-          {format(new Date(endsAt), "HH:mm")}
-        </p>
-      ) : null}
     </>
   );
 }

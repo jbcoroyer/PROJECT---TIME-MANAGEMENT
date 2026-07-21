@@ -5,6 +5,7 @@ import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "./supabaseBrowser";
 import { ideaFromRow, ideaToClient, type StockIdeaDto } from "./stockIdeasApi";
 import type { StockIdea } from "./stockIdeasTypes";
+import { DEFAULT_STOCK_IDEA_CATEGORY } from "./stockIdeasTypes";
 import { useBranding } from "./brandingContext";
 import { LEGACY_ORG_ID } from "./tenantConstants";
 import { toastError } from "./toast";
@@ -84,7 +85,13 @@ export function useStockIdeas() {
   }, [load]);
 
   const addIdea = useCallback(
-    (draft: Omit<StockIdea, "id" | "createdAt" | "votes"> & { votes?: number }) => {
+    (
+      draft: Omit<StockIdea, "id" | "createdAt" | "votes" | "category"> & {
+        category?: StockIdea["category"];
+        votes?: number;
+      },
+    ) => {
+      const category = draft.category ?? DEFAULT_STOCK_IDEA_CATEGORY;
       void (async () => {
         try {
           const { data: sessionData } = await supabase.auth.getSession();
@@ -94,8 +101,8 @@ export function useStockIdeas() {
               .insert({
                 title: draft.title,
                 description: draft.description || null,
-                category: draft.category,
-                status: "nouveau",
+                category,
+                status: draft.status ?? "nouveau",
               })
               .select(SELECT)
               .single();
@@ -110,7 +117,6 @@ export function useStockIdeas() {
             body: JSON.stringify({
               title: draft.title,
               description: draft.description,
-              category: draft.category,
             }),
           });
           const created = await parseJson<StockIdeaDto>(res);

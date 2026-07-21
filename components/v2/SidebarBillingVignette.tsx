@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
+import TrialCountdownBadge from "../billing/TrialCountdownBadge";
 import {
   ANNUAL_FLOOR_EUR,
   MONTHLY_FLOOR_EUR,
@@ -9,7 +10,9 @@ import {
   PRICE_PER_SEAT_EUR,
   TRIAL_DAYS,
 } from "../../lib/billing/plans";
+import { trialRemainingProgressPercent } from "../../lib/billing/trialCountdown";
 import { useBillingPlan } from "../../lib/billing/useBillingPlan";
+import { useTrialCountdown } from "../../lib/billing/useTrialCountdown";
 import { useTranslation } from "../../lib/i18n/useTranslation";
 
 type SidebarBillingVignetteProps = {
@@ -20,6 +23,7 @@ export default function SidebarBillingVignette({ onNavigate }: SidebarBillingVig
   const { t } = useTranslation();
   const {
     plan,
+    trialEndsAt,
     trialDaysLeft,
     accessAllowed,
     isAdmin,
@@ -27,6 +31,8 @@ export default function SidebarBillingVignette({ onNavigate }: SidebarBillingVig
     hasActiveSubscription,
     memberCount,
   } = useBillingPlan();
+
+  const countdown = useTrialCountdown(trialEndsAt);
 
   if (loading) {
     return (
@@ -40,16 +46,13 @@ export default function SidebarBillingVignette({ onNavigate }: SidebarBillingVig
   const billingHref = "/settings?section=billing";
   const onTrial = plan === "trial";
   const onActive = plan === "active" && (hasActiveSubscription || accessAllowed);
-  const days =
-    trialDaysLeft === null || trialDaysLeft === undefined
-      ? onTrial
-        ? 0
-        : TRIAL_DAYS
-      : Math.max(0, trialDaysLeft);
-  const urgentTrial = onTrial && days <= 3;
-  const expired = onTrial && days <= 0;
+  const days = countdown?.days ?? Math.max(0, trialDaysLeft ?? 0);
+  const expired =
+    Boolean(countdown?.expired) ||
+    (onTrial && trialDaysLeft !== null && trialDaysLeft <= 0 && !trialEndsAt);
+  const urgentTrial = onTrial && !expired && (countdown?.totalMs ?? Infinity) <= 3 * 86_400_000;
   const needsPay = expired || plan === "canceled" || !accessAllowed;
-  const trialProgress = Math.min(100, Math.max(4, Math.round((days / TRIAL_DAYS) * 100)));
+  const trialProgress = trialRemainingProgressPercent(trialEndsAt, TRIAL_DAYS);
 
   if (onActive && !needsPay) {
     return (
@@ -90,7 +93,7 @@ export default function SidebarBillingVignette({ onNavigate }: SidebarBillingVig
     ? t("nav.billing.expiredTitle")
     : urgentTrial
       ? t("nav.billing.urgentTitle", { days })
-      : t("nav.billing.trialTitle", { days });
+      : t("nav.billing.trialTitle");
 
   const body = needsPay
     ? t("nav.billing.expiredBody", {
@@ -132,15 +135,8 @@ export default function SidebarBillingVignette({ onNavigate }: SidebarBillingVig
               {title}
             </p>
           </div>
-          {!needsPay ? (
-            <div className="ui-sidebar-billing__days shrink-0 text-right">
-              <p className="font-[family-name:var(--font-display)] text-[1.65rem] leading-none tracking-[-0.03em] text-[var(--accent-on-dark)]">
-                {days}
-              </p>
-              <p className="mt-0.5 font-[family-name:var(--font-mono)] text-[9px] uppercase tracking-[0.12em] opacity-60">
-                {t("nav.billing.daysLabel")}
-              </p>
-            </div>
+          {!needsPay && countdown && !countdown.expired ? (
+            <TrialCountdownBadge parts={countdown} />
           ) : (
             <span className="ui-sidebar-billing__icon flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
               <Sparkles className="h-4 w-4" aria-hidden />

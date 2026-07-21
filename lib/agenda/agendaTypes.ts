@@ -4,6 +4,9 @@ export type WorkDayConfig = {
   enabled: boolean;
   start: string;
   end: string;
+  /** Pause déjeuner — créneaux matin / après-midi si renseignés. */
+  breakStart?: string | null;
+  breakEnd?: string | null;
 };
 
 export type WorkHours = Record<WeekdayKey, WorkDayConfig>;

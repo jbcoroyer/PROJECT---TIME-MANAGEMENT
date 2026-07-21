@@ -52,11 +52,18 @@ const enCore: MessageTree = {
     pendingBody:
       "The application is not configured yet. Only an administrator can complete setup. Contact your manager or sign in with an admin account.",
     backHome: "Back to home",
+    switchAccount: "Use another account",
+    provisioningTitle: "Creating your workspace…",
+    provisioningBody:
+      "You are signed in but your workspace is not ready yet. Wait a few seconds and try again.",
+    provisioningRetry: "Try again",
     stepOf: "Step {step} of 4",
+    stepOfWithTotal: "Step {step} of {total}",
     step1Title: "Your organization",
     step2Title: "Appearance",
     step3Title: "Your needs",
     step4Title: "Final settings",
+    step5Title: "Your availability",
     step1Intro:
       "Name your workspace. This name appears in the menu, on the sign-in page, and in the browser tab.",
     step2Intro:
@@ -64,6 +71,20 @@ const enCore: MessageTree = {
     step3Intro: "Answer a few questions so we can suggest the modules that fit your work.",
     step3HeroTitle: "Pick the building blocks of your workspace",
     step4Intro: "You can change these settings later in Settings.",
+    workHours: {
+      intro:
+        "Set your usual slots for online booking. Example: Monday to Friday, 9:00 AM–12:30 PM then 2:00–5:00 PM.",
+      weekdaysLabel: "Available Monday to Friday",
+      scheduleTitle: "Typical weekday hours",
+      morning: "Morning",
+      afternoon: "Afternoon",
+      from: "From",
+      to: "To",
+      weekendHint: "Weekends are off by default. You can adjust each day in Agenda.",
+      invalidMorning: "Morning end time must be after the start time.",
+      invalidAfternoon: "Afternoon end time must be after the start time.",
+      invalidBreak: "Lunch break must be consistent (morning end ≤ afternoon start).",
+    },
     appName: "Application name",
     appNamePlaceholder: "e.g. My team, Acme Agency…",
     primaryColor: "Primary color",
@@ -615,6 +636,9 @@ const enCore: MessageTree = {
       ctaAskAdmin: "See pricing",
       ctaManage: "Manage subscription",
       daysLabel: "days",
+      countdownLastDay: "left",
+      countdownAriaDays: "{days} day(s) and {time} left in trial",
+      countdownAriaTime: "{time} left in trial",
       activeKicker: "Subscription",
       activeTitle: "Workspace active",
       activeBody: "{count} seats · all included from €{floor}/mo or €{annualFloor}/yr",
@@ -1137,6 +1161,16 @@ const enCore: MessageTree = {
       title: "No objectives yet",
       body: "Set measurable OKRs to connect strategy with day-to-day execution.",
       cta: "Create an objective",
+      team: {
+        title: "No team objectives yet",
+        body: "Define shared OKRs to align the whole team on the same priorities.",
+        cta: "Create a team objective",
+      },
+      personal: {
+        title: "No personal objectives yet",
+        body: "Set your own development goals — visible only to you.",
+        cta: "Create a personal objective",
+      },
     },
     survey: {
       title: "No surveys yet",

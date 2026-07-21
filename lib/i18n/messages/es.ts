@@ -53,11 +53,18 @@ const esOverrides: MessageTree = {
     pendingBody:
       "La aplicación aún no está configurada. Solo un administrador puede completar la configuración. Contacta con tu responsable o inicia sesión con una cuenta de administrador.",
     backHome: "Volver al inicio",
+    switchAccount: "Usar otra cuenta",
+    provisioningTitle: "Creando tu espacio…",
+    provisioningBody:
+      "Has iniciado sesión pero tu espacio aún no está listo. Espera unos segundos e inténtalo de nuevo.",
+    provisioningRetry: "Reintentar",
     stepOf: "Paso {step} de 4",
+    stepOfWithTotal: "Paso {step} de {total}",
     step1Title: "Tu organización",
     step2Title: "Apariencia",
     step3Title: "Tus necesidades",
     step4Title: "Ajustes finales",
+    step5Title: "Tu disponibilidad",
     step1Intro:
       "Pon nombre a tu espacio de trabajo. Este nombre aparece en el menú, en la página de inicio de sesión y en la pestaña del navegador.",
     step2Intro:
@@ -66,6 +73,20 @@ const esOverrides: MessageTree = {
       "Responde a unas preguntas para que te propongamos los módulos adaptados a tu actividad.",
     step3HeroTitle: "Elige los bloques de construcción de tu espacio de trabajo",
     step4Intro: "Puedes cambiar estos ajustes más tarde en Ajustes.",
+    workHours: {
+      intro:
+        "Indica tus franjas habituales para reservas en línea. Ejemplo: de lunes a viernes, 9:00–12:30 y luego 14:00–17:00.",
+      weekdaysLabel: "Disponible de lunes a viernes",
+      scheduleTitle: "Horario tipo entre semana",
+      morning: "Mañana",
+      afternoon: "Tarde",
+      from: "De",
+      to: "A",
+      weekendHint: "El fin de semana está desactivado por defecto. Puedes ajustar cada día en la Agenda.",
+      invalidMorning: "La hora de fin de la mañana debe ser posterior al inicio.",
+      invalidAfternoon: "La hora de fin de la tarde debe ser posterior al inicio.",
+      invalidBreak: "La pausa del mediodía debe ser coherente (fin mañana ≤ inicio tarde).",
+    },
     appName: "Nombre de la aplicación",
     appNamePlaceholder: "p. ej. Mi equipo, Acme Agency…",
     primaryColor: "Color principal",
@@ -619,6 +640,9 @@ const esOverrides: MessageTree = {
       ctaAskAdmin: "Ver precios",
       ctaManage: "Gestionar suscripción",
       daysLabel: "días",
+      countdownLastDay: "restantes",
+      countdownAriaDays: "{days} día(s) y {time} restantes de prueba",
+      countdownAriaTime: "{time} restantes de prueba",
       activeKicker: "Suscripción",
       activeTitle: "Espacio de trabajo activo",
       activeBody: "{count} plazas · todo incluido desde {floor} €/mes o {annualFloor} €/año",
@@ -1141,6 +1165,16 @@ const esOverrides: MessageTree = {
       title: "Aún no hay objetivos",
       body: "Define OKR medibles para conectar la estrategia con la ejecución diaria.",
       cta: "Crear un objetivo",
+      team: {
+        title: "Aún no hay objetivos de equipo",
+        body: "Define OKR compartidos para alinear al equipo en las mismas prioridades.",
+        cta: "Crear un objetivo de equipo",
+      },
+      personal: {
+        title: "Aún no hay objetivos personales",
+        body: "Fija tus propios objetivos de desarrollo — visibles solo para ti.",
+        cta: "Crear un objetivo personal",
+      },
     },
     survey: {
       title: "Aún no hay encuestas",

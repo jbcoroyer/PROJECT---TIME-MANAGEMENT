@@ -5,17 +5,11 @@ import {
   brandingToDbPatch,
   type AppBrandingPatch,
 } from "../../lib/branding";
+import type { WorkHours } from "../../lib/agenda/agendaTypes";
+import { getSetupAccess } from "../../lib/setup/getSetupAccess";
+import { initializeOrgAgendaSettingsForOrg } from "./agenda";
 import { createSupabaseAdmin } from "../../lib/server/supabaseAdmin";
-import { getServerOrgContext } from "../../lib/server/orgContext";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
-
-export type SetupAccess = {
-  isConfigured: boolean;
-  isAuthenticated: boolean;
-  canCompleteSetup: boolean;
-  isAdmin: boolean;
-  organizationId: string | null;
-};
 
 async function countAdminsForOrg(organizationId: string): Promise<number> {
   try {
@@ -32,80 +26,29 @@ async function countAdminsForOrg(organizationId: string): Promise<number> {
   }
 }
 
-/** Indique si l'utilisateur courant peut lancer ou terminer l'installation de son organisation. */
-export async function getSetupAccess(): Promise<SetupAccess> {
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let ctx = await getServerOrgContext();
-  let organizationId = ctx?.organizationId ?? null;
-  let isAdmin = ctx?.isAdmin ?? false;
-
-  // Secours : profil pas encore visible via RLS juste après l'inscription.
-  if (user && !organizationId) {
-    try {
-      const admin = createSupabaseAdmin();
-      const { data: profile } = await admin
-        .from("profiles")
-        .select("organization_id, role")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (profile?.organization_id) {
-        organizationId = profile.organization_id as string;
-        isAdmin = profile.role === "admin";
-        ctx = {
-          userId: user.id,
-          organizationId,
-          isAdmin,
-        };
-      }
-    } catch (e) {
-      console.warn("[setup] profil admin:", e);
-    }
+async function countMembersForOrg(organizationId: string): Promise<number> {
+  try {
+    const admin = createSupabaseAdmin();
+    const { count, error } = await admin
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", organizationId);
+    if (error) return 0;
+    return count ?? 0;
+  } catch {
+    return 0;
   }
-
-  let isConfigured = false;
-  if (organizationId) {
-    try {
-      const admin = createSupabaseAdmin();
-      const { data } = await admin
-        .from("app_settings")
-        .select("is_configured")
-        .eq("organization_id", organizationId)
-        .maybeSingle();
-      isConfigured = data?.is_configured === true;
-    } catch {
-      const { data } = await supabase
-        .from("app_settings")
-        .select("is_configured")
-        .eq("organization_id", organizationId)
-        .maybeSingle();
-      isConfigured = data?.is_configured === true;
-    }
-  }
-
-  const isAuthenticated = Boolean(user);
-
-  let canCompleteSetup = false;
-  if (isAuthenticated && organizationId && !isConfigured) {
-    if (isAdmin) {
-      canCompleteSetup = true;
-    } else {
-      const adminCount = await countAdminsForOrg(organizationId);
-      canCompleteSetup = adminCount === 0;
-    }
-  }
-
-  return { isConfigured, isAuthenticated, canCompleteSetup, isAdmin, organizationId };
 }
 
 export type CompleteSetupResult = { ok: true } | { ok: false; error: string };
 
+export type CompleteSetupInput = AppBrandingPatch & {
+  setupWorkHours?: WorkHours;
+};
+
 /** Enregistre la configuration initiale de l'organisation courante. */
 export async function completeInitialSetup(
-  patch: AppBrandingPatch,
+  patch: CompleteSetupInput,
 ): Promise<CompleteSetupResult> {
   const access = await getSetupAccess();
   if (!access.canCompleteSetup || !access.organizationId) {
@@ -125,9 +68,14 @@ export async function completeInitialSetup(
     return { ok: false, error: "Sélectionnez au moins un module pour votre espace." };
   }
 
+  const setupWorkHours = patch.setupWorkHours;
+  const includesWorkspace = (patch.enabledModules ?? []).includes("workspace");
+
+  const { setupWorkHours: _ignored, ...brandingPatch } = patch;
+
   const row = brandingToDbPatch(
     {
-      ...patch,
+      ...brandingPatch,
       appName,
       appShortName: patch.appShortName?.trim() || appName,
       tagline: "",
@@ -145,9 +93,20 @@ export async function completeInitialSetup(
     return { ok: false, error: message };
   }
 
+  if (includesWorkspace && setupWorkHours) {
+    const agendaResult = await initializeOrgAgendaSettingsForOrg(
+      access.organizationId,
+      setupWorkHours,
+    );
+    if (!agendaResult.ok) return agendaResult;
+  }
+
   if (!access.isAdmin) {
-    const adminCount = await countAdminsForOrg(access.organizationId);
-    if (adminCount === 0) {
+    const [adminCount, memberCount] = await Promise.all([
+      countAdminsForOrg(access.organizationId),
+      countMembersForOrg(access.organizationId),
+    ]);
+    if (adminCount === 0 || memberCount === 1) {
       try {
         const admin = createSupabaseAdmin();
         await admin.from("profiles").update({ role: "admin" }).eq("id", user.id);

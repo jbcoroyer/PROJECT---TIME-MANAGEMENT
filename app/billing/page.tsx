@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import BillingRequiredScreen from "../../components/billing/BillingRequiredScreen";
-import { getDefaultModuleRoute } from "../../lib/modules";
 import { resolveBillingAccess } from "../../lib/billing/resolveBillingAccess";
-import { getBrandingServer } from "../../lib/server/getBrandingServer";
 import { getServerOrgContext } from "../../lib/server/orgContext";
 import { SETUP_PATH } from "../../lib/setupPaths";
+import { resolveOrganizationSetupStatus } from "../../lib/setup/resolveOrganizationSetupStatus";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 
 export const metadata = {
@@ -23,11 +22,11 @@ export default async function BillingRequiredPage() {
 
   const access = await resolveBillingAccess(supabase, user.id);
   if (access.allowed) {
-    const branding = await getBrandingServer();
-    if (!branding.isConfigured) {
+    const status = await resolveOrganizationSetupStatus();
+    if (!status.isConfiguredResolved) {
       redirect(SETUP_PATH);
     }
-    redirect(getDefaultModuleRoute(branding.enabledModules));
+    redirect(status.defaultRoute);
   }
 
   const ctx = await getServerOrgContext();

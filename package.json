@@ -12,7 +12,8 @@
     "test:multi-tenant": "vitest run lib/multiTenant --pool forks --maxWorkers 1",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "audit:storage": "npx tsx scripts/audit-storage-paths.ts"
+    "audit:storage": "npx tsx scripts/audit-storage-paths.ts",
+    "audit:app-settings": "npx tsx scripts/audit-app-settings-columns.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -4,16 +4,13 @@ import { revalidatePath } from "next/cache";
 import {
   brandingToDbPatch,
   mergeBranding,
-  mapAppSettingsRow,
   type AppBrandingPatch,
 } from "../../lib/branding";
+import { fetchAppSettingsRow } from "../../lib/appSettings/fetchAppSettingsRow";
 import { getServerOrgContext } from "../../lib/server/orgContext";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 
 export type UpdateBrandingResult = { ok: true } | { ok: false; error: string };
-
-const APP_SETTINGS_SELECT =
-  "id, organization_id, idena_mark_url, app_name, app_short_name, tagline, logo_url, icon_url, mark_url, primary_color, locale, timezone, sector, outlook_category_name, default_public_survey_id, is_configured, social_thematics, print_species, enabled_modules, inventory_categories, stock_onboarding_completed, updated_at";
 
 async function requireAdminOrg(): Promise<
   { ok: true; organizationId: string } | { ok: false; error: string }
@@ -44,11 +41,9 @@ export async function getBrandingAction() {
   if (!ctx) return mergeBranding(null);
 
   const supabase = await createServerSupabase();
-  const { data } = await supabase
-    .from("app_settings")
-    .select(APP_SETTINGS_SELECT)
-    .eq("organization_id", ctx.organizationId)
-    .maybeSingle();
+  const { row } = await fetchAppSettingsRow(supabase, ctx.organizationId, {
+    logLabel: "branding/action",
+  });
 
-  return mergeBranding(data ? mapAppSettingsRow(data) : null);
+  return mergeBranding(row);
 }

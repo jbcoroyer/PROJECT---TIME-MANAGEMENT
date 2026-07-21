@@ -9,8 +9,9 @@ type QuestionFieldProps = {
   question: Question;
   value: SurveyAnswers[string];
   onChange: (value: SurveyAnswers[string]) => void;
-  /** Options dynamiques (ex. sociétés depuis useReferenceData) qui remplacent celles de la config. */
+  /** Options dynamiques qui remplacent celles de la config. */
   optionsOverride?: readonly string[];
+  hasError?: boolean;
 };
 
 export default function QuestionField({
@@ -18,14 +19,19 @@ export default function QuestionField({
   value,
   onChange,
   optionsOverride,
+  hasError = false,
 }: QuestionFieldProps) {
   const options = optionsOverride ?? question.options ?? [];
+  const errorRing = hasError ? "ring-2 ring-[var(--danger)] ring-offset-2 ring-offset-[var(--surface)]" : "";
 
   return (
-    <fieldset className="space-y-3">
+    <fieldset
+      id={`survey-q-${question.id}`}
+      className={["space-y-3 rounded-2xl transition-shadow", errorRing].filter(Boolean).join(" ")}
+    >
       <legend className="text-base font-semibold text-[var(--foreground)]">
         {question.label}
-        {question.required ? <span className="ml-1 text-[var(--accent)]">*</span> : null}
+        {question.required ? <span className="ml-1 text-[var(--danger)]">*</span> : null}
       </legend>
       {question.help ? (
         <p className="-mt-1 text-[13px] leading-relaxed text-[color:var(--foreground)]/55">

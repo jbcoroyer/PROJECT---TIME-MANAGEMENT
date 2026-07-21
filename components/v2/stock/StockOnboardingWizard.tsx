@@ -1,29 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   ArrowDownUp,
   ArrowRight,
   BarChart3,
-  Check,
   ClipboardList,
   Lightbulb,
   Package,
-  Plus,
   Sparkles,
-  X,
 } from "lucide-react";
 import { completeStockOnboarding } from "../../../app/actions/stockSettings";
 import { useBranding } from "../../../lib/brandingContext";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
-import {
-  STOCK_CATEGORY_SUGGESTION_IDS,
-  stockCategoryMeta,
-  uniqueStockCategoryValue,
-  type StockCategoryOption,
-  type StockCategorySuggestionId,
-} from "../../../lib/stockCategories";
+import type { StockCategoryOption } from "../../../lib/stockCategories";
 import { toastError } from "../../../lib/toast";
+import StockCategoriesEditor from "./StockCategoriesEditor";
 
 type StockOnboardingWizardProps = {
   onComplete: () => void;
@@ -38,49 +30,7 @@ export default function StockOnboardingWizard({ onComplete }: StockOnboardingWiz
   const { patchBranding } = useBranding();
   const [step, setStep] = useState<WizardStep>("welcome");
   const [selected, setSelected] = useState<StockCategoryOption[]>([]);
-  const [customLabel, setCustomLabel] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  const suggestionOptions = useMemo(() => {
-    return STOCK_CATEGORY_SUGGESTION_IDS.map((id) => ({
-      id,
-      label: t(`stock.onboarding.categories.${id}`),
-      description: t(`stock.onboarding.categories.${id}Desc`),
-    }));
-  }, [t]);
-
-  const isSelected = (label: string) => selected.some((c) => c.label.toLowerCase() === label.toLowerCase());
-
-  const toggleSuggestion = (id: StockCategorySuggestionId, label: string) => {
-    if (isSelected(label)) {
-      setSelected((prev) => prev.filter((c) => c.label.toLowerCase() !== label.toLowerCase()));
-      return;
-    }
-    const existing = selected.map((c) => c.value);
-    setSelected((prev) => [
-      ...prev,
-      { value: uniqueStockCategoryValue(label, [...existing, ...prev.map((c) => c.value)]), label },
-    ]);
-  };
-
-  const addCustomCategory = () => {
-    const label = customLabel.trim();
-    if (!label) return;
-    if (isSelected(label)) {
-      setCustomLabel("");
-      return;
-    }
-    const existing = selected.map((c) => c.value);
-    setSelected((prev) => [
-      ...prev,
-      { value: uniqueStockCategoryValue(label, existing), label },
-    ]);
-    setCustomLabel("");
-  };
-
-  const removeCategory = (value: string) => {
-    setSelected((prev) => prev.filter((c) => c.value !== value));
-  };
 
   const handleFinish = async () => {
     if (selected.length === 0) {
@@ -161,93 +111,9 @@ export default function StockOnboardingWizard({ onComplete }: StockOnboardingWiz
             {t("stock.onboarding.categories.description")}
           </p>
 
-          <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-[color:var(--foreground)]/50">
-            {t("stock.onboarding.categories.suggestions")}
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {suggestionOptions.map((opt, index) => {
-              const active = isSelected(opt.label);
-              const meta = stockCategoryMeta(index);
-              const Icon = meta.icon;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => toggleSuggestion(opt.id, opt.label)}
-                  className={[
-                    "ui-transition rounded-xl border p-4 text-left",
-                    active
-                      ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-2 ring-[var(--accent)]/20"
-                      : "border-[var(--line)] hover:border-[var(--accent)]/40",
-                  ].join(" ")}
-                >
-                  <div className="flex items-start gap-3">
-                    <span
-                      className={[
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                        active ? "bg-[var(--accent)] text-[var(--accent-contrast)]" : meta.chip,
-                      ].join(" ")}
-                    >
-                      {active ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--foreground)]">{opt.label}</p>
-                      <p className="mt-0.5 text-xs text-[var(--ink-muted)]">{opt.description}</p>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
           <div className="mt-6">
-            <label className="mb-1.5 block text-xs font-semibold text-[color:var(--foreground)]/65">
-              {t("stock.onboarding.categories.customLabel")}
-            </label>
-            <div className="flex gap-2">
-              <input
-                value={customLabel}
-                onChange={(e) => setCustomLabel(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomCategory())}
-                placeholder={t("stock.onboarding.categories.customPlaceholder")}
-                className="ui-focus-ring min-w-0 flex-1 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm"
-              />
-              <button
-                type="button"
-                onClick={addCustomCategory}
-                className="ui-btn ui-btn-secondary shrink-0 gap-1.5"
-              >
-                <Plus className="h-4 w-4" />
-                {t("stock.onboarding.categories.add")}
-              </button>
-            </div>
+            <StockCategoriesEditor categories={selected} onChange={setSelected} />
           </div>
-
-          {selected.length > 0 ? (
-            <div className="mt-6">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--foreground)]/50">
-                {t("stock.onboarding.categories.selected", { count: selected.length })}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {selected.map((cat) => (
-                  <span
-                    key={cat.value}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm font-medium"
-                  >
-                    {cat.label}
-                    <button
-                      type="button"
-                      onClick={() => removeCategory(cat.value)}
-                      className="rounded-full p-0.5 text-[color:var(--foreground)]/50 hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
-                      aria-label={t("stock.onboarding.categories.remove", { label: cat.label })}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : null}
 
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
             <button type="button" onClick={() => setStep("welcome")} className="ui-btn ui-btn-secondary">
@@ -314,7 +180,7 @@ export default function StockOnboardingWizard({ onComplete }: StockOnboardingWiz
             <button
               type="button"
               disabled={submitting}
-              onClick={handleFinish}
+              onClick={() => void handleFinish()}
               className="ui-btn ui-btn-primary gap-2"
             >
               {submitting ? t("stock.onboarding.tour.launching") : t("stock.onboarding.tour.cta")}

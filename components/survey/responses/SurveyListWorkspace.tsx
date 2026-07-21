@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
+  BarChart3,
   Building2,
-  ChevronRight,
-  ExternalLink,
   Layers,
   MessageSquare,
+  Pencil,
   Plus,
   Sparkles,
   Users,
@@ -26,6 +26,7 @@ import { toastError, toastSuccess } from "../../../lib/toast";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
 import EmptyState from "../../ui/EmptyState";
+import { SurveyCopyLinkButton, SurveyPreviewLink } from "./SurveyDetailNav";
 
 type TranslateFn = ReturnType<typeof useTranslation>["t"];
 
@@ -96,8 +97,7 @@ function SurveyCard({
   const Icon = theme.icon;
 
   return (
-    <Link
-      href={`/questionnaire/reponses/${survey.id}`}
+    <article
       className={[
         "ui-surface ui-transition group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--line)] border-l-4 p-5",
         theme.border,
@@ -136,50 +136,63 @@ function SurveyCard({
         </div>
       </div>
 
-      <h2
-        className={[
-          "text-lg font-semibold leading-snug text-[var(--foreground)] transition-colors",
-          theme.accent,
-        ].join(" ")}
-      >
-        {survey.title}
-      </h2>
-      <p className="mt-1 text-xs font-medium text-[color:var(--foreground)]/45">{theme.subtitle}</p>
+      <Link href={`/questionnaire/reponses/${survey.id}/reponses`} className="block min-w-0 flex-1">
+        <h2
+          className={[
+            "text-lg font-semibold leading-snug text-[var(--foreground)] transition-colors",
+            theme.accent,
+          ].join(" ")}
+        >
+          {survey.title}
+        </h2>
+        <p className="mt-1 text-xs font-medium text-[color:var(--foreground)]/45">{theme.subtitle}</p>
 
-      {survey.description ? (
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-[color:var(--foreground)]/60">
-          {survey.description}
-        </p>
-      ) : null}
+        {survey.description ? (
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-[color:var(--foreground)]/60">
+            {survey.description}
+          </p>
+        ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
-          <MessageSquare className="h-3 w-3" />
-          {t("survey.list.questionCount", { count: survey.questionCount })}
-        </span>
-        <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
-          <Layers className="h-3 w-3" />
-          {t("survey.list.screens", { count: survey.stepCount })}
-        </span>
-        <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
-          <Users className="h-3 w-3" />
-          {t("survey.list.responses", { count: survey.responseCount })}
-        </span>
-      </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
+            <MessageSquare className="h-3 w-3" />
+            {t("survey.list.questionCount", { count: survey.questionCount })}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
+            <Layers className="h-3 w-3" />
+            {t("survey.list.screens", { count: survey.stepCount })}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-semibold text-[color:var(--foreground)]/60">
+            <Users className="h-3 w-3" />
+            {t("survey.list.responses", { count: survey.responseCount })}
+          </span>
+        </div>
+      </Link>
 
-      <div className="mt-4 flex items-center justify-between gap-2 border-t border-[var(--line)] pt-3">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--line)] pt-3">
         <p className="min-w-0 truncate text-[11px] text-[color:var(--foreground)]/45">
           {t("survey.list.createdOn", { date: formatDate(survey.createdAt) })}
         </p>
-        <div className="flex shrink-0 items-center gap-1">
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[color:var(--foreground)]/50">
-            <ExternalLink className="h-3 w-3" />
-            <span className="max-w-[120px] truncate font-mono">{survey.publicPath}</span>
-          </span>
-          <ChevronRight className="h-4 w-4 text-[color:var(--foreground)]/30 transition group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Link
+            href={`/questionnaire/reponses/${survey.id}/reponses`}
+            className="ui-btn ui-btn-primary h-8 gap-1.5 px-2.5 text-[11px]"
+          >
+            <BarChart3 className="h-3.5 w-3.5" />
+            {t("survey.list.actionResponses")}
+          </Link>
+          <Link
+            href={`/questionnaire/reponses/${survey.id}/edit`}
+            className="ui-btn ui-btn-secondary h-8 gap-1.5 px-2.5 text-[11px]"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            {t("survey.list.actionEdit")}
+          </Link>
+          <SurveyCopyLinkButton publicPath={survey.publicPath} className="h-8 px-2.5" />
+          <SurveyPreviewLink publicPath={survey.publicPath} className="h-8 px-2.5" />
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 
@@ -235,27 +248,31 @@ export default function SurveyListWorkspace() {
       return;
     }
     toastSuccess(t("survey.list.toast.created"));
-    router.push(`/questionnaire/reponses/${result.surveyId}`);
+    router.push(`/questionnaire/reponses/${result.surveyId}/edit`);
   };
 
   const audienceThemes = getAudienceThemes(t);
 
   return (
     <div className="space-y-5">
-      <header className="ui-surface flex flex-wrap items-start justify-between gap-4 rounded-2xl p-5">
-        <div>
-          <p className="ui-kicker mb-1">{branding.appName}</p>
-          <h1 className="ui-display text-2xl text-[var(--foreground)]">{t("survey.list.title")}</h1>
-          <p className="mt-1 text-sm text-[color:var(--foreground)]/60">{t("survey.list.cardHint")}</p>
+      <header className="ui-surface relative overflow-hidden rounded-[28px] p-8">
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="ui-kicker mb-1">{branding.appName}</p>
+            <h1 className="ui-display text-2xl text-[var(--foreground)]">{t("survey.list.title")}</h1>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-[color:var(--foreground)]/60">
+              {t("survey.list.subtitle")}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCreatingOpen((v) => !v)}
+            className="ui-btn ui-btn-primary gap-2"
+          >
+            {creatingOpen ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {creatingOpen ? t("survey.common.cancel") : t("survey.list.newSurvey")}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setCreatingOpen((v) => !v)}
-          className="ui-btn ui-btn-primary gap-2"
-        >
-          {creatingOpen ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {creatingOpen ? t("survey.common.cancel") : t("survey.list.newSurvey")}
-        </button>
       </header>
 
       {creatingOpen ? (

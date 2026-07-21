@@ -26,17 +26,7 @@ export default function PublicIntakeForm({ formId, meta }: PublicIntakeFormProps
     [meta.definition],
   );
 
-  const companyOptions = meta.companies.length > 0 ? meta.companies : ["—"];
-
-  const [answers, setAnswers] = useState<SurveyAnswers>(() => {
-    const initial: SurveyAnswers = {};
-    for (const q of questions) {
-      if (q.optionsSource === "companies") {
-        initial[q.id] = companyOptions[0] ?? "";
-      }
-    }
-    return initial;
-  });
+  const [answers, setAnswers] = useState<SurveyAnswers>({});
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -45,13 +35,7 @@ export default function PublicIntakeForm({ formId, meta }: PublicIntakeFormProps
   };
 
   const resetForm = () => {
-    const initial: SurveyAnswers = {};
-    for (const q of questions) {
-      if (q.optionsSource === "companies") {
-        initial[q.id] = companyOptions[0] ?? "";
-      }
-    }
-    setAnswers(initial);
+    setAnswers({});
     setDone(false);
   };
 
@@ -136,9 +120,6 @@ export default function PublicIntakeForm({ formId, meta }: PublicIntakeFormProps
                 question={question}
                 value={answers[question.id]}
                 onChange={(value) => setAnswer(question.id, value)}
-                optionsOverride={
-                  question.optionsSource === "companies" ? companyOptions : undefined
-                }
               />
             ))}
 

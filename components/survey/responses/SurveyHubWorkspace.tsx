@@ -2,21 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import {
-  ArrowLeft,
-  BarChart3,
-  Check,
-  ClipboardList,
-  ExternalLink,
-  Pencil,
-  X,
-} from "lucide-react";
+import { BarChart3, MessageSquare, Pencil, Users } from "lucide-react";
 import { renameSurvey, type SurveyMeta } from "../../../app/actions/survey";
 import { toastError, toastSuccess } from "../../../lib/toast";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import { getDateFnsLocale } from "../../../lib/i18n/dateFnsLocale";
+import SurveyDetailNav, { SurveyCopyLinkButton, SurveyPreviewLink } from "./SurveyDetailNav";
 
 type SurveyHubWorkspaceProps = {
   meta: SurveyMeta;
@@ -26,9 +18,8 @@ type SurveyHubWorkspaceProps = {
 export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWorkspaceProps) {
   const { t, locale } = useTranslation();
   const dateFnsLocale = getDateFnsLocale(locale);
-  const router = useRouter();
-  const [editingName, setEditingName] = useState(false);
   const [title, setTitle] = useState(meta.title);
+  const [editingName, setEditingName] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const publicUrl =
@@ -64,50 +55,14 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
     }
     toastSuccess(t("survey.hub.renamed"));
     setEditingName(false);
-    router.refresh();
   };
-
-  const actions = [
-    {
-      title: t("survey.hub.openForm"),
-      description: t("survey.hub.openFormDescription"),
-      href: meta.publicPath,
-      external: true,
-      icon: ExternalLink,
-      className: "ui-btn-secondary",
-    },
-    {
-      title: t("survey.hub.cards.edit.title"),
-      description: t("survey.hub.cards.edit.description"),
-      href: `/questionnaire/reponses/${meta.id}/edit`,
-      external: false,
-      icon: Pencil,
-      className: "ui-btn-secondary",
-    },
-    {
-      title: t("survey.hub.cards.responses.title"),
-      description: t("survey.hub.cards.responses.description"),
-      href: `/questionnaire/reponses/${meta.id}/reponses`,
-      external: false,
-      icon: BarChart3,
-      className: "ui-btn-primary",
-    },
-  ] as const;
 
   return (
     <div className="space-y-5">
       <header className="ui-surface rounded-2xl p-5">
-        <Link
-          href="/questionnaire/reponses"
-          className="mb-3 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          {t("survey.hub.backToList")}
-        </Link>
-        <div className="flex items-start gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent)]/10 text-[var(--accent)]">
-            <ClipboardList className="h-7 w-7" />
-          </div>
+        <SurveyDetailNav surveyId={meta.id} active="overview" />
+
+        <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             {editingName ? (
               <div className="flex flex-wrap items-center gap-2">
@@ -122,15 +77,14 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
                       setEditingName(false);
                     }
                   }}
-                  className="ui-focus-ring min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-lg font-semibold text-[var(--foreground)]"
+                  className="ui-focus-ring min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-lg font-semibold"
                 />
                 <button
                   type="button"
                   onClick={() => void handleRename()}
                   disabled={saving}
-                  className="ui-btn ui-btn-primary h-9 gap-1.5 px-3 text-xs"
+                  className="ui-btn ui-btn-primary text-xs"
                 >
-                  <Check className="h-4 w-4" />
                   {saving ? "…" : t("survey.common.save")}
                 </button>
                 <button
@@ -139,15 +93,14 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
                     setTitle(meta.title);
                     setEditingName(false);
                   }}
-                  className="ui-btn ui-btn-ghost h-9 w-9 p-0"
-                  aria-label={t("survey.common.cancel")}
+                  className="ui-btn ui-btn-ghost text-xs"
                 >
-                  <X className="h-4 w-4" />
+                  {t("survey.common.cancel")}
                 </button>
               </div>
             ) : (
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="ui-display text-2xl text-[var(--foreground)]">{meta.title}</h1>
+                <h2 className="text-xl font-semibold text-[var(--foreground)]">{meta.title}</h2>
                 <span
                   className={[
                     "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
@@ -174,56 +127,56 @@ export default function SurveyHubWorkspace({ meta, responseCount }: SurveyHubWor
             <p className="mt-2 text-xs text-[color:var(--foreground)]/45">
               {t("survey.hub.createdMeta", { date: formatDate(meta.createdAt), count: responseCount })}
             </p>
-            <p className="mt-1 text-xs text-[color:var(--foreground)]/45">
-              {t("survey.hub.publicLink")}{" "}
-              <span className="font-mono text-[color:var(--foreground)]/70">{publicUrl}</span>
-            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <SurveyCopyLinkButton publicPath={meta.publicPath} />
+            <SurveyPreviewLink publicPath={meta.publicPath} />
           </div>
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        {actions.map((action) => {
-          const Icon = action.icon;
-          const content = (
-            <div className="ui-surface ui-transition flex h-full flex-col gap-3 rounded-2xl p-5 hover:border-[var(--line-strong)]">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--surface-soft)] text-[var(--accent)]">
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-base font-semibold text-[var(--foreground)]">{action.title}</h2>
-                <p className="mt-1 text-sm leading-relaxed text-[color:var(--foreground)]/60">
-                  {action.description}
-                </p>
-              </div>
-              <span className={`ui-btn w-full justify-center gap-2 text-xs ${action.className}`}>
-                {t("survey.hub.choose")}
-                <Icon className="h-3.5 w-3.5" />
-              </span>
-            </div>
-          );
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Link
+          href={`/questionnaire/reponses/${meta.id}/reponses`}
+          className="ui-surface ui-transition rounded-2xl p-5 hover:border-[var(--line-strong)]"
+        >
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
+            <BarChart3 className="h-5 w-5" />
+          </div>
+          <p className="text-2xl font-bold tabular-nums text-[var(--foreground)]">{responseCount}</p>
+          <p className="mt-1 text-sm font-medium text-[color:var(--foreground)]/70">
+            {t("survey.hub.statsResponses")}
+          </p>
+          <p className="mt-2 text-xs text-[var(--accent)]">{t("survey.hub.viewResponses")} →</p>
+        </Link>
 
-          if (action.external) {
-            return (
-              <a
-                key={action.title}
-                href={action.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block h-full"
-              >
-                {content}
-              </a>
-            );
-          }
+        <Link
+          href={`/questionnaire/reponses/${meta.id}/edit`}
+          className="ui-surface ui-transition rounded-2xl p-5 hover:border-[var(--line-strong)]"
+        >
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--surface-soft)] text-[color:var(--foreground)]/70">
+            <MessageSquare className="h-5 w-5" />
+          </div>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{t("survey.hub.cards.edit.title")}</p>
+          <p className="mt-1 text-xs leading-relaxed text-[color:var(--foreground)]/55">
+            {t("survey.hub.cards.edit.description")}
+          </p>
+          <p className="mt-3 text-xs text-[var(--accent)]">{t("survey.nav.edit")} →</p>
+        </Link>
 
-          return (
-            <Link key={action.title} href={action.href} className="block h-full">
-              {content}
-            </Link>
-          );
-        })}
-      </section>
+        <div className="ui-surface rounded-2xl p-5">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--surface-soft)] text-[color:var(--foreground)]/70">
+            <Users className="h-5 w-5" />
+          </div>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{t("survey.hub.shareTitle")}</p>
+          <p className="mt-1 break-all font-mono text-[11px] text-[color:var(--foreground)]/55">{publicUrl}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <SurveyCopyLinkButton publicPath={meta.publicPath} />
+            <SurveyPreviewLink publicPath={meta.publicPath} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

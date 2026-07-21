@@ -8,10 +8,38 @@ export const INTAKE_QUESTION_IDS = {
   title: "intake_title",
   expectedSupport: "intake_expected_support",
   supportFormat: "intake_support_format",
-  company: "intake_company",
   deadline: "intake_deadline",
   description: "intake_description",
 } as const;
+
+/** @deprecated Conservé pour filtrer les anciennes définitions stockées en base. */
+const LEGACY_COMPANY_QUESTION_ID = "intake_company";
+
+export function isDeprecatedIntakeQuestion(question: Question): boolean {
+  const legacy = question as Question & { optionsSource?: string };
+  return (
+    question.id === LEGACY_COMPANY_QUESTION_ID || legacy.optionsSource === "companies"
+  );
+}
+
+/** Retire les champs société / entité des définitions existantes. */
+export function stripDeprecatedIntakeQuestions(
+  definition: SurveyDefinition,
+): SurveyDefinition {
+  const deprecatedIds = new Set(
+    definition.questions.filter(isDeprecatedIntakeQuestion).map((q) => q.id),
+  );
+  if (deprecatedIds.size === 0) return definition;
+
+  return {
+    ...definition,
+    questions: definition.questions.filter((q) => !deprecatedIds.has(q.id)),
+    steps: definition.steps.map((step) => ({
+      ...step,
+      questionIds: step.questionIds.filter((id) => !deprecatedIds.has(id)),
+    })),
+  };
+}
 
 const SUPPORT_FORMAT_OPTIONS = [
   "A4 print",
@@ -76,15 +104,6 @@ export function createStarterIntakeDefinition(
       options: [...SUPPORT_FORMAT_OPTIONS],
     },
     {
-      id: ids.company,
-      type: "single",
-      section: 1,
-      label: "Société",
-      required: false,
-      optionsSource: "companies",
-      options: ["—"],
-    },
-    {
       id: ids.deadline,
       type: "text",
       section: 1,
@@ -131,11 +150,12 @@ export function createStarterIntakeDefinition(
 
 /** Questions dans l'ordre d'affichage (tous les écrans). */
 export function orderedIntakeQuestions(definition: SurveyDefinition): Question[] {
-  const byId = new Map(definition.questions.map((q) => [q.id, q]));
+  const cleaned = stripDeprecatedIntakeQuestions(definition);
+  const byId = new Map(cleaned.questions.map((q) => [q.id, q]));
   const ordered: Question[] = [];
   const used = new Set<string>();
 
-  for (const step of definition.steps) {
+  for (const step of cleaned.steps) {
     for (const id of step.questionIds) {
       const q = byId.get(id);
       if (q && !used.has(id)) {
@@ -145,7 +165,7 @@ export function orderedIntakeQuestions(definition: SurveyDefinition): Question[]
     }
   }
 
-  for (const q of definition.questions) {
+  for (const q of cleaned.questions) {
     if (!used.has(q.id)) ordered.push(q);
   }
 

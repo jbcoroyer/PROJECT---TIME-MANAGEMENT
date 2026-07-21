@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { BarChart3, ClipboardList, Package } from "lucide-react";
+import { BarChart3, ClipboardList, Package, Settings2 } from "lucide-react";
 import { useTranslation } from "../lib/i18n/useTranslation";
 import SectionNav from "./ui/SectionNav";
 
@@ -11,14 +11,17 @@ export default function StockSectionNav({ basePath = "/stock" }: { basePath?: st
 
   const dashboardHref = `${basePath}/dashboard`;
   const historyHref = `${basePath}/history`;
+  const settingsHref = `${basePath}/settings`;
   const inventoryHref = basePath;
 
   const activeHref =
-    pathname === dashboardHref || pathname.startsWith(`${dashboardHref}/`)
-      ? dashboardHref
-      : pathname === historyHref || pathname.startsWith(`${historyHref}/`)
-        ? historyHref
-        : inventoryHref;
+    pathname === settingsHref || pathname.startsWith(`${settingsHref}/`)
+      ? settingsHref
+      : pathname === dashboardHref || pathname.startsWith(`${dashboardHref}/`)
+        ? dashboardHref
+        : pathname === historyHref || pathname.startsWith(`${historyHref}/`)
+          ? historyHref
+          : inventoryHref;
 
   const items = [
     {
@@ -36,6 +39,11 @@ export default function StockSectionNav({ basePath = "/stock" }: { basePath?: st
       href: historyHref,
       label: t("stock.nav.history"),
       icon: ClipboardList,
+    },
+    {
+      href: settingsHref,
+      label: t("stock.nav.settings"),
+      icon: Settings2,
     },
   ];
 

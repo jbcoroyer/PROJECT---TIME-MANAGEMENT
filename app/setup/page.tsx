@@ -1,29 +1,44 @@
 import { redirect } from "next/navigation";
 import SetupGate from "../../components/setup/SetupGate";
 import SetupPageContent from "../../components/setup/SetupPageContent";
-import { getSetupAccess } from "../actions/setup";
-import { getBrandingServer } from "../../lib/server/getBrandingServer";
-import { getDefaultModuleRoute } from "../../lib/modules";
+import { getSetupAccess } from "../../lib/setup/getSetupAccess";
+import { resolveOrganizationSetupStatus } from "../../lib/setup/resolveOrganizationSetupStatus";
+import { resolveSetupPageDecision } from "../../lib/setup/setupAccessRules";
 
 export const metadata = {
   title: "Installation",
 };
 
+async function waitForOrganizationProvisioned(maxAttempts = 8): Promise<void> {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const access = await getSetupAccess();
+    if (access.organizationId) return;
+    await new Promise((resolve) => setTimeout(resolve, 350));
+  }
+}
+
 export default async function SetupPage() {
-  const access = await getSetupAccess();
+  await waitForOrganizationProvisioned();
+  const status = await resolveOrganizationSetupStatus();
 
-  if (access.isConfigured) {
-    const branding = await getBrandingServer();
-    redirect(getDefaultModuleRoute(branding.enabledModules));
+  const decision = resolveSetupPageDecision({
+    isConfiguredResolved: status.isConfiguredResolved,
+    isAuthenticated: status.isAuthenticated,
+    organizationId: status.organizationId,
+    canCompleteSetup: status.canCompleteSetup,
+    defaultRoute: status.defaultRoute,
+  });
+
+  switch (decision.kind) {
+    case "redirect-app":
+      redirect(decision.route);
+    case "sign-in":
+      return <SetupGate variant="sign-in" />;
+    case "provisioning":
+      return <SetupGate variant="provisioning" />;
+    case "pending":
+      return <SetupGate variant="pending" />;
+    case "wizard":
+      return <SetupPageContent />;
   }
-
-  if (!access.isAuthenticated) {
-    return <SetupGate variant="sign-in" />;
-  }
-
-  if (!access.canCompleteSetup) {
-    return <SetupGate variant="pending" />;
-  }
-
-  return <SetupPageContent />;
 }

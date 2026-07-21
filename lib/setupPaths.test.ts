@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { BILLING_REQUIRED_PATH, isSetupExemptPath } from "./setupPaths";
+import { BILLING_REQUIRED_PATH } from "./billing/billingPaths";
+import { isSetupExemptPath } from "./setupPaths";
 
 describe("setupPaths", () => {
   it("n'envoie pas /billing vers /setup", () => {

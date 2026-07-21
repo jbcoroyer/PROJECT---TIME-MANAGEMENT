@@ -22,7 +22,6 @@ export default async function SurveyEditorPage({ params }: PageProps) {
         title={meta.title}
         initialDefinition={result.definition}
         backHref={`/questionnaire/reponses/${surveyId}`}
-        backLabel="Retour au questionnaire"
       />
     </SurveyAdminGuard>
   );

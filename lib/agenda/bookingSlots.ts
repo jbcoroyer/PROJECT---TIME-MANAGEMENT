@@ -5,11 +5,11 @@ import type { BookingSlot, WorkDayConfig, WorkHours, WeekdayKey } from "./agenda
 import { WEEKDAY_KEYS } from "./agendaTypes";
 
 export const DEFAULT_WORK_HOURS: WorkHours = {
-  mon: { enabled: true, start: "09:00", end: "18:00" },
-  tue: { enabled: true, start: "09:00", end: "18:00" },
-  wed: { enabled: true, start: "09:00", end: "18:00" },
-  thu: { enabled: true, start: "09:00", end: "18:00" },
-  fri: { enabled: true, start: "09:00", end: "17:00" },
+  mon: { enabled: true, start: "09:00", end: "17:00", breakStart: "12:30", breakEnd: "14:00" },
+  tue: { enabled: true, start: "09:00", end: "17:00", breakStart: "12:30", breakEnd: "14:00" },
+  wed: { enabled: true, start: "09:00", end: "17:00", breakStart: "12:30", breakEnd: "14:00" },
+  thu: { enabled: true, start: "09:00", end: "17:00", breakStart: "12:30", breakEnd: "14:00" },
+  fri: { enabled: true, start: "09:00", end: "17:00", breakStart: "12:30", breakEnd: "14:00" },
   sat: { enabled: false, start: "09:00", end: "12:00" },
   sun: { enabled: false, start: "09:00", end: "12:00" },
 };
@@ -36,6 +36,12 @@ function normalizeWorkHours(raw: unknown): WorkHours {
         enabled: Boolean(day.enabled),
         start: typeof day.start === "string" ? day.start : out[key].start,
         end: typeof day.end === "string" ? day.end : out[key].end,
+        breakStart:
+          typeof day.breakStart === "string"
+            ? day.breakStart
+            : (out[key].breakStart ?? null),
+        breakEnd:
+          typeof day.breakEnd === "string" ? day.breakEnd : (out[key].breakEnd ?? null),
       };
     }
   }
@@ -57,29 +63,20 @@ function expandWithBuffer(interval: BusyInterval, bufferMinutes: number): BusyIn
   };
 }
 
-/** Créneaux disponibles pour une date donnée. */
-export function getAvailableSlotsForDate(
-  date: Date,
-  workHours: WorkHours,
+function collectSlotsInRange(
+  rangeStart: Date,
+  rangeEnd: Date,
   busyIntervals: BusyInterval[],
   slotDurationMinutes: number,
   bufferMinutes: number,
-  minNoticeHours: number,
-  now: Date,
+  minStart: Date,
 ): BookingSlot[] {
-  const dayKey = weekdayKey(date);
-  const dayConfig: WorkDayConfig = workHours[dayKey] ?? DEFAULT_WORK_HOURS[dayKey];
-  if (!dayConfig.enabled) return [];
+  if (!isBefore(rangeStart, rangeEnd)) return [];
 
-  const dayStart = parseTimeOnDate(date, dayConfig.start);
-  const dayEnd = parseTimeOnDate(date, dayConfig.end);
-  if (!isBefore(dayStart, dayEnd)) return [];
-
-  const minStart = addMinutes(now, minNoticeHours * 60);
   const slots: BookingSlot[] = [];
-  let cursor = dayStart;
+  let cursor = rangeStart;
 
-  while (addMinutes(cursor, slotDurationMinutes) <= dayEnd) {
+  while (addMinutes(cursor, slotDurationMinutes) <= rangeEnd) {
     const slotEnd = addMinutes(cursor, slotDurationMinutes);
     const blocked = busyIntervals.some((busy) => {
       const expanded = expandWithBuffer(busy, bufferMinutes);
@@ -94,6 +91,65 @@ export function getAvailableSlotsForDate(
   }
 
   return slots;
+}
+
+/** Créneaux disponibles pour une date donnée. */
+export function getAvailableSlotsForDate(
+  date: Date,
+  workHours: WorkHours,
+  busyIntervals: BusyInterval[],
+  slotDurationMinutes: number,
+  bufferMinutes: number,
+  minNoticeHours: number,
+  now: Date,
+): BookingSlot[] {
+  const dayKey = weekdayKey(date);
+  const dayConfig: WorkDayConfig = workHours[dayKey] ?? DEFAULT_WORK_HOURS[dayKey];
+  if (!dayConfig.enabled) return [];
+
+  const minStart = addMinutes(now, minNoticeHours * 60);
+
+  const hasBreak =
+    dayConfig.breakStart &&
+    dayConfig.breakEnd &&
+    dayConfig.breakStart < dayConfig.breakEnd;
+
+  if (hasBreak) {
+    const morningStart = parseTimeOnDate(date, dayConfig.start);
+    const morningEnd = parseTimeOnDate(date, dayConfig.breakStart!);
+    const afternoonStart = parseTimeOnDate(date, dayConfig.breakEnd!);
+    const afternoonEnd = parseTimeOnDate(date, dayConfig.end);
+
+    return [
+      ...collectSlotsInRange(
+        morningStart,
+        morningEnd,
+        busyIntervals,
+        slotDurationMinutes,
+        bufferMinutes,
+        minStart,
+      ),
+      ...collectSlotsInRange(
+        afternoonStart,
+        afternoonEnd,
+        busyIntervals,
+        slotDurationMinutes,
+        bufferMinutes,
+        minStart,
+      ),
+    ];
+  }
+
+  const dayStart = parseTimeOnDate(date, dayConfig.start);
+  const dayEnd = parseTimeOnDate(date, dayConfig.end);
+  return collectSlotsInRange(
+    dayStart,
+    dayEnd,
+    busyIntervals,
+    slotDurationMinutes,
+    bufferMinutes,
+    minStart,
+  );
 }
 
 /** Dates bookables dans l'horizon (jours ouvrés activés). */

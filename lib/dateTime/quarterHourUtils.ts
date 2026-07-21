@@ -56,3 +56,16 @@ export function toLocalDateTimeValue(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${snapped.getFullYear()}-${pad(snapped.getMonth() + 1)}-${pad(snapped.getDate())}T${pad(snapped.getHours())}:${pad(snapped.getMinutes())}`;
 }
+
+export function timeToMinutes(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return (h ?? 0) * 60 + (m ?? 0);
+}
+
+export function addQuarterHours(time: string, quarters: number): string {
+  const total = timeToMinutes(time) + quarters * 15;
+  const clamped = Math.max(0, Math.min(total, 24 * 60 - 15));
+  const h = Math.floor(clamped / 60);
+  const m = clamped % 60;
+  return snapTimeToQuarter(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+}

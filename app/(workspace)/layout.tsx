@@ -4,11 +4,11 @@ import V2AppLayout from "../../components/v2/V2AppLayout";
 import { BILLING_REQUIRED_PATH } from "../../lib/billing/billingPaths";
 import { isBillingEnforcementEnabled } from "../../lib/billing/enforcement";
 import { resolveBillingAccess } from "../../lib/billing/resolveBillingAccess";
-import { getBrandingServer } from "../../lib/server/getBrandingServer";
 import { isPlatformAdminEmail } from "../../lib/server/platformAdmin";
 import { createServerSupabase } from "../../lib/server/supabaseServer";
 import { SETUP_PATH, INVITE_ACCEPT_PATH } from "../../lib/setupPaths";
 import { needsInviteProfileCompletion } from "../../lib/inviteOnboarding";
+import { resolveOrganizationSetupStatus } from "../../lib/setup/resolveOrganizationSetupStatus";
 
 export default async function WorkspaceLayout({ children }: { children: ReactNode }) {
   const supabase = await createServerSupabase();
@@ -21,8 +21,8 @@ export default async function WorkspaceLayout({ children }: { children: ReactNod
       redirect(INVITE_ACCEPT_PATH);
     }
 
-    const branding = await getBrandingServer();
-    if (!branding.isConfigured) {
+    const status = await resolveOrganizationSetupStatus();
+    if (!status.isConfiguredResolved) {
       redirect(SETUP_PATH);
     }
 

@@ -1,169 +1,192 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Plus, Target, Trash2 } from "lucide-react";
+import { Calendar, Lock, Plus, Target, Users } from "lucide-react";
 import { useReferenceData } from "../../../lib/useReferenceData";
 import { useTasks } from "../../../lib/useTasks";
-import { keyResultProgress, objectiveProgress, useObjectives } from "../../../lib/v2/okr";
-import { getIntlLocale } from "../../../lib/i18n/dateFnsLocale";
+import { useCurrentUser } from "../../../lib/useCurrentUser";
+import { useObjectives, type ObjectiveScope } from "../../../lib/v2/okr";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 import EmptyState from "../../ui/EmptyState";
+import ObjectiveCard, { OkrStats } from "./ObjectiveCard";
+
+type Tab = ObjectiveScope;
 
 export default function V2OkrPage() {
   const { t, locale } = useTranslation();
-  const intlLocale = getIntlLocale(locale);
-  const { companies, domains } = useReferenceData();
+  const { user } = useCurrentUser();
+  const { domains } = useReferenceData();
   const { tasks } = useTasks();
-  const { objectives, addObjective, removeObjective, addKeyResult, updateKeyResult, removeKeyResult } = useObjectives();
-  const titleInputRef = useRef<HTMLInputElement>(null);
+  const {
+    objectives,
+    addObjective,
+    updateObjective,
+    removeObjective,
+    addKeyResult,
+    updateKeyResult,
+    removeKeyResult,
+  } = useObjectives();
 
+  const [tab, setTab] = useState<Tab>("team");
   const [title, setTitle] = useState("");
-  const [company, setCompany] = useState("");
-  const [period, setPeriod] = useState(() =>
-    new Date().toLocaleDateString(intlLocale, { month: "long", year: "numeric" }),
-  );
-
-  const [krDrafts, setKrDrafts] = useState<Record<string, { label: string; domain: string; target: number }>>({});
+  const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const activeTasks = useMemo(() => tasks.filter((task) => !task.isArchived && !task.parentTaskId), [tasks]);
 
-  const createObjective = () => {
+  const filtered = useMemo(
+    () => objectives.filter((obj) => obj.scope === tab),
+    [objectives, tab],
+  );
+
+  const sorted = useMemo(
+    () =>
+      [...filtered].sort((a, b) => {
+        if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
+        if (a.dueDate) return -1;
+        if (b.dueDate) return 1;
+        return b.createdAt.localeCompare(a.createdAt);
+      }),
+    [filtered],
+  );
+
+  const createObjective = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!title.trim()) return;
-    addObjective(title.trim(), company || null, period);
+    addObjective({
+      title: title.trim(),
+      scope: tab,
+      dueDate: dueDate || null,
+      description: description.trim() || null,
+    });
     setTitle("");
-    setCompany("");
+    setDescription("");
+    setDueDate("");
   };
 
-  const draftFor = (id: string) => krDrafts[id] ?? { label: "", domain: "", target: 0 };
-  const setDraft = (id: string, patch: Partial<{ label: string; domain: string; target: number }>) =>
-    setKrDrafts((prev) => ({ ...prev, [id]: { ...draftFor(id), ...patch } }));
-
-  const submitKr = (objectiveId: string) => {
-    const d = draftFor(objectiveId);
-    if (!d.label.trim()) return;
-    addKeyResult(objectiveId, { label: d.label.trim(), linkedDomain: d.domain || null, target: d.target || 0, current: 0 });
-    setKrDrafts((prev) => ({ ...prev, [objectiveId]: { label: "", domain: "", target: 0 } }));
-  };
+  const emptyKey = tab === "team" ? "team" : "personal";
 
   return (
-      <div className="space-y-5">
-        <header className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
+    <div className="mx-auto max-w-3xl space-y-6">
+      <header className="ui-surface relative overflow-hidden rounded-[28px] p-8">
+        <div
+          className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[var(--accent)]/15 blur-3xl"
+          aria-hidden
+        />
+        <div className="relative">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
             <Target className="h-3.5 w-3.5" /> {t("okrModule.badge")}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{t("okrModule.title")}</h1>
-          <p className="mt-1 text-sm text-[color:var(--foreground)]/55">
+          <h1 className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{t("okrModule.title")}</h1>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-[color:var(--foreground)]/55">
             {t("okrModule.subtitle")}
           </p>
-        </header>
+        </div>
+      </header>
 
-        <section className="ui-surface rounded-2xl p-5">
-          <h2 className="mb-3 text-base font-semibold text-[var(--foreground)]">{t("okrModule.newObjective")}</h2>
-          <div className="flex flex-wrap gap-2">
-            <input
-              ref={titleInputRef}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t("okrModule.objectivePlaceholder")}
-              className="ui-focus-ring min-w-[240px] flex-1 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
-            />
-            <select value={company} onChange={(e) => setCompany(e.target.value)} className="ui-focus-ring rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm">
-              <option value="">{t("okrModule.group")}</option>
-              {companies.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
-            </select>
-            <input value={period} onChange={(e) => setPeriod(e.target.value)} placeholder={t("okrModule.period")} className="ui-focus-ring w-40 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm" />
-            <button type="button" onClick={createObjective} className="ui-transition inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)]">
+      <div className="flex gap-1 rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-1">
+        <button
+          type="button"
+          onClick={() => setTab("team")}
+          className={`ui-transition flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ${
+            tab === "team"
+              ? "bg-[var(--surface)] text-[var(--foreground)] shadow-sm"
+              : "text-[color:var(--foreground)]/55 hover:text-[var(--foreground)]"
+          }`}
+        >
+          <Users className="h-4 w-4" />
+          {t("okrModule.tabTeam")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("personal")}
+          className={`ui-transition flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ${
+            tab === "personal"
+              ? "bg-[var(--surface)] text-[var(--foreground)] shadow-sm"
+              : "text-[color:var(--foreground)]/55 hover:text-[var(--foreground)]"
+          }`}
+        >
+          <Lock className="h-4 w-4" />
+          {t("okrModule.tabPersonal")}
+        </button>
+      </div>
+
+      <section className="ui-surface rounded-2xl p-5">
+        <h2 className="mb-1 text-base font-semibold text-[var(--foreground)]">
+          {tab === "team" ? t("okrModule.newTeamObjective") : t("okrModule.newPersonalObjective")}
+        </h2>
+        <p className="mb-4 text-sm text-[color:var(--foreground)]/55">
+          {tab === "team" ? t("okrModule.teamHint") : t("okrModule.personalHint")}
+        </p>
+        <form onSubmit={createObjective} className="space-y-3">
+          <input
+            ref={titleInputRef}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={t("okrModule.objectivePlaceholder")}
+            className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2.5 text-sm"
+          />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={t("okrModule.descriptionPlaceholder")}
+            rows={2}
+            className="ui-focus-ring w-full resize-none rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2.5 text-sm"
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm">
+              <Calendar className="h-4 w-4 text-[color:var(--foreground)]/45" />
+              <span className="text-[color:var(--foreground)]/55">{t("okrModule.deadline")}</span>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="ui-focus-ring rounded-lg border-0 bg-transparent text-sm text-[var(--foreground)]"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={!title.trim()}
+              className="ui-transition ml-auto inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-[var(--accent-contrast)] hover:bg-[var(--accent-strong)] disabled:opacity-40"
+            >
               <Plus className="h-4 w-4" /> {t("okrModule.create")}
             </button>
           </div>
-        </section>
+        </form>
+      </section>
 
-        {objectives.length === 0 ? (
-          <EmptyState
-            icon={Target}
-            title={t("emptyStates.okr.title")}
-            description={t("emptyStates.okr.body")}
-            actionLabel={t("emptyStates.okr.cta")}
-            onAction={() => titleInputRef.current?.focus()}
-          />
-        ) : (
-          <div className="space-y-4">
-            {objectives.map((obj) => {
-              const progress = objectiveProgress(obj, activeTasks);
-              const draft = draftFor(obj.id);
-              return (
-                <section key={obj.id} className="ui-surface rounded-2xl p-5">
-                  <div className="mb-3 flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-base font-semibold text-[var(--foreground)]">{obj.title}</h3>
-                      <p className="text-[11px] text-[color:var(--foreground)]/55">{obj.company ?? t("okrModule.group")} · {obj.period}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-bold text-[var(--accent)]">{Math.round(progress * 100)}%</span>
-                      <button type="button" onClick={() => removeObjective(obj.id)} className="ui-transition text-[color:var(--foreground)]/40 hover:text-[var(--danger)]" aria-label={t("okrModule.delete")}>
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="mb-4 h-2 overflow-hidden rounded-full bg-[var(--surface-soft)]">
-                    <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${Math.round(progress * 100)}%` }} />
-                  </div>
+      <OkrStats objectives={filtered} activeTasks={activeTasks} />
 
-                  <ul className="space-y-2">
-                    {obj.keyResults.map((kr) => {
-                      const p = keyResultProgress(kr, activeTasks);
-                      return (
-                        <li key={kr.id} className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium text-[var(--foreground)]">{kr.label}</p>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-[color:var(--foreground)]/60">
-                                {p.auto
-                                  ? t("okrModule.progressAuto", { current: p.value, target: kr.target || "?" })
-                                  : `${kr.current}/${kr.target}`}
-                              </span>
-                              {!p.auto ? (
-                                <input
-                                  type="number"
-                                  value={kr.current}
-                                  onChange={(e) => updateKeyResult(obj.id, kr.id, { current: Number(e.target.value) || 0 })}
-                                  className="ui-focus-ring w-20 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1 text-xs"
-                                />
-                              ) : null}
-                              <button type="button" onClick={() => removeKeyResult(obj.id, kr.id)} className="ui-transition text-[color:var(--foreground)]/40 hover:text-[var(--danger)]" aria-label={t("okrModule.delete")}>
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface-soft)]">
-                            <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${Math.round(p.ratio * 100)}%` }} />
-                          </div>
-                          {kr.linkedDomain ? (
-                            <p className="mt-1 text-[10px] text-[color:var(--foreground)]/45">
-                              {t("okrModule.linkedDomain", { domain: kr.linkedDomain })}
-                            </p>
-                          ) : null}
-                        </li>
-                      );
-                    })}
-                  </ul>
-
-                  <div className="mt-3 flex flex-wrap gap-2 border-t border-[var(--line)] pt-3">
-                    <input value={draft.label} onChange={(e) => setDraft(obj.id, { label: e.target.value })} placeholder={t("okrModule.krPlaceholder")} className="ui-focus-ring min-w-[180px] flex-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-sm" />
-                    <select value={draft.domain} onChange={(e) => setDraft(obj.id, { domain: e.target.value })} className="ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-sm">
-                      <option value="">{t("okrModule.manual")}</option>
-                      {domains.map((d) => <option key={d.name} value={d.name}>{d.name}</option>)}
-                    </select>
-                    <input type="number" value={draft.target || ""} onChange={(e) => setDraft(obj.id, { target: Number(e.target.value) || 0 })} placeholder={t("okrModule.target")} className="ui-focus-ring w-24 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-sm" />
-                    <button type="button" onClick={() => submitKr(obj.id)} className="ui-transition inline-flex items-center gap-1 rounded-lg border border-[var(--accent)] px-3 py-1.5 text-sm font-semibold text-[var(--accent)] hover:bg-[var(--accent-soft)]">
-                      <Plus className="h-3.5 w-3.5" /> {t("okrModule.addKr")}
-                    </button>
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {sorted.length === 0 ? (
+        <EmptyState
+          icon={tab === "team" ? Users : Lock}
+          title={t(`emptyStates.okr.${emptyKey}.title`)}
+          description={t(`emptyStates.okr.${emptyKey}.body`)}
+          actionLabel={t(`emptyStates.okr.${emptyKey}.cta`)}
+          onAction={() => titleInputRef.current?.focus()}
+        />
+      ) : (
+        <div className="space-y-4">
+          {sorted.map((obj) => (
+            <ObjectiveCard
+              key={obj.id}
+              objective={obj}
+              scope={tab}
+              activeTasks={activeTasks}
+              locale={locale}
+              userId={user?.id ?? null}
+              isAdmin={user?.isAdmin ?? false}
+              onUpdate={updateObjective}
+              onRemove={removeObjective}
+              onAddKeyResult={addKeyResult}
+              onUpdateKeyResult={updateKeyResult}
+              onRemoveKeyResult={removeKeyResult}
+              domains={domains}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

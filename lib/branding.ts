@@ -37,6 +37,7 @@ export type AppBranding = {
   enabledModules: AppModuleId[];
   inventoryCategories: StockCategoryOption[];
   stockOnboardingCompleted: boolean;
+  agendaIntroCompleted: boolean;
 };
 
 export type AppSettingsRow = {
@@ -61,6 +62,7 @@ export type AppSettingsRow = {
   enabled_modules?: unknown;
   inventory_categories?: unknown;
   stock_onboarding_completed?: boolean | null;
+  agenda_intro_completed?: boolean | null;
   updated_at?: string | null;
 };
 
@@ -83,6 +85,7 @@ export type AppBrandingPatch = Partial<{
   enabledModules: AppModuleId[];
   inventoryCategories: StockCategoryOption[];
   stockOnboardingCompleted: boolean;
+  agendaIntroCompleted: boolean;
 }>;
 
 const NEUTRAL_PRIMARY = "#E07A28";
@@ -140,6 +143,7 @@ function envBrandingDefaults(): AppBranding {
     enabledModules: resolveEnabledModules(null),
     inventoryCategories: [],
     stockOnboardingCompleted: false,
+    agendaIntroCompleted: false,
   };
 }
 
@@ -194,6 +198,8 @@ export function mapAppSettingsRow(row: unknown): AppSettingsRow {
     inventory_categories: r.inventory_categories,
     stock_onboarding_completed:
       typeof r.stock_onboarding_completed === "boolean" ? r.stock_onboarding_completed : null,
+    agenda_intro_completed:
+      typeof r.agenda_intro_completed === "boolean" ? r.agenda_intro_completed : null,
     updated_at: typeof r.updated_at === "string" ? r.updated_at : null,
   };
 }
@@ -230,6 +236,7 @@ export function mergeBranding(row: AppSettingsRow | null | undefined): AppBrandi
     enabledModules: resolveEnabledModules(parseEnabledModules(row?.enabled_modules)),
     inventoryCategories: parseInventoryCategories(row?.inventory_categories),
     stockOnboardingCompleted: row?.stock_onboarding_completed === true,
+    agendaIntroCompleted: row?.agenda_intro_completed === true,
   };
 }
 
@@ -284,6 +291,9 @@ export function brandingToDbPatch(
   if (patch.inventoryCategories !== undefined) row.inventory_categories = patch.inventoryCategories;
   if (patch.stockOnboardingCompleted !== undefined) {
     row.stock_onboarding_completed = patch.stockOnboardingCompleted;
+  }
+  if (patch.agendaIntroCompleted !== undefined) {
+    row.agenda_intro_completed = patch.agendaIntroCompleted;
   }
   return row;
 }

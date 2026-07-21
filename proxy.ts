@@ -6,9 +6,12 @@ import { resolveBillingAccess } from "./lib/billing/resolveBillingAccess";
 import { isPlatformAdminEmail } from "./lib/server/platformAdmin";
 import { isInvalidRefreshTokenError } from "./lib/supabaseAuthRecovery";
 
+import { SETUP_PATH } from "./lib/setupPaths";
+
 function isPublicPath(pathname: string): boolean {
   return (
     pathname === "/" ||
+    pathname === SETUP_PATH ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
     pathname.startsWith("/auth/callback") ||

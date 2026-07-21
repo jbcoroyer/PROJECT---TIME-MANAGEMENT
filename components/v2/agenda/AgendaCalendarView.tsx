@@ -22,6 +22,9 @@ import EmptyState from "../../ui/EmptyState";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const VIEWS: View[] = ["month", "week", "day", "agenda"];
+const DAY_START_HOUR = 0;
+const DAY_END_HOUR = 24;
+const PIXELS_PER_HOUR = 56;
 
 type CalendarEvent = {
   id: string;
@@ -97,6 +100,15 @@ export default function AgendaCalendarView({
     [appointments],
   );
 
+  const timeMin = useMemo(() => new Date(1970, 0, 1, DAY_START_HOUR, 0, 0), []);
+  const timeMax = useMemo(() => new Date(1970, 0, 1, DAY_END_HOUR, 0, 0), []);
+
+  const calendarHeight = useMemo(() => {
+    if (view === "month") return 720;
+    if (view === "agenda") return Math.max(420, events.length * 52 + 140);
+    return (DAY_END_HOUR - DAY_START_HOUR) * PIXELS_PER_HOUR;
+  }, [events.length, view]);
+
   const eventStyleGetter = (event: CalendarEvent) => {
     const appt = event.resource;
     const bg = appt.color || "var(--accent)";
@@ -130,7 +142,7 @@ export default function AgendaCalendarView({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 lg:px-8">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -185,7 +197,9 @@ export default function AgendaCalendarView({
       </div>
 
       {loading ? (
-        <p className="text-center text-sm text-[var(--ink-muted)]">{t("agenda.calendar.loadingShort")}</p>
+        <p className="px-4 text-center text-sm text-[var(--ink-muted)] lg:px-8">
+          {t("agenda.calendar.loadingShort")}
+        </p>
       ) : null}
 
       {!loading && appointments.length === 0 ? (
@@ -195,11 +209,11 @@ export default function AgendaCalendarView({
           description={t("emptyStates.agenda.body")}
           actionLabel={t("emptyStates.agenda.cta")}
           onAction={openCreateSlot}
-          className="mb-4"
+          className="mx-4 mb-4 lg:mx-8"
         />
       ) : null}
 
-      <div className="agenda-calendar-shell overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2">
+      <div className="agenda-calendar-shell w-full border-y border-[var(--line)] bg-[var(--surface)]">
         <Calendar
           localizer={localizer}
           culture={locale}
@@ -211,8 +225,8 @@ export default function AgendaCalendarView({
           views={VIEWS}
           step={15}
           timeslots={4}
-          min={new Date(1970, 0, 1, 7, 0)}
-          max={new Date(1970, 0, 1, 21, 0)}
+          min={timeMin}
+          max={timeMax}
           selectable
           onSelectEvent={(event) => onSelectAppointment((event as CalendarEvent).resource)}
           onSelectSlot={({ start, end }) => onCreateSlot(start, end)}
@@ -232,7 +246,7 @@ export default function AgendaCalendarView({
               );
             },
           }}
-          style={{ height: 560 }}
+          style={{ height: calendarHeight }}
         />
       </div>
     </div>

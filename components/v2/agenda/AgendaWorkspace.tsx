@@ -14,12 +14,15 @@ import {
 import type { AgendaAppointment, AgendaSettings } from "../../../lib/agenda/agendaTypes";
 import type { AgendaStats } from "../../../app/actions/agenda";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
+import { useBranding } from "../../../lib/brandingContext";
+import AgendaBookingLinkPromo from "./AgendaBookingLinkPromo";
 import AgendaBookingPanel from "./AgendaBookingPanel";
 import AgendaCalendarView from "./AgendaCalendarView";
 import AgendaRequestsPanel from "./AgendaRequestsPanel";
 import AppointmentDetailPanel from "./AppointmentDetailPanel";
 import AppointmentFormModal from "./AppointmentFormModal";
 import V2TodoPage from "../todo/V2TodoPage";
+import AgendaIntroModal from "./AgendaIntroModal";
 
 type TabId = "calendar" | "booking" | "requests" | "today";
 
@@ -30,6 +33,7 @@ type AgendaWorkspaceProps = {
 
 export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProps) {
   const { t } = useTranslation();
+  const { branding, reload } = useBranding();
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -78,6 +82,16 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
   );
 
   return (
+    <>
+      {!branding.agendaIntroCompleted ? (
+        <AgendaIntroModal
+          onComplete={() => {
+            void reload();
+          }}
+        />
+      ) : null}
+
+      <div className={!branding.agendaIntroCompleted ? "pointer-events-none select-none opacity-40" : ""}>
     <div className="space-y-5">
       <header className="ui-surface rounded-2xl border-l-4 border-l-[var(--accent)] p-5">
         <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
@@ -101,45 +115,71 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
         </div>
       </header>
 
+      <AgendaBookingLinkPromo
+        settings={settings}
+        onCustomize={() => setTab("booking")}
+        hidden={activeTab === "booking"}
+      />
+
       <div className="flex flex-wrap gap-2">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={[
-              "ui-btn gap-2 text-sm",
-              activeTab === id ? "ui-btn-primary" : "ui-btn-secondary",
-            ].join(" ")}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
+        {tabs.map(({ id, label, icon: Icon }) => {
+          const isActive = activeTab === id;
+          const isBookingTab = id === "booking";
+
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              className={[
+                "ui-btn gap-2 text-sm",
+                isActive
+                  ? "ui-btn-primary"
+                  : isBookingTab
+                    ? "ui-btn-secondary border-[color-mix(in_srgb,var(--accent)_45%,var(--line))] bg-[var(--accent-soft)] font-semibold text-[var(--foreground)] shadow-sm"
+                    : "ui-btn-secondary",
+              ].join(" ")}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+              {!isActive && isBookingTab ? (
+                <span className="rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[var(--accent-contrast)]">
+                  {t("agenda.workspace.bookingPromo.tabBadge")}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === "calendar" ? (
-        <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
-          <div key={refreshKey}>
-            <AgendaCalendarView
-              onSelectAppointment={(appt) => setSelected(appt)}
-              onCreateSlot={(start, end) => {
-                setEditing(null);
-                setSlotStart(start);
-                setSlotEnd(end);
-                setFormOpen(true);
-              }}
-            />
+        <div className="-mx-4 lg:-mx-8">
+          <div className={selected ? "grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]" : ""}>
+            <div key={refreshKey} className="min-w-0">
+              <AgendaCalendarView
+                onSelectAppointment={(appt) => setSelected(appt)}
+                onCreateSlot={(start, end) => {
+                  setEditing(null);
+                  setSlotStart(start);
+                  setSlotEnd(end);
+                  setFormOpen(true);
+                }}
+              />
+            </div>
+            {selected ? (
+              <div className="px-4 xl:px-0 xl:pr-8">
+                <AppointmentDetailPanel
+                  appointment={selected}
+                  onClose={() => setSelected(null)}
+                  onUpdated={handleRefresh}
+                  onEdit={(appt) => {
+                    setEditing(appt);
+                    setFormOpen(true);
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
-          <AppointmentDetailPanel
-            appointment={selected}
-            onClose={() => setSelected(null)}
-            onUpdated={handleRefresh}
-            onEdit={(appt) => {
-              setEditing(appt);
-              setFormOpen(true);
-            }}
-          />
         </div>
       ) : null}
 
@@ -173,5 +213,7 @@ export default function AgendaWorkspace({ settings, stats }: AgendaWorkspaceProp
         onSaved={handleRefresh}
       />
     </div>
+      </div>
+    </>
   );
 }

@@ -6,6 +6,7 @@ import type { BillingStatus, OrgPlan } from "./plans";
 export type BillingStatusSnapshot = {
   plan: OrgPlan;
   billingStatus: BillingStatus;
+  trialEndsAt: string | null;
   trialDaysLeft: number | null;
   accessAllowed: boolean;
   isAdmin: boolean;
@@ -22,6 +23,7 @@ type BillingPlanState = BillingStatusSnapshot & {
 const DEFAULTS: BillingStatusSnapshot = {
   plan: "trial",
   billingStatus: "trialing",
+  trialEndsAt: null,
   trialDaysLeft: null,
   accessAllowed: true,
   isAdmin: false,
@@ -49,6 +51,7 @@ export function useBillingPlan(): BillingPlanState {
       setState({
         plan: data.plan,
         billingStatus: (data.billingStatus as BillingStatus) ?? DEFAULTS.billingStatus,
+        trialEndsAt: typeof data.trialEndsAt === "string" ? data.trialEndsAt : null,
         trialDaysLeft: typeof data.trialDaysLeft === "number" ? data.trialDaysLeft : null,
         accessAllowed: data.accessAllowed !== false,
         isAdmin: Boolean(data.isAdmin),

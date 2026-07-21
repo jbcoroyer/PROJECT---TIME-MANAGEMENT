@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Trash2, Upload, X } from "lucide-react";
 import type { InventoryItem, InventoryItemDraft } from "../lib/inventoryTypes";
+import type { StockCategoryOption } from "../lib/stockCategories";
 import { uploadStockVisual } from "../lib/stockVisualUpload";
 import { STOCK_VISUAL_ACCEPT, stockVisualFileError } from "../lib/stockVisualUtils";
 import { toastError } from "../lib/toast";
@@ -12,6 +13,7 @@ import { useTranslation } from "../lib/i18n/useTranslation";
 type Props = {
   open: boolean;
   category: string;
+  categories: StockCategoryOption[];
   categoryLabel: string;
   initialItem: InventoryItem | null;
   onClose: () => void;
@@ -22,6 +24,7 @@ type Props = {
 export default function InventoryGenericModal({
   open,
   category,
+  categories,
   categoryLabel,
   initialItem,
   onClose,
@@ -44,6 +47,8 @@ export default function InventoryGenericModal({
     [category],
   );
 
+  const [selectedCategory, setSelectedCategory] = useState(category);
+
   const [itemType, setItemType] = useState("");
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("0");
@@ -57,6 +62,7 @@ export default function InventoryGenericModal({
   useEffect(() => {
     if (!open) return;
     const source = initialItem ?? defaultDraft;
+    setSelectedCategory(initialItem?.category ?? category);
     setItemType(source.itemType);
     setName(source.name);
     setQuantity(String(source.quantity));
@@ -65,7 +71,10 @@ export default function InventoryGenericModal({
     setVisualUrl(initialItem?.visualUrl ?? "");
     setVisualFile(null);
     setVisualPreviewUrl(null);
-  }, [open, initialItem, defaultDraft]);
+  }, [open, initialItem, defaultDraft, category]);
+
+  const resolvedCategoryLabel =
+    categories.find((c) => c.value === selectedCategory)?.label ?? categoryLabel;
 
   useEffect(() => {
     return () => {
@@ -86,7 +95,7 @@ export default function InventoryGenericModal({
     try {
       let resolvedVisualUrl = visualUrl.trim() || null;
       if (visualFile) {
-        const { path, url, error } = await uploadStockVisual(visualFile, category);
+        const { path, url, error } = await uploadStockVisual(visualFile, selectedCategory);
         if (error || !path) {
           toastError(t("stock.genericModal.uploadFailed", { error: error ?? "" }));
           return;
@@ -97,7 +106,7 @@ export default function InventoryGenericModal({
 
       await onSubmit({
         id: initialItem?.id,
-        category,
+        category: selectedCategory,
         itemType: itemType.trim(),
         name: name.trim(),
         quantity: Math.max(0, Math.round(Number(quantity) || 0)),
@@ -122,7 +131,7 @@ export default function InventoryGenericModal({
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--foreground)]/50">
-              {categoryLabel}
+              {resolvedCategoryLabel}
             </p>
             <h2 className="ui-heading mt-1 text-2xl font-semibold text-[var(--foreground)]">
               {isEditing ? t("stock.genericModal.editTitle") : t("stock.genericModal.addTitle")}
@@ -139,6 +148,25 @@ export default function InventoryGenericModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {categories.length > 1 ? (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">
+                {t("stock.genericModal.categoryLabel")}
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(event) => setSelectedCategory(event.target.value)}
+                className="ui-focus-ring w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2.5 text-sm"
+              >
+                {categories.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-[color:var(--foreground)]/65">

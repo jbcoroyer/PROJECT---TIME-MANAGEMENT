@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
 import LandingPage from "../components/marketing/LandingPage";
-import { getDefaultModuleRoute } from "../lib/modules";
-import { getBrandingServer } from "../lib/server/getBrandingServer";
 import { getServerAuthUser } from "../lib/server/authSafe";
 import { createServerSupabase } from "../lib/server/supabaseServer";
 import { SETUP_PATH, INVITE_ACCEPT_PATH } from "../lib/setupPaths";
 import { needsInviteProfileCompletion } from "../lib/inviteOnboarding";
+import { resolveOrganizationSetupStatus } from "../lib/setup/resolveOrganizationSetupStatus";
 
 export default async function Home() {
   const supabase = await createServerSupabase();
@@ -19,10 +18,10 @@ export default async function Home() {
     redirect(INVITE_ACCEPT_PATH);
   }
 
-  const branding = await getBrandingServer();
-  if (!branding.isConfigured) {
+  const status = await resolveOrganizationSetupStatus();
+  if (!status.isConfiguredResolved) {
     redirect(SETUP_PATH);
   }
 
-  redirect(getDefaultModuleRoute(branding.enabledModules));
+  redirect(status.defaultRoute);
 }

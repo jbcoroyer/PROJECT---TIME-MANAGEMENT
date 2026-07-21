@@ -26,7 +26,7 @@ describe("intakeFormTemplates", () => {
     expect(def.questions.some((q) => q.id === INTAKE_QUESTION_IDS.requesterEmail)).toBe(
       true,
     );
-    expect(def.questions.length).toBe(8);
+    expect(def.questions.length).toBe(7);
   });
 
   it("builds project template with contact and project fields", () => {

@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle2, Send } from "lucide-react";
 import { fetchSurveyDefinition, submitSurveyResponse } from "../../app/actions/survey";
-import { NO_OPINION } from "../../lib/survey/surveyConstants";
 import { isQuestionVisible } from "../../lib/survey/surveyDefinitionUtils";
 import type { Question, SurveyAnswers, SurveyDefinition } from "../../lib/survey/surveyTypes";
 import { toastError } from "../../lib/toast";
-import { useReferenceData } from "../../lib/useReferenceData";
 import { useBranding } from "../../lib/brandingContext";
 import QuestionField from "./QuestionField";
 import SurveyBrandHeader from "./SurveyBrandHeader";
@@ -30,7 +28,6 @@ function isAnswered(question: Question, value: SurveyAnswers[string]): boolean {
 
 export default function SurveyForm({ surveyId }: SurveyFormProps) {
   const { t } = useTranslation();
-  const { companies } = useReferenceData();
   const { branding } = useBranding();
   const [definition, setDefinition] = useState<SurveyDefinition | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -38,6 +35,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<SurveyAnswers>({});
   const [submitting, setSubmitting] = useState(false);
+  const [invalidQuestionIds, setInvalidQuestionIds] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,11 +59,6 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
       cancelled = true;
     };
   }, [surveyId]);
-
-  const companyOptions = useMemo(() => {
-    const names = companies.map((c) => c.name).filter(Boolean);
-    return [...names, NO_OPINION];
-  }, [companies]);
 
   const prestationsQuestionId = definition?.exports?.prestationsQuestionId;
   const selectedPrestations = useMemo(() => {
@@ -97,19 +90,32 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
 
   const setAnswer = (id: string, value: SurveyAnswers[string]) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
+    setInvalidQuestionIds((prev) => prev.filter((qid) => qid !== id));
   };
 
-  const currentStepValid = useMemo(() => {
-    if (!current) return true;
-    return current.questions.every((q) => !q.required || isAnswered(q, answers[q.id]));
+  const getInvalidOnStep = useCallback(() => {
+    if (!current) return [] as string[];
+    return current.questions
+      .filter((q) => q.required && !isAnswered(q, answers[q.id]))
+      .map((q) => q.id);
   }, [current, answers]);
+
+  const focusFirstInvalid = (ids: string[]) => {
+    if (ids.length === 0) return;
+    const el = document.getElementById(`survey-q-${ids[0]}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   const goNext = () => {
     if (!definition) return;
-    if (!currentStepValid) {
+    const invalid = getInvalidOnStep();
+    if (invalid.length > 0) {
+      setInvalidQuestionIds(invalid);
+      focusFirstInvalid(invalid);
       toastError(t("survey.form.requiredError"));
       return;
     }
+    setInvalidQuestionIds([]);
     if (isLastStep) {
       void handleSubmit();
       return;
@@ -119,6 +125,11 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
   };
 
   const goBack = () => {
+    setInvalidQuestionIds([]);
+    if (safeIndex === 0) {
+      setPhase("intro");
+      return;
+    }
     setStepIndex((i) => Math.max(0, i - 1));
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -258,9 +269,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
                       question={q}
                       value={answers[q.id]}
                       onChange={(v) => setAnswer(q.id, v)}
-                      optionsOverride={
-                        q.optionsSource === "companies" ? companyOptions : undefined
-                      }
+                      hasError={invalidQuestionIds.includes(q.id)}
                     />
                   ))}
                 </div>
@@ -271,7 +280,7 @@ export default function SurveyForm({ surveyId }: SurveyFormProps) {
               <button
                 type="button"
                 onClick={goBack}
-                disabled={safeIndex === 0 || submitting}
+                disabled={submitting}
                 className="ui-btn ui-btn-ghost gap-2 disabled:opacity-40"
               >
                 <ArrowLeft className="h-4 w-4" />

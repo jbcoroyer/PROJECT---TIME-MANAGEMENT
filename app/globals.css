@@ -1233,6 +1233,27 @@ select.ui-input {
   background: var(--rbc-soft-bg) !important;
 }
 
+.agenda-calendar-shell .rbc-calendar {
+  border-radius: 0 !important;
+}
+
+.agenda-calendar-shell .rbc-month-view,
+.agenda-calendar-shell .rbc-time-view,
+.agenda-calendar-shell .rbc-agenda-view {
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  overflow: visible !important;
+}
+
+.agenda-calendar-shell .rbc-time-content {
+  overflow-y: visible !important;
+}
+
+.agenda-calendar-shell .rbc-time-view {
+  overflow: visible !important;
+}
+
 .ui-reduce-motion *,
 .ui-reduce-motion *::before,
 .ui-reduce-motion *::after {

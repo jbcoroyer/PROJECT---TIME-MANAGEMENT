@@ -55,11 +55,18 @@ const frCore: MessageTree = {
     pendingBody:
       "L'application n'est pas encore configurée. Seul un administrateur peut terminer l'installation. Contactez votre responsable ou connectez-vous avec un compte admin.",
     backHome: "Retour à l'accueil",
+    switchAccount: "Utiliser un autre compte",
+    provisioningTitle: "Création de votre espace…",
+    provisioningBody:
+      "Votre compte est connecté mais votre espace n'est pas encore prêt. Patientez quelques secondes puis réessayez.",
+    provisioningRetry: "Réessayer",
     stepOf: "Étape {step} sur 4",
+    stepOfWithTotal: "Étape {step} sur {total}",
     step1Title: "Votre organisation",
     step2Title: "Apparence",
     step3Title: "Vos besoins",
     step4Title: "Derniers réglages",
+    step5Title: "Vos disponibilités",
     step1Intro:
       "Donnez un nom à votre espace. Ce nom apparaîtra dans le menu, sur la page de connexion et dans l'onglet du navigateur.",
     step2Intro:
@@ -68,6 +75,20 @@ const frCore: MessageTree = {
       "Répondez à quelques questions pour que nous vous proposions les modules adaptés à votre activité.",
     step3HeroTitle: "Choisissez les briques de votre espace",
     step4Intro: "Ces réglages peuvent être modifiés plus tard dans les paramètres.",
+    workHours: {
+      intro:
+        "Indiquez vos créneaux habituels pour la prise de rendez-vous en ligne. Exemple : du lundi au vendredi, 9h–12h30 puis 14h–17h.",
+      weekdaysLabel: "Disponible du lundi au vendredi",
+      scheduleTitle: "Horaires type en semaine",
+      morning: "Matin",
+      afternoon: "Après-midi",
+      from: "De",
+      to: "À",
+      weekendHint: "Le week-end est désactivé par défaut. Vous pourrez ajuster chaque jour dans l'Agenda.",
+      invalidMorning: "L'horaire du matin doit se terminer après le début.",
+      invalidAfternoon: "L'horaire de l'après-midi doit se terminer après le début.",
+      invalidBreak: "La pause déjeuner doit être cohérente (fin du matin ≤ début de l'après-midi).",
+    },
     appName: "Nom de l'application",
     appNamePlaceholder: "Ex. Mon équipe, Agence Dupont…",
     primaryColor: "Couleur principale",
@@ -623,6 +644,9 @@ const frCore: MessageTree = {
       ctaAskAdmin: "Voir les tarifs",
       ctaManage: "Gérer l'abonnement",
       daysLabel: "jours",
+      countdownLastDay: "restantes",
+      countdownAriaDays: "{days} jour(s) et {time} restants dans l'essai",
+      countdownAriaTime: "{time} restantes dans l'essai",
       activeKicker: "Abonnement",
       activeTitle: "Espace actif",
       activeBody: "{count} collab. · tout inclus dès {floor} €/mois ou {annualFloor} €/an",
@@ -1137,14 +1161,24 @@ const frCore: MessageTree = {
       body: "Modifiez les filtres ou la recherche pour afficher des articles.",
     },
     ideas: {
-      title: "La boîte à idées attend sa première pépite",
-      body: "Collectez suggestions et priorisez-les en équipe — plus besoin de fils de mails perdus.",
+      title: "La boîte à idées attend sa première suggestion",
+      body: "Un titre, quelques lignes, c'est tout — l'équipe vote et fait avancer les idées utiles.",
       cta: "Proposer une idée",
     },
     okr: {
       title: "Aucun objectif défini",
       body: "Fixez des OKR mesurables pour relier la stratégie au quotidien de l’équipe.",
       cta: "Créer un objectif",
+      team: {
+        title: "Aucun objectif d'équipe",
+        body: "Définissez des OKR partagés pour aligner toute l'équipe sur les mêmes priorités.",
+        cta: "Créer un objectif d'équipe",
+      },
+      personal: {
+        title: "Aucun objectif personnel",
+        body: "Fixez vos propres objectifs de développement — visibles uniquement par vous.",
+        cta: "Créer un objectif personnel",
+      },
     },
     survey: {
       title: "Aucune enquête pour le moment",

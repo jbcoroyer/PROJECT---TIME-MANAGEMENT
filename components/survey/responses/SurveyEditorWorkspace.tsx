@@ -57,6 +57,7 @@ type SurveyEditorWorkspaceProps = {
   backLabel?: string;
   successMessage?: string;
   showPrestationRules?: boolean;
+  hideBackNav?: boolean;
 };
 
 const inputClass =
@@ -140,6 +141,7 @@ export default function SurveyEditorWorkspace({
   backLabel,
   successMessage,
   showPrestationRules = true,
+  hideBackNav = false,
 }: SurveyEditorWorkspaceProps) {
   const { t } = useTranslation();
   const confirm = useConfirm();
@@ -470,13 +472,15 @@ export default function SurveyEditorWorkspace({
     <div className="space-y-5">
       <header className="ui-surface sticky top-2 z-20 flex flex-wrap items-center justify-between gap-4 rounded-2xl p-5">
         <div>
-          <Link
-            href={backHref}
-            className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            {resolvedBackLabel}
-          </Link>
+          {!hideBackNav ? (
+            <Link
+              href={backHref}
+              className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {resolvedBackLabel}
+            </Link>
+          ) : null}
           <h1 className="ui-display text-2xl text-[var(--foreground)]">{t("survey.editor.title")}</h1>
           <p className="mt-1 text-sm text-[color:var(--foreground)]/60">
             {title} · {t("survey.editor.screenCount", { count: sections.length })} ·{" "}

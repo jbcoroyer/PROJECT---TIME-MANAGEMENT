@@ -36,11 +36,6 @@ export type Question = {
   placeholder?: string;
   /** Variante HTML pour les champs texte (e-mail, date…). */
   inputVariant?: "email" | "date";
-  /**
-   * Source dynamique pour les options (ex. liste des sociétés depuis la base).
-   * Remplace les options statiques au moment de l'affichage.
-   */
-  optionsSource?: "companies";
 };
 
 /** Mapping optionnel question → colonnes dénormalisées de survey_responses. */

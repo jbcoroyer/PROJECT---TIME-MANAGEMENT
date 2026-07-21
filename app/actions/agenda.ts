@@ -242,6 +242,72 @@ export async function updateAgendaSettings(
   return { ok: true };
 }
 
+/** Marque l'intro agenda comme vue (popup obligatoire à la première visite). */
+export async function completeAgendaIntro(): Promise<ActionResult> {
+  const ctx = await getServerOrgContext();
+  if (!ctx) return { ok: false, error: "Non autorisé." };
+
+  const supabase = await createServerSupabase();
+  const { error } = await supabase
+    .from("app_settings")
+    .update({
+      agenda_intro_completed: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("organization_id", ctx.organizationId);
+
+  if (error) return { ok: false, error: error.message ?? "Enregistrement impossible." };
+
+  revalidatePath("/", "layout");
+  revalidateAgenda();
+  return { ok: true };
+}
+
+/** Crée ou met à jour les paramètres agenda pour une organisation. */
+export async function initializeOrgAgendaSettingsForOrg(
+  organizationId: string,
+  workHours: WorkHours,
+): Promise<ActionResult> {
+  const admin = createSupabaseAdmin();
+  const { data: existing } = await admin
+    .from("agenda_settings")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  if (existing?.id) {
+    const { error } = await admin
+      .from("agenda_settings")
+      .update({ work_hours: workHours, updated_at: new Date().toISOString() })
+      .eq("id", existing.id);
+    if (error) return { ok: false, error: error.message ?? "Mise à jour impossible." };
+    return { ok: true };
+  }
+
+  const settingsId = crypto.randomUUID();
+  const publicPath = defaultPublicPathForAgenda(settingsId);
+  const { error } = await admin.from("agenda_settings").insert({
+    id: settingsId,
+    organization_id: organizationId,
+    title: "Prendre rendez-vous",
+    welcome_message:
+      "Choisissez un créneau disponible. Vous recevrez une confirmation par e-mail.",
+    public_path: publicPath,
+    status: "active",
+    work_hours: workHours,
+  });
+
+  if (error) return { ok: false, error: error.message ?? "Création impossible." };
+  return { ok: true };
+}
+
+/** Crée ou met à jour les paramètres agenda lors de l'installation initiale. */
+export async function initializeOrgAgendaSettings(workHours: WorkHours): Promise<ActionResult> {
+  const ctx = await getServerOrgContext();
+  if (!ctx) return { ok: false, error: "Organisation introuvable." };
+  return initializeOrgAgendaSettingsForOrg(ctx.organizationId, workHours);
+}
+
 /** Rendez-vous sur une plage de dates. */
 export async function listAgendaAppointments(
   rangeStart: string,

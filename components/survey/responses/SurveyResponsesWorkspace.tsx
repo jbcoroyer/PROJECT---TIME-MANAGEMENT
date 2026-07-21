@@ -1,11 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, BarChart3, Download, Inbox, ListChecks, Smile, ThumbsUp, Users } from "lucide-react";
+import { BarChart3, Download, Inbox, ListChecks, Smile, ThumbsUp, Users } from "lucide-react";
 import { deleteSurveyResponse, fetchSurveyDefinition } from "../../../app/actions/survey";
 import { useConfirm } from "../../ui/ConfirmDialog";
-import { useBranding } from "../../../lib/brandingContext";
 import { findQuestion } from "../../../lib/survey/surveyDefinitionUtils";
 import {
   collectVerbatims,
@@ -23,6 +21,7 @@ import { useRealtimeReload } from "../../../lib/useRealtimeReload";
 import { DistributionChart, RatingAveragesChart } from "./SurveyCharts";
 import SurveyResponseList from "./SurveyResponseList";
 import SurveyVerbatims from "./SurveyVerbatims";
+import SurveyDetailNav, { SurveyCopyLinkButton, SurveyPreviewLink } from "./SurveyDetailNav";
 import { useTranslation } from "../../../lib/i18n/useTranslation";
 
 type PeriodPreset = "all" | "30" | "90" | "365";
@@ -68,7 +67,6 @@ export default function SurveyResponsesWorkspace({
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const confirm = useConfirm();
   const { t } = useTranslation();
-  const { branding } = useBranding();
   const [definition, setDefinition] = useState<SurveyDefinition | null>(null);
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,28 +203,27 @@ export default function SurveyResponsesWorkspace({
     toastSuccess(t("survey.responses.toast.deleted"));
   };
 
+  const hasEntityFilter = entityOptions.length > 0;
+  const hasServiceFilter = serviceOptions.length > 0;
+  const hasPrestationFilter = prestationOptions.length > 0;
+
   const selectClass =
     "ui-focus-ring rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]";
 
   return (
     <div className="space-y-5">
       <header className="ui-surface flex flex-wrap items-center justify-between gap-4 p-5">
-        <div>
-          <Link
-            href={`/questionnaire/reponses/${surveyId}`}
-            className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--foreground)]/50 hover:text-[var(--foreground)]"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            {t("survey.responses.back")}
-          </Link>
-          <p className="ui-kicker mb-1">{branding.appName}</p>
-          <h1 className="ui-display text-2xl text-[var(--foreground)]">{t("survey.responses.title")}</h1>
-          <p className="mt-1 text-sm text-[color:var(--foreground)]/60">{title}</p>
+        <div className="min-w-0 flex-1">
+          <SurveyDetailNav surveyId={surveyId} active="responses" title={title} />
         </div>
-        <button type="button" onClick={handleExport} className="ui-btn ui-btn-secondary gap-2">
-          <Download className="h-4 w-4" />
-          {t("survey.responses.export")}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <SurveyCopyLinkButton publicPath={publicPath} />
+          <SurveyPreviewLink publicPath={publicPath} />
+          <button type="button" onClick={handleExport} className="ui-btn ui-btn-secondary gap-2">
+            <Download className="h-4 w-4" />
+            {t("survey.responses.export")}
+          </button>
+        </div>
       </header>
 
       <div className="inline-flex rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1">
@@ -258,43 +255,49 @@ export default function SurveyResponsesWorkspace({
         <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--foreground)]/45">
           {t("survey.responses.filters")}
         </span>
-        <select value={entity} onChange={(e) => setEntity(e.target.value)} className={selectClass}>
-          <option value="all">{t("survey.responses.allEntities")}</option>
-          {entityOptions.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-        <select value={service} onChange={(e) => setService(e.target.value)} className={selectClass}>
-          <option value="all">{t("survey.responses.allServices")}</option>
-          {serviceOptions.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-        <select
-          value={prestation}
-          onChange={(e) => setPrestation(e.target.value)}
-          className={selectClass}
-        >
-          <option value="all">{t("survey.responses.allPrestations")}</option>
-          {prestationOptions.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value as PeriodPreset)}
-          className={selectClass}
-        >
-          <option value="all">{t("survey.responses.allPeriod")}</option>
-          <option value="30">30 derniers jours</option>
-          <option value="90">90 derniers jours</option>
-          <option value="365">12 derniers mois</option>
+        {hasEntityFilter ? (
+            <select value={entity} onChange={(e) => setEntity(e.target.value)} className={selectClass}>
+              <option value="all">{t("survey.responses.allEntities")}</option>
+              {entityOptions.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          ) : null}
+          {hasServiceFilter ? (
+            <select value={service} onChange={(e) => setService(e.target.value)} className={selectClass}>
+              <option value="all">{t("survey.responses.allServices")}</option>
+              {serviceOptions.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          ) : null}
+          {hasPrestationFilter ? (
+            <select
+              value={prestation}
+              onChange={(e) => setPrestation(e.target.value)}
+              className={selectClass}
+            >
+              <option value="all">{t("survey.responses.allPrestations")}</option>
+              {prestationOptions.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          ) : null}
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as PeriodPreset)}
+            className={selectClass}
+          >
+            <option value="all">{t("survey.responses.allPeriod")}</option>
+            <option value="30">{t("survey.responses.last30")}</option>
+            <option value="90">{t("survey.responses.last90")}</option>
+            <option value="365">{t("survey.responses.last365")}</option>
         </select>
       </div>
 
@@ -334,13 +337,13 @@ export default function SurveyResponsesWorkspace({
             />
             <KpiCard
               icon={Smile}
-              label="Satisfaction moy. (/10)"
+              label={t("survey.responses.kpiSatisfaction")}
               value={satisfactionAvg != null ? satisfactionAvg.toFixed(1) : "—"}
               accent="ui-pill ui-pill-success"
             />
             <KpiCard
               icon={ThumbsUp}
-              label="NPS"
+              label={t("survey.responses.kpiNps")}
               value={nps.score != null ? String(nps.score) : "—"}
               accent="ui-pill ui-pill-brand"
             />

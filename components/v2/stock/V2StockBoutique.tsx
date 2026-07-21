@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -15,6 +16,7 @@ import {
   RefreshCcw,
   Rows3,
   Search,
+  Settings2,
   Sparkles,
   Trash2,
   Upload,
@@ -843,6 +845,14 @@ export default function V2StockBoutique(_props: { basePath?: string } = {}) {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/stock/settings"
+            className="ui-transition inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[color:var(--foreground)]/70 hover:bg-[var(--surface-soft)]"
+            title={t("stock.nav.settings")}
+            aria-label={t("stock.nav.settings")}
+          >
+            <Settings2 className="h-4 w-4" />
+          </Link>
           <div className="relative">
             <button
               type="button"
@@ -1223,9 +1233,15 @@ export default function V2StockBoutique(_props: { basePath?: string } = {}) {
       <InventoryGenericModal
         open={genericModalOpen}
         category={createCategory}
+        categories={stockCategories}
         categoryLabel={categoryLabel(createCategory)}
         initialItem={
-          editingItem && editingItem.category === createCategory ? editingItem : null
+          editingItem &&
+          editingItem.category !== "Print" &&
+          editingItem.category !== "PLV" &&
+          editingItem.category !== "Goodies"
+            ? editingItem
+            : null
         }
         onClose={() => {
           setGenericModalOpen(false);

@@ -32,8 +32,11 @@ type BrandingContextValue = {
 
 const BrandingContext = createContext<BrandingContextValue | null>(null);
 
-const APP_SETTINGS_SELECT =
-  "id, organization_id, idena_mark_url, app_name, app_short_name, tagline, logo_url, icon_url, mark_url, primary_color, locale, timezone, sector, outlook_category_name, default_public_survey_id, is_configured, social_thematics, print_species, enabled_modules, inventory_categories, stock_onboarding_completed, updated_at";
+import {
+  APP_SETTINGS_CORE_SELECT,
+  APP_SETTINGS_SELECT,
+} from "./appSettings/columns";
+import { isSchemaColumnError } from "./appSettings/fetchAppSettingsRow";
 
 function applyBrandingToDocument(branding: AppBranding) {
   if (typeof document === "undefined") return;
@@ -69,6 +72,25 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     }
 
     const { data, error } = await query.maybeSingle();
+
+    if (error && isSchemaColumnError(error)) {
+      console.warn("[Branding] colonne manquante, repli select core:", error.message);
+      const core = await supabase
+        .from("app_settings")
+        .select(APP_SETTINGS_CORE_SELECT)
+        .eq("organization_id", organizationId ?? LEGACY_ORG_ID)
+        .maybeSingle();
+      if (!core.error) {
+        const next = mergeBranding(core.data ? mapAppSettingsRow(core.data) : null);
+        const resolvedMark = next.markUrl
+          ? await resolveStorageAssetUrl(supabase, APP_MARK_STORAGE_BUCKET, next.markUrl)
+          : null;
+        setBranding({ ...next, markUrl: resolvedMark ?? next.markUrl });
+        applyBrandingToDocument({ ...next, markUrl: resolvedMark ?? next.markUrl });
+        setLoading(false);
+        return;
+      }
+    }
 
     if (error) {
       console.warn("[Branding] app_settings:", error.message);

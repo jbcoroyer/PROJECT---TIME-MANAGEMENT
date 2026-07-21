@@ -16,6 +16,7 @@ import BrandColorPicker from "./BrandColorPicker";
 import { extractAccentColorsFromFile, extractAccentColorsFromImageSource } from "../../lib/detectLogoAccentColor";
 import { isImageWithinServerActionLimit } from "../../lib/imageUploadLimits";
 import ModuleQuestionnaire from "./ModuleQuestionnaire";
+import SetupWorkHoursStep from "./SetupWorkHoursStep";
 import { TRIAL_DAYS } from "../../lib/billing/plans";
 import { brandingStyleVars } from "../../lib/branding";
 import { useBranding } from "../../lib/brandingContext";
@@ -26,6 +27,11 @@ import { APP_MARK_STORAGE_BUCKET } from "../../lib/storageBuckets";
 import { useCurrentUser } from "../../lib/useCurrentUser";
 import { normalizeHexColor } from "../../lib/brandColorPresets";
 import { DEFAULT_ONBOARDING_MODULES, getDefaultModuleRoute, type AppModuleId } from "../../lib/modules";
+import {
+  buildWorkHoursFromSetup,
+  DEFAULT_SETUP_AVAILABILITY,
+  type SetupAvailabilityInput,
+} from "../../lib/agenda/workHoursUtils";
 import { toastError, toastSuccess } from "../../lib/toast";
 import "./setup-onboarding.css";
 
@@ -47,7 +53,7 @@ const SECTOR_OPTIONS = [
   { value: "other", labelKey: "setup.sectors.other" },
 ] as const;
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 function initialAppName(brandingName: string): string {
   const name = brandingName.trim();
@@ -76,6 +82,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
   const [sector, setSector] = useState(branding.sector ?? "");
   const [locale, setLocale] = useState<AppLocale>(() => readStoredLocale() ?? detectBrowserLocale());
   const [enabledModules, setEnabledModules] = useState<AppModuleId[]>([...DEFAULT_ONBOARDING_MODULES]);
+  const [availability, setAvailability] = useState<SetupAvailabilityInput>(DEFAULT_SETUP_AVAILABILITY);
   const [markUploading, setMarkUploading] = useState(false);
   const [logoAccentColors, setLogoAccentColors] = useState<string[]>([]);
   const [modulePhase, setModulePhase] = useState<"questions" | "recommendation">("questions");
@@ -119,6 +126,22 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
 
   const previewName = appName.trim() || branding.appName || "Workspace";
   const organizationId = user?.organizationId ?? branding.organizationId;
+  const includesWorkspace = enabledModules.includes("workspace");
+  const totalSteps: Step = includesWorkspace ? 5 : 4;
+
+  function validateAvailability(): string | null {
+    if (!includesWorkspace || !availability.weekdaysEnabled) return null;
+    if (availability.morningStart >= availability.morningEnd) {
+      return t("setup.workHours.invalidMorning");
+    }
+    if (availability.afternoonStart >= availability.afternoonEnd) {
+      return t("setup.workHours.invalidAfternoon");
+    }
+    if (availability.morningEnd > availability.afternoonStart) {
+      return t("setup.workHours.invalidBreak");
+    }
+    return null;
+  }
 
   async function handleMarkUpload(file: File) {
     if (!organizationId) {
@@ -174,6 +197,14 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
     setSubmitting(true);
     setError(null);
 
+    const availabilityError = validateAvailability();
+    if (availabilityError) {
+      setError(availabilityError);
+      setSubmitting(false);
+      if (includesWorkspace) setStep(5);
+      return;
+    }
+
     const result = await completeInitialSetup({
       appName: name,
       appShortName: name,
@@ -185,6 +216,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
       locale: selectedLocale,
       isConfigured: true,
       enabledModules,
+      setupWorkHours: includesWorkspace ? buildWorkHoursFromSetup(availability) : undefined,
     });
 
     if (!result.ok) {
@@ -220,7 +252,9 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
         ? t("setup.step2Title")
         : step === 3
           ? t("setup.step3Title")
-          : t("setup.step4Title");
+          : step === 4
+            ? t("setup.step4Title")
+            : t("setup.step5Title");
 
   return (
     <div style={brandingStyleVars(primaryColor) as CSSProperties}>
@@ -228,14 +262,14 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="ui-mono-label uppercase">
-              {t("setup.stepOf", { step }).replace(/\s/g, " ").toUpperCase()}
+              {t("setup.stepOfWithTotal", { step, total: totalSteps }).replace(/\s/g, " ").toUpperCase()}
             </p>
             <h2 className="ui-heading mt-1.5 text-[21px] text-[var(--foreground)] sm:text-[1.35rem]">
               {stepTitle}
             </h2>
           </div>
           <div className="setup-steps w-full max-w-[14rem] sm:max-w-[16rem]" aria-hidden>
-            {([1, 2, 3, 4] as Step[]).map((n) => (
+            {Array.from({ length: totalSteps }, (_, i) => i + 1).map((n) => (
               <span
                 key={n}
                 className={[
@@ -426,6 +460,10 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
               </div>
             </div>
           )}
+
+          {step === 5 && includesWorkspace ? (
+            <SetupWorkHoursStep value={availability} onChange={setAvailability} />
+          ) : null}
         </div>
 
         {error ? (
@@ -443,7 +481,7 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
             {t("common.back")}
           </button>
 
-          {step < 4 ? (
+          {step < totalSteps ? (
             <button
               type="button"
               onClick={() => {
@@ -459,8 +497,15 @@ export default function SetupWizard({ onAccentChange, localeOverride, onLocaleCh
                   setError(t("setup.modulesRequired"));
                   return;
                 }
+                if (step === 5) {
+                  const availabilityError = validateAvailability();
+                  if (availabilityError) {
+                    setError(availabilityError);
+                    return;
+                  }
+                }
                 setError(null);
-                setStep((s) => (s < 4 ? ((s + 1) as Step) : s));
+                setStep((s) => (s < totalSteps ? ((s + 1) as Step) : s));
               }}
               className="ui-btn ui-btn-primary"
             >
