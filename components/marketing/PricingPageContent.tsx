@@ -20,6 +20,7 @@ import {
   type BillingInterval,
 } from "../../lib/billing/plans";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { getProductIdentity } from "../../lib/config/legal";
 import "../../components/marketing/marketing.css";
 
 const EXAMPLE_SIZES = [1, 5, 6, 12] as const;
@@ -148,7 +149,9 @@ export default function PricingPageContent() {
                     : t("marketingPricing.page.perUserMonth")}
                 </span>
               </p>
-              <h2 className="mkt-pricing-card__name">{t("marketingPricing.page.planName")}</h2>
+              <h2 className="mkt-pricing-card__name">
+                {t("marketingPricing.page.planName", { product: getProductIdentity().productName })}
+              </h2>
               <p className="mkt-pricing-card__desc">
                 {t("marketingPricing.page.planDesc", {
                   floor: p.floor,

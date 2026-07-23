@@ -17,6 +17,7 @@ import {
 import { LANDING_MODULE_ORDER } from "../../lib/modules/moduleGlyphs";
 import type { AppModuleId } from "../../lib/modules";
 import { useTranslation } from "../../lib/i18n/useTranslation";
+import { getProductIdentity } from "../../lib/config/legal";
 import "./marketing.css";
 
 const MARQUEE_KEYS = [
@@ -73,6 +74,7 @@ export default function LandingPageContent() {
     scrollToSection(id);
   }, []);
 
+  const productName = getProductIdentity().productName;
   const priceParams = {
     seat: PRICE_PER_SEAT_EUR,
     annualSeat: PRICE_PER_SEAT_ANNUAL_EUR,
@@ -83,6 +85,7 @@ export default function LandingPageContent() {
     monthly: PRICE_PER_SEAT_EUR,
     annual: PRICE_PER_SEAT_ANNUAL_EUR,
     price: PRICE_PER_SEAT_EUR,
+    product: productName,
   };
 
   const heroStats = [
@@ -256,7 +259,7 @@ export default function LandingPageContent() {
                 </em>
               </h2>
               <p className="mt-5 max-w-[620px] text-base leading-relaxed text-[var(--ink-muted)]">
-                {t("marketingLanding.benefits.intro")}
+                {t("marketingLanding.benefits.intro", { product: productName })}
               </p>
             </ScrollReveal>
 
@@ -376,7 +379,7 @@ export default function LandingPageContent() {
           <div className="mx-auto max-w-[1280px]">
             <ScrollReveal>
               <span className="ui-kicker text-[12px] tracking-[0.18em]">
-                {t("marketingLanding.why.kicker")}
+                {t("marketingLanding.why.kicker", { product: productName })}
               </span>
               <div className="mt-7 grid grid-cols-1 items-start gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
                 <div>
