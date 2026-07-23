@@ -68,19 +68,6 @@ const nextConfig: NextConfig = {
     return [
       { source: "/v2", destination: "/dashboard/kanban", permanent: true },
       { source: "/v2/:path*", destination: "/:path*", permanent: true },
-      // Protège la marque en redirigeant les anciens domaines .fr vers le domaine principal .com
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "regiepilot.fr" }],
-        destination: "https://regiepilot.com/:path*",
-        statusCode: 301,
-      },
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.regiepilot.fr" }],
-        destination: "https://regiepilot.com/:path*",
-        statusCode: 301,
-      },
     ];
   },
   async headers() {
