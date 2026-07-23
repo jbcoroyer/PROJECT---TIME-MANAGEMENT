@@ -73,13 +73,13 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         has: [{ type: "host", value: "regiepilot.fr" }],
         destination: "https://regiepilot.com/:path*",
-        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.regiepilot.fr" }],
         destination: "https://regiepilot.com/:path*",
-        permanent: true,
+        statusCode: 301,
       },
     ];
   },
