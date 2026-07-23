@@ -42,7 +42,7 @@ export const marketingLandingEn = {
     title1: "Replace the tool stack",
     titleEmphasis: "with one workflow.",
     intro:
-      "WorkSpace is not a generic to-do app: it's project and planning management for marketing, ops, events, leadership — from request to delivery.",
+      "{product} is not a generic to-do app: it's project and planning management for marketing, ops, events, leadership — from request to delivery.",
     b1Title: "One workspace for the whole team",
     b1Body:
       "Projects, requests, planning, events, files and feedback in one tool — no more bouncing between Notion, Trello, Drive and Excel.",
@@ -83,7 +83,7 @@ export const marketingLandingEn = {
     aiDesc: "Rephrase, summarize, repurpose content — and sync deadlines to Outlook 365.",
   },
   why: {
-    kicker: "Why WorkSpace",
+    kicker: "Why {product}",
     quote:
       "« €{seat} per user, everything included. The team grows, the bill stays clear — no hidden tiers. »",
     p1: "All included: 11 modules + AI + Outlook + Slack / Teams alerts",

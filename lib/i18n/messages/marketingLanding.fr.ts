@@ -43,7 +43,7 @@ export const marketingLandingFr = {
     title1: "Remplacez la pile d'outils",
     titleEmphasis: "par un vrai workflow.",
     intro:
-      "WorkSpace n'est pas une to-do générique : c'est un espace de gestion de projet et de planification pour marketing, ops, événementiel, direction — du besoin à la livraison.",
+      "{product} n'est pas une to-do générique : c'est un espace de gestion de projet et de planification pour marketing, ops, événementiel, direction — du besoin à la livraison.",
     b1Title: "Un seul espace pour toute l'équipe",
     b1Body:
       "Projets, demandes, planning, événements, fichiers et feedback dans le même outil — fini les allers-retours entre Notion, Trello, Drive et Excel.",
@@ -85,7 +85,7 @@ export const marketingLandingFr = {
       "Reformulez, résumez, recyclez des contenus — et synchronisez vos échéances vers Outlook 365.",
   },
   why: {
-    kicker: "Pourquoi WorkSpace",
+    kicker: "Pourquoi {product}",
     quote:
       "« {seat} € par utilisateur, tout inclus. L'équipe grandit, la facture reste claire — sans paliers cachés. »",
     p1: "Tout inclus : 11 modules + IA + Outlook + alertes Slack / Teams",

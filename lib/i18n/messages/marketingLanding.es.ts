@@ -42,7 +42,7 @@ export const marketingLandingEs = {
     title1: "Sustituye la pila de herramientas",
     titleEmphasis: "por un flujo real.",
     intro:
-      "WorkSpace no es una lista de tareas genérica: es gestión de proyectos y planificación para marketing, ops, eventos, dirección — de la necesidad a la entrega.",
+      "{product} no es una lista de tareas genérica: es gestión de proyectos y planificación para marketing, ops, eventos, dirección — de la necesidad a la entrega.",
     b1Title: "Un solo espacio para todo el equipo",
     b1Body:
       "Proyectos, solicitudes, planning, eventos, archivos y feedback en la misma herramienta — sin ir y venir entre Notion, Trello, Drive y Excel.",
@@ -83,7 +83,7 @@ export const marketingLandingEs = {
     aiDesc: "Reformula, resume, recicla contenidos — y sincroniza plazos con Outlook 365.",
   },
   why: {
-    kicker: "Por qué WorkSpace",
+    kicker: "Por qué {product}",
     quote:
       "« {seat} € por usuario, todo incluido. El equipo crece, la factura sigue clara — sin niveles ocultos. »",
     p1: "Todo incluido: 11 módulos + IA + Outlook + alertas Slack / Teams",
