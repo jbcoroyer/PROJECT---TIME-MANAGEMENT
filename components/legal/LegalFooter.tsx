@@ -18,6 +18,9 @@ export default function LegalFooter() {
         <Link href="/terms" className="hover:text-[color:var(--foreground)]/70 hover:underline">
           {t("legal.footer.terms")}
         </Link>
+        <Link href="/security" className="hover:text-[color:var(--foreground)]/70 hover:underline">
+          {t("legal.footer.security")}
+        </Link>
         <Link href="/pricing" className="hover:text-[color:var(--foreground)]/70 hover:underline">
           {t("legal.footer.pricing")}
         </Link>

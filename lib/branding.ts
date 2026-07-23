@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { sanitizePrimaryColor } from "./brandColorPresets";
+import { getProductIdentity } from "./config/legal";
 import {
   DEFAULT_PRINT_SPECIES,
   DEFAULT_SOCIAL_THEMATICS,
@@ -123,10 +124,11 @@ export function isDefaultAppMarkSrc(src: string | null | undefined): boolean {
 }
 
 function envBrandingDefaults(): AppBranding {
+  const { productName } = getProductIdentity();
   return {
     organizationId: null,
-    appName: envString("NEXT_PUBLIC_APP_NAME") ?? "Workspace",
-    appShortName: envString("NEXT_PUBLIC_APP_SHORT_NAME", "NEXT_PUBLIC_APP_NAME") ?? "Workspace",
+    appName: envString("NEXT_PUBLIC_APP_NAME") ?? productName,
+    appShortName: envString("NEXT_PUBLIC_APP_SHORT_NAME", "NEXT_PUBLIC_APP_NAME") ?? productName,
     tagline: "",
     logoUrl: envString("NEXT_PUBLIC_APP_LOGO_SRC"),
     iconUrl: envString("NEXT_PUBLIC_APP_ICON_SRC"),
@@ -171,6 +173,14 @@ function pickNullable(
   return fromEnv || null;
 }
 
+/** Ancienne marque produit → nom commercial actuel. */
+function sanitizeLegacyProductName(name: string, productName: string): string {
+  const n = name.trim();
+  if (!n) return productName;
+  if (/^workspace$/i.test(n) || /^workspace solutions$/i.test(n)) return productName;
+  return n;
+}
+
 export function mapAppSettingsRow(row: unknown): AppSettingsRow {
   const r = row as Record<string, unknown>;
   return {
@@ -212,10 +222,17 @@ export function mergeBranding(row: AppSettingsRow | null | undefined): AppBrandi
     row?.idena_mark_url?.trim() ||
     null;
 
+  const { productName } = getProductIdentity();
   return {
     organizationId: pickNullable(row?.organization_id, env.organizationId),
-    appName: pickString(row?.app_name, env.appName, "Workspace"),
-    appShortName: pickString(row?.app_short_name, env.appShortName, "Workspace"),
+    appName: sanitizeLegacyProductName(
+      pickString(row?.app_name, env.appName, productName),
+      productName,
+    ),
+    appShortName: sanitizeLegacyProductName(
+      pickString(row?.app_short_name, env.appShortName, productName),
+      productName,
+    ),
     tagline: "",
     logoUrl: pickNullable(row?.logo_url, env.logoUrl),
     iconUrl: pickNullable(row?.icon_url, env.iconUrl),
@@ -242,6 +259,7 @@ export function mergeBranding(row: AppSettingsRow | null | undefined): AppBrandi
 
 export function brandingToMetadata(branding: AppBranding): Metadata {
   const description = `${branding.appName} — gestion de projet, événements et communication.`;
+  const icon = branding.iconUrl?.trim() || DEFAULT_APP_MARK_SRC;
 
   return {
     title: {
@@ -250,7 +268,10 @@ export function brandingToMetadata(branding: AppBranding): Metadata {
     },
     description,
     applicationName: branding.appShortName,
-    ...(branding.iconUrl ? { icons: { icon: branding.iconUrl } } : {}),
+    icons: {
+      icon: [{ url: icon }, { url: "/icon.svg", type: "image/svg+xml" }],
+      apple: icon,
+    },
   };
 }
 

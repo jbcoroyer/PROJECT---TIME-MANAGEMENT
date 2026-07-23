@@ -1,13 +1,41 @@
-/** Informations société fictives — à remplacer avant lancement commercial. */
-export const LEGAL_COMPANY = {
-  name: "Workspace Solutions SAS",
-  legalForm: "SAS",
-  capital: "10 000",
-  address: "42 avenue de la République, 75011 Paris, France",
-  rcs: "Paris 892 456 123",
-  siret: "892 456 123 00017",
-  vat: "FR89 892456123",
-  publisher: "Camille Dupont",
-  contactEmail: "contact@workspace-demo.fr",
-  dpoEmail: "dpo@workspace-demo.fr",
-} as const;
+import { getLegalConfig, getVatDisplay, type LegalConfig } from "../config/legal";
+
+/** Vue adaptateur pour les pages Mentions légales / Privacy / Security. */
+export type LegalCompany = {
+  name: string;
+  tradeName: string;
+  productName: string;
+  productTagline: string;
+  address: string;
+  siret: string;
+  apeCode: string;
+  vat: string;
+  vatExempt: boolean;
+  publisher: string;
+  contactEmail: string;
+  dpoEmail: string;
+  hostingProvider: string;
+  hostingProviderAddress: string;
+};
+
+export function mapLegalConfigToCompany(config: LegalConfig = getLegalConfig()): LegalCompany {
+  return {
+    name: config.legalName,
+    tradeName: config.tradeName,
+    productName: config.productName,
+    productTagline: config.productTagline,
+    address: config.registeredAddress,
+    siret: config.siret,
+    apeCode: config.apeCode,
+    vat: getVatDisplay(config),
+    vatExempt: !config.vatNumber.trim(),
+    publisher: config.publicationDirector,
+    contactEmail: config.contactEmail,
+    dpoEmail: config.dpoEmail,
+    hostingProvider: config.hostingProvider,
+    hostingProviderAddress: config.hostingProviderAddress,
+  };
+}
+
+/** Snapshot au chargement du module (pages serveur). */
+export const LEGAL_COMPANY: LegalCompany = mapLegalConfigToCompany();

@@ -11,14 +11,22 @@ export default function PrivacyPage() {
       <section>
         <h2 className="text-lg font-semibold text-[var(--foreground)]">1. Responsable du traitement</h2>
         <p className="mt-2">
-          Le responsable du traitement est {LEGAL_COMPANY.name}, {LEGAL_COMPANY.address}. Contact RGPD :{" "}
-          <a
-            href={`mailto:${LEGAL_COMPANY.dpoEmail}`}
-            className="text-[var(--brand-primary)] hover:underline"
-          >
-            {LEGAL_COMPANY.dpoEmail}
-          </a>
-          . Informations complètes dans les{" "}
+          Le responsable du traitement est {LEGAL_COMPANY.name}
+          {LEGAL_COMPANY.address ? <>, {LEGAL_COMPANY.address}</> : null}.
+          {LEGAL_COMPANY.dpoEmail ? (
+            <>
+              {" "}
+              Contact RGPD :{" "}
+              <a
+                href={`mailto:${LEGAL_COMPANY.dpoEmail}`}
+                className="text-[var(--brand-primary)] hover:underline"
+              >
+                {LEGAL_COMPANY.dpoEmail}
+              </a>
+              .
+            </>
+          ) : null}{" "}
+          Informations complètes dans les{" "}
           <a href="/legal" className="text-[var(--brand-primary)] hover:underline">
             mentions légales
           </a>

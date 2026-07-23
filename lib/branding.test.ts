@@ -1,12 +1,35 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { mergeBranding, mapAppSettingsRow } from "./branding";
+import { getProductIdentity } from "./config/legal";
 
 describe("mergeBranding", () => {
-  it("utilise Workspace par défaut sans ligne en base", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("utilise productName par défaut sans ligne en base", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_NAME", "");
+    vi.stubEnv("NEXT_PUBLIC_APP_SHORT_NAME", "");
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_NAME", "");
     const branding = mergeBranding(null);
-    expect(branding.appName).toBe("Workspace");
-    expect(branding.appShortName).toBe("Workspace");
+    const { productName } = getProductIdentity();
+    expect(productName).toBe("RegiePilot");
+    expect(branding.appName).toBe(productName);
+    expect(branding.appShortName).toBe(productName);
     expect(branding.isConfigured).toBe(false);
+  });
+
+  it("remplace l'ancienne marque Workspace par productName", () => {
+    vi.stubEnv("NEXT_PUBLIC_PRODUCT_NAME", "RegiePilot");
+    const branding = mergeBranding(
+      mapAppSettingsRow({
+        id: "default",
+        app_name: "Workspace",
+        app_short_name: "Workspace",
+      }),
+    );
+    expect(branding.appName).toBe("RegiePilot");
+    expect(branding.appShortName).toBe("RegiePilot");
   });
 
   it("priorise la base sur les défauts", () => {

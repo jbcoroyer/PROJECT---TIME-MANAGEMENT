@@ -9,41 +9,67 @@ export default function LegalPage() {
   const c = LEGAL_COMPANY;
 
   return (
-    <LegalDocument title="Mentions légales" lastUpdated="13 juillet 2026">
+    <LegalDocument title="Mentions légales" lastUpdated="23 juillet 2026">
       <section>
         <h2 className="text-lg font-semibold text-[var(--foreground)]">Éditeur du site</h2>
         <p className="mt-2">
           {c.name}
+          {c.tradeName ? (
+            <>
+              <br />
+              Enseigne : {c.tradeName}
+            </>
+          ) : null}
+          {c.productName ? (
+            <>
+              <br />
+              Produit : {c.productName}
+            </>
+          ) : null}
+          {c.address ? (
+            <>
+              <br />
+              Adresse : {c.address}
+            </>
+          ) : null}
+          {c.siret ? (
+            <>
+              <br />
+              SIRET : {c.siret}
+            </>
+          ) : null}
+          {c.apeCode ? (
+            <>
+              <br />
+              Code APE : {c.apeCode}
+            </>
+          ) : null}
           <br />
-          {c.legalForm} au capital de {c.capital} €
-          <br />
-          Siège social : {c.address}
-          <br />
-          RCS : {c.rcs}
-          <br />
-          SIRET : {c.siret}
-          <br />
-          TVA intracommunautaire : {c.vat}
+          {c.vatExempt ? c.vat : <>TVA intracommunautaire : {c.vat}</>}
           <br />
           Directeur de la publication : {c.publisher}
-          <br />
-          Contact :{" "}
-          <a href={`mailto:${c.contactEmail}`} className="text-[var(--brand-primary)] hover:underline">
-            {c.contactEmail}
-          </a>
-        </p>
-        <p className="mt-2 text-[color:var(--foreground)]/60">
-          Informations fictives à titre de démonstration — à remplacer par les données réelles de votre
-          société avant tout lancement commercial.
+          {c.contactEmail ? (
+            <>
+              <br />
+              Contact :{" "}
+              <a href={`mailto:${c.contactEmail}`} className="text-[var(--brand-primary)] hover:underline">
+                {c.contactEmail}
+              </a>
+            </>
+          ) : null}
         </p>
       </section>
 
       <section>
         <h2 className="text-lg font-semibold text-[var(--foreground)]">Hébergement</h2>
         <p className="mt-2">
-          Vercel Inc.
-          <br />
-          440 N Barranca Ave #4133, Covina, CA 91723, États-Unis
+          {c.hostingProvider}
+          {c.hostingProviderAddress ? (
+            <>
+              <br />
+              {c.hostingProviderAddress}
+            </>
+          ) : null}
           <br />
           Site : vercel.com
         </p>
@@ -69,11 +95,17 @@ export default function LegalPage() {
           <a href="/privacy" className="text-[var(--brand-primary)] hover:underline">
             politique de confidentialité
           </a>
-          . Conformément au RGPD, vous pouvez exercer vos droits en nous contactant à{" "}
-          <a href={`mailto:${c.dpoEmail}`} className="text-[var(--brand-primary)] hover:underline">
-            {c.dpoEmail}
-          </a>
           .
+          {c.dpoEmail ? (
+            <>
+              {" "}
+              Conformément au RGPD, vous pouvez exercer vos droits en nous contactant à{" "}
+              <a href={`mailto:${c.dpoEmail}`} className="text-[var(--brand-primary)] hover:underline">
+                {c.dpoEmail}
+              </a>
+              .
+            </>
+          ) : null}
         </p>
       </section>
 

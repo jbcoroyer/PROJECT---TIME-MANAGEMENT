@@ -1,15 +1,21 @@
-# Déploiement — Workspace
+# Déploiement — RegiePilot
 
 Guide pour **https://project-time-management.vercel.app/**
 
 Projet Supabase : `tjzagxyvjnkbwfpsppqw` (Project Manager - Public)  
 Dépôt GitHub : [jbcoroyer/PROJECT---TIME-MANAGEMENT](https://github.com/jbcoroyer/PROJECT---TIME-MANAGEMENT)
 
+Projet Vercel (nom Dashboard) : **app_gestion_temps**  
+URL publique (inchangée après renommage) : **https://project-time-management.vercel.app**
+
+> Renommer le **Project Name** dans Vercel ne change pas automatiquement l’URL `.vercel.app` : Vercel conserve l’ancien sous-domaine. C’est normal que l’écran affiche encore `project-time-management` dans l’aperçu URL tant qu’aucun nouveau domaine n’est ajouté.  
+> Ne pas utiliser `app-gestion-temps.vercel.app` (tirets) — autre application.
+
 ---
 
 ## 1. Variables Vercel (Production)
 
-Dashboard : [project-time-management → Settings → Environment Variables](https://vercel.com/jean-baptiste-coroyers-projects/project-time-management/settings/environment-variables)
+Dashboard : [app_gestion_temps → Settings → Environment Variables](https://vercel.com/jean-baptiste-coroyers-projects/app_gestion_temps/settings/environment-variables)
 
 ### Obligatoires
 
