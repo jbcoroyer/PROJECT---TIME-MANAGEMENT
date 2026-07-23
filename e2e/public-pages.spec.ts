@@ -9,7 +9,7 @@ test.describe("Pages publiques", () => {
   test("affiche la page tarifs", async ({ page }) => {
     await page.goto("/pricing");
     await expect(page.getByRole("heading", { name: /Un seul prix/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Abonnement WorkSpace/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /RegiePilot Pro/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /Essayer .* jours gratuits/i })).toBeVisible();
   });
 

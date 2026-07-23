@@ -432,7 +432,7 @@ const frCore: MessageTree = {
       trialDays: "Essai complet, sans CB",
       allIncluded: "Tout inclus",
       uniqueOffer: "Offre unique",
-      planName: "Abonnement {product}",
+      planName: "{product} Pro",
       planDesc:
         "Pour toutes les équipes qui gèrent projets et planning. Le minimum de {floor} €/mois (ou {annualFloor} €/an) couvre jusqu'à {seats} collaborateurs.",
       tryTrial: "Essayer {days} jours gratuits",

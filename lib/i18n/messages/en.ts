@@ -425,7 +425,7 @@ const enCore: MessageTree = {
       trialDays: "Full trial, no card",
       allIncluded: "All included",
       uniqueOffer: "Single offer",
-      planName: "{product} subscription",
+      planName: "{product} Pro",
       planDesc:
         "For every team managing projects and planning. The €{floor}/month (or €{annualFloor}/year) minimum covers up to {seats} teammates.",
       tryTrial: "Try {days} days free",

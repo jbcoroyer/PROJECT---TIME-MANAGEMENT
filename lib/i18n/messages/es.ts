@@ -428,7 +428,7 @@ const esOverrides: MessageTree = {
       trialDays: "Prueba completa, sin tarjeta",
       allIncluded: "Todo incluido",
       uniqueOffer: "Oferta única",
-      planName: "Suscripción {product}",
+      planName: "{product} Pro",
       planDesc:
         "Para equipos que gestionan proyectos y planificación. El mínimo de {floor} €/mes (o {annualFloor} €/año) cubre hasta {seats} compañeros.",
       tryTrial: "Probar {days} días gratis",
