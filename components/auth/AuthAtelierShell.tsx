@@ -78,7 +78,7 @@ export default function AuthAtelierShell({ children, heading, subtitle }: AuthAt
         </div>
 
         <p className="relative m-0 font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.14em] text-[rgba(246,241,231,0.4)]">
-          © 2026 WorkSpace — Fait en France 🇫🇷
+          {t("auth.copyright", { product: branding.appName })}
         </p>
       </aside>
 

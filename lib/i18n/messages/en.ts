@@ -219,6 +219,7 @@ const enCore: MessageTree = {
     proofIntegrations: "AI, Outlook 365 and Slack / Teams alerts included",
     proofPricing:
       "{seat} €/user/mo or {annualSeat} €/year (2 months free) · min. {floor} €/mo or {annualFloor} €/yr · {days}-day trial, no card",
+    copyright: "© 2026 {product} — Made in France 🇫🇷",
   },
   invite: {
     kicker: "Invitation",
@@ -424,7 +425,7 @@ const enCore: MessageTree = {
       trialDays: "Full trial, no card",
       allIncluded: "All included",
       uniqueOffer: "Single offer",
-      planName: "WorkSpace subscription",
+      planName: "{product} subscription",
       planDesc:
         "For every team managing projects and planning. The €{floor}/month (or €{annualFloor}/year) minimum covers up to {seats} teammates.",
       tryTrial: "Try {days} days free",

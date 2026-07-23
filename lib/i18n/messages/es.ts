@@ -222,6 +222,7 @@ const esOverrides: MessageTree = {
     proofIntegrations: "IA, Outlook 365 y alertas Slack / Teams incluidos",
     proofPricing:
       "{seat} €/usuario/mes o {annualSeat} €/año (2 meses gratis) · mín. {floor} €/mes o {annualFloor} €/año · {days} d de prueba sin tarjeta",
+    copyright: "© 2026 {product} — Hecho en Francia 🇫🇷",
   },
   invite: {
     kicker: "Invitación",
@@ -427,7 +428,7 @@ const esOverrides: MessageTree = {
       trialDays: "Prueba completa, sin tarjeta",
       allIncluded: "Todo incluido",
       uniqueOffer: "Oferta única",
-      planName: "Suscripción WorkSpace",
+      planName: "Suscripción {product}",
       planDesc:
         "Para equipos que gestionan proyectos y planificación. El mínimo de {floor} €/mes (o {annualFloor} €/año) cubre hasta {seats} compañeros.",
       tryTrial: "Probar {days} días gratis",
